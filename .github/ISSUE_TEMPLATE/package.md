@@ -1,5 +1,5 @@
 ---
-name: Bug report - Bottlerocket image
+name: Bug report - Bottlerocket package
 about: Let us know about a problem with Bottlerocket
 labels: status/needs-triage, type/bug
 ---
@@ -11,7 +11,7 @@ Tips:
 - Please include any error messages you received, with any required context.
 -->
 
-**Image I'm using:**
+**Package I'm using:**
 
 
 

@@ -7,12 +7,12 @@ on:
     paths:
       - '.github/**'
       - 'sources/Cargo.lock'
-      - 'tools/pubsys*/**'
-      - '!tools/pubsys/policies/**'
-      - '!tools/pubsys/**.example'
+      - 'Twoliter.toml'
+      - 'Twoliter.lock'
+      - 'Makefile'
 jobs:
   cache:
-    if: github.repository == 'bottlerocket-os/bottlerocket'
+    if: github.repository == 'bottlerocket-os/bottlerocket-core-kit'
     runs-on:
       group: bottlerocket
       labels: bottlerocket_ubuntu-latest_8-core
