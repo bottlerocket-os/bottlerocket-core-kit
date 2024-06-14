@@ -1,3 +1,0 @@
-[configuration-files.docker-daemon-config]
-path = "/etc/docker/daemon.json"
-template-path = "/usr/share/templates/docker-daemon-nvidia-json"

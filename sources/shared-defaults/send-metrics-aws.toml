@@ -1,3 +1,0 @@
-[metadata.settings.metrics.send-metrics]
-# only enable metrics in partitions with unhindered access to the metrics endpoint
-setting-generator = "shibaken is-partition --partition aws --partition aws-us-gov"

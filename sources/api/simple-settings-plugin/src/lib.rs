@@ -3,11 +3,20 @@
 */
 
 use bottlerocket_settings_plugin::SettingsPlugin;
-use model_derive::model;
+use serde::{Deserialize, Serialize};
 
-#[derive(SettingsPlugin)]
-#[model(rename = "settings", impl_default = true)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct NtpSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    time_servers: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    options: Option<Vec<String>>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, SettingsPlugin)]
 struct SimpleSettings {
-    motd: settings_extension_motd::MotdV1,
-    ntp: settings_extension_ntp::NtpSettingsV1,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    motd: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ntp: Option<NtpSettings>,
 }

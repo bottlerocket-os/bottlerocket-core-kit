@@ -1,3 +1,0 @@
-# Autoscaling warm pool support
-[settings.autoscaling]
-should-wait = false

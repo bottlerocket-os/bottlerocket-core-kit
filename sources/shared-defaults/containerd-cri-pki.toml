@@ -1,2 +1,0 @@
-[metadata.settings.pki]
-affected-services = ["pki", "containerd"]

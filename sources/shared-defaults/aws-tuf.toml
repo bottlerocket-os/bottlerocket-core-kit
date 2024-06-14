@@ -1,5 +1,0 @@
-[metadata.settings.updates.targets-base-url]
-setting-generator = "schnauzer-v2 render --requires 'aws@v1' --requires 'updates@v1(helpers=[tuf-prefix])' --template '{{ tuf-prefix settings.aws.region }}/targets/'"
-
-[metadata.settings.updates.metadata-base-url]
-setting-generator = "schnauzer-v2 render --requires 'aws@v1' --requires 'updates@v1(helpers=[metadata-prefix, tuf-prefix])' --template '{{ tuf-prefix settings.aws.region }}{{ metadata-prefix settings.aws.region }}/2020-07-07/{{ os.variant_id }}/{{ os.arch }}/'"

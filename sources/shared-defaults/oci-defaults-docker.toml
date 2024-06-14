@@ -1,2 +1,0 @@
-[metadata.settings.oci-defaults]
-affected-services = ["docker"]
