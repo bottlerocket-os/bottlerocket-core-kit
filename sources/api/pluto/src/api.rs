@@ -18,7 +18,7 @@ pub(crate) struct AwsK8sInfo {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cluster_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cluster_dns_ip: Option<modeled_types::KubernetesClusterDnsIp>,
+    pub(crate) cluster_dns_ip: Option<bottlerocket_modeled_types::KubernetesClusterDnsIp>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) node_ip: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -44,7 +44,7 @@ pub(crate) struct Kubernetes {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cluster_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cluster_dns_ip: Option<modeled_types::KubernetesClusterDnsIp>,
+    pub(crate) cluster_dns_ip: Option<bottlerocket_modeled_types::KubernetesClusterDnsIp>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) node_ip: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

@@ -20,7 +20,7 @@ use std::io::{BufRead, Seek};
 use std::path::{Path, PathBuf};
 use std::process;
 
-use modeled_types::{Identifier, PemCertificateString};
+use bottlerocket_modeled_types::{Identifier, PemCertificateString};
 
 // Default location of the config file
 const DEFAULT_CONFIG_FILE: &str = "/etc/certdog.toml";
@@ -304,12 +304,12 @@ type Result<T> = std::result::Result<T, error::Error>;
 #[cfg(test)]
 mod test_certdog {
     use super::*;
-    use modeled_types::{Identifier, PemCertificateString};
+    use bottlerocket_modeled_types::{Identifier, PemCertificateString};
     use std::collections::HashMap;
     use std::convert::TryFrom;
     use std::fs::File;
 
-    static TEST_PEM: &str = include_str!("../../../models/tests/data/test-pem");
+    static TEST_PEM: &str = include_str!("../tests/data/test-pem");
 
     #[test]
     fn bundles_splitted() {

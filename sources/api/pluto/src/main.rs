@@ -39,8 +39,8 @@ mod hyper_proxy;
 mod proxy;
 
 use api::AwsK8sInfo;
+use bottlerocket_modeled_types::KubernetesClusterDnsIp;
 use imdsclient::ImdsClient;
-use modeled_types::KubernetesClusterDnsIp;
 use snafu::{ensure, OptionExt, ResultExt};
 use std::fs::File;
 use std::io::{BufRead, BufReader};

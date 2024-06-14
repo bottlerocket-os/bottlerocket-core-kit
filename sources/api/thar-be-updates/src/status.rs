@@ -1,8 +1,8 @@
 use crate::error;
 use crate::error::Result;
+use bottlerocket_modeled_types::FriendlyVersion;
 use bottlerocket_release::BottlerocketRelease;
 use chrono::{DateTime, Utc};
-use modeled_types::FriendlyVersion;
 use serde::{Deserialize, Serialize};
 use signpost::State;
 use snafu::{OptionExt, ResultExt};

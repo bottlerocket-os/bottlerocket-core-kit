@@ -5,8 +5,8 @@ It sets kernel-related settings, for example:
 * lockdown mode, based on the value of `settings.kernel.lockdown`
 */
 
+use bottlerocket_modeled_types::{Lockdown, SysctlKey};
 use log::{debug, error, info, trace, warn};
-use modeled_types::{Lockdown, SysctlKey};
 use serde::{Deserialize, Serialize};
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use snafu::ResultExt;

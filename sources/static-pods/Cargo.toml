@@ -12,12 +12,16 @@ exclude = ["README.md"]
 [dependencies]
 base64 = "0.21"
 log = "0.4"
-modeled-types = { path = "../models/modeled-types", version = "0.1" }
 serde = { version = "1", features = ["default"]}
 simplelog = "0.12"
 snafu = "0.8"
 toml = "0.8"
 tempfile = "3"
+
+[dependencies.bottlerocket-modeled-types]
+git = "https://github.com/bottlerocket-os/bottlerocket-settings-sdk"
+tag = "bottlerocket-settings-models-v0.1.0"
+version = "0.1.0"
 
 [build-dependencies]
 generate-readme = { version = "0.1", path = "../generate-readme" }

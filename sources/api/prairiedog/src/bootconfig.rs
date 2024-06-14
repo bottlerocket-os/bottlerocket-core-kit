@@ -1,7 +1,7 @@
 use crate::error;
 use crate::error::Result;
 use crate::initrd::generate_initrd;
-use modeled_types::{BootConfigKey, BootConfigValue};
+use bottlerocket_modeled_types::{BootConfigKey, BootConfigValue};
 use serde::{Deserialize, Serialize};
 use snafu::{ensure, ResultExt};
 use std::collections::HashMap;
@@ -352,8 +352,8 @@ mod boot_settings_tests {
         boot_config_to_boot_settings_json, boot_settings_change_requires_reboot,
         serialize_boot_settings_to_boot_config, DEFAULT_BOOTCONFIG_STR,
     };
+    use bottlerocket_modeled_types::{BootConfigKey, BootConfigValue};
     use maplit::hashmap;
-    use modeled_types::{BootConfigKey, BootConfigValue};
     use serde_json::json;
     use serde_json::value::Value;
     use std::collections::HashMap;

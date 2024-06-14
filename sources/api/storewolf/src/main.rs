@@ -20,10 +20,10 @@ use std::path::Path;
 use std::str::FromStr;
 use std::{env, fs, process};
 
+use bottlerocket_modeled_types::SingleLineString;
 use datastore::key::{Key, KeyType};
 use datastore::serialization::{to_pairs, to_pairs_with_prefix};
 use datastore::{self, DataStore, FilesystemDataStore, ScalarError};
-use model::modeled_types::SingleLineString;
 
 // The default path to defaults.toml.
 const DEFAULTS_TOML: &str = "/etc/storewolf/defaults.toml";
@@ -35,9 +35,9 @@ mod error {
     use std::io;
     use std::path::PathBuf;
 
+    use bottlerocket_modeled_types::error::Error as ModeledTypesError;
     use datastore::key::KeyType;
     use datastore::{self, serialization, ScalarError};
-    use model::modeled_types::error::Error as ModeledTypesError;
     use snafu::Snafu;
 
     /// Potential errors during execution

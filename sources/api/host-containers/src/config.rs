@@ -1,4 +1,4 @@
-use modeled_types::{Identifier, Url, ValidBase64};
+use bottlerocket_modeled_types::{Identifier, Url, ValidBase64};
 use serde::Deserialize;
 use std::collections::HashMap;
 
