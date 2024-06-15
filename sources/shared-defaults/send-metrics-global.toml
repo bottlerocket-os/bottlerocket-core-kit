@@ -1,3 +1,0 @@
-[settings.metrics]
-# whether or not health metrics will be sent. set to false to opt-out
-send-metrics = true

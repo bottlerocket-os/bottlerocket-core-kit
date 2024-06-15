@@ -1,2 +1,0 @@
-[settings.kubernetes]
-seccomp-default = false

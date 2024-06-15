@@ -1,0 +1,128 @@
+[package]
+name = "bottlerocket-core-kit"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[package.metadata.build-kit]
+vendor = "bottlerocket"
+
+[lib]
+path = "../kit.rs"
+
+[build-dependencies]
+acpid = { path = "../../packages/acpid" }
+amazon-ssm-agent = { path = "../../packages/amazon-ssm-agent" }
+aws-iam-authenticator = { path = "../../packages/aws-iam-authenticator" }
+aws-signing-helper = { path = "../../packages/aws-signing-helper" }
+bash = { path = "../../packages/bash" }
+binutils = { path = "../../packages/binutils" }
+chrony = { path = "../../packages/chrony" }
+cni = { path = "../../packages/cni" }
+cni-plugins = { path = "../../packages/cni-plugins" }
+conntrack-tools = { path = "../../packages/conntrack-tools" }
+containerd = { path = "../../packages/containerd" }
+coreutils = { path = "../../packages/coreutils" }
+dbus-broker = { path = "../../packages/dbus-broker" }
+docker-cli = { path = "../../packages/docker-cli" }
+docker-engine = { path = "../../packages/docker-engine" }
+docker-init = { path = "../../packages/docker-init" }
+e2fsprogs = { path = "../../packages/e2fsprogs" }
+early-boot-config = { path = "../../packages/early-boot-config" }
+ecr-credential-provider-1_27 = { path = "../../packages/ecr-credential-provider-1.27" }
+ecr-credential-provider-1_29 = { path = "../../packages/ecr-credential-provider-1.29" }
+ecr-credential-provider-1_30 = { path = "../../packages/ecr-credential-provider-1.30" }
+ecr-credential-provider = { path = "../../packages/ecr-credential-provider" }
+ecs-agent = { path = "../../packages/ecs-agent" }
+ecs-gpu-init = { path = "../../packages/ecs-gpu-init" }
+ethtool = { path = "../../packages/ethtool" }
+filesystem = { path = "../../packages/filesystem" }
+findutils = { path = "../../packages/findutils" }
+glibc = { path = "../../packages/glibc" }
+grep = { path = "../../packages/grep" }
+grub = { path = "../../packages/grub" }
+host-ctr = { path = "../../packages/host-ctr" }
+iproute = { path = "../../packages/iproute" }
+iptables = { path = "../../packages/iptables" }
+iputils = { path = "../../packages/iputils" }
+kernel-5_10 = { path = "../../packages/kernel-5.10" }
+kernel-5_15 = { path = "../../packages/kernel-5.15" }
+kernel-6_1 = { path = "../../packages/kernel-6.1" }
+kexec-tools = { path = "../../packages/kexec-tools" }
+keyutils = { path = "../../packages/keyutils" }
+kmod-5_10-nvidia = { path = "../../packages/kmod-5.10-nvidia" }
+kmod-5_15-nvidia = { path = "../../packages/kmod-5.15-nvidia" }
+kmod-6_1-nvidia = { path = "../../packages/kmod-6.1-nvidia" }
+kmod = { path = "../../packages/kmod" }
+kubernetes-1_23 = { path = "../../packages/kubernetes-1.23" }
+kubernetes-1_24 = { path = "../../packages/kubernetes-1.24" }
+kubernetes-1_25 = { path = "../../packages/kubernetes-1.25" }
+kubernetes-1_26 = { path = "../../packages/kubernetes-1.26" }
+kubernetes-1_27 = { path = "../../packages/kubernetes-1.27" }
+kubernetes-1_28 = { path = "../../packages/kubernetes-1.28" }
+kubernetes-1_29 = { path = "../../packages/kubernetes-1.29" }
+kubernetes-1_30 = { path = "../../packages/kubernetes-1.30" }
+libacl = { path = "../../packages/libacl" }
+libattr = { path = "../../packages/libattr" }
+libaudit = { path = "../../packages/libaudit" }
+libcap = { path = "../../packages/libcap" }
+libdbus = { path = "../../packages/libdbus" }
+libelf = { path = "../../packages/libelf" }
+libexpat = { path = "../../packages/libexpat" }
+libffi = { path = "../../packages/libffi" }
+libgcc = { path = "../../packages/libgcc" }
+libglib = { path = "../../packages/libglib" }
+libinih = { path = "../../packages/libinih" }
+libiw = { path = "../../packages/libiw" }
+libkcapi = { path = "../../packages/libkcapi" }
+libmnl = { path = "../../packages/libmnl" }
+libncurses = { path = "../../packages/libncurses" }
+libnetfilter_conntrack = { path = "../../packages/libnetfilter_conntrack" }
+libnetfilter_cthelper = { path = "../../packages/libnetfilter_cthelper" }
+libnetfilter_cttimeout = { path = "../../packages/libnetfilter_cttimeout" }
+libnetfilter_queue = { path = "../../packages/libnetfilter_queue" }
+libnfnetlink = { path = "../../packages/libnfnetlink" }
+libnftnl = { path = "../../packages/libnftnl" }
+libnl = { path = "../../packages/libnl" }
+libnvidia-container = { path = "../../packages/libnvidia-container" }
+libnvme = { path = "../../packages/libnvme" }
+libpcre = { path = "../../packages/libpcre" }
+libseccomp = { path = "../../packages/libseccomp" }
+libselinux = { path = "../../packages/libselinux" }
+libsemanage = { path = "../../packages/libsemanage" }
+libsepol = { path = "../../packages/libsepol" }
+libstd-rust = { path = "../../packages/libstd-rust" }
+libtirpc = { path = "../../packages/libtirpc" }
+liburcu = { path = "../../packages/liburcu" }
+libxcrypt = { path = "../../packages/libxcrypt" }
+libz = { path = "../../packages/libz" }
+libzstd = { path = "../../packages/libzstd" }
+linux-firmware = { path = "../../packages/linux-firmware" }
+login = { path = "../../packages/login" }
+makedumpfile = { path = "../../packages/makedumpfile" }
+mdadm = { path = "../../packages/mdadm" }
+microcode = { path = "../../packages/microcode" }
+netdog = {path = "../../packages/netdog" }
+nvidia-container-toolkit = { path = "../../packages/nvidia-container-toolkit" }
+nvidia-k8s-device-plugin = { path = "../../packages/nvidia-k8s-device-plugin" }
+nvme-cli = { path = "../../packages/nvme-cli" }
+oci-add-hooks = { path = "../../packages/oci-add-hooks" }
+open-vm-tools = { path = "../../packages/open-vm-tools" }
+os = { path = "../../packages/os" }
+pigz = { path = "../../packages/pigz" }
+policycoreutils = { path = "../../packages/policycoreutils" }
+procps = { path = "../../packages/procps" }
+readline = { path = "../../packages/readline" }
+release = { path = "../../packages/release" }
+runc = { path = "../../packages/runc" }
+selinux-policy = { path = "../../packages/selinux-policy" }
+shim = { path = "../../packages/shim" }
+socat = { path = "../../packages/socat" }
+soci-snapshotter = { path = "../../packages/soci-snapshotter" }
+static-pods = { path = "../../packages/static-pods" }
+strace = { path = "../../packages/strace" }
+systemd = { path = "../../packages/systemd" }
+util-linux = { path = "../../packages/util-linux" }
+wicked = { path = "../../packages/wicked" }
+xfsprogs = { path = "../../packages/xfsprogs" }

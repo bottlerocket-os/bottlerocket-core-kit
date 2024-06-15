@@ -194,11 +194,6 @@ Summary: Bottlerocket log extractor
 %description -n %{_cross_os}logdog
 use logdog to extract logs from the Bottlerocket host
 
-%package -n %{_cross_os}migrations
-Summary: Thar data store migrations
-%description -n %{_cross_os}migrations
-%{summary}.
-
 %package -n %{_cross_os}prairiedog
 Summary: Tools for kdump support
 Requires: %{_cross_os}kexec-tools
@@ -280,22 +275,14 @@ Summary: XFS progs cli
 %build
 mkdir bin
 
-# We want to build some components statically:
-# * apiclient, because it needs to run from containers that don't have the same libraries available.
-# * migrations, because they need to run after a system update where available libraries can change.
+# We want to build apiclient statically, because it needs to run from containers that don't have
+# the same libraries available.
 #
 # Most of our components don't need to be static, though.  This means we run cargo once for static
 # and once for non-static.  There's a long tail of crate builds for each of these that can be
 # mitigated by running them in parallel, saving a fair amount of time.  To do this, we kick off the
 # static build in the background, run the non-static (main) build in the foreground, and then wait
 # for the static build and print its output afterward.  A failure of either will stop the build.
-
-# For static builds, first we find the migrations in the source tree.  We assume the directory name
-# is the same as the crate name.
-migrations=()
-for migration in $(find %{_builddir}/sources/api/migration/migrations/v[0-9]* -mindepth 1 -maxdepth 1 -type d); do
-    migrations+=("-p $(basename ${migration})")
-done
 
 # Since RPM automatically logs the commands that run, and since we want to display those commands
 # along with the output from the background job, we do some file descriptor juggling below.
@@ -310,7 +297,6 @@ exec 1>"${static_output}" 2>&1
 # Build static binaries in the background.
 %cargo_build_static --manifest-path %{_builddir}/sources/Cargo.toml \
     -p apiclient \
-    ${migrations[*]} \
     &
 # Save the PID so we can wait for it later.
 static_pid="$!"
@@ -458,22 +444,6 @@ for p in apiclient ; do
   install -p -m 0755 ${HOME}/.cache/.static/%{__cargo_target_static}/release/${p} %{buildroot}%{_cross_bindir}
 done
 
-install -d %{buildroot}%{_cross_datadir}/migrations
-for version_path in %{_builddir}/sources/api/migration/migrations/v[0-9]*; do
-  [ -e "${version_path}" ] || continue
-  for migration_path in "${version_path}"/*; do
-    [ -e "${migration_path}" ] || continue
-
-    version="${version_path##*/}"
-    crate_name="${migration_path##*/}"
-    migration_binary_name="migrate_${version}_${crate_name#migrate-}"
-    built_path="${HOME}/.cache/.static/%{__cargo_target_static}/release/${crate_name}"
-    target_path="%{buildroot}%{_cross_datadir}/migrations/${migration_binary_name}"
-
-    install -m 0555 "${built_path}" "${target_path}"
-  done
-done
-
 install -d %{buildroot}%{_cross_datadir}/bottlerocket
 
 install -d %{buildroot}%{_cross_sysusersdir}
@@ -591,10 +561,6 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %files -n %{_cross_os}migration
 %{_cross_bindir}/migrator
 %{_cross_tmpfilesdir}/migration.conf
-
-%files -n %{_cross_os}migrations
-%dir %{_cross_datadir}/migrations
-%{_cross_datadir}/migrations
 
 %files -n %{_cross_os}settings-committer
 %{_cross_bindir}/settings-committer
