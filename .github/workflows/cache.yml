@@ -1,4 +1,4 @@
-# This workflow caches crate dependencies and build artifacts for tools (except 'test-tools' since we don't use them in build workflows).
+# This workflow caches crate dependencies, build tools, and external kits.
 # The cache is only usable by workflows started from pull requests against the develop branch.
 name: CacheDepsAndTools
 on:
@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/**'
       - 'sources/Cargo.lock'
+      - 'sources/**/go.sum'
       - 'Twoliter.toml'
       - 'Twoliter.lock'
       - 'Makefile'
@@ -23,6 +24,13 @@ jobs:
         uses: ./.github/actions/setup-node
         with:
           perform-cache-cleanup: true
-      - run: cargo make install-twoliter
+      # This installs twoliter.
+      - run: make prep
+      # This fetches any external kit dependencies.
+      - run: make fetch
+      # This cleans the existing project local caches.
+      - run: make twoliter purge-cache
+      # This fetches Rust crate and Go module dependencies.
+      - run: make twoliter fetch
       # This cleans the cargo cache in ~/.cargo
       - run: cargo-cache

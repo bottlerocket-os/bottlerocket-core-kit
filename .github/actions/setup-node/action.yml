@@ -20,11 +20,17 @@ runs:
           ~/.cargo
         key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}
     - uses: actions/cache@v4
-      # Cache first-party code dependencies
+      # Cache Rust dependencies
       with:
         path: |
           .cargo
         key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}-${{ hashFiles('sources/Cargo.lock') }}
+    - uses: actions/cache@v4
+      # Cache Go dependencies
+      with:
+        path: |
+          .gomodcache
+        key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}-${{ hashFiles('sources/**/go.sum') }}
     - run: cargo install cargo-make
       shell: bash
     - if: ${{ inputs.perform-cache-cleanup }}
