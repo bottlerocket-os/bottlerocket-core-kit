@@ -3,8 +3,6 @@ TOOLS_DIR := $(TOP)tools
 TWOLITER_DIR := $(TOOLS_DIR)/twoliter
 TWOLITER := $(TWOLITER_DIR)/twoliter
 CARGO_HOME := $(TOP).cargo
-VERSION := $(shell awk '/^release-version = /{ print $$3 }' $(TOP)Twoliter.toml)
-GIT_HASH := $(shell git describe --always --dirty --exclude '*' || echo 00000000 )
 
 TWOLITER_VERSION ?= "0.3.0"
 KIT ?= bottlerocket-core-kit
@@ -34,7 +32,7 @@ build: fetch
 	@$(TWOLITER) build kit $(KIT) --arch $(ARCH)
 
 publish: prep
-	@$(TWOLITER) publish kit $(KIT) $(VENDOR) v$(VERSION)-$(GIT_HASH)
+	@$(TWOLITER) publish kit $(KIT) $(VENDOR)
 
 TWOLITER_MAKE = $(TWOLITER) make --cargo-home $(CARGO_HOME) --arch $(ARCH)
 
