@@ -486,9 +486,9 @@ dependencies = [
 
 [[package]]
 name = "asn1-rs"
-version = "0.5.2"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f6fd5ddaf0351dff5b8da21b2fb4ff8e08ddd02857f0bf69c47639106c0fff0"
+checksum = "22ad1373757efa0f70ec53939aabc7152e1591cb485208052993070ac8d2429d"
 dependencies = [
  "asn1-rs-derive",
  "asn1-rs-impl",
@@ -502,25 +502,25 @@ dependencies = [
 
 [[package]]
 name = "asn1-rs-derive"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "726535892e8eae7e70657b4c8ea93d26b8553afb1ce617caee529ef96d7dee6c"
+checksum = "7378575ff571966e99a744addeff0bff98b8ada0dedf1956d59e634db95eaac1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.66",
  "synstructure",
 ]
 
 [[package]]
 name = "asn1-rs-impl"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2777730b2039ac0f95f093556e61b6d26cebed5393ca6f152717777cec3a42ed"
+checksum = "7b18050c2cd6fe86c3a76584ef5e0baf286d038cda203eb6223df2cc413565f7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.66",
 ]
 
 [[package]]
@@ -1032,10 +1032,10 @@ name = "bootstrap-containers"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "bottlerocket-modeled-types",
  "constants",
  "generate-readme",
  "log",
- "modeled-types",
  "serde",
  "serde_json",
  "simplelog",
@@ -1049,6 +1049,38 @@ version = "0.1.0"
 dependencies = [
  "rand",
  "serde_json",
+ "settings-extension-updates",
+]
+
+[[package]]
+name = "bottlerocket-model-derive"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "darling 0.20.8",
+ "quote",
+ "syn 2.0.66",
+]
+
+[[package]]
+name = "bottlerocket-modeled-types"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "base64",
+ "bottlerocket-scalar",
+ "bottlerocket-scalar-derive",
+ "bottlerocket-string-impls-for",
+ "indexmap 2.2.5",
+ "lazy_static",
+ "regex",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "snafu",
+ "url",
+ "x509-parser",
 ]
 
 [[package]]
@@ -1064,6 +1096,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "bottlerocket-scalar"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "serde",
+ "serde_plain",
+]
+
+[[package]]
+name = "bottlerocket-scalar-derive"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-scalar",
+ "darling 0.20.8",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_plain",
+ "syn 2.0.66",
+]
+
+[[package]]
 name = "bottlerocket-settings-derive"
 version = "0.1.0"
 source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-plugin-v0.1.0#9cb0286b59cd4fcb5df9dd441aee8521ea5698e6"
@@ -1072,6 +1127,40 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.66",
+]
+
+[[package]]
+name = "bottlerocket-settings-models"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-scalar",
+ "bottlerocket-scalar-derive",
+ "bottlerocket-string-impls-for",
+ "libc",
+ "serde",
+ "serde_json",
+ "settings-extension-autoscaling",
+ "settings-extension-aws",
+ "settings-extension-bootstrap-containers",
+ "settings-extension-cloudformation",
+ "settings-extension-container-registry",
+ "settings-extension-container-runtime",
+ "settings-extension-dns",
+ "settings-extension-ecs",
+ "settings-extension-host-containers",
+ "settings-extension-kernel",
+ "settings-extension-metrics",
+ "settings-extension-motd",
+ "settings-extension-network",
+ "settings-extension-ntp",
+ "settings-extension-oci-defaults",
+ "settings-extension-oci-hooks",
+ "settings-extension-pki",
+ "settings-extension-updates",
+ "toml",
 ]
 
 [[package]]
@@ -1084,6 +1173,39 @@ dependencies = [
  "lazy_static",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "bottlerocket-settings-sdk"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "argh",
+ "bottlerocket-template-helper",
+ "serde",
+ "serde_json",
+ "snafu",
+ "tracing",
+]
+
+[[package]]
+name = "bottlerocket-string-impls-for"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "bottlerocket-template-helper"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "darling 0.20.8",
+ "proc-macro2",
+ "quote",
+ "serde_json",
+ "syn 2.0.66",
 ]
 
 [[package]]
@@ -1215,10 +1337,10 @@ version = "0.1.0"
 dependencies = [
  "argh",
  "base64",
+ "bottlerocket-modeled-types",
  "constants",
  "generate-readme",
  "log",
- "modeled-types",
  "serde",
  "simplelog",
  "snafu",
@@ -1363,9 +1485,9 @@ checksum = "69f3b219d28b6e3b4ac87bc1fc522e0803ab22e055da177bff0068c4150c61a6"
 name = "corndog"
 version = "0.1.0"
 dependencies = [
+ "bottlerocket-modeled-types",
  "generate-readme",
  "log",
- "modeled-types",
  "serde",
  "serde_json",
  "simplelog",
@@ -1524,9 +1646,9 @@ dependencies = [
 
 [[package]]
 name = "der-parser"
-version = "8.2.0"
+version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbd676fbbab537128ef0278adb5576cf363cff6aa22a7b24effe97347cfab61e"
+checksum = "5cd0a5c643689626bec213c4d8bd4d96acc8ffdb4ad4bb6bc16abf27d5f4b553"
 dependencies = [
  "asn1-rs",
  "displaydoc",
@@ -2089,10 +2211,10 @@ name = "host-containers"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "bottlerocket-modeled-types",
  "constants",
  "generate-readme",
  "log",
- "modeled-types",
  "serde",
  "simplelog",
  "snafu",
@@ -2586,46 +2708,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "model-derive"
-version = "0.1.0"
-dependencies = [
- "darling 0.20.8",
- "generate-readme",
- "quote",
- "syn 2.0.66",
-]
-
-[[package]]
-name = "modeled-types"
-version = "0.1.0"
-dependencies = [
- "base64",
- "generate-readme",
- "indexmap 2.2.5",
- "lazy_static",
- "regex",
- "scalar",
- "scalar-derive",
- "semver",
- "serde",
- "serde_json",
- "serde_plain",
- "snafu",
- "string_impls_for",
- "url",
- "x509-parser",
-]
-
-[[package]]
 name = "models"
 version = "0.1.0"
 dependencies = [
  "bottlerocket-release",
+ "bottlerocket-settings-models",
  "bottlerocket-settings-plugin",
  "generate-readme",
  "libc",
- "model-derive",
- "modeled-types",
  "serde",
  "serde_json",
  "toml",
@@ -2801,9 +2891,9 @@ dependencies = [
 
 [[package]]
 name = "oid-registry"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bedf36ffb6ba96c2eb7144ef6270557b52e54b20c0a8e1eb2ff99a6c6959bff"
+checksum = "1c958dd45046245b9c3c2547369bb634eb461670b2e7e0de552905801a648d1d"
 dependencies = [
  "asn1-rs",
 ]
@@ -2988,6 +3078,7 @@ dependencies = [
  "aws-smithy-runtime",
  "aws-smithy-types",
  "aws-types",
+ "bottlerocket-modeled-types",
  "bytes",
  "constants",
  "futures-util",
@@ -2998,7 +3089,6 @@ dependencies = [
  "hyper-rustls",
  "imdsclient",
  "log",
- "modeled-types",
  "serde",
  "serde_json",
  "snafu",
@@ -3025,12 +3115,12 @@ name = "prairiedog"
 version = "0.1.0"
 dependencies = [
  "argh",
+ "bottlerocket-modeled-types",
  "bytes",
  "constants",
  "generate-readme",
  "log",
  "maplit",
- "modeled-types",
  "nix",
  "schnauzer",
  "serde",
@@ -3319,29 +3409,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "scalar"
-version = "0.1.0"
-dependencies = [
- "generate-readme",
- "serde",
- "serde_plain",
-]
-
-[[package]]
-name = "scalar-derive"
-version = "0.1.0"
-dependencies = [
- "darling 0.20.8",
- "generate-readme",
- "proc-macro2",
- "quote",
- "scalar",
- "serde",
- "serde_plain",
- "syn 2.0.66",
-]
-
-[[package]]
 name = "schannel"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3358,6 +3425,7 @@ dependencies = [
  "argh",
  "async-trait",
  "base64",
+ "bottlerocket-modeled-types",
  "bottlerocket-release",
  "cached",
  "constants",
@@ -3378,6 +3446,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_plain",
+ "settings-extension-oci-defaults",
  "simplelog",
  "snafu",
  "tokio",
@@ -3535,6 +3604,241 @@ dependencies = [
 ]
 
 [[package]]
+name = "settings-extension-autoscaling"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-aws"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-bootstrap-containers"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-cloudformation"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-container-registry"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-container-runtime"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-dns"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-ecs"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-host-containers"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-kernel"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-metrics"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-motd"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-settings-sdk",
+ "bottlerocket-string-impls-for",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-network"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-ntp"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-oci-defaults"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+ "toml",
+]
+
+[[package]]
+name = "settings-extension-oci-hooks"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-pki"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "settings-extension-updates"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.1.0#c5dfef43961795c1e7781ffc55e090883ff326d7"
+dependencies = [
+ "bottlerocket-model-derive",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-sdk",
+ "env_logger",
+ "rand",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "sha1"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3634,6 +3938,7 @@ name = "simple-settings-plugin"
 version = "0.1.0"
 dependencies = [
  "abi_stable",
+ "bottlerocket-settings-models",
  "bottlerocket-settings-plugin",
  "generate-readme",
  "serde",
@@ -3711,9 +4016,9 @@ name = "static-pods"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "bottlerocket-modeled-types",
  "generate-readme",
  "log",
- "modeled-types",
  "serde",
  "simplelog",
  "snafu",
@@ -3725,6 +4030,7 @@ dependencies = [
 name = "storewolf"
 version = "0.1.0"
 dependencies = [
+ "bottlerocket-modeled-types",
  "bottlerocket-release",
  "constants",
  "datastore",
@@ -3736,14 +4042,6 @@ dependencies = [
  "simplelog",
  "snafu",
  "toml",
-]
-
-[[package]]
-name = "string_impls_for"
-version = "0.1.0"
-dependencies = [
- "generate-readme",
- "serde",
 ]
 
 [[package]]
@@ -3812,14 +4110,13 @@ checksum = "2047c6ded9c721764247e62cd3b03c09ffc529b2ba5b10ec482ae507a4a70160"
 
 [[package]]
 name = "synstructure"
-version = "0.12.6"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f36bdaa60a83aca3921b5259d5400cbf5e90fc51931376a9bd4a0eb79aa7210f"
+checksum = "c8af7666ab7b6390ab78131fb5b0fce11d6b7a6951602017c35fa82800708971"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
- "unicode-xid",
+ "syn 2.0.66",
 ]
 
 [[package]]
@@ -3910,12 +4207,12 @@ dependencies = [
 name = "thar-be-updates"
 version = "0.1.0"
 dependencies = [
+ "bottlerocket-modeled-types",
  "bottlerocket-release",
  "chrono",
  "fs2",
  "generate-readme",
  "log",
- "modeled-types",
  "nix",
  "num-derive",
  "num-traits",
@@ -4294,12 +4591,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "unicode-xid"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f962df74c8c05a667b5ee8bcf162993134c104e96440b663c8daa176dc772d8c"
-
-[[package]]
 name = "unindent"
 version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4338,6 +4629,7 @@ version = "0.1.0"
 dependencies = [
  "argh",
  "async-trait",
+ "bottlerocket-modeled-types",
  "bottlerocket-release",
  "bytes",
  "chrono",
@@ -4345,7 +4637,6 @@ dependencies = [
  "futures-core",
  "log",
  "lz4",
- "modeled-types",
  "semver",
  "serde",
  "serde_json",
@@ -4758,9 +5049,9 @@ dependencies = [
 
 [[package]]
 name = "x509-parser"
-version = "0.15.1"
+version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7069fba5b66b9193bd2c5d3d4ff12b839118f6bcbef5328efafafb5395cf63da"
+checksum = "fcbc162f30700d6f3f82a24bf7cc62ffe7caea42c0b2cba8bf7f3ae50cf51f69"
 dependencies = [
  "asn1-rs",
  "data-encoding",

@@ -87,7 +87,7 @@ use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 use std::str::FromStr;
 
-use modeled_types::{BootstrapContainerMode, Identifier, Url, ValidBase64};
+use bottlerocket_modeled_types::{BootstrapContainerMode, Identifier, Url, ValidBase64};
 
 const ENV_FILE_DIR: &str = "/etc/bootstrap-containers";
 const DROPIN_FILE_DIR: &str = "/etc/systemd/system";
@@ -607,7 +607,9 @@ mod error {
 
         // `try_from` in `BootstrapContainerMode` already returns a useful error message
         #[snafu(display("Failed to parse mode: {}", source))]
-        BootstrapContainerMode { source: modeled_types::error::Error },
+        BootstrapContainerMode {
+            source: bottlerocket_modeled_types::error::Error,
+        },
 
         #[snafu(display("'{}' failed - stderr: {}",
                         bin_path, String::from_utf8_lossy(&output.stderr)))]

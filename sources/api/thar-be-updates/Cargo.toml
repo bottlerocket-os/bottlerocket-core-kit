@@ -14,7 +14,6 @@ bottlerocket-release = { path = "../../bottlerocket-release", version = "0.1" }
 chrono = { version = "0.4", default-features = false, features = ["std", "serde", "clock"] }
 fs2 = "0.4"
 log = "0.4"
-modeled-types = { path = "../../models/modeled-types", version = "0.1" }
 nix = "0.26"
 num-derive = "0.3"
 num-traits = "0.2"
@@ -28,6 +27,11 @@ snafu = "0.8"
 tempfile = "3"
 toml = "0.8"
 update_metadata = { path = "../../updater/update_metadata", version = "0.1" }
+
+[dependencies.bottlerocket-modeled-types]
+git = "https://github.com/bottlerocket-os/bottlerocket-settings-sdk"
+tag = "bottlerocket-settings-models-v0.1.0"
+version = "0.1.0"
 
 [build-dependencies]
 generate-readme = { version = "0.1", path = "../../generate-readme" }

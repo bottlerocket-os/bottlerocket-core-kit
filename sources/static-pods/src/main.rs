@@ -14,7 +14,7 @@ It queries for all existing static pod settings, then configures the system as f
 extern crate log;
 
 use base64::Engine;
-use modeled_types::{Identifier, ValidBase64};
+use bottlerocket_modeled_types::{Identifier, ValidBase64};
 use serde::{Deserialize, Serialize};
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use snafu::{ensure, OptionExt, ResultExt};

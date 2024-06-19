@@ -77,13 +77,17 @@ pub(super) enum Error {
     InvalidBootConfig,
 
     #[snafu(display("Failed to parse boot config key: {}", source))]
-    ParseBootConfigKey { source: modeled_types::error::Error },
+    ParseBootConfigKey {
+        source: bottlerocket_modeled_types::error::Error,
+    },
 
     #[snafu(display("Invalid boot config value '{}'. Boot config values may only contain ASCII printable characters except for delimiters such as ';', '\n', ',', '#', and '}}'", input))]
     InvalidBootConfigValue { input: String },
 
     #[snafu(display("Failed to parse boot config value: {}", source))]
-    ParseBootConfigValue { source: modeled_types::error::Error },
+    ParseBootConfigValue {
+        source: bottlerocket_modeled_types::error::Error,
+    },
 
     #[snafu(display("Unsupported boot config key '{}'. `BootSettings` currently only supports boot configuration for 'kernel' and 'init'", key))]
     UnsupportedBootConfigKey { key: String },

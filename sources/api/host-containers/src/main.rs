@@ -27,7 +27,7 @@ use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 use std::str::FromStr;
 
-use modeled_types::Identifier;
+use bottlerocket_modeled_types::Identifier;
 
 const ENV_FILE_DIR: &str = "/etc/host-containers";
 const CONFIG_FILE: &str = "/etc/host-containers/host-containers.toml";
@@ -496,7 +496,7 @@ fn main() {
 #[cfg(test)]
 mod test {
     use super::*;
-    use modeled_types::{Identifier, Url, ValidBase64};
+    use bottlerocket_modeled_types::{Identifier, Url, ValidBase64};
 
     #[test]
     fn test_get_host_containers() {

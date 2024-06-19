@@ -18,7 +18,6 @@ http = "0.2"
 hyper = "0.14"
 hyper-rustls = { version = "0.24", default-features = false, features = ["http2", "native-tokio", "tls12", "logging"] }
 imdsclient = { path = "../../imdsclient", version = "0.1" }
-modeled-types = { path = "../../models/modeled-types", version = "0.1" }
 aws-config = "1"
 aws-sdk-eks = "1"
 aws-sdk-ec2 = "1"
@@ -33,6 +32,11 @@ tokio-retry = "0.3"
 tokio-rustls = "0.24"
 url = "2"
 log = "0.4.21"
+
+[dependencies.bottlerocket-modeled-types]
+git = "https://github.com/bottlerocket-os/bottlerocket-settings-sdk"
+tag = "bottlerocket-settings-models-v0.1.0"
+version = "0.1.0"
 
 [build-dependencies]
 generate-readme = { version = "0.1", path = "../../generate-readme" }
