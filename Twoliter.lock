@@ -1,7 +1,7 @@
 schema-version = 1
-release-version = "1.21.0"
+release-version = "2.0.0"
 kit = []
-digest = "E13P/vjin9ECU74VopEro90+xdiHBb7WkVXjO3jQNSk="
+digest = "0KJe+4ZRwHqxXnY1ArAm7M+VNzA52czWrv2KpjjxQ9I="
 
 [sdk]
 name = "bottlerocket-sdk"
