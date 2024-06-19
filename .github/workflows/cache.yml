@@ -1,36 +1,44 @@
-# This workflow caches crate dependencies, build tools, and external kits.
+# This workflow caches external dependencies, build tools, and the most recent artifacts.
 # The cache is only usable by workflows started from pull requests against the develop branch.
-name: CacheDepsAndTools
+name: CacheLatest
 on:
   push:
     branches: [develop]
-    paths:
-      - '.github/**'
-      - 'sources/Cargo.lock'
-      - 'sources/**/go.sum'
-      - 'Twoliter.toml'
-      - 'Twoliter.lock'
-      - 'Makefile'
 jobs:
   cache:
     if: github.repository == 'bottlerocket-os/bottlerocket-core-kit'
     runs-on:
       group: bottlerocket
-      labels: bottlerocket_ubuntu-latest_8-core
-    continue-on-error: true
+      labels: bottlerocket_ubuntu-latest_32-core
     steps:
       - uses: actions/checkout@v4
-      - name: Preflight step to set up the runner
-        uses: ./.github/actions/setup-node
-        with:
-          perform-cache-cleanup: true
+      # Install dependencies for twoliter and cargo-make.
+      - run: |
+          echo "OS_ARCH=`uname -m`" >> $GITHUB_ENV
+          sudo apt -y install build-essential openssl libssl-dev pkg-config liblz4-tool
+        shell: bash
+      # Install cargo-make.
+      - run: cargo install cargo-make
+        shell: bash
       # This installs twoliter.
       - run: make prep
       # This fetches any external kit dependencies.
       - run: make fetch
-      # This cleans the existing project local caches.
-      - run: make twoliter purge-cache
       # This fetches Rust crate and Go module dependencies.
       - run: make twoliter fetch
-      # This cleans the cargo cache in ~/.cargo
-      - run: cargo-cache
+      # This builds the current packages and kits.
+      - run: make ARCH=x86_64
+      - run: make ARCH=aarch64
+      # This caches the reusable artifacts for future CI runs.
+      - uses: actions/cache/save@v4
+        # Save Rust dependencies
+        with:
+          path: |
+            ~/.cargo
+            .cargo
+            .gomodcache
+            build/external-kits
+            build/rpms
+            build/state
+            target
+          key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}

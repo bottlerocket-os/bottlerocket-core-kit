@@ -9,6 +9,8 @@ KIT ?= bottlerocket-core-kit
 ARCH ?= $(shell uname -m)
 VENDOR ?= bottlerocket
 
+export GO_MODULES = ecs-gpu-init host-ctr
+
 all: build
 
 prep:

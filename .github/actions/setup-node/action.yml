@@ -1,11 +1,5 @@
 name: "Node setup"
 description: "Performs setup for caching and other common needs."
-inputs:
-  perform-cache-cleanup:
-    description: "Whether to perform cache cleanup"
-    required: false
-    default: false
-    type: boolean
 runs:
   using: "composite"
   steps:
@@ -13,26 +7,17 @@ runs:
         echo "OS_ARCH=`uname -m`" >> $GITHUB_ENV
         sudo apt -y install build-essential openssl libssl-dev pkg-config liblz4-tool
       shell: bash
-    - uses: actions/cache@v4
-      # Cache `cargo-make`, `cargo-cache`
+    - uses: actions/cache/restore@v4
+      # Restore most recent cache if available.
       with:
         path: |
           ~/.cargo
-        key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}
-    - uses: actions/cache@v4
-      # Cache Rust dependencies
-      with:
-        path: |
           .cargo
-        key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}-${{ hashFiles('sources/Cargo.lock') }}
-    - uses: actions/cache@v4
-      # Cache Go dependencies
-      with:
-        path: |
           .gomodcache
-        key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}-${{ hashFiles('sources/**/go.sum') }}
+          build/external-kits
+          build/rpms
+          build/state
+          target
+        key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}
     - run: cargo install cargo-make
-      shell: bash
-    - if: ${{ inputs.perform-cache-cleanup }}
-      run: cargo install --no-default-features --features ci-autoclean cargo-cache
       shell: bash
