@@ -10,6 +10,9 @@ jobs:
     runs-on:
       group: bottlerocket
       labels: bottlerocket_ubuntu-latest_32-core
+    concurrency:
+      group: cache-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
       # Install dependencies for twoliter and cargo-make.
