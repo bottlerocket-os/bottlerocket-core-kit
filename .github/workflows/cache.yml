@@ -13,12 +13,14 @@ jobs:
     concurrency:
       group: cache-${{ github.ref }}
       cancel-in-progress: true
+    env:
+      cache-key: build-cache
+    permissions:
+      actions: write
     steps:
       - uses: actions/checkout@v4
       # Install dependencies for twoliter and cargo-make.
-      - run: |
-          echo "OS_ARCH=`uname -m`" >> $GITHUB_ENV
-          sudo apt -y install build-essential openssl libssl-dev pkg-config liblz4-tool
+      - run: sudo apt -y install build-essential openssl libssl-dev pkg-config liblz4-tool
         shell: bash
       # Install cargo-make.
       - run: cargo install cargo-make
@@ -32,6 +34,12 @@ jobs:
       # This builds the current packages and kits.
       - run: make ARCH=x86_64
       - run: make ARCH=aarch64
+      # Remove the previous cache.
+      - run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete "${{ env.cache-key }}" --confirm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # This caches the reusable artifacts for future CI runs.
       - uses: actions/cache/save@v4
         # Save Rust dependencies
@@ -44,4 +52,4 @@ jobs:
             build/rpms
             build/state
             target
-          key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}
+          key: ${{ env.cache-key }}

@@ -3,9 +3,7 @@ description: "Performs setup for caching and other common needs."
 runs:
   using: "composite"
   steps:
-    - run: |
-        echo "OS_ARCH=`uname -m`" >> $GITHUB_ENV
-        sudo apt -y install build-essential openssl libssl-dev pkg-config liblz4-tool
+    - run: sudo apt -y install build-essential openssl libssl-dev pkg-config liblz4-tool
       shell: bash
     - uses: actions/cache/restore@v4
       # Restore most recent cache if available.
@@ -18,6 +16,6 @@ runs:
           build/rpms
           build/state
           target
-        key: ${{ hashFiles('.github/workflows/cache.yml') }}-${{ runner.os }}-${{ env.OS_ARCH }}
+        key: build-cache
     - run: cargo install cargo-make
       shell: bash
