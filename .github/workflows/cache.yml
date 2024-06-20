@@ -34,12 +34,18 @@ jobs:
       # This builds the current packages and kits.
       - run: make ARCH=x86_64
       - run: make ARCH=aarch64
-      # Remove the previous cache.
+      # Delete packages that aren't needed for other builds.
+      - run: |
+          find build/rpms -name '*debugsource*' -type f -print -delete
+          find build/rpms -name '*debuginfo*' -type f -print -delete
+          find build/rpms -name '*kmod*nvidia*' -type f -print -delete
+      # Remove the previous cache (if it exists).
       - run: |
           gh extension install actions/gh-actions-cache
           gh actions-cache delete "${{ env.cache-key }}" --confirm
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
       # This caches the reusable artifacts for future CI runs.
       - uses: actions/cache/save@v4
         # Save Rust dependencies
