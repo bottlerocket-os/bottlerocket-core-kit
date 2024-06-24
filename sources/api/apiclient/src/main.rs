@@ -6,8 +6,9 @@
 // library calls based on the given flags, etc.)  The library modules contain the code for talking
 // to the API, which is intended to be reusable by other crates.
 
-use apiclient::{apply, exec, get, reboot, report, set, update, SettingsInput};
+use apiclient::{apply, ephemeral_storage, exec, get, reboot, report, set, update, SettingsInput};
 use log::{info, log_enabled, trace, warn};
+use model::ephemeral_storage::Filesystem;
 use serde::{Deserialize, Serialize};
 use simplelog::{
     ColorChoice, ConfigBuilder as LogConfigBuilder, LevelFilter, TermLogger, TerminalMode,
@@ -15,8 +16,10 @@ use simplelog::{
 use snafu::ResultExt;
 use std::env;
 use std::ffi::OsString;
+use std::iter::Peekable;
 use std::process;
 use std::str::FromStr;
+use std::vec::IntoIter;
 use unindent::unindent;
 
 const DEFAULT_METHOD: &str = "GET";
@@ -48,6 +51,7 @@ enum Subcommand {
     Set(SetArgs),
     Update(UpdateSubcommand),
     Report(ReportSubcommand),
+    EphemeralStorage(EphemeralStorageSubcommand),
 }
 
 /// Stores user-supplied arguments for the 'apply' subcommand.
@@ -140,6 +144,33 @@ struct UpdateApplyArgs {
 #[derive(Debug)]
 struct UpdateCancelArgs {}
 
+/// Stores the 'ephemeral-storage' subcommand specified by the user.
+#[derive(Debug)]
+enum EphemeralStorageSubcommand {
+    Init(EphemeralStorageInitArgs),
+    Bind(EphemeralStorageBindArgs),
+    ListDisks(EphemeralStorageFormatArgs),
+    ListDirs(EphemeralStorageFormatArgs),
+}
+
+/// Stores user-supplied arguments for the 'ephemeral-storage init' subcommand.
+#[derive(Debug)]
+struct EphemeralStorageInitArgs {
+    disks: Option<Vec<String>>,
+    filesystem: Option<Filesystem>,
+}
+
+/// Stores user-supplied arguments for the 'ephemeral-storage bind' subcommand.
+#[derive(Debug)]
+struct EphemeralStorageBindArgs {
+    targets: Vec<String>,
+}
+/// Stores user-supplied arguments for the 'ephemeral-storage list-disks/list-dirs' subcommand.
+#[derive(Debug)]
+struct EphemeralStorageFormatArgs {
+    format: Option<String>,
+}
+
 /// Informs the user about proper usage of the program and exits.
 fn usage() -> ! {
     let msg = &format!(
@@ -166,6 +197,12 @@ fn usage() -> ! {
             report cis                 Retrieve a Bottlerocket CIS benchmark compliance report.
             report cis-k8s             Retrieve a Kubernetes CIS benchmark compliance report.
             report fips                Retrieve a FIPS Security Policy compliance report.
+            ephemeral-storage init     Initialize ephemeral storage
+            ephemeral-storage bind     Bind directories to previously initialized ephemeral storage.
+            ephemeral-storage list-disks
+                                       List the discovered ephemeral disks that can be initialized.
+            ephemeral-storage list-dirs
+                                       List the directories that can be bound to ephemeral storage.
 
         raw options:
             -u, --uri URI              Required; URI to request from the server, e.g. /tx
@@ -223,7 +260,28 @@ fn usage() -> ! {
 
         report cis-k8s options:
             -f, --format               Format of the CIS report (text or json). Default format is text.
-            -l, --level                CIS compliance level to report on (1 or 2). Default is 1."#,
+            -l, --level                CIS compliance level to report on (1 or 2). Default is 1.
+
+        ephemeral-storage init options:
+            -t, --filesystem           Filesystem to initialize the array as (ext4 or xfs). Default is
+                                       xfs. If a single disk is provided, it is mounted directly without
+                                       constructing an array. If no ephemeral disks are found, this
+                                       operation does nothing.
+            --disks DISK [DISK ...]    Local disks to configure for storage. Default is all ephemeral
+                                       disks.
+
+        ephemeral-storage bind options:
+            --dirs DIR [DIR ...]       Directories to bind to configured ephemeral storage
+                                       (e.g. /var/lib/containerd). If no ephemeral disks are found
+                                       this operation does nothing.
+
+        ephemeral-storage list-disks options:
+            -f, --format               Format of the disk listing (text or json). Default format is text.
+
+        ephemeral-storage list-dirs options:
+            -f, --format               Format of the directory listing (text or json). Default format is text.
+
+            "#,
         socket = constants::API_SOCKET,
         method = DEFAULT_METHOD,
     );
@@ -272,6 +330,7 @@ fn parse_args(args: env::Args) -> (Args, Subcommand) {
 
             // Subcommands
             "raw" | "apply" | "exec" | "get" | "reboot" | "report" | "set" | "update"
+            | "ephemeral-storage"
                 if subcommand.is_none() && !arg.starts_with('-') =>
             {
                 subcommand = Some(arg)
@@ -292,6 +351,7 @@ fn parse_args(args: env::Args) -> (Args, Subcommand) {
         Some("report") => (global_args, parse_report_args(subcommand_args)),
         Some("set") => (global_args, parse_set_args(subcommand_args)),
         Some("update") => (global_args, parse_update_args(subcommand_args)),
+        Some("ephemeral-storage") => (global_args, parse_ephemeral_storage_args(subcommand_args)),
         _ => usage_msg("Missing or unknown subcommand"),
     }
 }
@@ -668,6 +728,140 @@ fn parse_fips_arguments(args: Vec<String>) -> FipsReportArgs {
     FipsReportArgs { format }
 }
 
+/// Parse the desired subcommand of 'ephemeral-storage'
+fn parse_ephemeral_storage_args(args: Vec<String>) -> Subcommand {
+    let mut subcommand = None;
+    let mut subcommand_args = Vec::new();
+
+    for arg in args.into_iter() {
+        match arg.as_ref() {
+            // Subcommands
+            "init" | "bind" | "list-disks" | "list-dirs"
+                if subcommand.is_none() && !arg.starts_with('-') =>
+            {
+                subcommand = Some(arg)
+            }
+
+            // Other arguments are passed to the subcommand parser
+            _ => subcommand_args.push(arg),
+        }
+    }
+
+    let cmd = match subcommand.as_deref() {
+        Some("init") => parse_ephemeral_storage_init_args(subcommand_args),
+        Some("bind") => parse_ephemeral_storage_bind_args(subcommand_args),
+        Some("list-disks") => EphemeralStorageSubcommand::ListDisks(
+            parse_ephemeral_storage_list_format_args(subcommand_args),
+        ),
+        Some("list-dirs") => EphemeralStorageSubcommand::ListDirs(
+            parse_ephemeral_storage_list_format_args(subcommand_args),
+        ),
+        _ => usage_msg("Missing or unknown subcommand for 'ephemeral-storage'"),
+    };
+    Subcommand::EphemeralStorage(cmd)
+}
+
+/// Parses arguments for the 'init' ephemeral-storage subcommand.
+fn parse_ephemeral_storage_init_args(args: Vec<String>) -> EphemeralStorageSubcommand {
+    let mut disks: Option<Vec<String>> = None;
+    let mut filesystem = None;
+    let mut iter = args.into_iter().peekable();
+    while let Some(arg) = iter.next() {
+        match arg.as_ref() {
+            "-t" | "--filesystem" => {
+                match iter
+                    .next()
+                    .unwrap_or_else(|| usage_msg("Did not give argument to -t | --filesystem"))
+                    .as_str()
+                {
+                    "ext4" => filesystem = Some(Filesystem::Ext4),
+                    "xfs" => filesystem = Some(Filesystem::Xfs),
+                    _ => usage_msg("Unsupported filesystem type"),
+                }
+            }
+            "--disks" => {
+                let mut names = collect_non_args(&mut iter);
+                if names.is_empty() {
+                    usage_msg("Did not give argument to --disks")
+                }
+                if let Some(existing) = &mut disks {
+                    existing.append(&mut names);
+                } else {
+                    disks = Some(names);
+                }
+            }
+            x => usage_msg(format!("Unknown argument '{}'", x)),
+        }
+    }
+    EphemeralStorageSubcommand::Init(EphemeralStorageInitArgs { disks, filesystem })
+}
+
+/// Parses arguments for the 'bind' ephemeral-storage subcommand.
+fn parse_ephemeral_storage_bind_args(args: Vec<String>) -> EphemeralStorageSubcommand {
+    if args.is_empty() {
+        usage_msg("Did not give arguments to bind")
+    }
+    let mut targets = Vec::new();
+    let mut iter = args.into_iter().peekable();
+    while let Some(arg) = iter.next() {
+        match arg.as_ref() {
+            "--dirs" => {
+                targets.append(&mut collect_non_args(&mut iter));
+                if targets.is_empty() {
+                    usage_msg("Did not give argument to --dirs")
+                }
+            }
+            x => usage_msg(format!("Unknown argument '{}'", x)),
+        }
+    }
+    EphemeralStorageSubcommand::Bind(EphemeralStorageBindArgs { targets })
+}
+
+/// Parses arguments for the 'list-disks' and 'list-dirs' ephemeral-storage subcommand.
+fn parse_ephemeral_storage_list_format_args(args: Vec<String>) -> EphemeralStorageFormatArgs {
+    let mut format = None;
+
+    let mut iter = args.into_iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_ref() {
+            "-f" | "--format" => {
+                format = Some(
+                    iter.next()
+                        .unwrap_or_else(|| usage_msg("Did not give argument to -f | --format")),
+                )
+            }
+            x => usage_msg(format!("Unknown argument '{}'", x)),
+        }
+    }
+    EphemeralStorageFormatArgs { format }
+}
+
+/// collects non-argument parameters (those not starting with a '-') up until the next
+/// argument is seen
+fn collect_non_args(iter: &mut Peekable<IntoIter<String>>) -> Vec<String> {
+    let mut result = Vec::new();
+    loop {
+        // look at the following argument and stop accepting disk names
+        // once we reach the end of arguments, or find the beginning of
+        // the next argument
+        match iter.peek() {
+            None => {
+                break;
+            }
+            Some(peeked) => {
+                if peeked.is_empty() || peeked.starts_with('-') {
+                    break;
+                }
+            }
+        }
+        let next = iter
+            .next()
+            .unwrap_or_else(|| usage_msg("Expected non-empty argument"));
+        result.push(next);
+    }
+    result
+}
+
 // =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
 // Helpers
 
@@ -859,6 +1053,39 @@ async fn run() -> Result<()> {
                 }
             }
         },
+
+        Subcommand::EphemeralStorage(subcommand) => match subcommand {
+            EphemeralStorageSubcommand::Init(cfg_args) => {
+                ephemeral_storage::initialize(
+                    &args.socket_path,
+                    cfg_args.filesystem,
+                    cfg_args.disks,
+                )
+                .await
+                .context(error::EphemeralStorageSnafu)?;
+            }
+            EphemeralStorageSubcommand::Bind(bind_args) => {
+                ephemeral_storage::bind(&args.socket_path, bind_args.targets)
+                    .await
+                    .context(error::EphemeralStorageSnafu)?;
+            }
+            EphemeralStorageSubcommand::ListDisks(bind_args) => {
+                let body = ephemeral_storage::list_disks(&args.socket_path, bind_args.format)
+                    .await
+                    .context(error::EphemeralStorageSnafu)?;
+                if !body.is_empty() {
+                    print!("{}", body);
+                }
+            }
+            EphemeralStorageSubcommand::ListDirs(bind_args) => {
+                let body = ephemeral_storage::list_dirs(&args.socket_path, bind_args.format)
+                    .await
+                    .context(error::EphemeralStorageSnafu)?;
+                if !body.is_empty() {
+                    print!("{}", body);
+                }
+            }
+        },
     }
 
     Ok(())
@@ -876,7 +1103,7 @@ async fn main() {
 }
 
 mod error {
-    use apiclient::{apply, exec, get, reboot, report, set, update};
+    use apiclient::{apply, ephemeral_storage, exec, get, reboot, report, set, update};
     use snafu::Snafu;
 
     #[derive(Debug, Snafu)]
@@ -922,6 +1149,9 @@ mod error {
 
         #[snafu(display("Failed to check for updates: {}", source))]
         UpdateCheck { source: update::Error },
+
+        #[snafu(display("Failed to initialize ephemeral storage: {}", source))]
+        EphemeralStorage { source: ephemeral_storage::Error },
     }
 }
 type Result<T> = std::result::Result<T, error::Error>;
