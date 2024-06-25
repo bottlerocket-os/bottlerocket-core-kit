@@ -296,20 +296,28 @@ async fn retrieve_migrations(
 
 async fn update_image(update: &Update, repository: &Repository) -> Result<()> {
     let mut gpt_state = State::load().context(error::PartitionTableReadSnafu)?;
-    gpt_state.clear_inactive();
+    gpt_state
+        .clear_inactive()
+        .ok()
+        .context(error::InactivePartitionMissingSnafu)?;
     // Write out the clearing of the inactive partition immediately, because we're about to
     // overwrite the partition set with update data and don't want it to be used until we
     // know we're done with all components.
     gpt_state.write().context(error::PartitionTableWriteSnafu)?;
 
-    let inactive = gpt_state.inactive_set();
+    let inactive = gpt_state
+        .inactive_set()
+        .context(error::InactivePartitionMissingSnafu)?;
 
     // TODO Do we want to recover the inactive side on an error?
     write_target_to_disk(repository, &update.images.root, &inactive.root).await?;
     write_target_to_disk(repository, &update.images.boot, &inactive.boot).await?;
     write_target_to_disk(repository, &update.images.hash, &inactive.hash).await?;
 
-    gpt_state.mark_inactive_valid();
+    gpt_state
+        .mark_inactive_valid()
+        .ok()
+        .context(error::InactivePartitionMissingSnafu)?;
     gpt_state.write().context(error::PartitionTableWriteSnafu)?;
     Ok(())
 }
@@ -325,7 +333,10 @@ fn update_flags() -> Result<()> {
 
 fn revert_update_flags() -> Result<()> {
     let mut gpt_state = State::load().context(error::PartitionTableReadSnafu)?;
-    gpt_state.cancel_upgrade();
+    gpt_state
+        .cancel_upgrade()
+        .ok()
+        .context(error::InactivePartitionMissingSnafu)?;
     gpt_state.write().context(error::PartitionTableWriteSnafu)?;
     Ok(())
 }
