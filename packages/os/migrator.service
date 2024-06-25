@@ -1,5 +1,7 @@
 [Unit]
 Description=Bottlerocket data store migrator
+Before=apiserver.service mark-successful-boot.service storewolf.service
+
 RefuseManualStart=true
 RefuseManualStop=true
 
@@ -16,4 +18,4 @@ StandardOutput=journal+console
 StandardError=journal+console
 
 [Install]
-RequiredBy=preconfigured.target
+RequiredBy=preconfigured.target apiserver.service mark-successful-boot.service storewolf.service

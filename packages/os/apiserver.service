@@ -1,7 +1,7 @@
 [Unit]
 Description=Bottlerocket API server
-After=storewolf.service migrator.service
-Requires=storewolf.service migrator.service
+After=storewolf.service
+Requires=storewolf.service
 
 [Service]
 Type=notify
