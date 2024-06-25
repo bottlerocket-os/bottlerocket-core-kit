@@ -3,7 +3,6 @@ Description=Call signpost to mark the boot as successful after all required targ
 # This unit is in charge of updating the partitions on successful boots. Use other service
 # units instead of adding more `ExecStart*` lines to prevent indirect dependencies on
 # other units not listed in the `RequiredBy` section.
-Requires=migrator.service
 # Block manual interactions with this service, manually running it could leave the system in an
 # unexpected state
 RefuseManualStart=true

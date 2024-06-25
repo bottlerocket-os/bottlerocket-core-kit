@@ -953,7 +953,6 @@ dependencies = [
  "glibc",
  "grep",
  "grub",
- "host-ctr",
  "iproute",
  "iptables",
  "kexec-tools",

@@ -74,15 +74,11 @@ BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}apiclient
 Requires: %{_cross_os}apiserver
 Requires: %{_cross_os}bloodhound
-Requires: %{_cross_os}bootstrap-containers
-Requires: %{_cross_os}bork
 Requires: %{_cross_os}corndog
 Requires: %{_cross_os}certdog
 Requires: %{_cross_os}ghostdog
-Requires: %{_cross_os}host-containers
 Requires: %{_cross_os}logdog
 Requires: %{_cross_os}metricdog
-Requires: %{_cross_os}migration
 Requires: %{_cross_os}prairiedog
 Requires: %{_cross_os}schnauzer
 Requires: %{_cross_os}settings-committer
@@ -92,8 +88,14 @@ Requires: %{_cross_os}storewolf
 Requires: %{_cross_os}sundog
 Requires: %{_cross_os}xfscli
 Requires: %{_cross_os}thar-be-settings
-Requires: %{_cross_os}thar-be-updates
-Requires: %{_cross_os}updog
+
+Requires: (%{_cross_os}bootstrap-containers or %{_cross_os}image-feature(no-host-containers))
+Requires: (%{_cross_os}host-containers or %{_cross_os}image-feature(no-host-containers))
+
+Requires: (%{_cross_os}bork or %{_cross_os}image-feature(no-in-place-updates))
+Requires: (%{_cross_os}migration or %{_cross_os}image-feature(no-in-place-updates))
+Requires: (%{_cross_os}thar-be-updates or %{_cross_os}image-feature(no-in-place-updates))
+Requires: (%{_cross_os}updog or %{_cross_os}image-feature(no-in-place-updates))
 
 Requires: (%{_cross_os}pluto if %{_cross_os}variant-family(aws-k8s))
 Requires: (%{_cross_os}shibaken if %{_cross_os}variant-platform(aws))
@@ -124,6 +126,7 @@ Summary: Updates settings dynamically based on user-specified generators
 
 %package -n %{_cross_os}bork
 Summary: Dynamic setting generator for updog
+Conflicts: %{_cross_os}image-feature(no-in-place-updates)
 %description -n %{_cross_os}bork
 %{summary}.
 
@@ -144,12 +147,14 @@ Summary: Applies changed settings to a Bottlerocket system
 
 %package -n %{_cross_os}thar-be-updates
 Summary: Dispatches Bottlerocket update commands
+Conflicts: %{_cross_os}image-feature(no-in-place-updates)
 %description -n %{_cross_os}thar-be-updates
 %{summary}.
 
 %package -n %{_cross_os}host-containers
 Summary: Manages system- and user-defined host containers
 Requires: %{_cross_os}host-ctr
+Conflicts: %{_cross_os}image-feature(no-host-containers)
 %description -n %{_cross_os}host-containers
 %{summary}.
 
@@ -161,6 +166,7 @@ Requires: %{_cross_os}settings-defaults
 
 %package -n %{_cross_os}migration
 Summary: Tools to migrate version formats
+Conflicts: %{_cross_os}image-feature(no-in-place-updates)
 %description -n %{_cross_os}migration
 
 %package -n %{_cross_os}settings-committer
@@ -181,6 +187,7 @@ Summary: Bottlerocket GPT priority querier/switcher
 
 %package -n %{_cross_os}updog
 Summary: Bottlerocket updater CLI
+Conflicts: %{_cross_os}image-feature(no-in-place-updates)
 %description -n %{_cross_os}updog
 not much what's up with you
 
@@ -241,6 +248,8 @@ Requires: %{_cross_os}binutils
 
 %package -n %{_cross_os}bootstrap-containers
 Summary: Manages bootstrap-containers
+Requires: %{_cross_os}host-ctr
+Conflicts: %{_cross_os}image-feature(no-host-containers)
 %description -n %{_cross_os}bootstrap-containers
 %{summary}.
 
@@ -515,7 +524,6 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %files -n %{_cross_os}apiserver
 %{_cross_bindir}/apiserver
 %{_cross_unitdir}/apiserver.service
-%{_cross_unitdir}/migrator.service
 %{_cross_sysusersdir}/api.conf
 
 %files -n %{_cross_os}apiclient
@@ -560,6 +568,7 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 
 %files -n %{_cross_os}migration
 %{_cross_bindir}/migrator
+%{_cross_unitdir}/migrator.service
 %{_cross_tmpfilesdir}/migration.conf
 
 %files -n %{_cross_os}settings-committer
