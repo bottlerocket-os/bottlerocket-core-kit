@@ -60,6 +60,9 @@ pub(crate) enum Error {
     #[snafu(display("Could not mark inactive partition for boot: {}", source))]
     InactivePartitionUpgrade { source: signpost::Error },
 
+    #[snafu(display("Could not find inactive partition set"))]
+    InactivePartitionMissing {},
+
     #[snafu(display("Failed to decode LZ4-compressed target {}: {}", target, source))]
     Lz4Decode {
         target: String,

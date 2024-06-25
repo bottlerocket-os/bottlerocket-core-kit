@@ -43,6 +43,9 @@ pub enum Error {
     #[snafu(display("Inactive partition {} is already marked for upgrade", inactive.display()))]
     InactiveAlreadyMarked { inactive: PathBuf },
 
+    #[snafu(display("Inactive partition {} is not available", inactive.display()))]
+    InactiveNotAvailable { inactive: PathBuf },
+
     #[snafu(display("Inactive partition {} has not been marked valid for upgrade", inactive.display()))]
     InactiveNotValid { inactive: PathBuf },
 
