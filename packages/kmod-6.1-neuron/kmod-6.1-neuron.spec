@@ -9,7 +9,6 @@ Source0: https://yum.repos.neuron.amazonaws.com/aws-neuronx-dkms-%{version}.noar
 Source1: neuron-modules-load.conf
 Source2: neuron-systemd-modules-load.drop-in.conf
 
-BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}kernel-6.1-archive
 
 %description
