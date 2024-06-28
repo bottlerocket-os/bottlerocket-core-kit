@@ -93,6 +93,7 @@ dependencies = [
  "kmod",
  "kmod-5_10-nvidia",
  "kmod-5_15-nvidia",
+ "kmod-6_1-neuron",
  "kmod-6_1-nvidia",
  "kubernetes-1_23",
  "kubernetes-1_24",
