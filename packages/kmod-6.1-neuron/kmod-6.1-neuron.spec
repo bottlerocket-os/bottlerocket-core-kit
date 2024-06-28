@@ -8,6 +8,7 @@ URL: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/
 Source0: https://yum.repos.neuron.amazonaws.com/aws-neuronx-dkms-%{version}.noarch.rpm
 Source1: neuron-modules-load.conf
 Source2: neuron-systemd-modules-load.drop-in.conf
+Patch0001: 0001-kbuild-do-not-outline-atomics-for-arm64.patch
 
 BuildRequires: %{_cross_os}kernel-6.1-archive
 
@@ -17,6 +18,7 @@ BuildRequires: %{_cross_os}kernel-6.1-archive
 %prep
 rpm2cpio %{SOURCE0} | cpio -idmv
 tar -xf %{_cross_datadir}/bottlerocket/kernel-devel.tar.xz
+%autopatch -p1
 
 %global neuron_sources usr/src/aws-neuronx-%{version}
 %global kernel_sources %{_builddir}/kernel-devel
