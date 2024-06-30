@@ -31,7 +31,6 @@ findutils = { path = "../findutils" }
 glibc = { path = "../glibc" }
 grep = { path = "../grep" }
 grub = { path = "../grub" }
-host-ctr = { path = "../host-ctr" }
 iproute = { path = "../iproute" }
 iptables = { path = "../iptables" }
 kexec-tools = { path = "../../packages/kexec-tools" }
