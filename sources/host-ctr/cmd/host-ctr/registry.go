@@ -45,6 +45,13 @@ func NewRegistryConfig(registryConfigFile string) (*RegistryConfig, error) {
 	return &config, toml.Unmarshal(raw, &config)
 }
 
+// NewBlankRegistryConfig sets up a RegistryConfig without unmarshalling any toml
+func NewBlankRegistryConfig() *RegistryConfig {
+	config := RegistryConfig{}
+	// no config to unmarshal
+	return &config
+}
+
 // registryHosts returns the registry hosts to be used by the resolver.
 // Heavily borrowed from containerd CRI plugin's implementation.
 // See https://github.com/containerd/containerd/blob/1407cab509ff0d96baa4f0eb6ff9980270e6e620/pkg/cri/server/image_pull.go#L332-L405
@@ -58,15 +65,19 @@ func registryHosts(registryConfig *RegistryConfig, authorizerOverride *docker.Au
 			authConfig runtime.AuthConfig
 		)
 		// Set up endpoints for the registry
-		if _, ok := registryConfig.Mirrors[host]; ok {
-			endpoints = registryConfig.Mirrors[host].Endpoints
-		} else {
-			endpoints = registryConfig.Mirrors["*"].Endpoints
+		// The endpoints array may still be empty after this step
+		if registryConfig != nil {
+			if _, ok := registryConfig.Mirrors[host]; ok {
+				endpoints = registryConfig.Mirrors[host].Endpoints
+			} else if _, ok := registryConfig.Mirrors["*"]; ok {
+				endpoints = registryConfig.Mirrors["*"].Endpoints
+			}
 		}
 		defaultHost, err := docker.DefaultHost(host)
 		if err != nil {
 			return nil, errors.Wrap(err, "get default host")
 		}
+		// append this default host to the possibly-empty endpoints array
 		endpoints = append(endpoints, defaultHost)
 
 		for _, endpoint := range endpoints {
