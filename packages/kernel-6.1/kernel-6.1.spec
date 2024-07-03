@@ -923,7 +923,6 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/kernel/lib/crypto/libpoly1305.ko.*
 %{_cross_kmoddir}/kernel/lib/lru_cache.ko.*
 %{_cross_kmoddir}/kernel/lib/lz4/lz4_compress.ko.*
-%{_cross_kmoddir}/kernel/lib/lz4/lz4_decompress.ko.*
 %{_cross_kmoddir}/kernel/lib/lz4/lz4hc_compress.ko.*
 %{_cross_kmoddir}/kernel/lib/raid6/raid6_pq.ko.*
 %{_cross_kmoddir}/kernel/lib/reed_solomon/reed_solomon.ko.*
