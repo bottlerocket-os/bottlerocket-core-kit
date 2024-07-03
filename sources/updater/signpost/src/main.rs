@@ -43,7 +43,7 @@ fn main() {
         match command {
             Command::Status => println!("{state}"),
             Command::ClearInactive => {
-                state.clear_inactive();
+                state.clear_inactive()?;
                 state.write()?;
             }
             Command::MarkSuccessfulBoot => {
@@ -51,7 +51,7 @@ fn main() {
                 state.write()?;
             }
             Command::MarkInactiveValid => {
-                state.mark_inactive_valid();
+                state.mark_inactive_valid()?;
                 state.write()?;
             }
             Command::UpgradeToInactive => {
@@ -59,7 +59,7 @@ fn main() {
                 state.write()?;
             }
             Command::CancelUpgrade => {
-                state.cancel_upgrade();
+                state.cancel_upgrade()?;
                 state.write()?;
             }
             Command::RollbackToInactive => {

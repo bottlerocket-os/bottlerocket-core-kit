@@ -20,13 +20,29 @@ pub struct State {
     os_disk: PathBuf,
     // BOTTLEROCKET_PRIVATE partition number
     private_partition_num: u32,
-    sets: [PartitionSet; 2],
+    sets: PartitionSets,
     /// The partition numbers that correspond to the boot partitions in each partition set,
     /// respectively.
     ///
     /// This is used to load the correct partition flags from `table`.
-    boot_partition_nums: [u32; 2],
+    boot_partition_nums: Vec<u32>,
     table: GPT,
+}
+
+#[derive(Debug, Clone)]
+enum PartitionSets {
+    Single(SinglePartitionSet),
+    Dual(DualPartitionSet),
+}
+
+#[derive(Debug, Clone)]
+struct SinglePartitionSet {
+    set: PartitionSet,
+}
+
+#[derive(Debug, Clone)]
+struct DualPartitionSet {
+    sets: [PartitionSet; 2],
     active: SetSelect,
 }
 
@@ -78,17 +94,21 @@ impl State {
         })?;
 
         // Finds the nth partition on `table` matching the partition type GUID `guid`.
-        let nth_guid = |guid, n| -> Result<u32, Error> {
-            Ok(table
+        let nth_guid = |guid, n| -> Option<u32> {
+            table
                 .iter()
                 .filter(|(_, p)| p.partition_type_guid == guid)
                 .nth(n)
-                .context(error::PartitionMissingFromSetSnafu {
-                    part_type: stringify!(guid),
-                    set: if n == 0 { "A" } else { "B" },
-                })?
-                .0)
+                .map(|(n, _)| n)
         };
+
+        let required_guid = |guid, n| -> Result<u32, Error> {
+            nth_guid(guid, n).context(error::PartitionMissingFromSetSnafu {
+                part_type: stringify!(guid),
+                set: if n == 0 { "A" } else { "B" },
+            })
+        };
+
         // Loads the path to partition number `num` on the OS disk.
         let device_from_part_num = |num| -> Result<PathBuf, Error> {
             Ok(os_disk
@@ -103,44 +123,54 @@ impl State {
                 .path())
         };
 
-        let boot_partition_nums = [
-            nth_guid(BOTTLEROCKET_BOOT, 0)?,
-            nth_guid(BOTTLEROCKET_BOOT, 1)?,
-        ];
-        let sets = [
-            PartitionSet {
-                boot: device_from_part_num(boot_partition_nums[0])?,
-                root: device_from_part_num(nth_guid(BOTTLEROCKET_ROOT, 0)?)?,
-                hash: device_from_part_num(nth_guid(BOTTLEROCKET_HASH, 0)?)?,
-            },
-            PartitionSet {
-                boot: device_from_part_num(boot_partition_nums[1])?,
-                root: device_from_part_num(nth_guid(BOTTLEROCKET_ROOT, 1)?)?,
-                hash: device_from_part_num(nth_guid(BOTTLEROCKET_HASH, 1)?)?,
-            },
-        ];
+        let mut boot_partition_nums = vec![required_guid(BOTTLEROCKET_BOOT, 0)?];
+        if let Some(b) = nth_guid(BOTTLEROCKET_BOOT, 1) {
+            boot_partition_nums.push(b);
+        }
 
-        // Determine which set is active by seeing which set contains the current running root or
-        // hash partition.
-        let active = if sets[0].contains(&active_partition) {
-            SetSelect::A
-        } else if sets[1].contains(&active_partition) {
-            SetSelect::B
+        let mut sets = Vec::new();
+        sets.push(PartitionSet {
+            boot: device_from_part_num(boot_partition_nums[0])?,
+            root: device_from_part_num(required_guid(BOTTLEROCKET_ROOT, 0)?)?,
+            hash: device_from_part_num(required_guid(BOTTLEROCKET_HASH, 0)?)?,
+        });
+
+        if boot_partition_nums.len() == 2 {
+            sets.push(PartitionSet {
+                boot: device_from_part_num(boot_partition_nums[1])?,
+                root: device_from_part_num(required_guid(BOTTLEROCKET_ROOT, 1)?)?,
+                hash: device_from_part_num(required_guid(BOTTLEROCKET_HASH, 1)?)?,
+            });
+        }
+
+        let sets = if sets.len() == 2 {
+            // Determine which set is active by seeing which set contains the current running root or
+            // hash partition.
+            let active = if sets[0].contains(&active_partition) {
+                SetSelect::A
+            } else if sets[1].contains(&active_partition) {
+                SetSelect::B
+            } else {
+                return error::ActiveNotInSetSnafu {
+                    active_partition,
+                    sets,
+                }
+                .fail();
+            };
+            let sets = sets.try_into().ok().context(error::ConvertVecSnafu)?;
+            PartitionSets::Dual(DualPartitionSet { sets, active })
         } else {
-            return error::ActiveNotInSetSnafu {
-                active_partition,
-                sets,
-            }
-            .fail();
+            PartitionSets::Single(SinglePartitionSet {
+                set: sets.remove(0),
+            })
         };
 
         Ok(Self {
             os_disk: os_disk.path(),
-            private_partition_num: nth_guid(BOTTLEROCKET_PRIVATE, 0)?,
+            private_partition_num: required_guid(BOTTLEROCKET_PRIVATE, 0)?,
             sets,
             boot_partition_nums,
             table,
-            active,
         })
     }
 
@@ -165,23 +195,42 @@ impl State {
     }
 
     pub fn active(&self) -> SetSelect {
-        self.active
+        match &self.sets {
+            PartitionSets::Dual(s) => s.active,
+            PartitionSets::Single(_) => SetSelect::A,
+        }
     }
 
-    pub fn inactive(&self) -> SetSelect {
-        // resolve opposing set member
-        !self.active
+    pub fn inactive(&self) -> Option<SetSelect> {
+        match &self.sets {
+            PartitionSets::Dual(s) => Some(!s.active),
+            PartitionSets::Single(_) => None,
+        }
     }
 
     pub fn active_set(&self) -> &PartitionSet {
-        &self.sets[self.active().idx()]
+        match &self.sets {
+            PartitionSets::Dual(s) => &s.sets[s.active.idx()],
+            PartitionSets::Single(s) => &s.set,
+        }
     }
 
-    pub fn inactive_set(&self) -> &PartitionSet {
-        &self.sets[self.inactive().idx()]
+    pub fn inactive_set(&self) -> Option<&PartitionSet> {
+        match &self.sets {
+            PartitionSets::Dual(s) => Some(&s.sets[(!s.active).idx()]),
+            PartitionSets::Single(_) => None,
+        }
     }
 
     pub fn next(&self) -> Option<SetSelect> {
+        if let PartitionSets::Single(_) = self.sets {
+            if self.gptprio(SetSelect::A).will_boot() {
+                return Some(SetSelect::A);
+            } else {
+                return None;
+            }
+        }
+
         let gptprio_a = self.gptprio(SetSelect::A);
         let gptprio_b = self.gptprio(SetSelect::B);
         match (gptprio_a.will_boot(), gptprio_b.will_boot()) {
@@ -212,21 +261,33 @@ impl State {
 
     /// Clears priority bits of the inactive partition in preparation to write new images, but
     /// **does not write to the disk**.
-    pub fn clear_inactive(&mut self) {
-        let mut inactive_flags = self.gptprio(self.inactive());
+    pub fn clear_inactive(&mut self) -> Result<(), Error> {
+        let inactive = self.inactive().context(error::InactiveNotAvailableSnafu {
+            inactive: &self.os_disk,
+        })?;
+
+        let mut inactive_flags = self.gptprio(inactive);
         inactive_flags.set_priority(0);
         inactive_flags.set_tries_left(0);
         inactive_flags.set_successful(false);
-        self.set_gptprio(self.inactive(), inactive_flags);
+        self.set_gptprio(inactive, inactive_flags);
+
+        Ok(())
     }
 
     /// Sets 'tries left' to 1 on the inactive partition to represent a
     /// potentially valid image, but does not change the priority.
     /// **does not write to the disk**.
-    pub fn mark_inactive_valid(&mut self) {
-        let mut inactive_flags = self.gptprio(self.inactive());
+    pub fn mark_inactive_valid(&mut self) -> Result<(), Error> {
+        let inactive = self.inactive().context(error::InactiveNotAvailableSnafu {
+            inactive: &self.os_disk,
+        })?;
+
+        let mut inactive_flags = self.gptprio(inactive);
         inactive_flags.set_tries_left(1);
-        self.set_gptprio(self.inactive(), inactive_flags);
+        self.set_gptprio(inactive, inactive_flags);
+
+        Ok(())
     }
 
     /// Sets the inactive partition as a new upgrade partition, but **does not write to the disk**.
@@ -237,7 +298,11 @@ impl State {
     /// * Returns an error if the partition has not been marked as potentially
     ///   valid or if it has already been marked for upgrade.
     pub fn upgrade_to_inactive(&mut self) -> Result<(), Error> {
-        let mut inactive_flags = self.gptprio(self.inactive());
+        let inactive = self.inactive().context(error::InactiveNotAvailableSnafu {
+            inactive: &self.os_disk,
+        })?;
+
+        let mut inactive_flags = self.gptprio(inactive);
         ensure!(
             inactive_flags.priority() == 0 && !inactive_flags.successful(),
             error::InactiveAlreadyMarkedSnafu {
@@ -253,7 +318,7 @@ impl State {
 
         inactive_flags.set_priority(2);
         inactive_flags.set_successful(false);
-        self.set_gptprio(self.inactive(), inactive_flags);
+        self.set_gptprio(inactive, inactive_flags);
 
         let mut active_flags = self.gptprio(self.active());
         active_flags.set_priority(1);
@@ -265,14 +330,20 @@ impl State {
     ///
     /// * Sets the inactive partition's priority to 0
     /// * Restores the active partition's priority to 2
-    pub fn cancel_upgrade(&mut self) {
-        let mut inactive_flags = self.gptprio(self.inactive());
+    pub fn cancel_upgrade(&mut self) -> Result<(), Error> {
+        let inactive = self.inactive().context(error::InactiveNotAvailableSnafu {
+            inactive: &self.os_disk,
+        })?;
+
+        let mut inactive_flags = self.gptprio(inactive);
         inactive_flags.set_priority(0);
-        self.set_gptprio(self.inactive(), inactive_flags);
+        self.set_gptprio(inactive, inactive_flags);
 
         let mut active_flags = self.gptprio(self.active());
         active_flags.set_priority(2);
         self.set_gptprio(self.active(), active_flags);
+
+        Ok(())
     }
 
     /// Prioritizes the inactive partition, but **does not write to the disk**.
@@ -280,7 +351,11 @@ impl State {
     /// Returns an error if the inactive partition is not bootable (it doesn't have a prior
     /// successful boot and doesn't have the priority/tries_left that would make it safe to try).
     pub fn rollback_to_inactive(&mut self) -> Result<(), Error> {
-        let mut inactive_flags = self.gptprio(self.inactive());
+        let inactive = self.inactive().context(error::InactiveNotAvailableSnafu {
+            inactive: &self.os_disk,
+        })?;
+
+        let mut inactive_flags = self.gptprio(inactive);
         if !inactive_flags.will_boot() {
             return error::InactiveInvalidRollbackSnafu {
                 priority: inactive_flags.priority(),
@@ -290,7 +365,7 @@ impl State {
             .fail();
         }
         inactive_flags.set_priority(2);
-        self.set_gptprio(self.inactive(), inactive_flags);
+        self.set_gptprio(inactive, inactive_flags);
 
         let mut active_flags = self.gptprio(self.active());
         active_flags.set_priority(1);
@@ -331,15 +406,17 @@ impl fmt::Display for State {
         writeln!(
             f,
             "Set A:   {} {}",
-            self.sets[SetSelect::A.idx()],
+            self.active_set(),
             self.gptprio(SetSelect::A)
         )?;
-        writeln!(
-            f,
-            "Set B:   {} {}",
-            self.sets[SetSelect::B.idx()],
-            self.gptprio(SetSelect::B)
-        )?;
+        if let Some(inactive_set) = self.inactive_set() {
+            writeln!(
+                f,
+                "Set B:   {} {}",
+                inactive_set,
+                self.gptprio(SetSelect::B)
+            )?;
+        }
         writeln!(f, "Active:  Set {}", self.active())?;
         match self.next() {
             Some(next) => write!(f, "Next:    Set {}", next),
