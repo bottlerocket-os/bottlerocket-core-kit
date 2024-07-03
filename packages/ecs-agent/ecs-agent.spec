@@ -83,7 +83,7 @@ BuildRequires: %{_cross_os}glibc-devel
 
 Requires: %{_cross_os}docker-engine
 Requires: %{_cross_os}iptables
-Requires: %{_cross_os}amazon-ssm-agent
+Requires: %{_cross_os}amazon-ssm-agent-plugin
 Requires: %{name}(binaries)
 
 %description

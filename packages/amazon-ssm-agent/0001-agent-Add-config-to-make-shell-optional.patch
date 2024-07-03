@@ -1,0 +1,93 @@
+From c835d2ddc855439173a8a59828c335d169c03d15 Mon Sep 17 00:00:00 2001
+From: Kush Upadhyay <kushupad@amazon.com>
+Date: Tue, 2 Jul 2024 20:54:29 +0000
+Subject: [PATCH] agent: Add config to make shell optional
+
+Signed-off-by: Kush Upadhyay <kushupad@amazon.com>
+---
+ agent/appconfig/appconfig.go         |  1 +
+ agent/appconfig/contracts.go         |  2 ++
+ agent/plugins/runscript/runscript.go | 36 +++++++++++++++++++---------
+ 3 files changed, 28 insertions(+), 11 deletions(-)
+
+diff --git a/agent/appconfig/appconfig.go b/agent/appconfig/appconfig.go
+index b6abcf1..e214cd5 100644
+--- a/agent/appconfig/appconfig.go
++++ b/agent/appconfig/appconfig.go
+@@ -118,6 +118,7 @@ func DefaultConfig() SsmagentConfig {
+ 		SessionLogsRetentionDurationHours:     DefaultSessionLogsRetentionDurationHours,
+ 		PluginLocalOutputCleanup:              DefaultPluginOutputRetention,
+ 		OrchestrationDirectoryCleanup:         DefaultOrchestrationDirCleanup,
++		UseShell:                              false,
+ 	}
+ 	var agent = AgentInfo{
+ 		Name:                                    "amazon-ssm-agent",
+diff --git a/agent/appconfig/contracts.go b/agent/appconfig/contracts.go
+index 1337398..0a66441 100644
+--- a/agent/appconfig/contracts.go
++++ b/agent/appconfig/contracts.go
+@@ -50,6 +50,8 @@ type SsmCfg struct {
+ 	PluginLocalOutputCleanup string
+ 	// Configure only when it is safe to delete orchestration folder after document execution. This config overrides PluginLocalOutputCleanup when set.
+ 	OrchestrationDirectoryCleanup string
++	// Flag for shell dependency
++	UseShell bool
+ }
+ 
+ // AgentInfo represents metadata for amazon-ssm-agent
+diff --git a/agent/plugins/runscript/runscript.go b/agent/plugins/runscript/runscript.go
+index 48be5e7..d8cbcf1 100644
+--- a/agent/plugins/runscript/runscript.go
++++ b/agent/plugins/runscript/runscript.go
+@@ -174,23 +174,37 @@ func (p *Plugin) runCommands(pluginID string, pluginInput RunScriptPluginInput,
+ 		return
+ 	}
+ 
+-	// Create script file path
+-	scriptPath := filepath.Join(orchestrationDir, p.ScriptName)
+-	log.Debugf("Writing commands %v to file %v", pluginInput, scriptPath)
++	appConfig := p.Context.AppConfig()
+ 
+-	// Create script file
+-	if err = pluginutil.CreateScriptFile(log, scriptPath, pluginInput.RunCommand, p.ByteOrderMark); err != nil {
+-		output.MarkAsFailed(fmt.Errorf("failed to create script file. %v", err))
+-		return
++	var commandName string
++	var commandArguments []string
++
++	if appConfig.Ssm.UseShell {
++
++		// Create script file path
++		scriptPath := filepath.Join(orchestrationDir, p.ScriptName)
++		log.Debugf("Writing commands %v to file %v", pluginInput, scriptPath)
++
++		// Create script file
++		if err = pluginutil.CreateScriptFile(log, scriptPath, pluginInput.RunCommand, p.ByteOrderMark); err != nil {
++			output.MarkAsFailed(fmt.Errorf("failed to create script file. %v", err))
++			return
++		}
++
++		// Construct Command Name and Arguments
++		commandName = p.ShellCommand
++		commandArguments = append(p.ShellArguments, scriptPath)
++	} else {
++
++		// Take only the first element of RunCommand since we prefer single-line commands
++		commandInput := strings.Split(pluginInput.RunCommand[0], " ")
++		commandName = commandInput[0]
++		commandArguments = append(commandInput[1:])
+ 	}
+ 
+ 	// Set execution time
+ 	executionTimeout := pluginutil.ValidateExecutionTimeout(log, pluginInput.TimeoutSeconds)
+ 
+-	// Construct Command Name and Arguments
+-	commandName := p.ShellCommand
+-	commandArguments := append(p.ShellArguments, scriptPath)
+-
+ 	// Execute Command
+ 	exitCode, err := p.CommandExecuter.NewExecute(p.Context, workingDir, output.GetStdoutWriter(), output.GetStderrWriter(), cancelFlag, executionTimeout, commandName, commandArguments, pluginInput.Environment)
+ 
+-- 
+2.40.1
+
