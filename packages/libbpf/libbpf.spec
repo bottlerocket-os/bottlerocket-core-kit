@@ -2,11 +2,12 @@ Name: %{_cross_os}libbpf
 Version: 1.4.3
 Release: 1%{?dist}
 Summary: Library for BPF
-License: LGPL-2.1 OR BSD-2-Clause
+License: LGPL-2.1-only OR BSD-2-Clause
 URL: https://github.com/libbpf/libbpf
 Source0: https://github.com/libbpf/libbpf/archive/refs/tags/v%{version}.tar.gz
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libelf-devel
+BuildRequires: %{_cross_os}libz-devel
 
 %description
 %{summary}.
