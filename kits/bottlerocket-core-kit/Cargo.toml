@@ -67,6 +67,7 @@ kubernetes-1_30 = { path = "../../packages/kubernetes-1.30" }
 libacl = { path = "../../packages/libacl" }
 libattr = { path = "../../packages/libattr" }
 libaudit = { path = "../../packages/libaudit" }
+libbpf = { path = "../../packages/libbpf" }
 libcap = { path = "../../packages/libcap" }
 libdbus = { path = "../../packages/libdbus" }
 libelf = { path = "../../packages/libelf" }

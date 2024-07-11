@@ -57,6 +57,7 @@ members = [
   "packages/libacl",
   "packages/libattr",
   "packages/libaudit",
+  "packages/libbpf",
   "packages/libcap",
   "packages/libdbus",
   "packages/libelf",
