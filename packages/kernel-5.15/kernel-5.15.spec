@@ -40,6 +40,9 @@ Requires: %{name}-devel = %{version}-%{release}
 # The 5.15 kernel is not FIPS certified.
 Conflicts: %{_cross_os}image-feature(fips)
 
+# Using EROFS for the root partition requires a 6.1+ kernel.
+Conflicts: %{_cross_os}image-feature(erofs-root-partition)
+
 %global kernel_sourcedir %{_cross_usrsrc}/kernels
 %global kernel_libdir %{_cross_libdir}/modules/%{version}
 
