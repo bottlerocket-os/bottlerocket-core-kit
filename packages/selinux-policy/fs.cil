@@ -2,6 +2,7 @@
 (fsuse xattr ext4 local)
 (fsuse xattr overlay local)
 (fsuse xattr xfs local)
+(fsuse xattr erofs local)
 
 ; Label inodes by using the type of the creating task.
 (fsuse task eventpollfs any)
