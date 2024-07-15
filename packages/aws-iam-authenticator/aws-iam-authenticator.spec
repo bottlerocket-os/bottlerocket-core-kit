@@ -2,7 +2,7 @@
 %global gorepo aws-iam-authenticator
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 0.6.14
+%global gover 0.6.21
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -48,6 +48,7 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 
 %build
 %set_cross_go_flags
+export GO_MAJOR="1.22"
 go build -ldflags="${GOLDFLAGS}" -o aws-iam-authenticator ./cmd/aws-iam-authenticator
 gofips build -ldflags="${GOLDFLAGS}" -o fips/aws-iam-authenticator ./cmd/aws-iam-authenticator
 
