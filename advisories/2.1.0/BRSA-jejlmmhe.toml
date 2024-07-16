@@ -1,9 +1,9 @@
 [advisory]
-id = "BRSA-R5POWgHb"
-title = "kernel CVE-2024-36939"
-cve = "CVE-2024-36939"
+id = "BRSA-jejlmmhe"
+title = "kernel CVE-2024-36906"
+cve = "CVE-2024-36906"
 severity = "moderate"
-description = "In the Linux kernel, the following vulnerability has been resolved: -  - nfs: Handle error of rpc_proc_register() in nfs_net_init()."
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - ARM: 9381/1: kasan: clear stale stack poison"
 
 [[advisory.products]]
 package-name = "kernel-5.15"

@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-FcOLMXto"
+id = "BRSA-fcolmxto"
 title = "kernel CVE-2024-36017"
 cve = "CVE-2024-36017"
 severity = "moderate"

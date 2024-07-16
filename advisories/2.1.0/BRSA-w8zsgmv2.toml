@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-w8ZsgmV2"
+id = "BRSA-w8zsgmv2"
 title = "kernel CVE-2024-36971"
 cve = "CVE-2024-36971"
 severity = "moderate"

@@ -1,9 +1,9 @@
 [advisory]
-id = "BRSA-dckChIkE"
-title = "kernel CVE-2024-36940"
-cve = "CVE-2024-36940"
+id = "BRSA-3rxphdbv"
+title = "kernel CVE-2024-36929"
+cve = "CVE-2024-36929"
 severity = "moderate"
-description = "In the Linux kernel, the following vulnerability has been resolved: -  - pinctrl: core: delete incorrect free in pinctrl_enable()"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - net: core: reject skb_copy(_expand) for fraglist GSO skbs"
 
 [[advisory.products]]
 package-name = "kernel-5.15"

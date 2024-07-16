@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-YSGwwZOA"
+id = "BRSA-ysgwwzoa"
 title = "kernel CVE-2024-36938"
 cve = "CVE-2024-36938"
 severity = "moderate"

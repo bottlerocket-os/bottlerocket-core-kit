@@ -1,9 +1,9 @@
 [advisory]
-id = "BRSA-pyetDFgd"
-title = "kernel CVE-2024-36883"
-cve = "CVE-2024-36883"
+id = "BRSA-vo0lqdwx"
+title = "kernel CVE-2024-26900"
+cve = "CVE-2024-26900"
 severity = "moderate"
-description = "In the Linux kernel, the following vulnerability has been resolved: -  - net: fix out-of-bounds access in ops_init"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - md: fix kmemleak of rdev->serial"
 
 [[advisory.products]]
 package-name = "kernel-5.15"

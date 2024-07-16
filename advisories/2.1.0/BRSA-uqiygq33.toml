@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-UqiyGQ33"
+id = "BRSA-uqiygq33"
 title = "kernel CVE-2023-52707"
 cve = "CVE-2023-52707"
 severity = "high"

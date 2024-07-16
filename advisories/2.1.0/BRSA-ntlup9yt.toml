@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-NTlUp9yT"
+id = "BRSA-ntlup9yt"
 title = "kernel CVE-2024-36902"
 cve = "CVE-2024-36902"
 severity = "moderate"

@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-2X8oBVtK"
+id = "BRSA-2x8obvtk"
 title = "kernel CVE-2022-0480"
 cve = "CVE-2022-0480"
 severity = "moderate"

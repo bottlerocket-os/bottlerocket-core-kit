@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-2taSniVu"
+id = "BRSA-2tasnivu"
 title = "kernel CVE-2024-36905"
 cve = "CVE-2024-36905"
 severity = "moderate"

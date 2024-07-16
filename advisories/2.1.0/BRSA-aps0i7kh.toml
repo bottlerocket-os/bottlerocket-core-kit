@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-ApS0I7KH"
+id = "BRSA-aps0i7kh"
 title = "kernel CVE-2023-52585"
 cve = "CVE-2023-52585"
 severity = "moderate"

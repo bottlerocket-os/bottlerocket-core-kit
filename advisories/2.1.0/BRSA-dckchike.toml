@@ -1,9 +1,9 @@
 [advisory]
-id = "BRSA-7F63qbV5"
-title = "kernel CVE-2024-36959"
-cve = "CVE-2024-36959"
+id = "BRSA-dckchike"
+title = "kernel CVE-2024-36940"
+cve = "CVE-2024-36940"
 severity = "moderate"
-description = "In the Linux kernel, the following vulnerability has been resolved: -  - pinctrl: devicetree: fix refcount leak in pinctrl_dt_to_map()"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - pinctrl: core: delete incorrect free in pinctrl_enable()"
 
 [[advisory.products]]
 package-name = "kernel-5.15"

@@ -1,5 +1,5 @@
 [advisory]
-id = "BRSA-Ng5niBKY"
+id = "BRSA-ng5nibky"
 title = "kernel CVE-2021-47402"
 cve = "CVE-2021-47402"
 severity = "moderate"
