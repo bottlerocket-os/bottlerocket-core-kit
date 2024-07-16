@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-YSGwwZOA"
+title = "kernel CVE-2024-36938"
+cve = "CVE-2024-36938"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - bpf, skmsg: Fix NULL pointer dereference in sk_psock_skb_ingress_enqueue"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.160-104.158.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-08T23:14:32Z
+arches = ["aarch64", "x86_64"]
+version = "2.1.0"

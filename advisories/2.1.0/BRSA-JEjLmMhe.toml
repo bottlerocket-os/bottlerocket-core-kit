@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-JEjLmMhe"
+title = "kernel CVE-2024-36906"
+cve = "CVE-2024-36906"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - ARM: 9381/1: kasan: clear stale stack poison"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.160-104.158.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-08T23:14:32Z
+arches = ["aarch64", "x86_64"]
+version = "2.1.0"

@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-UqiyGQ33"
+title = "kernel CVE-2023-52707"
+cve = "CVE-2023-52707"
+severity = "high"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - sched/psi: Fix use-after-free in ep_remove_wait_queue()"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.218-206.860.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-08T23:14:32Z
+arches = ["aarch64", "x86_64"]
+version = "2.1.0"

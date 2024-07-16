@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-2X8oBVtK"
+title = "kernel CVE-2022-0480"
+cve = "CVE-2022-0480"
+severity = "moderate"
+description = "A flaw was found in the filelock_init in fs/locks.c function in the Linux kernel. This issue can lead to host memory exhaustion due to memcg not limiting the number of Portable Operating System Interface (POSIX) file locks."
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.218-206.860.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-08T23:14:32Z
+arches = ["x86_64", "aarch64"]
+version = "2.1.0"
