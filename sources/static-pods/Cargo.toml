@@ -10,7 +10,7 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [dependencies]
-base64 = "0.21"
+base64 = "0.22"
 log = "0.4"
 serde = { version = "1", features = ["default"]}
 simplelog = "0.12"

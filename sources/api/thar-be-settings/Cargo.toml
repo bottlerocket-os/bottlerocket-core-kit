@@ -14,7 +14,7 @@ apiclient = { path = "../apiclient", version = "0.1" }
 constants = { path = "../../constants", version = "0.1" }
 handlebars = "4"
 http = "0.2"
-itertools = "0.10"
+itertools = "0.13"
 log = "0.4"
 models = { path = "../../models", version = "0.1" }
 nix = "0.26"

@@ -17,7 +17,7 @@ testfakes = []
 apiclient = { path = "../apiclient", version = "0.1" }
 argh = "0.1"
 async-trait = "0.1"
-base64 = "0.21"
+base64 = "0.22"
 cached = { version = "0.49", features = ["async"] }
 constants = { path = "../../constants", version = "0.1" }
 bottlerocket-release = { path = "../../bottlerocket-release", version = "0.1" }
