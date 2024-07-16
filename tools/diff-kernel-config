@@ -36,9 +36,7 @@ Compare kernel configurations before and after a series of commits.
 
     -a, --after         new Git revision to compare from
     -b, --before        baseline Git revision to compare against
-    -v, --variant       variant to pick kernel from to compare configs for, may
-                        be given multiple times (optional, defaults to this list:
-                        'aws-k8s-1.23', 'metal-k8s-1.23', 'aws-dev', 'metal-dev')
+    -k, --kernel        the kernel versions
     -o, --output-dir    path to the output directory; must not exist yet
     -r, --resume        resume work on a previous invocation; check which parts
                         already exist in OUTPUT_DIR and skip builds accordingly
@@ -50,15 +48,14 @@ Example invocation:
     and 5.15 (through metal-k8s-1.26) before and after the most recent commit
     has been applied:
 
-        $0 -b HEAD^ -a HEAD -v metal-k8s-1.23 -v metal-k8s-1.26 -o configs
+        $0 -b HEAD^ -a HEAD -k 5.10 -k 5.15 -o configs
 
 Notes:
 
     This compares the config changes for all combinations of aarch64/x86_64,
-    cloud/metal, and kernel versions. Combinations without a corresponding
-    Bottlerocket variant are skipped. Since this involves numerous full kernel
-    builds the comparison will take some time. Consider the working tree this
-    is invoked on busy while the script is running.
+    and kernel versions. Since this involves numerous full kernel builds the
+    comparison will take some time. Consider the working tree this is invoked
+    on busy while the script is running.
 
 EOF
 }
@@ -74,7 +71,6 @@ usage_error() {
 #
 
 kernel_versions=()
-variants=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -82,8 +78,8 @@ while [[ $# -gt 0 ]]; do
             shift; gitrev_after_arg=$1 ;;
         -b|--before)
             shift; gitrev_before_arg=$1 ;;
-        -v|--variant)
-            shift; variants+=( "$1" ) ;;
+        -k|--kernel)
+            shift; kernel_versions+=( "$1" ) ;;
         -o|--output-dir)
             shift; output_dir=$1 ;;
         -r|--resume)
@@ -96,15 +92,6 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-if [[ ${#variants[@]} -eq 0 ]]; then
-    variants=( aws-k8s-1.23 metal-k8s-1.23 aws-dev metal-dev )
-fi
-
-for var in "${variants[@]}"; do
-    [[ -d variants/${var} ]] || bail "Unknown variant '${var}'"
-done
-readonly variants
-
 [[ -n ${output_dir} ]] || usage_error 'require -o|--output-dir'
 [[ -e ${output_dir} && ! -v resume ]] && bail "Output directory '${output_dir}' exists already, not touching it"
 readonly output_dir
@@ -114,6 +101,7 @@ readonly output_dir
 # checkout.
 [[ -n ${gitrev_before_arg} ]] || usage_error 'require -b|--before'
 [[ -n ${gitrev_after_arg} ]] || usage_error 'require -a|--after'
+[[ -n ${kernel_versions[*]} ]] || usage_error 'require -k|--kernel'
 gitrev_before=$(git rev-parse --verify --end-of-options "${gitrev_before_arg}^{commit}")
 gitrev_after=$(git rev-parse --verify --end-of-options "${gitrev_after_arg}^{commit}")
 [[ -n ${gitrev_before} ]] || bail "Invalid Git revision '${gitrev_before_arg}'"
@@ -154,45 +142,25 @@ for state in after before; do
     gitrev_var=gitrev_${state}
     git checkout --quiet "${!gitrev_var}" || bail "Cannot check out '${!gitrev_var}'."
 
-    for variant in "${variants[@]}"; do
+    for kver in "${kernel_versions[@]}"; do
 
-        arches=()
-        IFS=" " read -r -a arches <<< "$(grep "supported-arches" "variants/${variant}/Cargo.toml" | cut -d ' ' -f 3 | tr -d '"[]')"
-        if [[ ${#arches[@]} -eq 0 ]]; then
-            arches=( aarch64 x86_64 )
-        fi
-
-        kver=$(grep "packages/kernel" "variants/${variant}/Cargo.toml" | cut -d ' ' -f 1 | cut -d '-' -f 2 | tr '_' '.')
-
-        kernel_versions+=( "${kver}" )
+        arches=( aarch64 x86_64 )
 
         for arch in "${arches[@]}"; do
-            config_path=${output_dir}/config-${arch}-${variant}-${state}
+            config_path=${output_dir}/config-${arch}-${kver}-${state}
 
             if [[ -v resume && -e ${config_path} ]]; then
                 echo "${config_path} already exists, skipping"
                 continue
             fi
 
-            debug_id="state=${state} arch=${arch} variant=${variant} kernel=${kver}"
-
-            IFS=- read -ra variant_parts <<<"${variant}"
-            variant_platform="${variant_parts[0]}"
-            variant_runtime="${variant_parts[1]}"
-            variant_family="${variant_platform}-${variant_runtime}"
+            debug_id="state=${state} arch=${arch} kernel=${kver}"
 
             #
             # Run build
             #
 
-            cargo make \
-                    -e BUILDSYS_ARCH="${arch}" \
-                    -e BUILDSYS_VARIANT="${variant}" \
-                    -e BUILDSYS_VARIANT_PLATFORM="${variant_platform}" \
-                    -e BUILDSYS_VARIANT_RUNTIME="${variant_runtime}" \
-                    -e BUILDSYS_VARIANT_FAMILY="${variant_family}" \
-                    -e PACKAGE="kernel-${kver/./_}" \
-                    build-package \
+            ARCH="${arch}" PACKAGE="kernel-${kver/./_}" make twoliter build-package \
                 || bail "Build failed for ${debug_id}"
 
             #
@@ -201,8 +169,7 @@ for state in after before; do
 
             shopt -s nullglob
             kernel_rpms=(
-                ./build/rpms/bottlerocket-*kernel-"${kver}"-"${kver}".*."${arch}".rpm
-                ./build/rpms/bottlerocket-"${arch}"-*kernel-"${kver}"-"${kver}".*.rpm
+                ./build/rpms/kernel-"${kver}"/bottlerocket-kernel-"${kver}"-"${kver}".*.*.*.br1."${arch}".rpm
             )
             shopt -u nullglob
 
@@ -227,10 +194,11 @@ for state in after before; do
             [[ -s "${config_path}" ]] || bail "Failed to extract config for ${debug_id}"
 
 
-            echo "config-${arch}-${variant}-${state} -> ${kver_full}" >> "${output_dir}"/kver_mapping
+            echo "config-${arch}-${kver}-${state} -> ${kver_full}" >> "${output_dir}"/kver_mapping
         done  # arch
 
-    done  # variant
+    done # kernel
+
 
 done  # state
 
@@ -243,7 +211,7 @@ done  # state
 # in the kernel-archive RPM from where it can be extracted. Here we extract the
 # latest version of the script, but any kernel version and arch will do.
 latest_kver=$(printf '%s\n' "${kernel_versions[@]}" | sort -V | tail -n1)
-latest_archive_rpms=( ./build/rpms/bottlerocket-*kernel-"${latest_kver}"-archive-*.rpm )
+latest_archive_rpms=( ./build/rpms/kernel-"${latest_kver}"/bottlerocket-kernel-"${latest_kver}"-archive-*.rpm )
 diffconfig=$(mktemp --suffix -bottlerocket-diffconfig)
 on_exit "rm '${diffconfig}'"
 rpm2cpio "${latest_archive_rpms[0]}" \
@@ -282,10 +250,10 @@ echo "config change" > "${output_dir}"/diff-table
 cat "${output_dir}"/*-diff | sort | uniq >> "${output_dir}"/diff-table
 
 for config_diff in "${output_dir}"/config-*-diff; do
-    variant_name=$(echo "${config_diff}" | sed -e "s%^${output_dir}/config-%%" -e "s%-diff$%%")
-    kver_before=$(grep "${variant_name}-before" "${output_dir}/kver_mapping" | cut -d ' ' -f 3)
-    kver_after=$(grep "${variant_name}-after" "${output_dir}/kver_mapping" | cut -d ' ' -f 3)
-    col_name="${variant_name} (${kver_before} -> ${kver_after})"
+    kernel_version=$(echo "${config_diff}" | sed -e "s%^${output_dir}/config-%%" -e "s%-diff$%%")
+    kver_before=$(grep "${kernel_version}-before" "${output_dir}/kver_mapping" | cut -d ' ' -f 3)
+    kver_after=$(grep "${kernel_version}-after" "${output_dir}/kver_mapping" | cut -d ' ' -f 3)
+    col_name="${kernel_version} (${kver_before} -> ${kver_after})"
 
     sed -i "s/$/,/" "${output_dir}"/diff-table
     sed -i "/^config change/ s/$/${col_name}/" "${output_dir}"/diff-table
