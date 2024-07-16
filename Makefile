@@ -4,7 +4,7 @@ TWOLITER_DIR := $(TOOLS_DIR)/twoliter
 TWOLITER := $(TWOLITER_DIR)/twoliter
 CARGO_HOME := $(TOP).cargo
 
-TWOLITER_VERSION ?= "0.4.1"
+TWOLITER_VERSION ?= "0.4.2"
 KIT ?= bottlerocket-core-kit
 ARCH ?= $(shell uname -m)
 VENDOR ?= bottlerocket
