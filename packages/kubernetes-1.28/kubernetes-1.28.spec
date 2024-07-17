@@ -104,6 +104,32 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}kubelet-1.28-bin)
 %description -n %{_cross_os}kubelet-1.28-fips-bin
 %{summary}.
 
+%package -n %{_cross_os}kube-proxy-1.28
+Summary: Container cluster node proxy
+Requires: %{_cross_os}kubelet-1.28
+Requires: %{_cross_os}kube-proxy-1.28(binaries)
+
+%description -n %{_cross_os}kube-proxy-1.28
+%{summary}.
+
+%package -n %{_cross_os}kube-proxy-1.28-bin
+Summary: Container cluster node proxy binaries
+Provides: %{_cross_os}kube-proxy-1.28(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}kube-proxy-1.28)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}kube-proxy-1.28-fips-bin)
+
+%description -n %{_cross_os}kube-proxy-1.28-bin
+%{summary}.
+
+%package -n %{_cross_os}kube-proxy-1.28-fips-bin
+Summary: Container cluster node proxy binaries, FIPS edition
+Provides: %{_cross_os}kube-proxy-1.28(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}kube-proxy-1.28)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}kube-proxy-1.28-bin)
+
+%description -n %{_cross_os}kube-proxy-1.28-fips-bin
+%{summary}.
+
 %prep
 %autosetup -Sgit -c -n %{gorepo}-%{gover} -p1
 
@@ -119,18 +145,22 @@ export FORCE_HOST_GO=1
 # Build codegen programs with the host toolchain.
 make hack/update-codegen.sh
 
-# Build kubelet with the target toolchain.
+# Build kubelet and kube-proxy with the target toolchain.
 %set_cross_go_flags
 unset CC
 export KUBE_BUILD_PLATFORMS="linux/%{_cross_go_arch}"
 export %{kube_cc}
 export GOFLAGS="${GOFLAGS} -tags=dockerless"
 export GOLDFLAGS="${GOLDFLAGS}"
+# don't build kube-proxy statically as we use linkermode=external which requires CGO
+export KUBE_CGO_OVERRIDES="kube-proxy"
 make WHAT="cmd/kubelet"
+make WHAT="cmd/kube-proxy"
 
 export KUBE_OUTPUT_SUBPATH="_fips_output/local"
 export GOEXPERIMENT="boringcrypto"
 make WHAT="cmd/kubelet"
+make WHAT="cmd/kube-proxy"
 
 # build the pause container
 cd build/pause/linux/
@@ -153,10 +183,12 @@ install -m 0644 %{S:101} image/manifest.json
 output="./_output/local/bin/linux/%{_cross_go_arch}"
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 ${output}/kubelet %{buildroot}%{_cross_bindir}
+install -p -m 0755 ${output}/kube-proxy %{buildroot}%{_cross_bindir}
 
 fips_output="./_fips_output/local/bin/linux/%{_cross_go_arch}"
 install -d %{buildroot}%{_cross_fips_bindir}
 install -p -m 0755 ${fips_output}/kubelet %{buildroot}%{_cross_fips_bindir}
+install -p -m 0755 ${fips_output}/kube-proxy %{buildroot}%{_cross_fips_bindir}
 
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:1} %{S:10} %{S:13} %{buildroot}%{_cross_unitdir}
@@ -229,5 +261,13 @@ install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-containe
 
 %files -n %{_cross_os}kubelet-1.28-fips-bin
 %{_cross_fips_bindir}/kubelet
+
+%files -n %{_cross_os}kube-proxy-1.28
+
+%files -n %{_cross_os}kube-proxy-1.28-bin
+%{_cross_bindir}/kube-proxy
+
+%files -n %{_cross_os}kube-proxy-1.28-fips-bin
+%{_cross_fips_bindir}/kube-proxy
 
 %changelog
