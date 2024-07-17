@@ -1,3 +1,29 @@
+# v2.2.0 (2024-07-18)
+
+## OS Changes
+* Add libbpf ([#24], thanks @ndbaker1)
+* Add kube-proxy ([#25], thanks @tzneal)
+* Third party package updates ([#28], [#35], [#36])
+* Update rust dependencies for first-party sources ([#34])
+* Update kernels: 5.10.220, 5.15.161, and 6.1.96 ([#29])
+
+## Build Changes
+* Update `twoliter` ([#30], [#39])
+
+## Tools
+* Fix `diff-kernel-config` to work with Core Kit ([#32])
+
+[#24]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/24
+[#25]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/25
+[#28]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/28
+[#29]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/29
+[#30]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/30
+[#32]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/32
+[#34]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/34
+[#35]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/35
+[#36]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/36
+[#39]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/39
+
 # v2.1.0 (2024-07-08)
 
 ## OS Changes
