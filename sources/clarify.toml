@@ -98,6 +98,7 @@ license-files = [
 # > - all other files use a GPLv2 license, unless explicitly stated otherwise
 expression = "MIT AND BSD-2-Clause"
 license-files = [
+    { path = "LICENSE", hash = 0xecc8e9c8 },
     { path = "liblz4/lib/LICENSE", hash = 0xe411c460 },
 ]
 skip-files = [

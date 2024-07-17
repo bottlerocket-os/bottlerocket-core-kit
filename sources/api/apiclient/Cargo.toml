@@ -10,7 +10,7 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [dependencies]
-base64 = "0.21"
+base64 = "0.22"
 constants = { path = "../../constants", version = "0.1" }
 datastore = { path = "../datastore", version = "0.1" }
 futures = { version = "0.3", default-features = false }
@@ -34,7 +34,7 @@ snafu = { version = "0.8", features = ["futures"] }
 tokio = { version = "~1.32", default-features = false, features = ["fs", "io-std", "io-util", "macros", "rt-multi-thread", "time"] }  # LTS
 tokio-tungstenite = { version = "0.20", default-features = false, features = ["connect"] }
 toml = "0.8"
-unindent = "0.1"
+unindent = "0.2"
 url = "2"
 
 [build-dependencies]

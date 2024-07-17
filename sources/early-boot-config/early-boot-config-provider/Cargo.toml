@@ -11,7 +11,7 @@ exclude = ["README.md"]
 
 [dependencies]
 async-trait = "0.1"
-env_logger = "0.10"
+env_logger = "0.11"
 flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
 log = "0.4"
 retry-read = { path = "../../retry-read", version = "0.1" }
@@ -24,5 +24,5 @@ toml = "0.8"
 generate-readme = { version = "0.1", path = "../../generate-readme" }
 
 [dev-dependencies]
-hex-literal = "0.3"
+hex-literal = "0.4"
 lazy_static = "1"

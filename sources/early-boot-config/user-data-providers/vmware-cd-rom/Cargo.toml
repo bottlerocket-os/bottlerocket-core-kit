@@ -9,7 +9,7 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-base64 = "0.21"
+base64 = "0.22"
 log = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde-xml-rs = "0.6"

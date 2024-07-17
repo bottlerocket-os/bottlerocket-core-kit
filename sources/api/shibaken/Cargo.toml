@@ -11,7 +11,7 @@ exclude = ["README.md"]
 
 [dependencies]
 argh = "0.1"
-base64 = "0.21"
+base64 = "0.22"
 imdsclient = { path = "../../imdsclient", version = "0.1" }
 log = "0.4"
 serde = { version = "1", features = ["derive"] }
