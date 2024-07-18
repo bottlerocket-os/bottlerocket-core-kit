@@ -1,5 +1,5 @@
-%global majorminor 2.39
-%global version %{majorminor}.3
+%global majorminor 2.40
+%global version %{majorminor}.2
 
 Name: %{_cross_os}util-linux
 Version: %{version}
@@ -177,6 +177,7 @@ done
 %{_cross_bindir}/logger
 %{_cross_bindir}/lsblk
 %{_cross_bindir}/lscpu
+%{_cross_bindir}/lsclocks
 %{_cross_bindir}/lsipc
 %{_cross_bindir}/lsirq
 %{_cross_bindir}/lsfd
@@ -206,6 +207,8 @@ done
 %exclude %{_cross_bindir}/colrm
 %exclude %{_cross_bindir}/column
 %exclude %{_cross_bindir}/eject
+%exclude %{_cross_bindir}/enosys
+%exclude %{_cross_bindir}/exch
 %exclude %{_cross_bindir}/fincore
 %exclude %{_cross_bindir}/getopt
 %exclude %{_cross_bindir}/hardlink
@@ -230,6 +233,7 @@ done
 %exclude %{_cross_bindir}/scriptreplay
 %exclude %{_cross_bindir}/setarch
 %exclude %{_cross_bindir}/setterm
+%exclude %{_cross_bindir}/setpgid
 %exclude %{_cross_bindir}/ul
 %exclude %{_cross_bindir}/uname26
 %exclude %{_cross_bindir}/utmpdump

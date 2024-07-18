@@ -1,5 +1,5 @@
 %global gorepo soci-snapshotter
-%global gover 0.5.0
+%global gover 0.6.1
 %global rpmver %{gover}
 
 Name: %{_cross_os}soci-snapshotter
@@ -8,7 +8,7 @@ Release: 1%{?dist}
 Summary: A containerd snapshotter plugin which enables lazy loading for OCI images.
 License: Apache-2.0
 URL: https://github.com/awslabs/soci-snapshotter
-Source0: https://github.com/awslabs/soci-snapshotter/archive/refs/tags/v0.5.0.tar.gz
+Source0: https://github.com/awslabs/soci-snapshotter/archive/refs/tags/v%{gover}.tar.gz
 Source1: bundled-v%{gover}.tar.gz
 Source2: bundled-cmd.tar.gz
 Source101: soci-snapshotter.service

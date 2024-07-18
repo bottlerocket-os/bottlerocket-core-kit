@@ -1,5 +1,5 @@
-%global ncurses_ver 6.4
-%global ncurses_rev 20231209
+%global ncurses_ver 6.5
+%global ncurses_rev 20240713
 
 Name: %{_cross_os}libncurses
 Version: %{ncurses_ver}
@@ -11,7 +11,6 @@ Source0: https://invisible-mirror.net/archives/ncurses/current/ncurses-%{ncurses
 Patch1: ncurses-config.patch
 Patch2: ncurses-libs.patch
 Patch3: ncurses-urxvt.patch
-Patch4: ncurses-kbs.patch
 BuildRequires: %{_cross_os}glibc-devel
 
 %description
