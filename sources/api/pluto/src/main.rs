@@ -324,9 +324,7 @@ async fn generate_provider_id(
     client: &mut ImdsClient,
     aws_k8s_info: &mut AwsK8sInfo,
 ) -> Result<()> {
-    if aws_k8s_info.provider_id.is_some()
-        || NO_HOSTNAME_VARIANTS.contains(&aws_k8s_info.variant_id.as_str())
-    {
+    if aws_k8s_info.provider_id.is_some() {
         return Ok(());
     }
 
@@ -352,7 +350,7 @@ async fn generate_private_dns_name(
     client: &mut ImdsClient,
     aws_k8s_info: &mut AwsK8sInfo,
 ) -> Result<()> {
-    if aws_k8s_info.hostname_override.is_some() {
+    if aws_k8s_info.hostname_override.is_some() || NO_HOSTNAME_VARIANTS.contains(&aws_k8s_info.variant_id.as_str()) {
         return Ok(());
     }
 
