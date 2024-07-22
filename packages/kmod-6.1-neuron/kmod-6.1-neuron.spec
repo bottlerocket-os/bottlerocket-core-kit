@@ -15,6 +15,13 @@ BuildRequires: %{_cross_os}kernel-6.1-archive
 %description
 %{summary}.
 
+%package devel
+Summary: Files for development using the Neuron drivers
+Requires: %{name}
+
+%description devel
+%{summary}.
+
 %prep
 rpm2cpio %{SOURCE0} | cpio -idmv
 tar -xf %{_cross_datadir}/bottlerocket/kernel-devel.tar.xz
@@ -51,9 +58,19 @@ install -p -m 0644 %{S:1} %{buildroot}%{_cross_libdir}/modules-load.d/neuron.con
 install -d %{buildroot}%{_cross_unitdir}/systemd-modules-load.service.d
 install -p -m 0644 %{S:2} %{buildroot}%{_cross_unitdir}/systemd-modules-load.service.d/neuron.conf
 
+# Install the shared header file
+install -d %{buildroot}%{_cross_includedir}/share
+install -p -m 0644 %{_builddir}/%{neuron_sources}/share/neuron_driver_shared.h %{buildroot}/%{_cross_includedir}/share/neuron_driver_shared.h
+install -p -m 0644 %{_builddir}/%{neuron_sources}/neuron_ioctl.h %{buildroot}/%{_cross_includedir}/neuron_ioctl.h
+
 %files
 %license %{neuron_sources}/LICENSE
 %{_cross_attribution_file}
 %{_cross_libdir}/modules/*/extra/neuron.ko.gz
 %{_cross_libdir}/modules-load.d/neuron.conf
 %{_cross_unitdir}/systemd-modules-load.service.d/neuron.conf
+
+%files devel
+%dir %{_cross_includedir}/share/
+%{_cross_includedir}/share/neuron_driver_shared.h
+%{_cross_includedir}/neuron_ioctl.h
