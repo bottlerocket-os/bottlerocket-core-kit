@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-qeljrksg"
+title = "kernel CVE-2024-36971"
+cve = "CVE-2024-36971"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - net: fix __dst_negative_advice() race"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.161-106.159.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-18T20:54:34Z
+arches = ["aarch64", "x86_64"]
+version = "2.2.0"
