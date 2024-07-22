@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-tjnwgl2a"
+title = "docker-engine CVE-2024-29018"
+cve = "CVE-2024-29018"
+severity = "high"
+description = "A flaw in the `dockerd` design allowed for a potential data exfiltration from 'internal' networks via authoritative DNS servers. This is because `dockerd` will forward DNS requests to the host loopback device, bypassing the container network namespace's normal routing semantics entirely."
+
+[[advisory.products]]
+package-name = "docker-engine"
+patched-version = "25.0.5"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2024-07-18T20:54:34Z 
+arches = ["aarch64", "x86_64"]
+version = "2.2.0"
