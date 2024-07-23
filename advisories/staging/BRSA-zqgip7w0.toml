@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-zqgip7w0"
+title = "containerd CVE-2023-47108"
+cve = "CVE-2023-47108"
+severity = "high"
+description = "The grpc Unary Server Interceptor in containerd's OpenTelemetry-Go dependency adds labels `net.peer.sock.addr` and `net.peer.sock.port` that have unbound cardinality. This flaw could lead to server memory exhaustion." 
+
+[[advisory.products]]
+package-name = "containerd"
+patched-version = "1.17.20"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2024-07-22T20:29:07Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
