@@ -7,10 +7,10 @@ description = "The grpc Unary Server Interceptor in containerd's OpenTelemetry-G
 
 [[advisory.products]]
 package-name = "containerd"
-patched-version = "1.17.20"
+patched-version = "1.7.20"
 
 [updateinfo]
 author = "vighmah"
-issue-date = 2024-07-22T20:29:07Z
+issue-date = 2024-07-24T20:00:00Z
 arches = ["x86_64", "aarch64"]
-version = "staging"
+version = "2.3.0"
