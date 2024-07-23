@@ -1,0 +1,20 @@
+[advisory]
+id = "BRSA-yu6lsgjn"
+title = "kernel CVE-2024-36889"
+cve = "CVE-2024-36889"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - mptcp: ensure snd_nxt is properly initialized on connect"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.218-206.860.amzn2"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.160-104.158.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-08T23:14:32Z
+arches = ["x86_64", "aarch64"]
+version = "2.1.0"
