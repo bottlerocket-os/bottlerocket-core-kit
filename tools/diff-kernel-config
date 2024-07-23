@@ -160,7 +160,7 @@ for state in after before; do
             # Run build
             #
 
-            ARCH="${arch}" PACKAGE="kernel-${kver/./_}" make twoliter build-package \
+            BUILDSYS_ARCH="${arch}" PACKAGE="kernel-${kver/./_}" make twoliter build-package \
                 || bail "Build failed for ${debug_id}"
 
             #
