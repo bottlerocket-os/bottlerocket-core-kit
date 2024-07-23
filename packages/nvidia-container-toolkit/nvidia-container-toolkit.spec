@@ -19,6 +19,7 @@ Source3: nvidia-oci-hooks-json
 Source4: nvidia-gpu-devices.rules
 Source5: nvidia-container-toolkit-tmpfiles-ecs.conf
 Source6: nvidia-container-toolkit-tmpfiles-k8s.conf
+Source7: nvidia-container-toolkit-config-k8s
 
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}libnvidia-container
@@ -59,13 +60,16 @@ install -d %{buildroot}%{_cross_templatedir}
 install -d %{buildroot}%{_cross_udevrulesdir}
 install -d %{buildroot}%{_cross_datadir}/nvidia-container-toolkit
 install -d %{buildroot}%{_cross_factorydir}/nvidia-container-runtime
+install -d %{buildroot}%{_cross_templatedir}/nvidia-container-runtime
 install -p -m 0755 nvidia-container-runtime-hook %{buildroot}%{_cross_bindir}/
 install -p -m 0755 nvidia-ctk %{buildroot}%{_cross_bindir}/
-install -m 0644 %{S:1} %{S:2} %{buildroot}%{_cross_factorydir}/nvidia-container-runtime/
+install -m 0644 %{S:1} %{buildroot}%{_cross_factorydir}/nvidia-container-runtime/
+install -m 0644 %{S:2} %{buildroot}%{_cross_factorydir}/nvidia-container-runtime/
 install -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/nvidia-oci-hooks-json
 install -p -m 0644 %{S:4} %{buildroot}%{_cross_udevrulesdir}/90-nvidia-gpu-devices.rules
 install -m 0644 %{S:5} %{buildroot}%{_cross_tmpfilesdir}/nvidia-container-toolkit-ecs.conf
 install -m 0644 %{S:6} %{buildroot}%{_cross_tmpfilesdir}/nvidia-container-toolkit-k8s.conf
+install -m 0644 %{S:7} %{buildroot}%{_cross_templatedir}/nvidia-container-runtime/
 ln -s shimpei %{buildroot}%{_cross_bindir}/nvidia-oci
 
 %files
@@ -83,4 +87,5 @@ ln -s shimpei %{buildroot}%{_cross_bindir}/nvidia-oci
 
 %files k8s
 %{_cross_factorydir}/nvidia-container-runtime/nvidia-container-toolkit-config-k8s.toml
+%{_cross_templatedir}/nvidia-container-runtime/nvidia-container-toolkit-config-k8s
 %{_cross_tmpfilesdir}/nvidia-container-toolkit-k8s.conf

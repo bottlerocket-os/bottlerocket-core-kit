@@ -1,0 +1,13 @@
+[required-extensions]
+kubernetes = "v1"
+std = { version = "v1", helpers = ["default"] }
+
++++
+version: v1
+flags:
+  migStrategy: "none"
+  failOnInitError: true
+  plugin:
+    passDeviceSpecs: {{default true settings.kubernetes.device-plugins.nvidia.pass-device-specs}}
+    deviceListStrategy: {{default "volume-mounts" settings.kubernetes.device-plugins.nvidia.device-list-strategy}}
+    deviceIDStrategy: {{default "index" settings.kubernetes.device-plugins.nvidia.device-id-strategy}}

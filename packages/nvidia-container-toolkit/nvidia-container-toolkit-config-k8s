@@ -1,0 +1,14 @@
+[required-extensions]
+nvidia-container-runtime = "v1"
+std = { version = "v1", helpers = ["default"] }
+
++++
+### generated from the template file ###
+accept-nvidia-visible-devices-as-volume-mounts = {{default true settings.nvidia-container-runtime.visible-devices-as-volume-mounts}}
+accept-nvidia-visible-devices-envvar-when-unprivileged = {{default false settings.nvidia-container-runtime.visible-devices-envvar-when-unprivileged}}
+
+[nvidia-container-cli]
+root = "/"
+path = "/usr/bin/nvidia-container-cli"
+environment = []
+ldconfig = "@/sbin/ldconfig"
