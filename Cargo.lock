@@ -24,6 +24,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-otel-collector"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+]
+
+[[package]]
 name = "aws-signing-helper"
 version = "0.1.0"
 dependencies = [
@@ -54,6 +61,7 @@ dependencies = [
  "acpid",
  "amazon-ssm-agent",
  "aws-iam-authenticator",
+ "aws-otel-collector",
  "aws-signing-helper",
  "bash",
  "binutils",
