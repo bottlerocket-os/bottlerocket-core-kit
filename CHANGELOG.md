@@ -17,11 +17,11 @@
 
 * Update Twoliter to 0.4.3 ([#39])
     
-[#39] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/39
-[#40] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/40
-[#42] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/42
-[#43] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/43
-[#46] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/46
+[#39]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/39
+[#40]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/40
+[#42]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/42
+[#43]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/43
+[#46]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/46
 
 # v2.2.0 (2024-07-18)
 
