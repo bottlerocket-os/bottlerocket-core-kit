@@ -1,3 +1,28 @@
+# v2.3.0 (2024-07-24)
+
+## OS Changes
+
+* Update containerd to 1.7.20 ([#40])
+* Update runc to 1.1.13 ([#40])
+* Update kernels: 5.10.220, 5.15.162, and 6.1.97 ([#46])
+* Add kmod-6.1-neuron-devel ([#42])
+
+## Orchestrator Changes
+
+### Kubernetes
+
+* Add latest instance types to eni-max-pods mapping ([#43])
+
+## Build Changes
+
+* Update Twoliter to 0.4.3 ([#39])
+    
+[#39] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/39
+[#40] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/40
+[#42] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/42
+[#43] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/43
+[#46] https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/46
+
 # v2.2.0 (2024-07-18)
 
 ## OS Changes
