@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-wyuvthdr"
+title = "soci-snapshotter CVE-2024-24788"
+cve = "CVE-2024-24788"
+severity = "high"
+description = "A malformed DNS message in response to a query can cause the Lookup functions to get stuck in an infinite loop."
+
+[[advisory.products]]
+package-name = "soci-snapshotter"
+patched-version = "0.6.1"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2024-07-18T20:54:34Z 
+arches = ["x86_64", "aarch64"]
+version = "2.2.0"
