@@ -1,0 +1,40 @@
+From 1f1fc80e5869e125f5900aca76c3dbd3f1a24d81 Mon Sep 17 00:00:00 2001
+From: Kush Upadhyay <kushupad@amazon.com>
+Date: Thu, 15 Aug 2024 09:12:55 +0000
+Subject: [PATCH] change logger and extraconfig file paths
+
+Signed-off-by: Kush Upadhyay <kushupad@amazon.com>
+---
+ pkg/extraconfig/extraconfig.go | 2 +-
+ pkg/logger/logger.go           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pkg/extraconfig/extraconfig.go b/pkg/extraconfig/extraconfig.go
+index 9c14d5f7..8ee7cbd9 100644
+--- a/pkg/extraconfig/extraconfig.go
++++ b/pkg/extraconfig/extraconfig.go
+@@ -23,7 +23,7 @@ import (
+ )
+ 
+ var (
+-	UnixExtraConfigPath    = "/opt/aws/aws-otel-collector/etc/extracfg.txt"
++	UnixExtraConfigPath    = "/etc/aws-otel-collector/extracfg.txt"
+ 	WindowsExtraConfigPath = "C:\\ProgramData\\Amazon\\AWSOTelCollector\\Configs\\extracfg.txt"
+ )
+ 
+diff --git a/pkg/logger/logger.go b/pkg/logger/logger.go
+index 9805eeab..7fcbab31 100644
+--- a/pkg/logger/logger.go
++++ b/pkg/logger/logger.go
+@@ -31,7 +31,7 @@ import (
+ )
+ 
+ var (
+-	UnixLogPath      = "/opt/aws/aws-otel-collector/logs/aws-otel-collector.log"
++	UnixLogPath      = "/var/log/aws/aws-otel-collector.log"
+ 	WindowsLogPath   = "C:\\ProgramData\\Amazon\\AWSOTelCollector\\Logs\\aws-otel-collector.log"
+ 	logfile          = getLogFilePath()
+ 	lumberjackLogger = tryNewLumberJackLogger()
+-- 
+2.40.1
+
