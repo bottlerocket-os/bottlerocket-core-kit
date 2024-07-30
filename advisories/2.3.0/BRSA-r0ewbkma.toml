@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-r0ewbkma"
+title = "kernel CVE-2024-27397"
+cve = "CVE-2024-27397"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: -  - netfilter: nf_tables: use timestamp to check for set element timeout"
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.97-104.177.amzn2023"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-24T20:00:00Z
+arches = ["aarch64", "x86_64"]
+version = "2.3.0"

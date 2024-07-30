@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-kt6ctche"
+title = "kernel CVE-2022-3567"
+cve = "CVE-2022-3567"
+severity = "moderate"
+description = "A vulnerability has been found in the Linux Kernel that affects the function inet6_stream_ops/inet6_dgram_ops of the component IPv6 Handler. The manipulation leads to a race condition."
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.162-107.160.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-24T20:00:00Z
+arches = ["aarch64", "x86_64"]
+version = "2.3.0"
