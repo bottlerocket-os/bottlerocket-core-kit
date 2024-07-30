@@ -39,7 +39,7 @@ mod hyper_proxy;
 mod proxy;
 
 use api::AwsK8sInfo;
-use bottlerocket_modeled_types::KubernetesClusterDnsIp;
+use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
 use imdsclient::ImdsClient;
 use snafu::{ensure, OptionExt, ResultExt};
 use std::fs::File;
@@ -55,8 +55,6 @@ const DEFAULT_DNS_CLUSTER_IP: &str = "10.100.0.10";
 const DEFAULT_10_RANGE_DNS_CLUSTER_IP: &str = "172.20.0.10";
 
 const ENI_MAX_PODS_PATH: &str = "/usr/share/eks/eni-max-pods";
-
-const NO_HOSTNAME_VARIANTS: &[&str] = &["aws-k8s-1.23", "aws-k8s-1.24", "aws-k8s-1.25"];
 
 mod error {
     use crate::{api, ec2, eks};
@@ -346,13 +344,20 @@ async fn generate_provider_id(
     Ok(())
 }
 
-async fn generate_private_dns_name(
-    client: &mut ImdsClient,
-    aws_k8s_info: &mut AwsK8sInfo,
-) -> Result<()> {
-    if aws_k8s_info.hostname_override.is_some() || NO_HOSTNAME_VARIANTS.contains(&aws_k8s_info.variant_id.as_str()) {
+/// generate_node_name sets the hostname_override, if it is not already specified
+async fn generate_node_name(client: &mut ImdsClient, aws_k8s_info: &mut AwsK8sInfo) -> Result<()> {
+    // hostname override provided, so we do nothing regardless of the override source
+    if aws_k8s_info.hostname_override.is_some() {
         return Ok(());
     }
+
+    // no hostname override or override source provided, so we don't provide this value
+    if aws_k8s_info.hostname_override_source.is_none() {
+        return Ok(());
+    }
+
+    // use the hostname source provided, None case handled prior so unwrap is safe
+    let hostname_source = aws_k8s_info.hostname_override_source.clone().unwrap();
 
     let region = aws_k8s_info
         .region
@@ -365,16 +370,25 @@ async fn generate_private_dns_name(
         .context(error::ImdsNoneSnafu {
             what: "instance ID",
         })?;
-    aws_k8s_info.hostname_override = Some(
-        ec2::get_private_dns_name(
-            region,
-            &instance_id,
-            aws_k8s_info.https_proxy.clone(),
-            aws_k8s_info.no_proxy.clone(),
-        )
-        .await
-        .context(error::Ec2Snafu)?,
-    );
+
+    match hostname_source {
+        KubernetesHostnameOverrideSource::PrivateDNSName => {
+            aws_k8s_info.hostname_override = Some(
+                ec2::get_private_dns_name(
+                    region,
+                    &instance_id,
+                    aws_k8s_info.https_proxy.clone(),
+                    aws_k8s_info.no_proxy.clone(),
+                )
+                .await
+                .context(error::Ec2Snafu)?,
+            );
+        }
+        KubernetesHostnameOverrideSource::InstanceID => {
+            aws_k8s_info.hostname_override = Some(instance_id);
+        }
+    }
+
     Ok(())
 }
 
@@ -386,7 +400,7 @@ async fn run() -> Result<()> {
     generate_node_ip(&mut client, &mut aws_k8s_info).await?;
     generate_max_pods(&mut client, &mut aws_k8s_info).await?;
     generate_provider_id(&mut client, &mut aws_k8s_info).await?;
-    generate_private_dns_name(&mut client, &mut aws_k8s_info).await?;
+    generate_node_name(&mut client, &mut aws_k8s_info).await?;
 
     let settings = serde_json::to_value(&aws_k8s_info).context(error::SerializeSnafu)?;
     let generated_settings: serde_json::Value = serde_json::json!({
@@ -416,17 +430,122 @@ async fn main() {
     }
 }
 
-#[test]
-fn test_get_dns_from_cidr_ok() {
-    let input = "123.456.789.0/123";
-    let expected = "123.456.789.10";
-    let actual = get_dns_from_ipv4_cidr(input).unwrap();
-    assert_eq!(expected, actual);
-}
+#[cfg(test)]
+mod test {
+    use super::*;
+    use httptest::{matchers::*, responders::*, Expectation, Server};
 
-#[test]
-fn test_get_dns_from_cidr_err() {
-    let input = "123_456_789_0/123";
-    let result = get_dns_from_ipv4_cidr(input);
-    assert!(result.is_err());
+    #[test]
+    fn test_get_dns_from_cidr_ok() {
+        let input = "123.456.789.0/123";
+        let expected = "123.456.789.10";
+        let actual = get_dns_from_ipv4_cidr(input).unwrap();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_get_dns_from_cidr_err() {
+        let input = "123_456_789_0/123";
+        let result = get_dns_from_ipv4_cidr(input);
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_hostname_override_source() {
+        let server = Server::run();
+        let base_uri = format!("http://{}", server.addr());
+        println!("listen on {}", base_uri);
+        let token = "some+token";
+        let schema_version = "2021-07-15";
+        let target = "meta-data/instance-id";
+        let response_code = 200;
+        let response_body = "i-123456789";
+        server.expect(
+            Expectation::matching(request::method_path("PUT", "/latest/api/token"))
+                .times(1)
+                .respond_with(
+                    status_code(200)
+                        .append_header("X-aws-ec2-metadata-token-ttl-seconds", "60")
+                        .body(token),
+                ),
+        );
+        server.expect(
+            Expectation::matching(request::method_path(
+                "GET",
+                format!("/{}/{}", schema_version, target),
+            ))
+            .times(1)
+            .respond_with(
+                status_code(response_code)
+                    .append_header("X-aws-ec2-metadata-token", token)
+                    .body(response_body),
+            ),
+        );
+
+        let mut imds_client = ImdsClient::new_impl(base_uri);
+
+        let mut info = AwsK8sInfo {
+            region: Some(String::from("us-west-2")),
+            https_proxy: None,
+            no_proxy: None,
+            cluster_name: None,
+            cluster_dns_ip: None,
+            node_ip: None,
+            max_pods: None,
+            provider_id: None,
+            hostname_override: None,
+            hostname_override_source: None,
+        };
+
+        // specifying a hostname will cause it to be used
+        info.hostname_override = Some(String::from("hostname-specified"));
+        generate_node_name(&mut imds_client, &mut info)
+            .await
+            .unwrap();
+        assert_eq!(
+            info.hostname_override,
+            Some(String::from("hostname-specified"))
+        );
+
+        // regardless of the hostname override source
+        info.hostname_override = Some(String::from("hostname-specified"));
+        info.hostname_override_source = Some(KubernetesHostnameOverrideSource::InstanceID);
+        generate_node_name(&mut imds_client, &mut info)
+            .await
+            .unwrap();
+        assert_eq!(
+            info.hostname_override,
+            Some(String::from("hostname-specified"))
+        );
+
+        info.hostname_override = Some(String::from("hostname-specified"));
+        info.hostname_override_source = Some(KubernetesHostnameOverrideSource::PrivateDNSName);
+        generate_node_name(&mut imds_client, &mut info)
+            .await
+            .unwrap();
+        assert_eq!(
+            info.hostname_override,
+            Some(String::from("hostname-specified"))
+        );
+
+        // no override provided if neither value is set
+        info.hostname_override = None;
+        info.hostname_override_source = None;
+        generate_node_name(&mut imds_client, &mut info)
+            .await
+            .unwrap();
+        assert_eq!(info.hostname_override, None);
+
+        // skipping tests that call use the private dns name since we would need to make the EC2
+        // API mockable to implement them
+
+        // specifying no hostname, with override of instance-id causes the instance-id to be used
+        // and pulled from IMDS
+        info.hostname_override = None;
+        info.hostname_override_source = Some(KubernetesHostnameOverrideSource::InstanceID);
+        generate_node_name(&mut imds_client, &mut info)
+            .await
+            .unwrap();
+        assert_eq!(info.hostname_override, Some(String::from("i-123456789")));
+    }
 }

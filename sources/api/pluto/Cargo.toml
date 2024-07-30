@@ -40,3 +40,6 @@ version = "0.2.0"
 
 [build-dependencies]
 generate-readme = { version = "0.1", path = "../../generate-readme" }
+
+[dev-dependencies]
+httptest = "0.15"

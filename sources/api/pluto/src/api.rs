@@ -27,8 +27,9 @@ pub(crate) struct AwsK8sInfo {
     pub(crate) provider_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) hostname_override: Option<String>,
-    #[serde(skip)]
-    pub(crate) variant_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) hostname_override_source:
+        Option<bottlerocket_modeled_types::KubernetesHostnameOverrideSource>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -53,6 +54,9 @@ pub(crate) struct Kubernetes {
     pub(crate) provider_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) hostname_override: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) hostname_override_source:
+        Option<bottlerocket_modeled_types::KubernetesHostnameOverrideSource>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -77,7 +81,6 @@ struct View {
 
 #[derive(Deserialize)]
 struct SettingsView {
-    pub os: Os,
     pub settings: View,
 }
 
@@ -119,7 +122,6 @@ where
 pub(crate) async fn get_aws_k8s_info() -> Result<AwsK8sInfo> {
     let view_str = client_command(&[
         "get",
-        "os.variant_id",
         "settings.aws.region",
         "settings.network.http-proxy",
         "settings.network.no-proxy",
@@ -129,13 +131,13 @@ pub(crate) async fn get_aws_k8s_info() -> Result<AwsK8sInfo> {
         "settings.kubernetes.max-pods",
         "settings.kubernetes.provider-id",
         "settings.kubernetes.hostname-override",
+        "settings.kubernetes.hostname-override-source",
     ])
     .await?;
     let view: SettingsView =
         serde_json::from_slice(view_str.as_slice()).context(DeserializeSnafu)?;
 
     Ok(AwsK8sInfo {
-        variant_id: view.os.variant_id,
         region: view.settings.aws.and_then(|a| a.region),
         https_proxy: view
             .settings
@@ -173,5 +175,10 @@ pub(crate) async fn get_aws_k8s_info() -> Result<AwsK8sInfo> {
             .kubernetes
             .as_ref()
             .and_then(|k| k.hostname_override.clone()),
+        hostname_override_source: view
+            .settings
+            .kubernetes
+            .as_ref()
+            .and_then(|k| k.hostname_override_source.clone()),
     })
 }
