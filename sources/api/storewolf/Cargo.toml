@@ -23,8 +23,8 @@ toml = "0.8"
 
 [dependencies.bottlerocket-modeled-types]
 git = "https://github.com/bottlerocket-os/bottlerocket-settings-sdk"
-tag = "bottlerocket-settings-models-v0.1.0"
-version = "0.1.0"
+tag = "bottlerocket-settings-models-v0.2.0"
+version = "0.2.0"
 
 [build-dependencies]
 generate-readme = { version = "0.1", path = "../../generate-readme" }
