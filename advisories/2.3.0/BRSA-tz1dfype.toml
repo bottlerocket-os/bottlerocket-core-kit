@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-tz1dfype"
+title = "kernel CVE-2022-3566"
+cve = "CVE-2022-3566"
+severity = "moderate"
+description = "A vulnerability that affects the function tcp_getsockopt/tcp_setsockopt of the component TCP Handler was found in the Linux Kernel. The manipulation leads to a race condition."
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.162-107.160.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-24T20:00:00Z
+arches = ["aarch64", "x86_64"]
+version = "2.3.0"
