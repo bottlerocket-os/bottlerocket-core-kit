@@ -25,7 +25,7 @@ pub(crate) async fn sdk_config(region: &str) -> SdkConfig {
         .imds_client(sdk_imds_client())
         .build()
         .await;
-    aws_config::defaults(BehaviorVersion::v2023_11_09())
+    aws_config::defaults(BehaviorVersion::v2024_03_28())
         .region(Region::new(region.to_owned()))
         .credentials_provider(provider)
         .retry_config(sdk_retry_config())

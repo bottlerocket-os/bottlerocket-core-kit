@@ -60,7 +60,8 @@ impl ImdsClient {
         Self::new_impl(BASE_URI.to_string())
     }
 
-    fn new_impl(imds_base_uri: String) -> Self {
+    /// Exposed solely to allow unit testing.
+    pub fn new_impl(imds_base_uri: String) -> Self {
         Self {
             client: Client::new(),
             retry_timeout: Duration::from_secs(RETRY_TIMEOUT_SECS),
