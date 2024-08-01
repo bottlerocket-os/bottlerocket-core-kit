@@ -1,7 +1,5 @@
 [Unit]
 Description=Start NVIDIA kubernetes device plugin
-RefuseManualStart=true
-RefuseManualStop=true
 After=kubelet.service
 Wants=kubelet.service
 

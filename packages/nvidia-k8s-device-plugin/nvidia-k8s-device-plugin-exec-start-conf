@@ -1,0 +1,8 @@
+[required-extensions]
+kubernetes = "v1"
++++
+[Service]
+{{#if settings.kubernetes.device-plugins.nvidia}}
+ExecStart=
+ExecStart=/usr/bin/nvidia-device-plugin --config-file=/etc/nvidia-k8s-device-plugin/settings.yaml
+{{/if}}
