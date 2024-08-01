@@ -11,6 +11,6 @@ patched-version = "25.0.6"
 
 [updateinfo]
 author = "giinglis"
-issue-date = 2024-07-29T17:13:52Z
+issue-date = 2024-08-01T20:00:00Z
 arches = ["aarch64", "x86_64"]
-version = "staging"
+version = "2.3.1"

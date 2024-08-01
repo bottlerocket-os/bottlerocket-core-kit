@@ -1,3 +1,27 @@
+# v2.3.1 (2024-08-01)
+
+## OS Changes
+
+* Update docker-engine to v25.0.6 ([#55])
+
+## Orchestrator Changes
+
+### Kubernetes
+
+* nvidia-container-runtime, nvidia-k8s-device-plugin: support Nvidia settings APIs [#48]
+* Support hostname-override-source ([#59])
+
+## Build Changes
+
+* Update bottlerocket-settings-models to v0.2.0 ([#58])
+* Update bottlerocket-sdk to v0.43.0 ([#60])
+
+[#48]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/48
+[#55]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/55
+[#58]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/58
+[#59]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/59
+[#60]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/60
+
 # v2.3.0 (2024-07-24)
 
 ## OS Changes
