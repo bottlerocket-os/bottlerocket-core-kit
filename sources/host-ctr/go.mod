@@ -8,6 +8,8 @@ require (
 	github.com/aws/aws-sdk-go v1.54.20
 	github.com/awslabs/amazon-ecr-containerd-resolver v0.0.0-20240521172427-b580afd02343
 	github.com/containerd/containerd v1.7.20
+	github.com/containerd/errdefs v0.1.0
+	github.com/containerd/log v0.1.0
 	github.com/opencontainers/runtime-spec v1.2.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
@@ -36,11 +38,9 @@ require (
 	github.com/containerd/cgroups/v3 v3.0.2 // indirect
 	github.com/containerd/containerd/api v1.7.19 // indirect
 	github.com/containerd/continuity v0.4.3 // indirect
-	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/containerd/fifo v1.1.0 // indirect
 	github.com/containerd/go-cni v1.1.9 // indirect
 	github.com/containerd/imgcrypt v1.1.11 // indirect
-	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/nri v0.6.1 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/containerd/ttrpc v1.2.5 // indirect

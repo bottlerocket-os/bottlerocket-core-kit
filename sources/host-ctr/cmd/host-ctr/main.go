@@ -21,12 +21,12 @@ import (
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/containers"
 	"github.com/containerd/containerd/contrib/seccomp"
-	"github.com/containerd/containerd/errdefs"
-	"github.com/containerd/containerd/log"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
 	"github.com/containerd/containerd/remotes/docker"
 	"github.com/containerd/containerd/runtime/v2/runc/options"
+	"github.com/containerd/errdefs"
+	"github.com/containerd/log"
 	runtimespec "github.com/opencontainers/runtime-spec/specs-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -1048,6 +1048,7 @@ func pullImage(ctx context.Context, source string, client *containerd.Client, re
 	for {
 		var err error
 
+		//nolint:staticcheck // We will re-evaluate the deprecated WithSchema1Conversion
 		pullOpts := []containerd.RemoteOpt{
 			withDynamicResolver(ctx, source, registryConfig),
 			containerd.WithSchema1Conversion,
