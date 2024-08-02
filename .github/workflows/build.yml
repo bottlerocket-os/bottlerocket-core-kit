@@ -44,11 +44,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Preflight step to set up the runner
         uses: ./.github/actions/setup-node
-      - run: rustup component add rustfmt
-      - run: make twoliter unit-tests
-      # TODO: fixme please!
-      # Avoid running Go lint check via `cargo make check-lints` since there's a separate golangci-lint workflow
-      # - run: make twoliter check-fmt
-      # - run: make twoliter check-clippy
-      - run: make twoliter check-shell
-      - run: make ARCH="${{ matrix.arch }}"
+      - name: Inspect cache
+        run: find build target -name '*microcode*'
+      - name: Inspect files
+        run: find packages/microcode -type f -print -exec stat {} \;
+      - name: Build package
+        env:
+          CARGO_LOG: cargo::core::compiler::fingerprint=trace
+          PACKAGE: microcode
+        run: make twoliter build-package
