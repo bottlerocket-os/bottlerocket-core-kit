@@ -16,6 +16,9 @@ Source200: check-fips-modules.drop-in.conf.in
 Source201: fipsmodules-x86_64
 Source202: fipsmodules-aarch64
 
+# Adjust kernel-devel mount behavior if not squashfs.
+Source210: var-lib-kernel-devel-lower.mount.drop-in.conf.in
+
 # Bootconfig snippets to adjust the default kernel command line for the platform.
 Source300: bootconfig-aws.conf
 Source301: bootconfig-vmware.conf
@@ -70,8 +73,22 @@ Requires: (%{name}-fips if %{_cross_os}image-feature(fips))
 
 %package devel
 Summary: Configured Linux kernel source for module building
+Requires: (%{name}-devel-squashed if %{_cross_os}image-feature(no-erofs-root-partition))
+Requires: (%{name}-devel-unpacked if %{_cross_os}image-feature(erofs-root-partition))
 
 %description devel
+%{summary}.
+
+%package devel-squashed
+Summary: Configured Linux kernel source for module building (squashed)
+
+%description devel-squashed
+%{summary}.
+
+%package devel-unpacked
+Summary: Configured Linux kernel source for module building (unpacked)
+
+%description devel-unpacked
 %{summary}.
 
 %package archive
@@ -265,6 +282,10 @@ mkdir -p src_squashfs/%{version}
 tar c -T kernel_devel_files | tar x -C src_squashfs/%{version}
 mksquashfs src_squashfs kernel-devel.squashfs ${SQUASHFS_OPTS}
 
+# Create an uncompressed set of kernel-devel files in the standard location.
+install -d %{buildroot}%{_cross_datadir}/bottlerocket/kernel-devel/%{version}
+tar c -T kernel_devel_files | tar x -C %{buildroot}%{_cross_datadir}/bottlerocket/kernel-devel/%{version}
+
 # Create a tarball of the same files, for use outside the running system.
 # In theory we could extract these files with `unsquashfs`, but we do not want
 # to require it to be installed on the build host, and it errors out when run
@@ -299,6 +320,11 @@ for fipsmod in $(cat %{_sourcedir}/fipsmodules-%{_cross_arch}) ; do
     > %{buildroot}%{_cross_unitdir}/check-fips-modules.service.d/"${drop_in}"
   (( i+=1 ))
 done
+
+LOWERPATH=$(systemd-escape --path %{_cross_sharedstatedir}/kernel-devel/.overlay/lower)
+mkdir -p %{buildroot}%{_cross_unitdir}/"${LOWERPATH}.mount.d"
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:210} \
+  > %{buildroot}%{_cross_unitdir}/"${LOWERPATH}.mount.d"/no-squashfs.conf
 
 # Install platform-specific bootconfig snippets.
 install -d %{buildroot}%{_cross_bootconfigdir}
@@ -338,9 +364,15 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 
 %files devel
 %dir %{_cross_ksrcdir}
-%{_cross_datadir}/bottlerocket/kernel-devel.squashfs
 %{_cross_kmoddir}/source
 %{_cross_kmoddir}/build
+
+%files devel-squashed
+%{_cross_datadir}/bottlerocket/kernel-devel.squashfs
+
+%files devel-unpacked
+%{_cross_datadir}/bottlerocket/kernel-devel
+%{_cross_unitdir}/*kernel*devel*.mount.d/no-squashfs.conf
 
 %files archive
 %{_cross_datadir}/bottlerocket/kernel-devel.tar.xz
