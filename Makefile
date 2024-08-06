@@ -17,11 +17,11 @@ prep:
 	@mkdir -p $(TWOLITER_DIR)
 	@mkdir -p $(CARGO_HOME)
 	@$(TOOLS_DIR)/install-twoliter.sh \
-		--repo "https://github.com/bottlerocket-os/twoliter" \
-		--version v$(TWOLITER_VERSION) \
+		--repo "https://github.com/bcressey/twoliter/" \
+		--version 196f8c8 \
 		--directory $(TWOLITER_DIR) \
+		--skip-version-check \
 		--reuse-existing-install \
-		--allow-binary-install \
 		--allow-from-source
 
 update: prep
