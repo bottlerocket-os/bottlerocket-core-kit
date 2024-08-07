@@ -11,3 +11,13 @@ flags:
     passDeviceSpecs: {{default true settings.kubernetes.device-plugins.nvidia.pass-device-specs}}
     deviceListStrategy: {{default "volume-mounts" settings.kubernetes.device-plugins.nvidia.device-list-strategy}}
     deviceIDStrategy: {{default "index" settings.kubernetes.device-plugins.nvidia.device-id-strategy}}
+{{#if settings.kubernetes.device-plugins.nvidia.max-sharing-per-gpu}}
+{{#if (gt settings.kubernetes.device-plugins.nvidia.max-sharing-per-gpu 1)}}
+sharing:
+  timeSlicing:
+    renameByDefault: {{default false settings.kubernetes.device-plugins.nvidia.rename-shared-gpu}}
+    resources:
+    - name: "nvidia.com/gpu"
+      replicas: {{settings.kubernetes.device-plugins.nvidia.max-sharing-per-gpu}}
+{{/if}}
+{{/if}}
