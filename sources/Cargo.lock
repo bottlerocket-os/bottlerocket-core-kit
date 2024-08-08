@@ -1349,7 +1349,7 @@ name = "certdog"
 version = "0.1.0"
 dependencies = [
  "argh",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bottlerocket-modeled-types",
  "constants",
  "generate-readme",
@@ -2246,7 +2246,7 @@ dependencies = [
 name = "host-containers"
 version = "0.1.0"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "bottlerocket-modeled-types",
  "constants",
  "generate-readme",

@@ -25,4 +25,4 @@ toml = "0.8"
 generate-readme = { version = "0.1", path = "../../generate-readme" }
 
 [dev-dependencies]
-tempfile = { version = "3", default-features = false }
+tempfile = { version = "3" }

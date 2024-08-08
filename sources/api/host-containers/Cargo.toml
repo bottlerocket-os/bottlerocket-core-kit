@@ -10,7 +10,7 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [dependencies]
-base64 = "0.21"
+base64 = "0.22"
 constants = { path = "../../constants", version = "0.1" }
 log = "0.4"
 serde = { version = "1", features = ["derive"] }

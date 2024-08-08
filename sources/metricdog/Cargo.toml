@@ -25,4 +25,4 @@ generate-readme = { version = "0.1", path = "../generate-readme" }
 
 [dev-dependencies]
 httptest = "0.15"
-tempfile = { version = "3", default-features = false }
+tempfile = { version = "3" }

@@ -54,7 +54,7 @@ version = "0.1.0"
 
 [dev-dependencies]
 # Workaround to enable a feature during integration tests.
-schnauzer = { path = ".", version = "0.1.0", features = ["testfakes"] }
+schnauzer = { path = ".", version = "0.1", features = ["testfakes"] }
 
 [build-dependencies]
 generate-readme = { version = "0.1", path = "../../generate-readme" }
