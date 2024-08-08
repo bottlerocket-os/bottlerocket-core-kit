@@ -45,6 +45,7 @@ jobs:
       - name: Preflight step to set up the runner
         uses: ./.github/actions/setup-node
       - run: rustup component add rustfmt
+      - run: make twoliter check-licenses
       - run: make twoliter unit-tests
       # Avoid running Go lint check via `cargo make check-lints` since there's a separate golangci-lint workflow
       - run: make twoliter check-fmt
