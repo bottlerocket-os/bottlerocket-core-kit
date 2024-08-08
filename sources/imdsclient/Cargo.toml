@@ -10,17 +10,17 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [dependencies]
-http = "0.2"
-log = "0.4"
-reqwest = { version = "0.11", default-features = false }
-serde_json = "1"
-snafu = "0.8"
-tokio = { version = "~1.32", default-features = false, features = ["macros", "rt-multi-thread", "time"] }  # LTS
-tokio-retry = "0.3"
+http.workspace = true
+log.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+snafu.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+tokio-retry.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../generate-readme" }
+generate-readme.workspace = true
 
 [dev-dependencies]
-httptest = "0.15"
-tokio-test = "0.4"
+httptest.workspace = true
+tokio-test.workspace = true

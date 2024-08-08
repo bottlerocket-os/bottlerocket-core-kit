@@ -9,12 +9,12 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-argh = "0.1"
-gptman = { version = "1", default-features = false }
-hex-literal = "0.4"
-lazy_static = "1"
-signpost = { path = "../updater/signpost", version = "0.1" }
-snafu = "0.8"
+argh.workspace = true
+gptman.workspace = true
+hex-literal.workspace = true
+lazy_static.workspace = true
+signpost.workspace = true
+snafu.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../generate-readme" }
+generate-readme.workspace = true

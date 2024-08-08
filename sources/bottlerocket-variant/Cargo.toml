@@ -9,8 +9,8 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-serde = "1"
-snafu = "0.8"
+serde.workspace = true
+snafu.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../generate-readme" }
+generate-readme.workspace = true

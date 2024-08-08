@@ -9,10 +9,6 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-rand = "0.8"
-serde_json = "1"
-
-[dependencies.settings-extension-updates]
-git = "https://github.com/bottlerocket-os/bottlerocket-settings-sdk"
-tag = "bottlerocket-settings-models-v0.2.0"
-version = "0.1.0"
+rand = { workspace = true, features = ["default"] }
+serde_json.workspace = true
+settings-extension-updates.workspace = true

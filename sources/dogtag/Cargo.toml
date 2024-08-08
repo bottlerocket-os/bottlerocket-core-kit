@@ -18,14 +18,14 @@ path = "bin/reverse.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-argh = "0.1"
-dns-lookup = "2"
-imdsclient = { version = "0.1", path = "../imdsclient" }
-log = "0.4"
-snafu = "0.8"
-tokio = { version = "~1.32", features = ["macros"]}  # LTS
-tokio-retry = "0.3"
-walkdir = "2"
+argh.workspace = true
+dns-lookup.workspace = true
+imdsclient.workspace = true
+log.workspace = true
+snafu.workspace = true
+tokio = { workspace = true, features = ["default", "macros"] }
+tokio-retry.workspace = true
+walkdir.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../generate-readme" }
+generate-readme.workspace = true

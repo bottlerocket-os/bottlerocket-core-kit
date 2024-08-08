@@ -10,24 +10,20 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [dependencies]
-constants = { path = "../../constants", version = "0.1" }
-bottlerocket-release = { path = "../../bottlerocket-release", version = "0.1" }
-datastore = { path = "../datastore", version = "0.1" }
-log = "0.4"
-models = { path = "../../models", version = "0.1" }
-rand = { version = "0.8", default-features = false, features = ["std", "std_rng"] }
-semver = "1"
-simplelog = "0.12"
-snafu = "0.8"
-toml = "0.8"
-
-[dependencies.bottlerocket-modeled-types]
-git = "https://github.com/bottlerocket-os/bottlerocket-settings-sdk"
-tag = "bottlerocket-settings-models-v0.2.0"
-version = "0.2.0"
+constants.workspace = true
+bottlerocket-release.workspace = true
+datastore.workspace = true
+log.workspace = true
+models.workspace = true
+rand = { workspace = true, features = ["std", "std_rng"] }
+semver.workspace = true
+simplelog.workspace = true
+snafu.workspace = true
+toml.workspace = true
+bottlerocket-modeled-types.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../../generate-readme" }
+generate-readme.workspace = true
 
 [[bin]]
 name = "storewolf"

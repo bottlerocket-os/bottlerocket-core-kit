@@ -9,13 +9,13 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-argh = "0.1"
-log = "0.4"
-simplelog = "0.12"
-snafu = "0.8"
-serde = { version = "1", features = ["derive"] }
-tempfile = "3"
-toml = "0.8"
+argh.workspace = true
+log.workspace = true
+simplelog.workspace = true
+snafu.workspace = true
+serde = { workspace = true, features = ["derive"] }
+tempfile.workspace = true
+toml.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../generate-readme" }
+generate-readme.workspace = true
