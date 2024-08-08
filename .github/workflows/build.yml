@@ -46,9 +46,9 @@ jobs:
         uses: ./.github/actions/setup-node
       - run: rustup component add rustfmt
       - run: make twoliter unit-tests
-      # TODO: fixme please!
       # Avoid running Go lint check via `cargo make check-lints` since there's a separate golangci-lint workflow
-      # - run: make twoliter check-fmt
+      - run: make twoliter check-fmt
+      # TODO: fixme please!
       # - run: make twoliter check-clippy
       - run: make twoliter check-shell
       - run: make ARCH="${{ matrix.arch }}"
