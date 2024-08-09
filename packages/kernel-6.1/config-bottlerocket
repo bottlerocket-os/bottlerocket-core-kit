@@ -352,3 +352,8 @@ CONFIG_QLCNIC_SRIOV=y
 # Cisco UCS HBA support
 CONFIG_FCOE_FNIC=m
 CONFIG_SCSI_SNIC=m
+
+# Disable virtio drivers unused in Bottlerocket
+# CONFIG_DRM_VIRTIO_GPU is not set
+# CONFIG_VIRTIO_DMA_SHARED_BUFFER is not set
+
