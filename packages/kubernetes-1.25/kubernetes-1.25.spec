@@ -87,6 +87,7 @@ Patch0019: 0019-EKS-PATCH-GO-UPDATE-handle-GOTOOLCHAIN-in-kube-golan.patch
 Patch0020: 0020-EKS-PATCH-GO-UPDATE-Bump-images-dependencies-and-ver.patch
 Patch0021: 0021-EKS-PATCH-Bumps-dependencies-for-fixing-CVE-2023-452.patch
 Patch0022: 0022-EKS-PATCH-Update-aws-sdk-go-to-include-new-regions.patch
+Patch0023: 0023-EKS-PATCH-Fix-CVE-2024-5321.patch
 
 BuildRequires: git
 BuildRequires: rsync
