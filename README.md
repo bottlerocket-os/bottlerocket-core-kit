@@ -20,4 +20,4 @@ OR
 ```shell
 make ARCH=<aarch64, x86_64>
 ```
-See the [BUILDING](https://github.com/bottlerocket-os/bottlerocket-core-kit/blob/develop/BUILDING.md) guide for more details.
+See the [BUILDING](BUILDING.md) guide for more details.
