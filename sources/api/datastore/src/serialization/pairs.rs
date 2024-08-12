@@ -489,6 +489,7 @@ mod test {
     use crate::{Key, KeyType};
     use maplit::hashmap;
     use serde::Serialize;
+    use serde_json::json;
 
     // Helper macro for making a data Key for testing whose name we know is valid.
     macro_rules! key {
@@ -639,6 +640,133 @@ mod test {
             hashmap!(
                 key!("A.id") => "\"alpha\"".to_string(),
                 key!("A.ie") => "\"beta\"".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn json_null() {
+        let j = json!(null);
+        let keys = to_pairs_with_prefix("null", &j).unwrap();
+        // the null value and its key should be skipped in serialization, resulting in an empty
+        // hashmap
+        assert_eq!(keys, hashmap!());
+    }
+
+    #[test]
+    fn json_bool() {
+        let j = json!(true);
+        let keys = to_pairs_with_prefix("bool", &j).unwrap();
+        assert_eq!(
+            keys,
+            hashmap!(
+                key!("bool") => "true".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn json_number() {
+        let j = json!(42);
+        let keys = to_pairs_with_prefix("number", &j).unwrap();
+        assert_eq!(
+            keys,
+            hashmap!(
+                key!("number") => "42".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn json_number_float() {
+        let j = json!(4.2);
+        let keys = to_pairs_with_prefix("number", &j).unwrap();
+        assert_eq!(
+            keys,
+            hashmap!(
+                key!("number") => "4.2".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn json_string() {
+        let j = json!("hello");
+        let keys = to_pairs_with_prefix("string", &j).unwrap();
+        assert_eq!(
+            keys,
+            hashmap!(
+                key!("string") => "\"hello\"".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn json_array() {
+        let j = json!(["foo", true, 42]);
+        let keys = to_pairs_with_prefix("array", &j).unwrap();
+        assert_eq!(
+            keys,
+            hashmap!(
+                key!("array") => "[\"foo\",true,42]".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn json_array_with_null() {
+        let j = json!(["foo", null, true, 42]);
+        let keys = to_pairs_with_prefix("array", &j).unwrap();
+        assert_eq!(
+            keys,
+            hashmap!(
+                key!("array") => "[\"foo\",null,true,42]".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn json_object() {
+        let j = json!({
+            "bool": true,
+            "number": 42,
+            "string": "foo",
+            "array": ["foo", true, null, 42],
+            "object": {"number": 4.2}
+        });
+        let keys = to_pairs_with_prefix("object", &j).unwrap();
+        assert_eq!(
+            keys,
+            hashmap!(
+                key!("object.bool") => "true".to_string(),
+                key!("object.number") => "42".to_string(),
+                key!("object.string") => "\"foo\"".to_string(),
+                key!("object.array") => "[\"foo\",true,null,42]".to_string(),
+                key!("object.object.number") => "4.2".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn json_object_with_null() {
+        let j = json!({
+            "null": null,
+            "bool": true,
+            "number": 42,
+            "string": "foo",
+            "array": ["foo", true, null, 42],
+            "object": {"number": 4.2}
+        });
+        let keys = to_pairs_with_prefix("object", &j).unwrap();
+        // the null value and its key should be skipped in serialization
+        assert_eq!(
+            keys,
+            hashmap!(
+                key!("object.bool") => "true".to_string(),
+                key!("object.number") => "42".to_string(),
+                key!("object.string") => "\"foo\"".to_string(),
+                key!("object.array") => "[\"foo\",true,null,42]".to_string(),
+                key!("object.object.number") => "4.2".to_string(),
             )
         );
     }
