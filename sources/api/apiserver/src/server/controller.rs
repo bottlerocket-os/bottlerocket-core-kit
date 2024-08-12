@@ -136,7 +136,7 @@ where
     let os = BottlerocketRelease::new().context(error::ReleaseDataSnafu)?;
 
     // Turn into a serde Value we can manipulate.
-    let val = serde_json::to_value(os).expect("struct to value can't fail");
+    let val = serde_json::to_value(os).context(error::SettingsToJsonSnafu)?;
 
     // Structs are Objects in serde_json, which have a map of field -> value inside.  We
     // destructure to get it by value, instead of as_object() which gives references.
@@ -366,7 +366,8 @@ pub(crate) fn set_settings<D: DataStore>(
     transaction: &str,
 ) -> Result<()> {
     trace!("Serializing Settings to write to data store");
-    let pairs = to_pairs_with_prefix("settings", settings)
+    let settings_json = serde_json::to_value(settings).expect("struct to value can't fail");
+    let pairs = to_pairs_with_prefix("settings", &settings_json)
         .context(error::DataStoreSerializationSnafu { given: "Settings" })?;
     let pending = Committed::Pending {
         tx: transaction.into(),

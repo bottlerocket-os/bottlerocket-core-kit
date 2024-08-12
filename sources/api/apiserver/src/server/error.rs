@@ -94,6 +94,9 @@ pub enum Error {
     #[snafu(display("Unable to serialize data: {}", source))]
     Serialize { source: serde_json::Error },
 
+    #[snafu(display("Error serializing settings to JSON: {}", source))]
+    SettingsToJson { source: serde_json::Error },
+
     #[snafu(display("Error serializing {}: {} ", given, source))]
     DataStoreSerialization {
         given: String,

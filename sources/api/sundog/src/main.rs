@@ -133,15 +133,6 @@ mod error {
             source: apiclient::get::Error,
         },
 
-        #[snafu(display("Error interpreting JSON value as API model: {}", source))]
-        InterpretModel { source: serde_json::Error },
-
-        #[snafu(display("Can't deserialize {} from command output '{}'", expected, input,))]
-        CommandJsonType {
-            expected: &'static str,
-            input: serde_json::Value,
-        },
-
         #[snafu(display("Error deserializing HashMap to Settings: {}", source))]
         Deserialize { source: deserialization::Error },
 
@@ -218,15 +209,10 @@ where
         .context(error::GetPrefixSnafu { prefixes })?;
     debug!("API response model: {}", response.to_string());
 
-    // Build a Settings struct from the response.
-    let settings = serde_json::from_value::<model::Model>(response)
-        .context(error::InterpretModelSnafu)?
-        .settings;
-
-    // Serialize the Settings struct into key/value pairs. This builds the dotted
-    // string representation of the setting
+    // Serialize the response json into key/value pairs. This builds the dotted string
+    // representation of the setting
     let settings_keypairs =
-        to_pairs_with_prefix("settings", &settings).context(error::SerializeSettingsSnafu)?;
+        to_pairs_with_prefix("settings", &response).context(error::SerializeSettingsSnafu)?;
 
     // Put the setting into our hashset of populated keys
     for (k, _) in settings_keypairs {

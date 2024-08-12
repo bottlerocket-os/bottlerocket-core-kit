@@ -792,6 +792,7 @@ impl ResponseError for error::Error {
             SystemdNotifyStatus {} => StatusCode::INTERNAL_SERVER_ERROR,
             SetPermissions { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             SetGroup { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            SettingsToJson { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             ReleaseData { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             Shutdown { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             Reboot { .. } => StatusCode::INTERNAL_SERVER_ERROR,

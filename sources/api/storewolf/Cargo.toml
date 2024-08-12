@@ -17,6 +17,7 @@ log.workspace = true
 models.workspace = true
 rand = { workspace = true, features = ["std", "std_rng"] }
 semver.workspace = true
+serde_json.workspace = true
 simplelog.workspace = true
 snafu.workspace = true
 toml.workspace = true

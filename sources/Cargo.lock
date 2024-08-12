@@ -4112,6 +4112,7 @@ dependencies = [
  "models",
  "rand",
  "semver",
+ "serde_json",
  "simplelog",
  "snafu",
  "toml",

@@ -21,7 +21,7 @@ use crate::{serialize_scalar, Key, KeyType, ScalarError};
 ///    Settings -> DockerSettings -> bridge_ip = u64
 /// would turn into a key of "settings.docker-settings.bridge-ip" and a serialized String
 /// representing the u64 data.
-pub fn to_pairs<T: Serialize>(value: &T) -> Result<HashMap<Key, String>> {
+pub fn to_pairs(value: &serde_json::Value) -> Result<HashMap<Key, String>> {
     let mut output = HashMap::new();
     let serializer = Serializer::new(&mut output, None);
     value.serialize(serializer)?;
@@ -30,10 +30,9 @@ pub fn to_pairs<T: Serialize>(value: &T) -> Result<HashMap<Key, String>> {
 
 /// Like to_pairs, but lets you add an arbitrary prefix to the resulting keys.  A separator will
 /// automatically be added after the prefix.
-pub fn to_pairs_with_prefix<S, T>(prefix: S, value: &T) -> Result<HashMap<Key, String>>
+pub fn to_pairs_with_prefix<S>(prefix: S, value: &serde_json::Value) -> Result<HashMap<Key, String>>
 where
     S: AsRef<str>,
-    T: Serialize,
 {
     let prefix = prefix.as_ref();
     let prefix_key = Key::new(KeyType::Data, prefix).map_err(|e| {
@@ -516,12 +515,13 @@ mod test {
             list: vec![3, 4, 5],
             boolean: true,
         };
-        let keys = to_pairs(&b).unwrap();
+        let j = serde_json::to_value(b).unwrap();
+        let keys = to_pairs(&j).unwrap();
         assert_eq!(
             keys,
             hashmap!(
-                key!("B.list") => "[3,4,5]".to_string(),
-                key!("B.boolean") => "true".to_string(),
+                key!("list") => "[3,4,5]".to_string(),
+                key!("boolean") => "true".to_string(),
             )
         );
     }
@@ -529,7 +529,8 @@ mod test {
     #[test]
     fn empty_value() {
         let val: toml::Value = toml::from_str("").unwrap();
-        let keys = to_pairs(&val).unwrap();
+        let json = serde_json::to_value(val).unwrap();
+        let keys = to_pairs(&json).unwrap();
         assert_eq!(keys, hashmap!())
     }
 
@@ -540,13 +541,14 @@ mod test {
             boolean: true,
         };
         let a = A { id: 42, b: Some(b) };
-        let keys = to_pairs(&a).unwrap();
+        let j = serde_json::to_value(a).unwrap();
+        let keys = to_pairs(&j).unwrap();
         assert_eq!(
             keys,
             hashmap!(
-                key!("A.b.list") => "[5,6,7]".to_string(),
-                key!("A.b.boolean") => "true".to_string(),
-                key!("A.id") => "42".to_string(),
+                key!("b.list") => "[5,6,7]".to_string(),
+                key!("b.boolean") => "true".to_string(),
+                key!("id") => "42".to_string(),
             )
         );
     }
@@ -559,7 +561,8 @@ mod test {
                 key!("ie") => 43,
             ),
         );
-        let keys = to_pairs_with_prefix("map", &m).unwrap();
+        let j = serde_json::to_value(m).unwrap();
+        let keys = to_pairs_with_prefix("map", &j).unwrap();
         assert_eq!(
             keys,
             hashmap!(
@@ -577,7 +580,8 @@ mod test {
                 key!("ie") => 43,
             ),
         );
-        let keys = to_pairs(&m).unwrap();
+        let j = serde_json::to_value(m).unwrap();
+        let keys = to_pairs(&j).unwrap();
         assert_eq!(
             keys,
             hashmap!(
@@ -590,7 +594,8 @@ mod test {
     #[test]
     fn concrete_fails() {
         let i = 42;
-        to_pairs(&i).unwrap_err();
+        let j = serde_json::to_value(i).unwrap();
+        to_pairs(&j).unwrap_err();
     }
 
     #[test]
@@ -601,7 +606,8 @@ mod test {
                 key!("ie") => "oranges",
             ),
         );
-        let keys = to_pairs(&m).unwrap();
+        let j = serde_json::to_value(m).unwrap();
+        let keys = to_pairs(&j).unwrap();
         assert_eq!(
             keys,
             hashmap!(
@@ -626,7 +632,8 @@ mod test {
                 key!("ie") => TestEnum::Beta,
             ),
         );
-        let keys = to_pairs(&m).unwrap();
+        let j = serde_json::to_value(m).unwrap();
+        let keys = to_pairs(&j).unwrap();
         assert_eq!(
             keys,
             hashmap!(

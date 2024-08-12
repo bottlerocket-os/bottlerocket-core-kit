@@ -129,6 +129,9 @@ mod error {
 
         #[snafu(display("Could not read defaults from '{}': {}", path.display(), source))]
         ReadDefaults { path: PathBuf, source: io::Error },
+
+        #[snafu(display("Could not convert toml value to JSON: {}", source))]
+        JsonConversion { source: serde_json::Error },
     }
 }
 
@@ -288,16 +291,21 @@ fn populate_default_datastore<P: AsRef<Path>>(
     // services run, which will create config files for default keys that require them.
     if let Some(def_settings_val) = maybe_settings_val {
         debug!("Serializing default settings and writing new ones to datastore");
-        let def_settings_table = def_settings_val
-            .as_table()
-            .context(error::DefaultSettingsNotTableSnafu)?;
+
+        ensure!(
+            def_settings_val.is_table(),
+            error::DefaultSettingsNotTableSnafu
+        );
+
+        let settings_json =
+            serde_json::to_value(def_settings_val).context(error::JsonConversionSnafu)?;
 
         // The default settings were removed from the "settings" key of the
         // defaults table above. We still need them under a "settings" key
         // before serializing so we have full dotted keys like
         // "settings.foo.bar" and not just "foo.bar". We use a HashMap
         // to rebuild the nested structure.
-        let def_settings = to_pairs_with_prefix("settings", &def_settings_table).context(
+        let def_settings = to_pairs_with_prefix("settings", &settings_json).context(
             error::SerializationSnafu {
                 given: "default settings",
             },
@@ -385,7 +393,8 @@ fn populate_default_datastore<P: AsRef<Path>>(
     // If any other defaults remain (configuration files, services, etc),
     // write them to the datastore in Live state
     debug!("Serializing other defaults and writing new ones to datastore");
-    let defaults = to_pairs(&defaults_val).context(error::SerializationSnafu {
+    let defaults_json = serde_json::to_value(defaults_val).context(error::JsonConversionSnafu)?;
+    let defaults = to_pairs(&defaults_json).context(error::SerializationSnafu {
         given: "other defaults",
     })?;
 
