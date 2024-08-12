@@ -9,7 +9,7 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-early-boot-config-provider = { path = "../../early-boot-config-provider", version = "0.1" }
+early-boot-config-provider.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../../../generate-readme" }
+generate-readme.workspace = true

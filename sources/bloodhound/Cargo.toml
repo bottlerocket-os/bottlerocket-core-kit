@@ -9,16 +9,16 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-argh = "0.1"
-chrono = { version = "0.4", default-features = false, features = ["clock"] }
-libc = { version = "0.2" }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-serde_yaml = "0.9"
-walkdir = "2"
+argh.workspace = true
+chrono = { workspace = true, features = ["clock"] }
+libc.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+serde_yaml.workspace = true
+walkdir.workspace = true
 
 [dev-dependencies]
-tempfile = "3"
+tempfile.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../generate-readme" }
+generate-readme.workspace = true

@@ -10,31 +10,31 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [dependencies]
-bottlerocket-release = { path = "../../../bottlerocket-release", version = "0.1" }
-bytes = "1"
-futures = "0.3"
-futures-core = "0.3"
-log = "0.4"
-lz4 = "1"
-nix = "0.26"
-pentacle = "1"
-rand = { version = "0.8", default-features = false, features = ["std", "std_rng"] }
-semver = "1"
-simplelog = "0.12"
-snafu = "0.8"
-tokio = { version = "~1.32", default-features = false, features = ["fs", "macros", "rt-multi-thread"] }  # LTS
-tokio-util = { version = "0.7", features = ["compat", "io-util"] }
-tough = { version = "0.17", features = ["http"] }
-update_metadata = { path = "../../../updater/update_metadata", version = "0.1" }
-url = "2"
+bottlerocket-release.workspace = true
+bytes.workspace = true
+futures = { workspace = true, features = ["default"] }
+futures-core.workspace = true
+log.workspace = true
+lz4.workspace = true
+nix.workspace = true
+pentacle.workspace = true
+rand = { workspace = true, features = ["std", "std_rng"] }
+semver.workspace = true
+simplelog.workspace = true
+snafu.workspace = true
+tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread"] }
+tokio-util = { workspace = true, features = ["compat", "io-util"] }
+tough = { workspace = true, features = ["http"] }
+update_metadata.workspace = true
+url.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../../../generate-readme" }
+generate-readme.workspace = true
 
 [dev-dependencies]
-chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
-storewolf = { path = "../../storewolf", version = "0.1" }
-tempfile = "3"
+chrono = { workspace = true, features = ["clock", "std"] }
+storewolf.workspace = true
+tempfile.workspace = true
 
 [[bin]]
 name = "migrator"

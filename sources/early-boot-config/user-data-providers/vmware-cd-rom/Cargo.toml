@@ -9,12 +9,12 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-base64 = "0.22"
-log = "0.4"
-serde = { version = "1", features = ["derive"] }
-serde-xml-rs = "0.6"
-snafu = "0.8"
-early-boot-config-provider = { path = "../../early-boot-config-provider", version = "0.1" }
+base64.workspace = true
+log.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde-xml-rs.workspace = true
+snafu.workspace = true
+early-boot-config-provider.workspace = true
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../../../generate-readme" }
+generate-readme.workspace = true

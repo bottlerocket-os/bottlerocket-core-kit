@@ -9,16 +9,16 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
-base64 = "0.22"
-log = "0.4"
-serde = { version = "1", features = ["derive"] }
-serde_plain = "1"
-snafu = "0.8"
-early-boot-config-provider = { path = "../../early-boot-config-provider", version = "0.1" }
+base64.workspace = true
+log.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_plain.workspace = true
+snafu.workspace = true
+early-boot-config-provider.workspace = true
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 # vmw_backdoor includes x86_64 assembly, prevent it from building for ARM
 vmw_backdoor = "0.2"
 
 [build-dependencies]
-generate-readme = { version = "0.1", path = "../../../generate-readme" }
+generate-readme.workspace = true
