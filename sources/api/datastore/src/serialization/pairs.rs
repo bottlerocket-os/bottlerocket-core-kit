@@ -229,9 +229,12 @@ impl<'a> ser::Serializer for Serializer<'a> {
         bad_type("bytes")
     }
 
-    // We just don't expect to need these, and we doesn't have a great way to represent them.
+    // serde_json::Value::Null is the only case where we should see this, so we can essentially
+    // consider this to be serialize_null(). Since we should only see null values in a settings
+    // input when the settings structure has an Option<T>, it should be safe to omit the key/value
+    // pair from the serialization output if the value is null.
     fn serialize_unit(self) -> Result<()> {
-        bad_type("unit")
+        Ok(())
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<()> {
