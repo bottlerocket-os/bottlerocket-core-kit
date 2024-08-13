@@ -1,4 +1,5 @@
-use serde::{Deserialize, Serialize};
+use bottlerocket_settings_models::{AwsSettingsV1, KubernetesSettingsV1, NetworkSettingsV1};
+use serde::Deserialize;
 use snafu::{ensure, ResultExt, Snafu};
 use std::ffi::OsStr;
 use tokio::process::Command;
@@ -6,82 +7,123 @@ use tokio::process::Command;
 /// The result type for the [`api`] module.
 pub(super) type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub(crate) struct AwsK8sInfo {
-    #[serde(skip)]
-    pub(crate) region: Option<String>,
-    #[serde(skip)]
-    pub(crate) https_proxy: Option<String>,
-    #[serde(skip)]
-    pub(crate) no_proxy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cluster_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cluster_dns_ip: Option<bottlerocket_modeled_types::KubernetesClusterDnsIp>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) node_ip: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) max_pods: Option<u32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) provider_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) hostname_override: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) hostname_override_source:
-        Option<bottlerocket_modeled_types::KubernetesHostnameOverrideSource>,
+/// A mutable view of API settings
+///
+/// `SettingsViewDelta` keeps track of all changes in a separate structure so that only the changed
+/// set can be sent back as writes to the API server.
+///
+/// For convenience, `settings_view_get!` and `settings_view_set!` macros can be used to handle
+/// the nested optional values present in the structure succinctly.
+///
+/// `settings_view_get!` also automatically attempts to read from the settings delta before falling
+/// back to the readonly settings.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SettingsViewDelta {
+    readonly: SettingsView,
+    delta: SettingsView,
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub(crate) struct AwsInfo {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) region: Option<String>,
+impl SettingsViewDelta {
+    /// Constructs a `SettingsViewDelta` based on an initial read-only view of settings.
+    pub fn from_api_response(readonly: SettingsView) -> Self {
+        Self {
+            readonly,
+            delta: SettingsView::default(),
+        }
+    }
+
+    /// Returns the initial read-only settings model view
+    ///
+    /// Users should prefer to interact with this struct via the [`settings_view_get!`] and
+    /// [`settings_view_set!`] macros.
+    pub fn initial(&self) -> &SettingsView {
+        &self.readonly
+    }
+
+    /// Returns a mutable reference to the "delta" settings model view
+    ///
+    /// Users should prefer to interact with this struct via the [`settings_view_get!`] and
+    /// [`settings_view_set!`] macros.
+    pub fn write(&mut self) -> &mut SettingsView {
+        &mut self.delta
+    }
+
+    /// Returns an immutable reference to the "delta" settings model view
+    ///
+    /// Users should prefer to interact with this struct via the [`settings_view_get!`] and
+    /// [`settings_view_set!`] macros.
+    pub fn delta(&self) -> &SettingsView {
+        &self.delta
+    }
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub(crate) struct Kubernetes {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cluster_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cluster_dns_ip: Option<bottlerocket_modeled_types::KubernetesClusterDnsIp>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) node_ip: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) max_pods: Option<u32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) provider_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) hostname_override: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) hostname_override_source:
-        Option<bottlerocket_modeled_types::KubernetesHostnameOverrideSource>,
+/// Returns the optional value of a settings nested within `SettingsViewDelta`.
+///
+/// Will refer to the delta before falling back to the readonly settings.
+///
+/// ```
+/// let settings = SettingsViewDelta::from_api_response(SettingsView {
+///     aws: Some(AwsSettingsV1 {
+///         region: Some("us-west-2"),
+///         ..Default::default()
+///     })
+///     ..Default::default()
+/// });
+/// assert_eq!(settings_view_get!(settings.aws.region), Some("us-west-2"));
+/// ```
+macro_rules! settings_view_get {
+    (impl $parent:ident.$field:ident) => {
+        $parent.$field.as_ref()
+    };
+    (impl $parent:ident.$field:ident$(.$fields:ident)+) => {{
+        settings_view_get!(impl $parent.$field).and_then(|p| settings_view_get!(impl p.$($fields)+))
+    }};
+    ($settings:ident.$field:ident$(.$fields:ident)*) => {{
+        let reader = $settings.initial();
+        let delta = $settings.delta();
+        settings_view_get!(impl delta.$field$(.$fields)*)
+            .or_else(|| settings_view_get!(impl reader.$field$(.$fields)*))
+    }};
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-struct Os {
-    variant_id: String,
+/// Writes an optional value to the delta in a `SettingsViewDelta`.
+///
+/// ```
+/// let settings = SettingsViewDelta::from_api_response(SettingsView {
+///     aws: Some(AwsSettingsV1 {
+///         region: Some("us-west-2"),
+///         ..Default::default()
+///     })
+///     ..Default::default()
+/// });
+/// settings_view_set!(settings.aws.region = "us-east-1");
+/// assert_eq!(settings_view_get!(settings.aws.region), Some("us-east-1"));
+/// ```
+macro_rules! settings_view_set {
+    (impl $parent:ident.$field:ident = $value:expr) => {
+        $parent.$field = Some($value)
+    };
+    (impl $parent:ident.$field:ident$(.$fields:ident)+ = $value:expr) => {{
+        let curr_val = $parent.$field.get_or_insert_with(Default::default);
+        settings_view_set!(impl curr_val.$($fields)+ = $value);
+    }};
+    ($settings:ident.$field:ident$(.$fields:ident)* = $value:expr) => {{
+        let writer = $settings.write();
+        settings_view_set!(impl writer.$field$(.$fields)* = $value);
+    }}
 }
+pub(crate) use {settings_view_get, settings_view_set};
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-struct Network {
-    https_proxy: Option<String>,
-    no_proxy: Option<String>,
+#[derive(Debug, Deserialize, Default, PartialEq, Clone)]
+pub struct SettingsView {
+    pub aws: Option<AwsSettingsV1>,
+    pub network: Option<NetworkSettingsV1>,
+    pub kubernetes: Option<KubernetesSettingsV1>,
 }
 
 #[derive(Deserialize)]
-struct View {
-    pub aws: Option<AwsInfo>,
-    pub network: Option<Network>,
-    pub kubernetes: Option<Kubernetes>,
-}
-
-#[derive(Deserialize)]
-struct SettingsView {
-    pub settings: View,
+struct APISettingsResponse {
+    pub settings: SettingsView,
 }
 
 #[derive(Debug, Snafu)]
@@ -119,66 +161,93 @@ where
 }
 
 /// Gets the info that we need to know about the EKS cluster from the Bottlerocket API.
-pub(crate) async fn get_aws_k8s_info() -> Result<AwsK8sInfo> {
+pub(crate) async fn get_aws_k8s_info() -> Result<SettingsView> {
     let view_str = client_command(&[
         "get",
-        "settings.aws.region",
-        "settings.network.http-proxy",
-        "settings.network.no-proxy",
-        "settings.kubernetes.cluster-name",
-        "settings.kubernetes.cluster-dns-ip",
-        "settings.kubernetes.node-ip",
-        "settings.kubernetes.max-pods",
-        "settings.kubernetes.provider-id",
-        "settings.kubernetes.hostname-override",
-        "settings.kubernetes.hostname-override-source",
+        "settings.aws",
+        "settings.network",
+        "settings.kubernetes",
     ])
     .await?;
-    let view: SettingsView =
-        serde_json::from_slice(view_str.as_slice()).context(DeserializeSnafu)?;
 
-    Ok(AwsK8sInfo {
-        region: view.settings.aws.and_then(|a| a.region),
-        https_proxy: view
-            .settings
-            .network
-            .as_ref()
-            .and_then(|n| n.https_proxy.clone()),
-        no_proxy: view
-            .settings
-            .network
-            .as_ref()
-            .and_then(|n| n.no_proxy.clone()),
-        cluster_name: view
-            .settings
-            .kubernetes
-            .as_ref()
-            .and_then(|k| k.cluster_name.clone()),
-        cluster_dns_ip: view
-            .settings
-            .kubernetes
-            .as_ref()
-            .and_then(|k| k.cluster_dns_ip.clone()),
-        node_ip: view
-            .settings
-            .kubernetes
-            .as_ref()
-            .and_then(|k| k.node_ip.clone()),
-        max_pods: view.settings.kubernetes.as_ref().and_then(|k| k.max_pods),
-        provider_id: view
-            .settings
-            .kubernetes
-            .as_ref()
-            .and_then(|k| k.provider_id.clone()),
-        hostname_override: view
-            .settings
-            .kubernetes
-            .as_ref()
-            .and_then(|k| k.hostname_override.clone()),
-        hostname_override_source: view
-            .settings
-            .kubernetes
-            .as_ref()
-            .and_then(|k| k.hostname_override_source.clone()),
-    })
+    let api_response: APISettingsResponse =
+        serde_json::from_slice(view_str.as_slice()).context(DeserializeSnafu)?;
+    Ok(api_response.settings)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use bottlerocket_settings_models::{AwsSettingsV1, KubernetesSettingsV1};
+
+    #[test]
+    fn test_default_kubernetes_settings_empty() {
+        // `SettingsViewDelta` relies on its components default implementations being empty.
+        // If this test fails, `pluto` could submit incorrect settings changes.
+        let kubernetes_defaults = serde_json::to_value(KubernetesSettingsV1::default()).unwrap();
+        assert_eq!(kubernetes_defaults, serde_json::json!({}));
+    }
+
+    #[test]
+    fn test_default_network_settings_empty() {
+        // `SettingsViewDelta` relies on its components default implementations being empty.
+        // If this test fails, `pluto` could submit incorrect settings changes.
+        let network_defaults = serde_json::to_value(NetworkSettingsV1::default()).unwrap();
+        assert_eq!(network_defaults, serde_json::json!({}));
+    }
+
+    #[test]
+    fn test_default_aws_settings_empty() {
+        // `SettingsViewDelta` relies on its components default implementations being empty.
+        // If this test fails, `pluto` could submit incorrect settings changes.
+        let aws_defaults = serde_json::to_value(AwsSettingsV1::default()).unwrap();
+        assert_eq!(aws_defaults, serde_json::json!({}));
+    }
+
+    #[test]
+    fn test_settings_view_set() {
+        // When settings are written, the originals are preserved
+        let readonly_settings = SettingsView {
+            aws: Some(AwsSettingsV1 {
+                region: Some("us-west-2".try_into().unwrap()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let mut settings = SettingsViewDelta::from_api_response(readonly_settings.clone());
+
+        settings_view_set!(settings.aws.region = "us-east-1".try_into().unwrap());
+
+        let expected = SettingsViewDelta {
+            readonly: settings.readonly.clone(),
+            delta: SettingsView {
+                aws: Some(AwsSettingsV1 {
+                    region: Some("us-east-1".try_into().unwrap()),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        };
+
+        assert_eq!(settings, expected);
+    }
+
+    #[test]
+    fn test_settings_view_read_overwritten() {
+        // When settings are written, the delta is fetched first
+        let readonly_settings = SettingsView {
+            aws: Some(AwsSettingsV1 {
+                region: Some("us-west-2".try_into().unwrap()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let mut settings = SettingsViewDelta::from_api_response(readonly_settings.clone());
+
+        settings_view_set!(settings.aws.region = "us-east-1".try_into().unwrap());
+        assert_eq!(
+            settings_view_get!(settings.aws.region).map(ToString::to_string),
+            Some("us-east-1".to_string())
+        );
+    }
 }

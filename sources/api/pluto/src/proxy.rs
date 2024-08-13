@@ -27,27 +27,34 @@ pub(super) enum Error {
 type Result<T> = std::result::Result<T, Error>;
 
 /// Setups a hyper-based HTTP client configured with a proxy connector.
-pub(crate) fn setup_http_client(
-    https_proxy: String,
-    no_proxy: Option<String>,
-) -> Result<ProxyConnector<HttpsConnector<HttpConnector>>> {
+pub(crate) fn setup_http_client<H, N>(
+    https_proxy: H,
+    no_proxy: Option<&[N]>,
+) -> Result<ProxyConnector<HttpsConnector<HttpConnector>>>
+where
+    H: AsRef<str>,
+    N: AsRef<str>,
+{
     // Determines whether a request of a given scheme, host and port should be proxied
     // according to `https_proxy` and `no_proxy`.
+
+    // The no-proxy intercept requires ownership of its input data.
+    let no_proxy: Option<Vec<String>> =
+        no_proxy.map(|n| n.iter().map(|s| s.as_ref().to_owned()).collect());
     let intercept = move |scheme: Option<&str>, host: Option<&str>, _port| {
         if let Some(host) = host {
             if let Some(no_proxy) = &no_proxy {
                 if scheme != Some("https") {
                     return false;
                 }
-                let no_proxy_hosts: Vec<&str> = no_proxy.split(',').map(|s| s.trim()).collect();
-                if no_proxy_hosts.iter().any(|s| *s == "*") {
+                if no_proxy.iter().any(|s| s == "*") {
                     // Don't proxy anything
                     return false;
                 }
                 // If the host matches one of the no proxy list entries, return false (don't proxy)
                 // Note that we're not doing anything fancy here for checking `no_proxy` since
                 // we only expect requests here to be going out to some AWS API endpoint.
-                return !no_proxy_hosts.iter().any(|no_proxy_host| {
+                return !no_proxy.iter().any(|no_proxy_host| {
                     !no_proxy_host.is_empty() && host.ends_with(no_proxy_host)
                 });
             }
@@ -56,8 +63,10 @@ pub(crate) fn setup_http_client(
             false
         }
     };
+
+    let https_proxy = https_proxy.as_ref();
     let mut proxy_uri = https_proxy.parse::<Uri>().context(UriParseSnafu {
-        input: &https_proxy,
+        input: https_proxy.to_owned(),
     })?;
     // If the proxy's URI doesn't have a scheme, assume HTTP for the scheme and let the proxy
     // server forward HTTPS connections and start a tunnel.
@@ -65,13 +74,13 @@ pub(crate) fn setup_http_client(
         proxy_uri = format!("http://{}", https_proxy)
             .parse::<Uri>()
             .context(UriParseSnafu {
-                input: &https_proxy,
+                input: https_proxy.to_owned(),
             })?;
     }
     let mut proxy = Proxy::new(intercept, proxy_uri);
     // Parse https_proxy as URL to extract out auth information if any
     let proxy_url = Url::parse(&https_proxy).context(UrlParseSnafu {
-        input: &https_proxy,
+        input: https_proxy.to_owned(),
     })?;
 
     if !proxy_url.username().is_empty() || proxy_url.password().is_some() {

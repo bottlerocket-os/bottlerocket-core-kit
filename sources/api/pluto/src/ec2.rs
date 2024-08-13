@@ -40,12 +40,16 @@ pub(super) enum Error {
 
 type Result<T> = std::result::Result<T, Error>;
 
-pub(super) async fn get_private_dns_name(
+pub(super) async fn get_private_dns_name<H, N>(
     region: &str,
     instance_id: &str,
-    https_proxy: Option<String>,
-    no_proxy: Option<String>,
-) -> Result<String> {
+    https_proxy: Option<H>,
+    no_proxy: Option<&[N]>,
+) -> Result<String>
+where
+    H: AsRef<str>,
+    N: AsRef<str>,
+{
     let config = sdk_config(region).await;
 
     let client = if let Some(https_proxy) = https_proxy {

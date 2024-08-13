@@ -10,6 +10,8 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [dependencies]
+bottlerocket-modeled-types.workspace = true
+bottlerocket-settings-models.workspace = true
 bytes.workspace = true
 constants.workspace = true
 futures-util.workspace = true
@@ -32,7 +34,6 @@ tokio-retry.workspace = true
 tokio-rustls.workspace = true
 url.workspace = true
 log.workspace = true
-bottlerocket-modeled-types.workspace = true
 
 [build-dependencies]
 generate-readme.workspace = true

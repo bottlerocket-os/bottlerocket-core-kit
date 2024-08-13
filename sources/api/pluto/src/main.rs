@@ -38,7 +38,7 @@ mod eks;
 mod hyper_proxy;
 mod proxy;
 
-use api::AwsK8sInfo;
+use api::{settings_view_get, settings_view_set, SettingsViewDelta};
 use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
 use imdsclient::ImdsClient;
 use snafu::{ensure, OptionExt, ResultExt};
@@ -94,6 +94,16 @@ mod error {
         #[snafu(display("IMDS request failed: No '{}' found", what))]
         ImdsNone { what: String },
 
+        #[snafu(display("Invalid hostname: {}", source))]
+        InvalidHostname {
+            source: bottlerocket_modeled_types::error::Error,
+        },
+
+        #[snafu(display("Invalid URL: {}", source))]
+        InvalidUrl {
+            source: bottlerocket_modeled_types::error::Error,
+        },
+
         #[snafu(display("{}", source))]
         EksError { source: eks::Error },
 
@@ -127,11 +137,16 @@ use error::PlutoError;
 
 type Result<T> = std::result::Result<T, PlutoError>;
 
-async fn generate_max_pods(client: &mut ImdsClient, aws_k8s_info: &mut AwsK8sInfo) -> Result<()> {
-    if aws_k8s_info.max_pods.is_some() {
+async fn generate_max_pods(
+    client: &mut ImdsClient,
+    aws_k8s_info: &mut SettingsViewDelta,
+) -> Result<()> {
+    if settings_view_get!(aws_k8s_info.kubernetes.max_pods).is_some() {
         return Ok(());
     }
-    aws_k8s_info.max_pods = get_max_pods(client).await.ok();
+    if let Ok(max_pods) = get_max_pods(client).await {
+        settings_view_set!(aws_k8s_info.kubernetes.max_pods = max_pods);
+    }
     Ok(())
 }
 
@@ -173,9 +188,9 @@ async fn get_max_pods(client: &mut ImdsClient) -> Result<u32> {
 /// blocks to return one of two default addresses.
 async fn generate_cluster_dns_ip(
     client: &mut ImdsClient,
-    aws_k8s_info: &mut AwsK8sInfo,
+    aws_k8s_info: &mut SettingsViewDelta,
 ) -> Result<()> {
-    if aws_k8s_info.cluster_dns_ip.is_some() {
+    if settings_view_get!(aws_k8s_info.kubernetes.cluster_dns_ip).is_some() {
         return Ok(());
     }
 
@@ -188,26 +203,28 @@ async fn generate_cluster_dns_ip(
         get_ipv4_cluster_dns_ip_from_imds_mac(client).await?
     };
 
-    aws_k8s_info.cluster_dns_ip = Some(KubernetesClusterDnsIp::Scalar(
-        IpAddr::from_str(ip_addr.as_str()).context(error::BadIpSnafu {
-            ip: ip_addr.clone(),
-        })?,
-    ));
+    settings_view_set!(
+        aws_k8s_info.kubernetes.cluster_dns_ip = KubernetesClusterDnsIp::Scalar(
+            IpAddr::from_str(ip_addr.as_str()).context(error::BadIpSnafu {
+                ip: ip_addr.clone(),
+            })?,
+        )
+    );
     Ok(())
 }
 
 /// Retrieves the ip address from the kubernetes network configuration for the
 /// EKS Cluster
-async fn get_eks_network_config(aws_k8s_info: &AwsK8sInfo) -> Result<Option<String>> {
+async fn get_eks_network_config(aws_k8s_info: &SettingsViewDelta) -> Result<Option<String>> {
     if let (Some(region), Some(cluster_name)) = (
-        aws_k8s_info.region.as_ref(),
-        aws_k8s_info.cluster_name.as_ref(),
+        settings_view_get!(aws_k8s_info.aws.region),
+        settings_view_get!(aws_k8s_info.kubernetes.cluster_name),
     ) {
         if let Ok(config) = eks::get_cluster_network_config(
             region,
             cluster_name,
-            aws_k8s_info.https_proxy.clone(),
-            aws_k8s_info.no_proxy.clone(),
+            settings_view_get!(aws_k8s_info.network.https_proxy),
+            settings_view_get!(aws_k8s_info.network.no_proxy).map(Vec::as_slice),
         )
         .await
         .context(error::EksSnafu)
@@ -284,15 +301,16 @@ async fn get_ipv4_cluster_dns_ip_from_imds_mac(client: &mut ImdsClient) -> Resul
 }
 
 /// Gets the IP address that should be associated with the node.
-async fn generate_node_ip(client: &mut ImdsClient, aws_k8s_info: &mut AwsK8sInfo) -> Result<()> {
-    if aws_k8s_info.node_ip.is_some() {
+async fn generate_node_ip(
+    client: &mut ImdsClient,
+    aws_k8s_info: &mut SettingsViewDelta,
+) -> Result<()> {
+    if settings_view_get!(aws_k8s_info.kubernetes.node_ip).is_some() {
         return Ok(());
     }
     // Ensure that this was set in case changes to main occur
     generate_cluster_dns_ip(client, aws_k8s_info).await?;
-    let cluster_dns_ip = aws_k8s_info
-        .cluster_dns_ip
-        .as_ref()
+    let cluster_dns_ip = settings_view_get!(aws_k8s_info.kubernetes.cluster_dns_ip)
         .and_then(|x| x.iter().next())
         .context(error::NoIpSnafu)?;
     // If the cluster DNS IP is an IPv4 address, retrieve the IPv4 address for the instance.
@@ -313,16 +331,21 @@ async fn generate_node_ip(client: &mut ImdsClient, aws_k8s_info: &mut AwsK8sInfo
                 what: "ipv6s associated with primary network interface",
             }),
     }?;
-    aws_k8s_info.node_ip = Some(node_ip);
+    settings_view_set!(
+        aws_k8s_info.kubernetes.node_ip =
+            IpAddr::from_str(node_ip.as_str()).context(error::BadIpSnafu {
+                ip: node_ip.clone(),
+            })?
+    );
     Ok(())
 }
 
 /// Gets the provider ID that should be associated with the node
 async fn generate_provider_id(
     client: &mut ImdsClient,
-    aws_k8s_info: &mut AwsK8sInfo,
+    aws_k8s_info: &mut SettingsViewDelta,
 ) -> Result<()> {
-    if aws_k8s_info.provider_id.is_some() {
+    if settings_view_get!(aws_k8s_info.kubernetes.provider_id).is_some() {
         return Ok(());
     }
 
@@ -340,29 +363,32 @@ async fn generate_provider_id(
         .context(error::ImdsRequestSnafu)?
         .context(error::ImdsNoneSnafu { what: "zone" })?;
 
-    aws_k8s_info.provider_id = Some(format!("aws:///{}/{}", zone, instance_id));
+    settings_view_set!(
+        aws_k8s_info.kubernetes.provider_id = format!("aws:///{}/{}", zone, instance_id)
+            .try_into()
+            .context(error::InvalidUrlSnafu)?
+    );
     Ok(())
 }
 
 /// generate_node_name sets the hostname_override, if it is not already specified
-async fn generate_node_name(client: &mut ImdsClient, aws_k8s_info: &mut AwsK8sInfo) -> Result<()> {
+async fn generate_node_name(
+    client: &mut ImdsClient,
+    aws_k8s_info: &mut SettingsViewDelta,
+) -> Result<()> {
     // hostname override provided, so we do nothing regardless of the override source
-    if aws_k8s_info.hostname_override.is_some() {
+    if settings_view_get!(aws_k8s_info.kubernetes.hostname_override).is_some() {
         return Ok(());
     }
 
     // no hostname override or override source provided, so we don't provide this value
-    if aws_k8s_info.hostname_override_source.is_none() {
-        return Ok(());
-    }
+    let hostname_source = match settings_view_get!(aws_k8s_info.kubernetes.hostname_override_source)
+    {
+        None => return Ok(()),
+        Some(hostname_source) => hostname_source,
+    };
 
-    // use the hostname source provided, None case handled prior so unwrap is safe
-    let hostname_source = aws_k8s_info.hostname_override_source.clone().unwrap();
-
-    let region = aws_k8s_info
-        .region
-        .as_ref()
-        .context(error::AwsRegionSnafu)?;
+    let region = settings_view_get!(aws_k8s_info.aws.region).context(error::AwsRegionSnafu)?;
     let instance_id = client
         .fetch_instance_id()
         .await
@@ -373,19 +399,25 @@ async fn generate_node_name(client: &mut ImdsClient, aws_k8s_info: &mut AwsK8sIn
 
     match hostname_source {
         KubernetesHostnameOverrideSource::PrivateDNSName => {
-            aws_k8s_info.hostname_override = Some(
-                ec2::get_private_dns_name(
-                    region,
-                    &instance_id,
-                    aws_k8s_info.https_proxy.clone(),
-                    aws_k8s_info.no_proxy.clone(),
-                )
-                .await
-                .context(error::Ec2Snafu)?,
-            );
+            let hostname_override = ec2::get_private_dns_name(
+                region,
+                &instance_id,
+                settings_view_get!(aws_k8s_info.network.https_proxy),
+                settings_view_get!(aws_k8s_info.network.no_proxy).map(Vec::as_slice),
+            )
+            .await
+            .context(error::Ec2Snafu)?
+            .try_into()
+            .context(error::InvalidHostnameSnafu)?;
+
+            settings_view_set!(aws_k8s_info.kubernetes.hostname_override = hostname_override);
         }
         KubernetesHostnameOverrideSource::InstanceID => {
-            aws_k8s_info.hostname_override = Some(instance_id);
+            settings_view_set!(
+                aws_k8s_info.kubernetes.hostname_override = instance_id
+                    .try_into()
+                    .context(error::InvalidHostnameSnafu)?
+            );
         }
     }
 
@@ -394,7 +426,8 @@ async fn generate_node_name(client: &mut ImdsClient, aws_k8s_info: &mut AwsK8sIn
 
 async fn run() -> Result<()> {
     let mut client = ImdsClient::new();
-    let mut aws_k8s_info = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
+    let current_settings = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
+    let mut aws_k8s_info = SettingsViewDelta::from_api_response(current_settings);
 
     generate_cluster_dns_ip(&mut client, &mut aws_k8s_info).await?;
     generate_node_ip(&mut client, &mut aws_k8s_info).await?;
@@ -402,19 +435,20 @@ async fn run() -> Result<()> {
     generate_provider_id(&mut client, &mut aws_k8s_info).await?;
     generate_node_name(&mut client, &mut aws_k8s_info).await?;
 
-    let settings = serde_json::to_value(&aws_k8s_info).context(error::SerializeSnafu)?;
-    let generated_settings: serde_json::Value = serde_json::json!({
-        "kubernetes": settings
-    });
-    let json_str = generated_settings.to_string();
-    let uri = &format!(
-        "{}?tx={}",
-        constants::API_SETTINGS_URI,
-        constants::LAUNCH_TRANSACTION
-    );
-    api::client_command(&["raw", "-m", "PATCH", "-u", uri, "-d", json_str.as_str()])
-        .await
-        .context(error::SetFailureSnafu)?;
+    if let Some(k8s_settings) = &aws_k8s_info.delta().kubernetes {
+        let generated_settings = serde_json::json!({
+            "kubernetes": serde_json::to_value(&k8s_settings).context(error::SerializeSnafu)?
+        });
+        let json_str = generated_settings.to_string();
+        let uri = &format!(
+            "{}?tx={}",
+            constants::API_SETTINGS_URI,
+            constants::LAUNCH_TRANSACTION
+        );
+        api::client_command(&["raw", "-m", "PATCH", "-u", uri, "-d", json_str.as_str()])
+            .await
+            .context(error::SetFailureSnafu)?;
+    }
 
     Ok(())
 }
@@ -433,6 +467,9 @@ async fn main() {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::api::SettingsViewDelta;
+    use api::SettingsView;
+    use bottlerocket_settings_models::AwsSettingsV1;
     use httptest::{matchers::*, responders::*, Expectation, Server};
 
     #[test]
@@ -484,68 +521,98 @@ mod test {
 
         let mut imds_client = ImdsClient::new_impl(base_uri);
 
-        let mut info = AwsK8sInfo {
-            region: Some(String::from("us-west-2")),
-            https_proxy: None,
-            no_proxy: None,
-            cluster_name: None,
-            cluster_dns_ip: None,
-            node_ip: None,
-            max_pods: None,
-            provider_id: None,
-            hostname_override: None,
-            hostname_override_source: None,
-        };
+        let mut info = SettingsViewDelta::from_api_response(SettingsView {
+            aws: Some(AwsSettingsV1 {
+                region: Some("us-west-2".try_into().unwrap()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        });
 
         // specifying a hostname will cause it to be used
-        info.hostname_override = Some(String::from("hostname-specified"));
+        settings_view_set!(
+            info.kubernetes.hostname_override =
+                String::from("hostname-specified").try_into().unwrap()
+        );
         generate_node_name(&mut imds_client, &mut info)
             .await
             .unwrap();
         assert_eq!(
-            info.hostname_override,
+            settings_view_get!(info.kubernetes.hostname_override).map(ToString::to_string),
             Some(String::from("hostname-specified"))
         );
 
         // regardless of the hostname override source
-        info.hostname_override = Some(String::from("hostname-specified"));
-        info.hostname_override_source = Some(KubernetesHostnameOverrideSource::InstanceID);
+        settings_view_set!(
+            info.kubernetes.hostname_override =
+                String::from("hostname-specified").try_into().unwrap()
+        );
+        settings_view_set!(
+            info.kubernetes.hostname_override_source = KubernetesHostnameOverrideSource::InstanceID
+        );
         generate_node_name(&mut imds_client, &mut info)
             .await
             .unwrap();
         assert_eq!(
-            info.hostname_override,
+            settings_view_get!(info.kubernetes.hostname_override).map(ToString::to_string),
             Some(String::from("hostname-specified"))
         );
 
-        info.hostname_override = Some(String::from("hostname-specified"));
-        info.hostname_override_source = Some(KubernetesHostnameOverrideSource::PrivateDNSName);
+        settings_view_set!(
+            info.kubernetes.hostname_override =
+                String::from("hostname-specified").try_into().unwrap()
+        );
+        settings_view_set!(
+            info.kubernetes.hostname_override_source =
+                KubernetesHostnameOverrideSource::PrivateDNSName
+        );
         generate_node_name(&mut imds_client, &mut info)
             .await
             .unwrap();
         assert_eq!(
-            info.hostname_override,
+            settings_view_get!(info.kubernetes.hostname_override).map(ToString::to_string),
             Some(String::from("hostname-specified"))
         );
 
         // no override provided if neither value is set
-        info.hostname_override = None;
-        info.hostname_override_source = None;
+        let mut info = SettingsViewDelta::from_api_response(SettingsView {
+            aws: Some(AwsSettingsV1 {
+                region: Some("us-west-2".try_into().unwrap()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        });
+
+        assert!(settings_view_get!(info.kubernetes.hostname_override).is_none());
+        assert!(settings_view_get!(info.kubernetes.hostname_override_source).is_none());
         generate_node_name(&mut imds_client, &mut info)
             .await
             .unwrap();
-        assert_eq!(info.hostname_override, None);
+        assert_eq!(settings_view_get!(info.kubernetes.hostname_override), None);
 
         // skipping tests that call use the private dns name since we would need to make the EC2
         // API mockable to implement them
 
         // specifying no hostname, with override of instance-id causes the instance-id to be used
         // and pulled from IMDS
-        info.hostname_override = None;
-        info.hostname_override_source = Some(KubernetesHostnameOverrideSource::InstanceID);
+        let mut info = SettingsViewDelta::from_api_response(SettingsView {
+            aws: Some(AwsSettingsV1 {
+                region: Some("us-west-2".try_into().unwrap()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        });
+
+        assert!(settings_view_get!(info.kubernetes.hostname_override).is_none());
+        settings_view_set!(
+            info.kubernetes.hostname_override_source = KubernetesHostnameOverrideSource::InstanceID
+        );
         generate_node_name(&mut imds_client, &mut info)
             .await
             .unwrap();
-        assert_eq!(info.hostname_override, Some(String::from("i-123456789")));
+        assert_eq!(
+            settings_view_get!(info.kubernetes.hostname_override).map(ToString::to_string),
+            Some(String::from("i-123456789"))
+        );
     }
 }
