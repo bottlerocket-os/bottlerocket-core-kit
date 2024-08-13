@@ -14,7 +14,6 @@ path = "../packages.rs"
 package-name = "kubernetes-1.30"
 
 [[package.metadata.build-package.external-files]]
-# TODO: update this URL to 1.30 release once available. 
 url = "https://distro.eks.amazonaws.com/kubernetes-1-30/releases/9/artifacts/kubernetes/v1.30.1/kubernetes-src.tar.gz"
 sha512 = "314c4cdc3705fa6ded932bb2780e63b78040e75fe7e284aa2cbff93eac177d40eae5dfbe90b7482b682ed97b9d4723b55e4a1d598ec6424df77543e00e7fd6a2"
 
