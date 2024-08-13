@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+output_dir=/tmp/configs
+
+usage() {
+    cat <<EOF
+Usage: $0 -o OUTPUT-DIRECTORY
+Collect kernel configurations after core kit build
+
+    -o, --output-dir    path to the output directory
+    -h, --help          show this help text
+EOF
+}
+
+usage_error() {
+    >&2 usage
+    bail "$1"
+}
+
+
+#
+# Parse arguments
+#
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -o|--output-dir)
+            shift; output_dir=$1 ;;
+        -h|--help)
+            usage; exit 0 ;;
+        *)
+            usage_error "Invalid option '$1'" ;;
+    esac
+    shift
+done
+
+readonly output_dir
+mkdir -p ${output_dir}
+echo "Created ${output_dir}"
+
+for kernel in 5.10 5.15 6.1; do
+    for arch in x86_64 aarch64; do
+	rpm2cpio ./build/rpms/kernel-${kernel}/bottlerocket-kernel-${kernel}-${kernel}*.${arch}.rpm | cpio --extract --to-stdout ./boot/config > ${output_dir}/config-${kernel}-${arch}.config
+    done
+done
