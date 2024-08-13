@@ -1,3 +1,33 @@
+# v2.3.2 (2024-08-13)
+
+## OS Changes
+
+* Update kernels: 5.10.223 5.15.164, and 6.1.102 ([#73], [#82])
+
+## Orchestrator Changes
+
+### Kubernetes
+
+* ecr-credential-provider: update to 1.25.15 ([#66])
+* ecr-credential-provider-1.27: update to 1.27.8 ([#66])
+* ecr-credential-provider-1.29: update to 1.29.6 ([#66])
+* ecr-credential-provider-1.30: update to 1.30.3 ([#66])
+* soci-snapshotter: update to 0.7.0 ([#66])
+
+## Build Changes
+
+* Re-enable fmt and licenses lints in CI ([#69])
+* Use workspace dependencies for all dependencies ([#70])
+* Update datastore serializer to expect JSON and correctly handle null values ([#80], [#87])
+
+[#66]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/66
+[#69]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/69
+[#70]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/70
+[#73]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/73
+[#80]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/80
+[#82]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/82
+[#87]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/87
+
 # v2.3.1 (2024-08-01)
 
 ## OS Changes
