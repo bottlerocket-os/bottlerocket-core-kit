@@ -11,4 +11,3 @@ exclude = ["README.md"]
 [dependencies]
 rand = { workspace = true, features = ["default"] }
 serde_json.workspace = true
-settings-extension-updates.workspace = true
