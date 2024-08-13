@@ -2,7 +2,7 @@
 %global gorepo nvidia-container-toolkit
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.13.5
+%global gover 1.16.1
 %global rpmver %{gover}
 
 Name: %{_cross_os}nvidia-container-toolkit
@@ -50,6 +50,12 @@ Conflicts: %{name}-ecs
 
 %build
 %cross_go_configure %{goimport}
+
+# We don't set `-Wl,-z,now`, because the binary uses lazy loading
+# to load the NVIDIA libraries in the host
+export CGO_LDFLAGS="-Wl,-z,relro -Wl,--export-dynamic"
+export GOLDFLAGS="-compressdwarf=false -linkmode=external -extldflags '${CGO_LDFLAGS}'"
+
 go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime-hook ./cmd/nvidia-container-runtime-hook
 go build -ldflags="${GOLDFLAGS}" -o nvidia-ctk ./cmd/nvidia-ctk
 
