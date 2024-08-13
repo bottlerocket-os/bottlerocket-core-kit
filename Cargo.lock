@@ -73,6 +73,7 @@ dependencies = [
  "ecr-credential-provider-1_27",
  "ecr-credential-provider-1_29",
  "ecr-credential-provider-1_30",
+ "ecr-credential-provider-1_31",
  "ecs-agent",
  "ecs-gpu-init",
  "ethtool",
@@ -103,6 +104,7 @@ dependencies = [
  "kubernetes-1_28",
  "kubernetes-1_29",
  "kubernetes-1_30",
+ "kubernetes-1_31",
  "libacl",
  "libattr",
  "libaudit",
@@ -299,6 +301,13 @@ dependencies = [
 
 [[package]]
 name = "ecr-credential-provider-1_30"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+]
+
+[[package]]
+name = "ecr-credential-provider-1_31"
 version = "0.1.0"
 dependencies = [
  "glibc",
@@ -542,6 +551,16 @@ version = "0.1.0"
 dependencies = [
  "aws-signing-helper",
  "ecr-credential-provider-1_30",
+ "glibc",
+ "static-pods",
+]
+
+[[package]]
+name = "kubernetes-1_31"
+version = "0.1.0"
+dependencies = [
+ "aws-signing-helper",
+ "ecr-credential-provider-1_31",
  "glibc",
  "static-pods",
 ]
