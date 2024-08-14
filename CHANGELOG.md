@@ -1,3 +1,23 @@
+# v2.3.3 (2024-08-14)
+
+## Orchestrator Changes
+
+### Kubernetes
+
+* kubernetes 1.24, 1.25, 1.26: Apply upstream patches ([#76], [#77], [#78])
+* packages: use GO_MAJOR for selecting Go version ([#86])
+
+## Build Changes
+* pluto: use settings SDK to parse API response ([#89])
+* schnauzer: add support for update repository & ecr registry in ISO-E ([#91])
+
+[#76]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/76
+[#77]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/77
+[#78]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/78
+[#86]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/86
+[#89]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/89
+[#91]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/91
+
 # v2.3.2 (2024-08-13)
 
 ## OS Changes
