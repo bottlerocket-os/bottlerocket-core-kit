@@ -33,12 +33,16 @@ type Result<T> = std::result::Result<T, Error>;
 
 /// Returns the cluster's [kubernetesNetworkConfig] by calling the EKS API.
 /// (https://docs.aws.amazon.com/eks/latest/APIReference/API_KubernetesNetworkConfigResponse.html)
-pub(super) async fn get_cluster_network_config(
+pub(super) async fn get_cluster_network_config<H, N>(
     region: &str,
     cluster: &str,
-    https_proxy: Option<String>,
-    no_proxy: Option<String>,
-) -> Result<ClusterNetworkConfig> {
+    https_proxy: Option<H>,
+    no_proxy: Option<&[N]>,
+) -> Result<ClusterNetworkConfig>
+where
+    H: AsRef<str>,
+    N: AsRef<str>,
+{
     let config = sdk_config(region).await;
 
     let client = if let Some(https_proxy) = https_proxy {

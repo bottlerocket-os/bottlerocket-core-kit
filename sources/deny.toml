@@ -55,8 +55,6 @@ deny = [{ name = "structopt" }, { name = "clap", wrappers = ["cargo-readme"] }]
 skip = [
     # this can be removed once settings sdk is updated to base64 0.22.1
     { name = "base64", version = "=0.21.7" },
-    # this can be removed once settings sdk is updated to env_logger 0.11
-    { name = "env_logger", version = "=0.10.2" },
 ]
 
 skip-tree = [
