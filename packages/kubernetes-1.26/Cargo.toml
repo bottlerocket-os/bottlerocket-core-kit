@@ -61,6 +61,10 @@ sha512 = "9328a84b0dbd3948f2a1ff87c4c2afe11d07f29f376cb845a115ba844e9f92a20438e6
 url = "https://raw.githubusercontent.com/aws/eks-distro/71aed3084474ab65027b067d45e70081144384ea/projects/kubernetes/kubernetes/1-26/patches/0013-EKS-PATCH-Update-aws-sdk-go-for-new-regions.patch"
 sha512 = "edb501bdc01863a7abe28a19369230ef94841630866644c3abdf42041d3876023ae359fea679133d403c517f6b43c9b0c24c5b59a28d9b6508c6f2d87a99f37f"
 
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/main/projects/kubernetes/kubernetes/1-26/patches/0014-EKS-PATCH-Fix-CVE-2024-5321.patch"
+sha512 = "6267486606741f25e12b2d0bd19d3243c485b21cce4ae992258a64db714c42ea3542c03f225bd8ce41a63e2dc3449f56e16e7c126a67107144c2da4bea820d81"
+
 # RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }

@@ -77,6 +77,7 @@ Patch0010: 0010-EKS-PATCH-Update-log-verbosity-for-node-health-and-t.patch
 Patch0011: 0011-EKS-PATCH-aws_credentials-update-ecr-url-validation-.patch
 Patch0012: 0012-EKS-PATCH-Bumps-dependency-for-CVE-2023-45288.patch
 Patch0013: 0013-EKS-PATCH-Update-aws-sdk-go-for-new-regions.patch
+Patch0014: 0014-EKS-PATCH-Fix-CVE-2024-5321.patch
 
 BuildRequires: git
 BuildRequires: rsync
