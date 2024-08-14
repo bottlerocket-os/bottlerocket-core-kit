@@ -101,6 +101,9 @@ sha512 = "ceb1a7844e4e2ed5fa3a838949086ebf86114bba8007a3125ea4ebd6aba7e790eb19b1
 url = "https://raw.githubusercontent.com/aws/eks-distro/71aed3084474ab65027b067d45e70081144384ea/projects/kubernetes/kubernetes/1-25/patches/0022-EKS-PATCH-Update-aws-sdk-go-to-include-new-regions.patch"
 sha512 = "e226f5a70aeafa25ff010c607b1e7913b562f37674062a0aadbe77fd62532dd5bab10c3bfc38af455a00232da0548f82cd77a86d124b17149d5f9e4bcc96fa30"
 
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/main/projects/kubernetes/kubernetes/1-25/patches/0023-EKS-PATCH-Fix-CVE-2024-5321.patch"
+sha512 = "f74d550646b0bf0f4c0596c78337037034c29ada7f3683ad3f3dbbac0011f935185486a178212cd93ad3338aa59b20be3f899863b6ed726f81753f221e66e51f"
 
 # RPM BuildRequires
 [build-dependencies]
