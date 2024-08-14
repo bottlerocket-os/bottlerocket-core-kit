@@ -2,7 +2,7 @@
 %global gorepo k8s-device-plugin
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 0.14.4
+%global gover 0.16.2
 %global rpmver %{gover}
 
 Name: %{_cross_os}nvidia-k8s-device-plugin
@@ -46,6 +46,7 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 %cross_go_setup %{gorepo}-%{gover} %{goproject} %{goimport}
 
 %build
+export GO_MAJOR="1.22"
 %cross_go_configure %{goimport}
 # We don't set `-Wl,-z,now`, because the binary uses lazy loading
 # to load the NVIDIA libraries in the host
