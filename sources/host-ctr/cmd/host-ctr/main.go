@@ -37,7 +37,8 @@ import (
 //
 // Example 1: 777777777777.dkr.ecr.us-west-2.amazonaws.com/my_image:latest
 // Example 2: 777777777777.dkr.ecr.cn-north-1.amazonaws.com.cn/my_image:latest
-var ecrRegex = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?.*`)
+// Example 3: 777777777777.dkr.ecr.eu-isoe-west-1.cloud.adc-e.uk/my_image:latest
+var ecrRegex = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.(amazonaws\.com(\.cn)?|cloud\.adc-e\.uk).*`)
 
 const (
 	// The maximum size of an	image label.
@@ -598,6 +599,7 @@ func cleanUp(containerdSocket string, namespace string, containerID string) erro
 func parseImageURISpecialRegions(input string) (ecr.ECRSpec, error) {
 	ecrRefPrefixMapping := map[string]string{
 		"ap-southeast-5": "ecr.aws/arn:aws:ecr:ap-southeast-5:",
+		"eu-isoe-west-1": "ecr.aws/arn:aws-iso-e:ecr:eu-isoe-west-1:",
 	}
 	// Matching on account, region
 	matches := ecrRegex.FindStringSubmatch(input)
