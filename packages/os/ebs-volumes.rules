@@ -7,9 +7,9 @@ ATTRS{model}!="Amazon Elastic Block Store", GOTO="ebs_volumes_end"
 ENV{DEVTYPE}=="disk", ATTR{queue/io_timeout}="4294967295"
 
 # Add symlink for disk
-KERNEL=="nvme[0-9]*n[0-9]*", ENV{DEVTYPE}=="disk", IMPORT{program}="/usr/bin/ghostdog ebs-device-name $devnode", SYMLINK+="$env{XVD_DEVICE_NAME}"
+KERNEL=="nvme[0-9]*n[0-9]*", ENV{DEVTYPE}=="disk", IMPORT{program}="/usr/bin/ghostdog ebs-device-name $devnode", SYMLINK+="disk/by-ebs-id/$env{XVD_DEVICE_NAME}"
 
 # Add symlink for partition
-KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", IMPORT{parent}="XVD_DEVICE_NAME", SYMLINK+="$env{XVD_DEVICE_NAME}$number"
+KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", IMPORT{parent}="XVD_DEVICE_NAME", SYMLINK+="disk/by-ebs-id/$env{XVD_DEVICE_NAME}$number"
 
 LABEL="ebs_volumes_end"
