@@ -1,3 +1,12 @@
+# v2.3.4 (2024-08-19)
+## OS Changes
+
+* Update libnvidia-container to v550.54.14 and nvidia-container-toolkit to v1.16.1 ([#88])
+* Fix a bug in sundog that caused it to regenerate populated settings ([#94])
+
+[#88]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/88
+[#94]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/94
+
 # v2.3.3 (2024-08-14)
 
 ## Orchestrator Changes
@@ -5,7 +14,7 @@
 ### Kubernetes
 
 * kubernetes 1.24, 1.25, 1.26: Apply upstream patches ([#76], [#77], [#78])
-* packages: use GO_MAJOR for selecting Go version ([#86])
+* packages: use `GO_MAJOR` for selecting Go version ([#86])
 
 ## Build Changes
 * pluto: use settings SDK to parse API response ([#89])
