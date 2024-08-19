@@ -117,7 +117,12 @@ fn parse_device_name(device_info: &[u8], path: String) -> Result<String> {
     let offset = NVME_IDENTIFY_DATA_SIZE - 1024;
     let device_name = &device_info[offset..offset + 32];
 
-    Ok(String::from_utf8_lossy(device_name).trim_end().to_string())
+    // Remove `/dev` in case the returned device name includes it, the udev
+    // rule already includes that prefix
+    Ok(String::from_utf8_lossy(device_name)
+        .trim_start_matches("/dev/")
+        .trim_end()
+        .to_string())
 }
 
 /// Print the device type in the environment key format udev expects.
@@ -234,5 +239,26 @@ mod test {
         let partition_name = "BOTTLEROCKET-STUFF";
         let data = gpt_data(partition_type, partition_name);
         assert_eq!(find_device_type(&mut Cursor::new(&data)).unwrap(), "system");
+    }
+
+    #[test]
+    fn test_valid_device_info() {
+        for device_name in ["xvdcz", "/dev/xvdcz"] {
+            let device_info = build_device_info(device_name);
+            assert_eq!(
+                parse_device_name(&device_info, "".to_string()).unwrap(),
+                "xvdcz".to_string()
+            );
+        }
+    }
+
+    fn build_device_info(device_name: &str) -> Vec<u8> {
+        let mut device_name = device_name.as_bytes().to_vec();
+        let mut device_info: Vec<u8> = vec![0; NVME_IDENTIFY_DATA_SIZE - 1024];
+        let mut padding = vec![32; NVME_IDENTIFY_DATA_SIZE - device_info.len() - device_name.len()];
+        device_info.append(&mut device_name);
+        device_info.append(&mut padding);
+
+        device_info
     }
 }
