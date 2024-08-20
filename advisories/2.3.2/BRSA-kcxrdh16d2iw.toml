@@ -1,0 +1,20 @@
+[advisory]
+id = "BRSA-kcxrdh16d2iw"
+title = "kernel CVE-2024-41090"
+cve = "CVE-2024-41090"
+severity = "high"
+description = "kernel: virtio-net: tap: mlx5_core short frame denial of service"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.223-211.872.amzn2"
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.102-108.177.amzn2023"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-08-14T02:28:00Z
+arches = ["aarch64", "x86_64"]
+version = "2.3.2"

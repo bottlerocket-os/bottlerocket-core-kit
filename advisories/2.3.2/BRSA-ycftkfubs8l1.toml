@@ -1,0 +1,24 @@
+[advisory]
+id = "BRSA-ycftkfubs8l1"
+title = "kernel CVE-2024-41020"
+cve = "CVE-2024-41020"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: filelock: Fix fcntl/close race recovery compat path"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.223-211.872.amzn2"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.164-108.161.amzn2"
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.102-108.177.amzn2023"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-08-14T02:28:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.3.2"

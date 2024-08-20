@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-yeus1zqrmbpd"
+title = "kernel CVE-2024-41050"
+cve = "CVE-2024-41050"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: cachefiles: cyclic allocation of msg_id to avoid reuse"
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.102-108.177.amzn2023"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-08-14T02:28:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.3.2"
