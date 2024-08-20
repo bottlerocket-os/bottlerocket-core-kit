@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-vtsgvurtbvk0"
+title = "kernel CVE-2024-42063"
+cve = "CVE-2024-42063"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: bpf: Mark bpf prog stack with kmsan_unposion_memory in interpreter mode"
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.97-104.177.amzn2023"
+
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-24T20:00:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.3.0"

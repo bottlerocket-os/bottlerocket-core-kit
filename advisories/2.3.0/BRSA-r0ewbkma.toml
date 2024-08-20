@@ -3,7 +3,7 @@ id = "BRSA-r0ewbkma"
 title = "kernel CVE-2024-27397"
 cve = "CVE-2024-27397"
 severity = "moderate"
-description = "In the Linux kernel, the following vulnerability has been resolved: -  - netfilter: nf_tables: use timestamp to check for set element timeout"
+description = "In the Linux kernel, the following vulnerability has been resolved: netfilter: nf_tables: use timestamp to check for set element timeout"
 
 [[advisory.products]]
 package-name = "kernel-6.1"
