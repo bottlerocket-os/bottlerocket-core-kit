@@ -7,7 +7,7 @@ Summary: The Linux kernel
 License: GPL-2.0 WITH Linux-syscall-note
 URL: https://www.kernel.org/
 # Use latest-srpm-url.sh to get this.
-Source0: https://cdn.amazonlinux.com/al2023/blobstore/0ad0fc5918f243e524ea2a8b8608330d14e7683c7f8b13dd99a9a5620907f0c5/kernel-6.1.102-108.177.amzn2023.src.rpm
+Source0: https://cdn.amazonlinux.com/al2023/blobstore/bc929cd6c35e297ebc5760d75997d219080501a32b7936641003178bce778074/kernel-6.1.102-111.182.amzn2023.src.rpm
 Source100: config-bottlerocket
 
 # This list of FIPS modules is extracted from /etc/fipsmodules in the initramfs
