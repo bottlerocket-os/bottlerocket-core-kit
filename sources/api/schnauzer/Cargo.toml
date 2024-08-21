@@ -47,6 +47,7 @@ settings-extension-oci-defaults.workspace = true
 [dev-dependencies]
 # Workaround to enable a feature during integration tests.
 schnauzer = { workspace = true, features = ["testfakes"] }
+test-case.workspace = true
 
 [build-dependencies]
 generate-readme.workspace = true

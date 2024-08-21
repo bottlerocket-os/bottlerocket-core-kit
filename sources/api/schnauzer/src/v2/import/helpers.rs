@@ -73,6 +73,12 @@ fn all_helpers() -> HashMap<ExtensionName, HashMap<HelperName, Box<dyn HelperDef
             "if_not_null" => Box::new(handlebars_helpers::IfNotNullHelper),
             "goarch" => helper!(handlebars_helpers::goarch),
             "negate_or_else" => helper!(handlebars_helpers::negate_or_else),
+            "is_null" => helper!(handlebars_helpers::stdlib::reflective::IsNull),
+            "is_bool" => helper!(handlebars_helpers::stdlib::reflective::IsBool),
+            "is_number" => helper!(handlebars_helpers::stdlib::reflective::IsNumber),
+            "is_string" => helper!(handlebars_helpers::stdlib::reflective::IsString),
+            "is_array" => helper!(handlebars_helpers::stdlib::reflective::IsArray),
+            "is_object" => helper!(handlebars_helpers::stdlib::reflective::IsObject),
         },
     }
 }

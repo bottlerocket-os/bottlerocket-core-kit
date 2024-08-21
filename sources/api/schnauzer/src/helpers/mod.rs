@@ -23,7 +23,7 @@ pub mod stdlib;
 
 pub use stdlib::{
     any_enabled, base64_decode, default, goarch, join_array, join_map, negate_or_else,
-    IfNotNullHelper,
+    IfNotNullHelper, IsArray, IsBool, IsNull, IsNumber, IsObject, IsString,
 };
 
 lazy_static! {

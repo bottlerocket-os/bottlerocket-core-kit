@@ -8,6 +8,9 @@ use serde::Deserialize;
 use serde_json::value::Value;
 use snafu::{OptionExt, ResultExt};
 
+pub mod reflective;
+pub use reflective::{IsArray, IsBool, IsNull, IsNumber, IsObject, IsString};
+
 // This helper checks if any objects have '"enabled": true' in their properties.
 //
 // any_enabled takes one argument that is expected to be an array of objects,
