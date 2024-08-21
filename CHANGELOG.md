@@ -1,3 +1,28 @@
+# v2.3.5 (2024-08-21)
+
+## Orchestrator Changes
+
+### Kubernetes
+
+ * Fix issue where a null value would fail to render the credential
+   provider template for Kubernetes ([#101])
+
+## OS Changes
+
+ * Improve EBS volume udev rules by adding a symlink to `/dev/by-ebs-id`
+   and remove `/dev/` from the device name returned by ghostdog ([#98])
+ * Update kernels to 5.10.223-212 and 6.1.102-111 ([#99])
+
+## tools
+
+ * Add collect-kernel-config script to tools ([#84])
+
+[#84]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/84
+[#98]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/98
+[#99]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/99
+[#101]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/101
+
+
 # v2.3.4 (2024-08-19)
 ## OS Changes
 
