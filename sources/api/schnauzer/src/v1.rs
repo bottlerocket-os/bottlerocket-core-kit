@@ -139,6 +139,12 @@ pub fn build_template_registry() -> Result<handlebars::Handlebars<'static>> {
         "ecs_metadata_service_limits",
         Box::new(helpers::ecs_metadata_service_limits),
     );
+    template_registry.register_helper("is_null", Box::new(helpers::IsNull));
+    template_registry.register_helper("is_bool", Box::new(helpers::IsBool));
+    template_registry.register_helper("is_number", Box::new(helpers::IsNumber));
+    template_registry.register_helper("is_string", Box::new(helpers::IsString));
+    template_registry.register_helper("is_array", Box::new(helpers::IsArray));
+    template_registry.register_helper("is_object", Box::new(helpers::IsObject));
 
     Ok(template_registry)
 }
