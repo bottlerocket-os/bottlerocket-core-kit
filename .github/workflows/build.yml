@@ -19,6 +19,8 @@ on:
       - '**.yaml'
       # Bottlerocket Security Advisories
       - 'advisories/**'
+      # VSCode configurations
+      - '.vscode/**'
 
 concurrency:
   group: ${{ github.ref }}
