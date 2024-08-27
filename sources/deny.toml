@@ -69,6 +69,11 @@ skip-tree = [
     { name = "darling", version = "=0.14" },
 ]
 
+[bans.workspace-dependencies]
+duplicates = "deny"
+include-path-dependencies = true
+unused = "deny"
+
 [advisories]
 # generational-arena is currently unmaintained.
 ignore = [
