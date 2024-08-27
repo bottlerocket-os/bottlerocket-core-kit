@@ -19,6 +19,8 @@ Source2: NVidiaEULAforAWS.pdf
 # Common NVIDIA conf files from 200 to 299
 Source200: nvidia-tmpfiles.conf.in
 Source202: nvidia-dependencies-modules-load.conf
+Source203: nvidia-sysusers.conf
+Source204: nvidia-persistenced.service.in
 
 # NVIDIA tesla conf files from 300 to 399
 Source300: nvidia-tesla-tmpfiles.conf.in
@@ -105,6 +107,7 @@ install -d %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
 install -d %{buildroot}%{tesla_470_libdir}
 install -d %{buildroot}%{_cross_datadir}/nvidia/tesla/%{tesla_470}/module-objects.d
 install -d %{buildroot}%{_cross_factorydir}/nvidia/tesla/%{tesla_470}
+install -d %{buildroot}%{_cross_sysusersdir}
 
 sed -e 's|__NVIDIA_VERSION__|%{tesla_470}|' %{S:300} > nvidia-tesla-%{tesla_470}.conf
 install -m 0644 nvidia-tesla-%{tesla_470}.conf %{buildroot}%{_cross_tmpfilesdir}/
@@ -158,9 +161,17 @@ install -m 755 nvidia-smi %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{te
 install -m 755 nvidia-debugdump %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
 install -m 755 nvidia-cuda-mps-control %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
 install -m 755 nvidia-cuda-mps-server %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
+install -m 755 nvidia-persistenced %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
 %if "%{_cross_arch}" == "x86_64"
 install -m 755 nvidia-ngx-updater %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
 %endif
+
+# Users
+install -m 0644 %{S:203} %{buildroot}%{_cross_sysusersdir}/nvidia.conf
+
+# Systemd units
+sed -e 's|__NVIDIA_BINDIR__|%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}|' %{S:204} > nvidia-persistenced.service
+install -m 0644 nvidia-persistenced.service %{buildroot}%{_cross_unitdir}
 
 # We install all the libraries, and filter them out in the 'files' section, so we can catch
 # when new libraries are added
@@ -206,6 +217,7 @@ popd
 # Binaries
 %{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}/nvidia-debugdump
 %{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}/nvidia-smi
+%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}/nvidia-persistenced
 
 # Configuration files
 %{_cross_factorydir}%{_cross_sysconfdir}/drivers/nvidia-tesla-%{tesla_470}.toml
@@ -228,6 +240,12 @@ popd
 
 # tmpfiles
 %{_cross_tmpfilesdir}/nvidia-tesla-%{tesla_470}.conf
+
+# sysuser files
+%{_cross_sysusersdir}/nvidia.conf
+
+# systemd units
+%{_cross_unitdir}/nvidia-persistenced.service
 
 # We only install the libraries required by all the DRIVER_CAPABILITIES, described here:
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html#driver-capabilities
