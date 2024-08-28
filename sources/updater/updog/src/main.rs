@@ -1,9 +1,7 @@
 #![warn(clippy::pedantic)]
 
-mod error;
 mod transport;
 
-use crate::error::Result;
 use crate::transport::{reader_from_stream, HttpQueryTransport, QueryParams};
 use bottlerocket_modeled_types::FriendlyVersion;
 use bottlerocket_release::BottlerocketRelease;
@@ -25,6 +23,7 @@ use tokio::runtime::Handle;
 use tokio::{fs, process};
 use tough::{Repository, RepositoryLoader};
 use update_metadata::{find_migrations, Manifest, Update};
+use updog::error::{self, Result};
 use url::Url;
 
 #[cfg(target_arch = "x86_64")]

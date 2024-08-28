@@ -1,15 +1,10 @@
 #![warn(clippy::pedantic)]
 
-#[path = "../error.rs"]
-mod error;
-
-#[macro_use]
-extern crate log;
-
-use crate::error::Result;
+use updog::error::{self, Result};
 
 use argh::FromArgs;
 use chrono::{DateTime, Utc};
+use log::{error, info, warn};
 use semver::Version;
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use snafu::{ErrorCompat, OptionExt, ResultExt};
