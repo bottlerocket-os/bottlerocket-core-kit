@@ -101,7 +101,7 @@ impl NetworkDInterfaceStatus {
 mod error {
     use crate::interface_id::InterfaceId;
     use snafu::Snafu;
-    use std::{io, string::FromUtf8Error};
+    use std::io;
 
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(crate)))]
@@ -117,9 +117,6 @@ mod error {
 
         #[snafu(display("No IP Address for Primary Interface: {:?}", interface))]
         NoIpAddress { interface: InterfaceId },
-
-        #[snafu(display("Failed to parse 'networkctl' output: {}", source))]
-        NetworkctlParsing { source: FromUtf8Error },
 
         #[snafu(display("Failed to deserialize 'networkctl' output: {}", source))]
         NetworkctlDeserialize { source: serde_json::Error },

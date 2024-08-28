@@ -229,6 +229,7 @@ mod error {
             source: toml::de::Error,
         },
 
+        #[cfg(feature = "wicked")]
         #[snafu(display("Failed to build resolver configuration: {}", source))]
         ResolvConfBuildFailed { source: std::fmt::Error },
 

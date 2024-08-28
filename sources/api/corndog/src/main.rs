@@ -265,18 +265,6 @@ mod error {
 
         #[snafu(display("Logger setup error: {}", source))]
         Logger { source: log::SetLoggerError },
-
-        #[snafu(display(
-            "Error deserializing response as JSON from {} to '{}': {}",
-            method,
-            uri,
-            source
-        ))]
-        ResponseJson {
-            method: &'static str,
-            uri: String,
-            source: serde_json::Error,
-        },
     }
 }
 type Result<T> = std::result::Result<T, error::Error>;

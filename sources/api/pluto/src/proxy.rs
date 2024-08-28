@@ -79,7 +79,7 @@ where
     }
     let mut proxy = Proxy::new(intercept, proxy_uri);
     // Parse https_proxy as URL to extract out auth information if any
-    let proxy_url = Url::parse(&https_proxy).context(UrlParseSnafu {
+    let proxy_url = Url::parse(https_proxy).context(UrlParseSnafu {
         input: https_proxy.to_owned(),
     })?;
 
