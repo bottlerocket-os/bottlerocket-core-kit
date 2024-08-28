@@ -51,7 +51,6 @@ jobs:
       - run: make twoliter unit-tests
       # Avoid running Go lint check via `cargo make check-lints` since there's a separate golangci-lint workflow
       - run: make twoliter check-fmt
-      # TODO: fixme please!
-      # - run: make twoliter check-clippy
+      - run: make twoliter check-clippy
       - run: make twoliter check-shell
       - run: make ARCH="${{ matrix.arch }}"
