@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-himt1tjhhps5"
+title = "amazon-ssm-agent CVE-2023-1732"
+cve = "CVE-2023-1732"
+severity = "high"
+description = "A flaw was found in a dependency of amazon-ssm-agent which could lead to a predictable shared secret."
+
+[[advisory.products]]
+package-name = "amazon-ssm-agent"
+patched-version = "3.3.808.0"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "mharrimn"
+issue-date = 2024-08-28T17:54:56Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
