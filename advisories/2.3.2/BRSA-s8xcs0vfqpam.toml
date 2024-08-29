@@ -1,0 +1,20 @@
+[advisory]
+id = "BRSA-s8xcs0vfqpam"
+title = "kernel CVE-2024-41009"
+cve = "CVE-2024-41009"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: bpf: Fix overrunning reservations in ringbuf"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.223-211.872.amzn2"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.164-108.161.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-08-14T02:28:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.3.2"

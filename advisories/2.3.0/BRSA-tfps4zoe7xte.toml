@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-tfps4zoe7xte"
+title = "kernel CVE-2024-41009"
+cve = "CVE-2024-41009"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: bpf: Fix overrunning reservations in ringbuf"
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.97-104.177.amzn2023"
+
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-24T20:00:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.3.0"

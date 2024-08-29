@@ -1,0 +1,16 @@
+[advisory]
+id = "BRSA-t1uaadbruy6w"
+title = "kernel CVE-2024-38619"
+cve = "CVE-2024-38619"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: usb-storage: alauda: Check whether the media is initialized"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.223-211.872.amzn2"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-08-14T02:28:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.3.2"

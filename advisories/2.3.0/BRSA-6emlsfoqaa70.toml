@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-6emlsfoqaa70"
+title = "kernel CVE-2024-42070"
+cve = "CVE-2024-42070"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: netfilter: nf_tables: fully validate NFT_DATA_VALUE on store to data registers"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.162-107.160.amzn2"
+
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.97-104.177.amzn2023"
+
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-24T20:00:00Z
+arches = ["aarch64", "x86_64"]
+version = "2.3.0"

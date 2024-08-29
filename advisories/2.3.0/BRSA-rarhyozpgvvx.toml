@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-rarhyozpgvvx"
+title = "kernel CVE-2024-42096"
+cve = "CVE-2024-42096"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: x86: stop playing stack games in profile_pc()"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.162-107.160.amzn2"
+
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.97-104.177.amzn2023"
+
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-07-24T20:00:00Z
+arches = ["aarch64", "x86_64"]
+version = "2.3.0"
