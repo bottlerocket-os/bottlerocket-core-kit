@@ -15,4 +15,4 @@ patched-epoch = "0"
 author = "mharrimn"
 issue-date = 2024-08-28T17:54:56Z
 arches = ["x86_64", "aarch64"]
-version = "staging"
+version = "2.3.6"

@@ -1,3 +1,18 @@
+# v2.3.6 (2024-08-28)
+
+## Build Changes
+* Update Twoliter to 0.4.5 (#106)
+* schnauzer: add reflective template helpers (#105)
+* Update bottlerocket-sdk to v0.44.0 ([#109])
+
+## OS Changes
+* Third party package updates (#108)
+
+[#105]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/105
+[#106]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/106
+[#108]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/108
+[#109]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/109
+
 # v2.3.5 (2024-08-21)
 
 ## Orchestrator Changes
