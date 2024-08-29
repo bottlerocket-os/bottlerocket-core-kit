@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, fmt, usize};
+use std::{collections::BTreeMap, fmt};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReportMetadata {

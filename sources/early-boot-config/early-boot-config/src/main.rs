@@ -277,9 +277,6 @@ mod error {
             source: std::io::Error,
         },
 
-        #[snafu(display("Provider error: {}", source))]
-        Provider { source: Box<dyn std::error::Error> },
-
         #[snafu(display("Provider '{}' failed: {}", provider.display(), message))]
         ProviderFailure { provider: PathBuf, message: String },
 
@@ -309,9 +306,6 @@ mod error {
 
         #[snafu(display("Thread execution error: {}", source))]
         Thread { source: tokio::task::JoinError },
-
-        #[snafu(display("Logger setup error: {}", source))]
-        Logger { source: log::SetLoggerError },
 
         #[snafu(
             display("Unable to walk providers directory '{}': {}", PROVIDERS_DIR, source),

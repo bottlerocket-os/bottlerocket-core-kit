@@ -4,11 +4,11 @@ use snafu::{Backtrace, Snafu};
 use std::path::PathBuf;
 use update_metadata::error::Error as update_metadata_error;
 
-pub(crate) type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Snafu)]
-#[snafu(visibility(pub(crate)))]
-pub(crate) enum Error {
+#[snafu(visibility(pub))]
+pub enum Error {
     #[snafu(display(
         "Failed to convert '{}' from FriendlyVersion to semver::Version: {}",
         version_str,

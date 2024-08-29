@@ -109,12 +109,12 @@ struct LogRequest<'a> {
 }
 
 /// This is used in error construction.
-impl ToString for LogRequest<'_> {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for LogRequest<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.instructions.is_empty() {
-            format!("{} {}", self.mode, self.filename)
+            write!(f, "{} {}", self.mode, self.filename)
         } else {
-            format!("{} {} {}", self.mode, self.filename, self.instructions)
+            write!(f, "{} {} {}", self.mode, self.filename, self.instructions)
         }
     }
 }
@@ -546,5 +546,25 @@ mod test {
             .await
             .unwrap_err();
         assert!(matches!(err, crate::error::Error::PatternMissing {}));
+    }
+
+    #[test]
+    fn test_log_request_to_string() {
+        let log_request = super::LogRequest {
+            mode: "file",
+            filename: "output-file",
+            instructions: "do stuff",
+        };
+        assert_eq!(
+            log_request.to_string(),
+            "file output-file do stuff".to_string()
+        );
+
+        let log_request = super::LogRequest {
+            mode: "glob",
+            filename: "another-output",
+            instructions: "",
+        };
+        assert_eq!(log_request.to_string(), "glob another-output".to_string());
     }
 }

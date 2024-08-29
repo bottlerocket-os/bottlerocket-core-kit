@@ -437,7 +437,7 @@ async fn run() -> Result<()> {
 
     if let Some(k8s_settings) = &aws_k8s_info.delta().kubernetes {
         let generated_settings = serde_json::json!({
-            "kubernetes": serde_json::to_value(&k8s_settings).context(error::SerializeSnafu)?
+            "kubernetes": serde_json::to_value(k8s_settings).context(error::SerializeSnafu)?
         });
         let json_str = generated_settings.to_string();
         let uri = &format!(

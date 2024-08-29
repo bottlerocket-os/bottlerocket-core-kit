@@ -6,13 +6,6 @@ pub type Result<T> = std::result::Result<T, WarmPoolCheckError>;
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(super)))]
 pub enum WarmPoolCheckError {
-    #[snafu(display("Command '{}' with args '{:?}' failed: {}", command, args, source))]
-    Command {
-        command: String,
-        args: Vec<String>,
-        source: std::io::Error,
-    },
-
     #[snafu(display("Failed to parse config file {}: {}", path.display(), source))]
     ConfigParse {
         path: PathBuf,
@@ -27,7 +20,4 @@ pub enum WarmPoolCheckError {
 
     #[snafu(display("IMDS request failed: {}", source))]
     ImdsRequest { source: imdsclient::Error },
-
-    #[snafu(display("Logger setup error: {}", source))]
-    Logger { source: log::SetLoggerError },
 }
