@@ -36,6 +36,11 @@ url = "https://developer.download.nvidia.com/compute/cuda/repos/rhel9/sbsa/nvidi
 sha512 = "6a646cd7ea11e668f7dbe6f6bb22516107a856e3c3755f8693c91d4bed706b8b3667b853f07e84c2d0da4de7ab1107337b6a1493879d75d8c201bfe9da071b32"
 force-upstream = true
 
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/NVIDIA/open-gpu-kernel-modules/535/COPYING"
+sha512 = "f9cee68cbb12095af4b4e92d01c210461789ef41c70b64efefd6719d0b88468b7a67a3629c432d4d9304c730b5d1a942228a5bcc74a03ab1c411c77c758cd938"
+force-upstream = true
+
 [build-dependencies]
 glibc = { path = "../glibc" }
 kernel-6_1 = { path = "../kernel-6.1" }

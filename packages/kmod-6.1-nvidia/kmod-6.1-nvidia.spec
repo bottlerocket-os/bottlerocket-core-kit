@@ -29,6 +29,7 @@ URL: http://www.nvidia.com/
 Source0: https://us.download.nvidia.com/tesla/%{tesla_ver}/NVIDIA-Linux-x86_64-%{tesla_ver}.run
 Source1: https://us.download.nvidia.com/tesla/%{tesla_ver}/NVIDIA-Linux-aarch64-%{tesla_ver}.run
 Source2: NVidiaEULAforAWS.pdf
+Source3: COPYING
 
 # fabricmanager for NVSwitch
 Source10: https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/nvidia-fabric-manager-%{tesla_ver}-1.x86_64.rpm
@@ -59,6 +60,15 @@ Requires: %{name}-tesla(fabricmanager)
 %description fabricmanager
 %{summary}.
 
+%package open-gpu-%{tesla_major}
+Summary: NVIDIA %{tesla_major} Open GPU driver
+Version: %{tesla_ver}
+License: MIT OR GPL-2.0-only
+Requires: %{_cross_os}variant-platform(aws)
+
+%description open-gpu-%{tesla_major}
+%{summary}.
+
 %package tesla-%{tesla_major}
 Summary: NVIDIA %{tesla_major} Tesla driver
 Version: %{tesla_ver}
@@ -67,6 +77,7 @@ Requires: %{_cross_os}variant-platform(aws)
 Requires: %{name}
 Requires: %{name}-fabricmanager
 Provides: %{name}-tesla(fabricmanager)
+Requires: %{name}-open-gpu-%{tesla_major}
 
 %description tesla-%{tesla_major}
 %{summary}
@@ -83,15 +94,29 @@ rpm2cpio %{_sourcedir}/nvidia-fabric-manager-%{tesla_ver}-1.%{_cross_arch}.rpm |
 
 # Add the license.
 install -p -m 0644 %{S:2} .
+install -p -m 0644 %{S:3} .
 
 %global kernel_sources %{_builddir}/kernel-devel
 tar -xf %{_cross_datadir}/bottlerocket/kernel-devel.tar.xz
 
-%build
-pushd NVIDIA-Linux-%{_cross_arch}-%{tesla_ver}/kernel
+%define _kernel_version %(ls %{kernel_sources}/include/config/kernel.release)
+%global _cross_kmoddir %{_cross_libdir}/modules/%{_kernel_version}
 
 # This recipe was based in the NVIDIA yum/dnf specs:
 # https://github.com/NVIDIA/yum-packaging-precompiled-kmod
+
+# Begin open driver build
+pushd NVIDIA-Linux-%{_cross_arch}-%{tesla_ver}/kernel-open
+
+# We set IGNORE_CC_MISMATCH even though we are using the same compiler used to compile the kernel, if
+# we don't set this flag the compilation fails
+make %{?_smp_mflags} ARCH=%{_cross_karch} IGNORE_CC_MISMATCH=1 SYSSRC=%{kernel_sources} CC=%{_cross_target}-gcc LD=%{_cross_target}-ld
+
+# end open driver build
+popd
+
+# Begin proprietary driver build
+pushd NVIDIA-Linux-%{_cross_arch}-%{tesla_ver}/kernel
 
 # We set IGNORE_CC_MISMATCH even though we are using the same compiler used to compile the kernel, if
 # we don't set this flag the compilation fails
@@ -111,6 +136,14 @@ rm nvidia{,-modeset,-peermem}.o
 # don't include any linked module in the base image
 rm nvidia{,-modeset,-peermem,-drm}.ko
 
+# End proprietary driver build
+popd
+
+# Grab the list of supported devices
+pushd NVIDIA-Linux-%{_cross_arch}-%{tesla_ver}/supported-gpus
+jq -r '.chips[] | select(.features[] | contains("kernelopen"))' supported-gpus.json | jq -s '{"open-gpu": .}' > open-gpu-supported-devices.json
+# confirm "NVIDIA A10G" is in the resulting file to catch shape changes
+jq -e '."open-gpu"[] | select(."devid" == "0x2237") | ."features"| index("kernelopen")' open-gpu-supported-devices.json
 popd
 
 %install
@@ -137,11 +170,13 @@ install -p -m 0644 %{S:204} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}
 
 # Begin NVIDIA tesla driver
 pushd NVIDIA-Linux-%{_cross_arch}-%{tesla_ver}
-# We install bins and libs in a versioned directory to prevent collisions with future drivers versions
+# Proprietary driver
 install -d %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
 install -d %{buildroot}%{_cross_libdir}/nvidia/tesla
 install -d %{buildroot}%{_cross_datadir}/nvidia/tesla/module-objects.d
 install -d %{buildroot}%{_cross_factorydir}/nvidia/tesla
+install -d %{buildroot}%{_cross_factorydir}/nvidia/open-gpu
+install -d %{buildroot}%{_cross_datadir}/nvidia/open-gpu/drivers
 
 install -m 0644 %{S:300} %{buildroot}%{_cross_tmpfilesdir}/nvidia-tesla.conf
 sed -e 's|__NVIDIA_MODULES__|%{_cross_datadir}/nvidia/tesla/module-objects.d/|' %{S:301} > \
@@ -158,7 +193,7 @@ install -m 0644 nvidia-path.env %{buildroot}%{_cross_factorydir}/nvidia/tesla
 sed -e 's|__LIBDIR__|%{_cross_libdir}|' %{S:303} > nvidia-tesla.conf
 install -m 0644 nvidia-tesla.conf %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/ld.so.conf.d/
 
-# driver
+# proprietary driver
 install kernel/nvidia.mod.o %{buildroot}%{_cross_datadir}/nvidia/tesla/module-objects.d
 install kernel/nvidia/nv-interface.o %{buildroot}%{_cross_datadir}/nvidia/tesla/module-objects.d
 install kernel/nvidia/nv-kernel.o_binary %{buildroot}%{_cross_datadir}/nvidia/tesla/module-objects.d/nv-kernel.o
@@ -179,6 +214,23 @@ install kernel/nvidia-peermem/nvidia-peermem.o %{buildroot}%{_cross_datadir}/nvi
 # drm
 install kernel/nvidia-drm.mod.o %{buildroot}/%{_cross_datadir}/nvidia/tesla/module-objects.d
 install kernel/nvidia-drm.o %{buildroot}/%{_cross_datadir}/nvidia/tesla/module-objects.d
+
+# open driver
+install -d %{buildroot}%{_cross_datadir}/nvidia/open-gpu/drivers/
+install kernel-open/nvidia.ko %{buildroot}%{_cross_datadir}/nvidia/open-gpu/drivers/
+
+# uvm
+install kernel-open/nvidia-uvm.ko %{buildroot}%{_cross_datadir}/nvidia/open-gpu/drivers/
+
+# modeset
+install kernel-open/nvidia-modeset.ko %{buildroot}%{_cross_datadir}/nvidia/open-gpu/drivers/
+
+# peermem
+install kernel-open/nvidia-peermem.ko %{buildroot}%{_cross_datadir}/nvidia/open-gpu/drivers/
+
+# drm
+install kernel-open/nvidia-drm.ko %{buildroot}%{_cross_datadir}/nvidia/open-gpu/drivers/
+# end open driver
 
 # Binaries
 install -m 755 nvidia-smi %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
@@ -209,6 +261,9 @@ done
 install -d %{buildroot}%{_cross_libdir}/firmware/nvidia/%{tesla_ver}
 install -p -m 0644 firmware/gsp_ga10x.bin %{buildroot}%{_cross_libdir}/firmware/nvidia/%{tesla_ver}
 install -p -m 0644 firmware/gsp_tu10x.bin %{buildroot}%{_cross_libdir}/firmware/nvidia/%{tesla_ver}
+
+# Include the open driver supported devices file for runtime matching of the driver. This is consumed by ghostdog to match the driver to this list
+install -p -m 0644 supported-gpus/open-gpu-supported-devices.json %{buildroot}%{_cross_datadir}/nvidia/open-gpu-supported-devices.json
 
 popd
 
@@ -262,6 +317,7 @@ popd
 %{_cross_factorydir}%{_cross_sysconfdir}/drivers/nvidia-tesla.toml
 %{_cross_factorydir}%{_cross_sysconfdir}/ld.so.conf.d/nvidia-tesla.conf
 %{_cross_factorydir}/nvidia/tesla/nvidia-path.env
+%{_cross_datadir}/nvidia/open-gpu-supported-devices.json
 
 # driver
 %{_cross_datadir}/nvidia/tesla/module-objects.d/nvidia.mod.o
@@ -388,6 +444,26 @@ popd
 %exclude %{_cross_libdir}/nvidia/tesla/libnvidia-egl-gbm.so.1.1.0
 %exclude %{_cross_libdir}/nvidia/tesla/libnvidia-egl-wayland.so.1.1.11
 %exclude %{_cross_libdir}/nvidia/tesla/libnvidia-wayland-client.so.%{tesla_ver}
+
+%files open-gpu-%{tesla_major}
+%license COPYING
+%dir %{_cross_datadir}/nvidia/open-gpu/drivers
+%dir %{_cross_factorydir}/nvidia/open-gpu
+
+# driver
+%{_cross_datadir}/nvidia/open-gpu/drivers/nvidia.ko
+
+# uvm
+%{_cross_datadir}/nvidia/open-gpu/drivers/nvidia-uvm.ko
+
+# modeset
+%{_cross_datadir}/nvidia/open-gpu/drivers/nvidia-modeset.ko
+
+# drm
+%{_cross_datadir}/nvidia/open-gpu/drivers/nvidia-drm.ko
+
+# peermem
+%{_cross_datadir}/nvidia/open-gpu/drivers/nvidia-peermem.ko
 
 %files fabricmanager
 %{_cross_factorydir}%{_cross_sysconfdir}/nvidia/fabricmanager.cfg
