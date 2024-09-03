@@ -241,6 +241,10 @@ sha512 = "775b7861f460e670fa44b71db257e7b895010d5f6380e34e471e4235719551fb9d8526
 url = "https://raw.githubusercontent.com/aws/eks-distro/71aed3084474ab65027b067d45e70081144384ea/projects/kubernetes/kubernetes/1-23/patches/0063-EKS-PATCH-Update-aws-sdk-go-to-include-NCL-region.patch"
 sha512 = "aff32046ed5644ef9c50a491534bbc1be19d5d255adb147a9bf90a142267be631caac23de3b3eb6a899a05e7ee43359dfccbecc3db4c84675e8627fbb5a5b63a"
 
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/a1f321f01121388f79b119244f29c8d919b27250/projects/kubernetes/kubernetes/1-23/patches/0064-EKS-PATCH-Check-git-directory-to-be-max-1-level-deep.patch"
+sha512 = "381b3aca2c6760087628de20ba5061cfd1668c54f169cd5f928cde02d2b10a4ce1fdbdbf71b5d0e1ff244016b27e8c4236be1c88a02967288251eb979ee63ee3"
+
 # RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }

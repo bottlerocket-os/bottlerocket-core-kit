@@ -116,6 +116,7 @@ Patch0060: 0060-EKS-PATCH-GO-UPDATE-feat-use-clock-instead.patch
 Patch0061: 0061-EKS-PATCH-GO-UPDATE-go-Bump-images-dependencies-and-.patch
 Patch0062: 0062-EKS-PATCH-CVE-2023-45288-Bump-dependecy-for-1.23.patch
 Patch0063: 0063-EKS-PATCH-Update-aws-sdk-go-to-include-NCL-region.patch
+Patch0064: 0064-EKS-PATCH-Check-git-directory-to-be-max-1-level-deep.patch
 
 BuildRequires: git
 BuildRequires: rsync
