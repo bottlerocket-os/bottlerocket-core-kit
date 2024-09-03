@@ -1776,6 +1776,7 @@ dependencies = [
  "snafu",
  "tempfile",
  "toml",
+ "walkdir",
 ]
 
 [[package]]
