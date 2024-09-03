@@ -137,6 +137,10 @@ sha512 = "c34ca3f3585137c7ec40be543da2b6f39f6751e89e2cf1bc4f16c5f98d8bcedb1cc8f0
 url = "https://raw.githubusercontent.com/aws/eks-distro/main/projects/kubernetes/kubernetes/1-24/patches/0035-EKS-PATCH-Fix-CVE-2024-5321.patch"
 sha512 = "974790a848aac14b22bce4f9248ede33a6131f3a5ea8f881f31d42ea0e03dd4b770c90571ea4383d9b5179d4de7bfbc39db3b80cf335a2b7a3b02a695d583b68"
 
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/main/projects/kubernetes/kubernetes/1-24/patches/0036-EKS-PATCH-Check-git-directory-to-be-max-1-level-deep.patch"
+sha512 = "287f530b8372ffb4384799bc6f53ac373132c851c306a9217c982814404af3bde92901a8362bcf078b01584d975aef225dbd06c934b8b1da18b26ef33724d3a7"
+
 # RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }

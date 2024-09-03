@@ -96,6 +96,7 @@ Patch0032: 0032-EKS-PATCH-GO-UPDATE-Merge-pull-request-122077-from-B.patch
 Patch0033: 0033-EKS-PATCH-GO-UPDATE-go-Bump-images-dependencies-and-.patch
 Patch0034: 0034-EKS-PATCH-CVE-2023-45288-Bumps-1.24-dependency-for-C.patch
 Patch0035: 0035-EKS-PATCH-Fix-CVE-2024-5321.patch
+Patch0036: 0036-EKS-PATCH-Check-git-directory-to-be-max-1-level-deep.patch
 
 BuildRequires: git
 BuildRequires: rsync
