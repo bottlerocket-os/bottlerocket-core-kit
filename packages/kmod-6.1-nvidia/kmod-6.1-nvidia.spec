@@ -40,6 +40,8 @@ Source200: nvidia-tmpfiles.conf.in
 Source202: nvidia-dependencies-modules-load.conf
 Source203: nvidia-fabricmanager.service
 Source204: nvidia-fabricmanager.cfg
+Source205: nvidia-sysusers.conf
+Source206: nvidia-persistenced.service
 
 # NVIDIA tesla conf files from 300 to 399
 Source300: nvidia-tesla-tmpfiles.conf
@@ -173,6 +175,7 @@ install -d %{buildroot}%{_cross_libdir}
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -d %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/{drivers,ld.so.conf.d}
+install -d %{buildroot}%{_cross_sysusersdir}
 
 KERNEL_VERSION=$(cat %{kernel_sources}/include/config/kernel.release)
 sed \
@@ -279,9 +282,16 @@ install -m 755 nvidia-smi %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
 install -m 755 nvidia-debugdump %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
 install -m 755 nvidia-cuda-mps-control %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
 install -m 755 nvidia-cuda-mps-server %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
+install -m 755 nvidia-persistenced %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/
 %if "%{_cross_arch}" == "x86_64"
 install -m 755 nvidia-ngx-updater %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
 %endif
+
+# Users
+install -m 0644 %{S:205} %{buildroot}%{_cross_sysusersdir}/nvidia.conf
+
+# Systemd units
+install -m 0644 %{S:206} %{buildroot}%{_cross_unitdir}
 
 # We install all the libraries, and filter them out in the 'files' section, so we can catch
 # when new libraries are added
@@ -353,6 +363,7 @@ popd
 %{_cross_libexecdir}/nvidia/tesla/bin/nvidia-smi
 %{_cross_libexecdir}/nvidia/tesla/bin/nv-fabricmanager
 %{_cross_libexecdir}/nvidia/tesla/bin/nvswitch-audit
+%{_cross_libexecdir}/nvidia/tesla/bin/nvidia-persistenced
 
 # nvswitch topologies
 %dir %{_cross_datadir}/nvidia/tesla/nvswitch
@@ -385,6 +396,12 @@ popd
 
 # tmpfiles
 %{_cross_tmpfilesdir}/nvidia-tesla.conf
+
+# sysuser files
+%{_cross_sysusersdir}/nvidia.conf
+
+# systemd units
+%{_cross_unitdir}/nvidia-persistenced.service
 
 # We only install the libraries required by all the DRIVER_CAPABILITIES, described here:
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html#driver-capabilities

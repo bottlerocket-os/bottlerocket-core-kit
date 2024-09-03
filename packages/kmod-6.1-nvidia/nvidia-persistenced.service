@@ -1,0 +1,10 @@
+[Unit]
+Description=NVIDIA Persistence Daemon
+After=load-tesla-kernel-modules.service load-open-gpu-kernel-modules.service
+
+[Service]
+Type=forking
+ExecStart=/usr/libexec/nvidia/tesla/bin/nvidia-persistenced --user nvidia --verbose
+
+[Install]
+RequiredBy=preconfigured.target
