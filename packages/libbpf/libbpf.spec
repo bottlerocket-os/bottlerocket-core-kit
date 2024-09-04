@@ -1,5 +1,5 @@
 Name: %{_cross_os}libbpf
-Version: 1.4.3
+Version: 1.4.5
 Release: 1%{?dist}
 Summary: Library for BPF
 License: LGPL-2.1-only OR BSD-2-Clause
