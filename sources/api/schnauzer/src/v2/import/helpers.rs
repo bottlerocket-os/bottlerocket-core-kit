@@ -68,6 +68,7 @@ fn all_helpers() -> HashMap<ExtensionName, HashMap<HelperName, Box<dyn HelperDef
             "any_enabled" => helper!(handlebars_helpers::any_enabled),
             "base64_decode" => helper!(handlebars_helpers::base64_decode),
             "default" => helper!(handlebars_helpers::default),
+            "toml_encode" => helper!(handlebars_helpers::toml_encode),
             "join_array" => helper!(handlebars_helpers::join_array),
             "join_map" => helper!(handlebars_helpers::join_map),
             "if_not_null" => Box::new(handlebars_helpers::IfNotNullHelper),
