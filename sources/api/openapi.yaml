@@ -198,7 +198,18 @@ components:
           $ref: '#/components/schemas/ConfigurationFiles'
         os:
           $ref: '#/components/schemas/BottlerocketRelease'
-
+    EphemeralStorageInit:
+      type: object
+      properties:
+        filesystem:
+          type: string
+        disks:
+          type: array
+    EphemeralStorageBind:
+      type: object
+      properties:
+        targets:
+          type: array
 paths:
   /:
     get:
@@ -217,7 +228,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "Model"
+                $ref: "#/components/schemas/Model"
         500:
           description: "Server error"
 
@@ -249,7 +260,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "Settings"
+                $ref: "#/components/schemas/Settings"
         500:
           description: "Server error"
     patch:
@@ -267,7 +278,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "Settings"
+              $ref: "#/components/schemas/Settings"
       responses:
         204:
           description: "Settings successfully staged for update"
@@ -291,7 +302,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "SettingsKeyPair"
+              $ref: "#/components/schemas/SettingsKeyPair"
       responses:
         204:
           description: "Settings successfully staged for update"
@@ -316,7 +327,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "Settings"
+                $ref: #/components/schemas/Settings"
         500:
           description: "Server error"
     delete:
@@ -530,7 +541,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "Services"
+                $ref: "#/components/schemas/Services"
         500:
           description: "Server error"
 
@@ -562,7 +573,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "ConfigurationFiles"
+                $ref: "#/components/schemas/ConfigurationFiles"
         500:
           description: "Server error"
 
@@ -646,7 +657,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "UpdateStatus"
+                $ref: "#/components/schemas/UpdateStatus"
         500:
           description: "Server error"
         423:
@@ -674,7 +685,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "Report"
+                  $ref: "#/components/schemas/Report"
         500:
           description: "Server error"
 
@@ -735,3 +746,98 @@ paths:
           description: "Unprocessable request"
         500:
           description: "Server error"
+  /ephemeral-storage/init:
+    post:
+      summary: "Initialize ephemeral storage"
+      operationId: "init"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EphemeralStorageInit"
+      responses:
+        200:
+          description: "Successful request"
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: "Bad request input"
+        422:
+          description: "Unprocessable request"
+        500:
+          description: "Server error"
+  /ephemeral-storage/bind:
+    post:
+      summary: "Bind directories to previously initialized ephemeral storage"
+      operationId: "bind"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EphemeralStorageBind"
+      responses:
+        200:
+          description: "Successful request"
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: "Bad request input"
+        422:
+          description: "Unprocessable request"
+        500:
+          description: "Server error"
+  /ephemeral-storage/list-disks:
+    get:
+      summary: "List the discovered ephemeral disks that can be initialized"
+      operationId: "list-disks"
+      parameters:
+        - in: query
+          name: format
+          description: "Format of the disk listing (text or json). Default format is text."
+          schema:
+            type: string
+          required: false
+      responses:
+        200:
+          description: "Successful request"
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: "Bad request input"
+        422:
+          description: "Unprocessable request"
+        500:
+          description: "Server error"
+  /ephemeral-storage/list-dirs:
+    get:
+      summary: "List the directories that can be bound to ephemeral storage"
+      operationId: "list-dirs"
+      parameters:
+        - in: query
+          name: format
+          description: "Format of the directory listing (text or json). Default format is text."
+          schema:
+            type: string
+          required: false
+      responses:
+        200:
+          description: "Successful request"
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: "Bad request input"
+        422:
+          description: "Unprocessable request"
+        500:
+          description: "Server error"
+

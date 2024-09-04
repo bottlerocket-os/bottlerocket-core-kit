@@ -21,6 +21,9 @@ The `#[model]` attribute on Settings and its sub-structs reduces duplication and
 // Types used to communicate between client and server for 'apiclient exec'.
 pub mod exec;
 
+// Types used to communicate between client and server for 'apiclient ephemeral-storage'.
+pub mod ephemeral_storage;
+
 use bottlerocket_release::BottlerocketRelease;
 use bottlerocket_settings_models::model_derive::model;
 use bottlerocket_settings_plugin::BottlerocketSettings;

@@ -2,6 +2,7 @@
 //! server::controller module.
 
 mod controller;
+mod ephemeral_storage;
 mod error;
 mod exec;
 
@@ -15,6 +16,7 @@ use error::Result;
 use fs2::FileExt;
 use http::StatusCode;
 use log::info;
+use model::ephemeral_storage::{Bind, Init};
 use model::{ConfigurationFiles, Model, Report, Services, Settings};
 use nix::unistd::{chown, Gid};
 use serde::{Deserialize, Serialize};
@@ -124,7 +126,23 @@ where
                     .route("/refresh-updates", web::post().to(refresh_updates))
                     .route("/prepare-update", web::post().to(prepare_update))
                     .route("/activate-update", web::post().to(activate_update))
-                    .route("/deactivate-update", web::post().to(deactivate_update)),
+                    .route("/deactivate-update", web::post().to(deactivate_update))
+                    .route(
+                        "/ephemeral-storage/init",
+                        web::post().to(initialize_ephemeral_storage),
+                    )
+                    .route(
+                        "/ephemeral-storage/bind",
+                        web::post().to(bind_ephemeral_storage),
+                    )
+                    .route(
+                        "/ephemeral-storage/list-disks",
+                        web::get().to(list_ephemeral_storage_disks),
+                    )
+                    .route(
+                        "/ephemeral-storage/list-dirs",
+                        web::get().to(list_ephemeral_storage_dirs),
+                    ),
             )
             .service(web::scope("/updates").route("/status", web::get().to(get_update_status)))
             .service(web::resource("/exec").route(web::get().to(exec::ws_exec)))
@@ -648,6 +666,74 @@ async fn get_fips_report(query: web::Query<HashMap<String, String>>) -> Result<H
         .body(String::from_utf8_lossy(&output.stdout).to_string()))
 }
 
+/// Configure ephemeral storage (raid & format, or just format for single disk)
+async fn initialize_ephemeral_storage(cfg: web::Json<Init>) -> Result<HttpResponse> {
+    ephemeral_storage::initialize(cfg.0.filesystem, cfg.0.disks)
+        .context(error::EphemeralInitializeSnafu {})?;
+    Ok(HttpResponse::NoContent().finish()) // 204
+}
+/// Bind directories to ephemeral storage (mount array, bind, and unmount)
+async fn bind_ephemeral_storage(cfg: web::Json<Bind>) -> Result<HttpResponse> {
+    let os_info = controller::get_os_info()?;
+    ephemeral_storage::bind(&os_info.variant_id, cfg.0.targets)
+        .context(error::EphemeralBindSnafu {})?;
+    Ok(HttpResponse::NoContent().finish()) // 204
+}
+
+/// Lists the known ephemeral disks that can be configured.
+async fn list_ephemeral_storage_disks(
+    req: HttpRequest,
+    query: web::Query<HashMap<String, String>>,
+) -> Result<HttpResponse> {
+    let disks =
+        ephemeral_storage::ephemeral_devices().context(error::EphemeralListDisksSnafu {})?;
+
+    let mut text_response = String::new();
+    for disk in &disks {
+        text_response.push_str(disk);
+        text_response.push('\n');
+    }
+    list_ephemeral_response(req, query, disks, text_response).await
+}
+
+/// Lists the known ephemeral disks that can be configured.
+async fn list_ephemeral_storage_dirs(
+    req: HttpRequest,
+    query: web::Query<HashMap<String, String>>,
+) -> Result<HttpResponse> {
+    let os_info = controller::get_os_info()?;
+
+    let allowed = ephemeral_storage::allowed_bind_dirs(&os_info.variant_id);
+    let mut text_response = String::new();
+    for dir in &allowed {
+        text_response.push_str(dir);
+        text_response.push('\n');
+    }
+
+    let allowed: Vec<String> = allowed.iter().map(|x| String::from(*x)).collect();
+    list_ephemeral_response(req, query, allowed, text_response).await
+}
+
+// Responds to a list request with the text or JSON resposne depending on the query format.
+async fn list_ephemeral_response(
+    req: HttpRequest,
+    query: web::Query<HashMap<String, String>>,
+    items: Vec<String>,
+    text_response: String,
+) -> Result<HttpResponse> {
+    match query
+        .get("format")
+        .unwrap_or(&String::from("text"))
+        .as_str()
+    {
+        "json" => Ok(EphemeralListResponse(items).respond_to(&req)),
+        "text" => Ok(HttpResponse::Ok()
+            .content_type("application/text")
+            .body(text_response)),
+        _ => Ok(HttpResponse::BadRequest().body("unsupported format")),
+    }
+}
+
 // =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
 
 // Helpers for handler methods called by the router
@@ -782,6 +868,9 @@ impl ResponseError for error::Error {
             Deserialization { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             DataStoreSerialization { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             CommandSerialization { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            EphemeralBind { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            EphemeralInitialize { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            EphemeralListDisks { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             InvalidMetadata { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             ConfigApplierFork { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             ConfigApplierStart { .. } => StatusCode::INTERNAL_SERVER_ERROR,
@@ -896,3 +985,6 @@ impl_responder_for!(TransactionListResponse, self, self.0);
 
 struct ReportListResponse(Vec<Report>);
 impl_responder_for!(ReportListResponse, self, self.0);
+
+struct EphemeralListResponse(Vec<String>);
+impl_responder_for!(EphemeralListResponse, self, self.0);

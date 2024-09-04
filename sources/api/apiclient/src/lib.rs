@@ -20,6 +20,7 @@ use snafu::{ensure, ResultExt};
 use std::{fmt, fmt::Display, path::Path};
 
 pub mod apply;
+pub mod ephemeral_storage;
 pub mod exec;
 pub mod get;
 pub mod reboot;

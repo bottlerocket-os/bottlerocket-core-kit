@@ -1,3 +1,4 @@
+use crate::server::ephemeral_storage;
 use actix_web::{HttpResponseBuilder, ResponseError};
 use datastore::{self, deserialization, serialization};
 use nix::unistd::Gid;
@@ -110,6 +111,21 @@ pub enum Error {
     CommandSerialization {
         given: String,
         source: serde_json::Error,
+    },
+
+    #[snafu(display("Unable to initialize ephemeral storage: {}", source))]
+    EphemeralInitialize {
+        source: ephemeral_storage::error::Error,
+    },
+
+    #[snafu(display("Unable to bind ephemeral storage: {}", source))]
+    EphemeralBind {
+        source: ephemeral_storage::error::Error,
+    },
+
+    #[snafu(display("Unable to list ephemeral disks: {}", source))]
+    EphemeralListDisks {
+        source: ephemeral_storage::error::Error,
     },
 
     #[snafu(display("Unable to make {} key '{}': {}", key_type, name, source))]
