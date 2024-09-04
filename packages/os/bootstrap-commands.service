@@ -1,0 +1,17 @@
+[Unit]
+Description=Bootstrap Commands
+# We depend on systemd-logind.service for running systemd-inhibit.
+After=systemd-logind.service settings-applier.service apiserver.service
+Requires=systemd-logind.service settings-applier.service apiserver.service
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemd-inhibit --what=shutdown --why="Running bootstrap commands" --mode=delay /usr/bin/bootstrap-commands
+RemainAfterExit=true
+StandardError=journal+console
+SyslogIdentifier=bootstrap-commands
+
+[Install]
+RequiredBy=preconfigured.target
