@@ -1,5 +1,5 @@
 Name: %{_cross_os}iptables
-Version: 1.8.9
+Version: 1.8.10
 Release: 1%{?dist}
 Summary: Tools for managing Linux kernel packet filtering capabilities
 License: GPL-2.0-or-later AND GPL-2.0-only
@@ -15,9 +15,6 @@ Requires: %{_cross_os}libmnl
 Requires: %{_cross_os}libnfnetlink
 Requires: %{_cross_os}libnftnl
 Requires: %{_cross_os}libnetfilter_conntrack
-
-Patch1001: 1001-extensions-NAT-Fix-for-Werror-format-security.patch
-Patch1002: 1002-ip6tables-Fix-checking-existence-of-rule.patch
 
 %description
 %{summary}.
