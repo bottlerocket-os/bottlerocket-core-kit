@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/kubernetes/cloud-provider-aws/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/kubernetes/cloud-provider-aws/archive/v1.25.15/cloud-provider-aws-1.25.15.tar.gz"
-sha512 = "1e4ee33900d3ec655ce9f5788bb8f173621f187b130464bef196ef6e18a61a49d9501f5492909922a34b086fcffbb0cb369cfa8b941efbb0c38ffb0abe6c17dc"
+url = "https://github.com/kubernetes/cloud-provider-aws/archive/v1.25.16/cloud-provider-aws-1.25.16.tar.gz"
+sha512 = "be2937871764a59b5e8dcca0d5a08e665c18ff56f859f4e5eb41cd5d1cdda9bfb0d0b30fd53fa9024cfa90526bddb581ea01375b7f8884cad2314521752d3068"
 bundle-modules = [ "go" ]
 
 [build-dependencies]
