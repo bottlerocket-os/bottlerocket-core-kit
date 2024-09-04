@@ -1130,3 +1130,130 @@ mod test_negate_or_else {
         });
     }
 }
+
+/// `toml_encode` accepts arbitrary input and encodes it as a toml string
+///
+/// # Example
+///
+/// Consider an array of values: `[ "a", "b", "c" ]` stored in a setting such as
+/// `settings.somewhere.foo-list`. In our template we can write:
+/// `{{ toml_encode settings.somewhere.foo-list }}`
+///
+/// This will render `["a", "b", "c"]`.
+///
+/// Similarly, for a string: `"string"`, the template {{ toml-encode "string" }}
+/// will render `"string"`.
+pub fn toml_encode(
+    helper: &Helper<'_, '_>,
+    _: &Handlebars,
+    _: &Context,
+    renderctx: &mut RenderContext<'_, '_>,
+    out: &mut dyn Output,
+) -> Result<(), RenderError> {
+    trace!("Starting toml_encode helper");
+    let template_name = template_name(renderctx);
+    check_param_count(helper, template_name, 1)?;
+
+    // get the string
+    let encode_param = get_param(helper, 0)?;
+    let toml_value: toml::Value =
+        serde_json::from_value(encode_param.to_owned()).with_context(|_| {
+            error::TomlEncodeSnafu {
+                value: encode_param.to_owned(),
+                template: template_name,
+            }
+        })?;
+
+    let result = toml_value.to_string();
+
+    // write it to the template
+    out.write(&result)
+        .with_context(|_| error::TemplateWriteSnafu {
+            template: template_name.to_owned(),
+        })?;
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod test_toml_encode {
+    use crate::helpers::toml_encode;
+    use handlebars::{Handlebars, RenderError};
+    use serde::Serialize;
+    use serde_json::json;
+
+    // A thin wrapper around the handlebars render_template method that includes
+    // setup and registration of helpers
+    fn setup_and_render_template<T>(tmpl: &str, data: &T) -> Result<String, RenderError>
+    where
+        T: Serialize,
+    {
+        let mut registry = Handlebars::new();
+        registry.register_helper("toml_encode", Box::new(toml_encode));
+
+        registry.render_template(tmpl, data)
+    }
+
+    const TEMPLATE: &str = r#"{{ toml_encode settings.foo-string }}"#;
+
+    #[test]
+    fn toml_encode_map() {
+        let result = setup_and_render_template(
+            TEMPLATE,
+            &json!({"settings": {"foo-string": {"hello": "world"}}}),
+        )
+        .unwrap();
+        let expected = r#"{ hello = "world" }"#;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn toml_encode_empty() {
+        let result =
+            setup_and_render_template(TEMPLATE, &json!({"settings": {"foo-string": []}})).unwrap();
+        let expected = r#"[]"#;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn toml_encode_empty_string() {
+        let result =
+            setup_and_render_template(TEMPLATE, &json!({"settings": {"foo-string": [""]}}))
+                .unwrap();
+        let expected = r#"[""]"#;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn toml_encode_toml_injection_1() {
+        let result = setup_and_render_template(
+            TEMPLATE,
+            &json!({"settings": {"foo-string": [ "apiclient set motd=hello', 'echo pwned\""]}}),
+        )
+        .unwrap();
+        let expected = "['''apiclient set motd=hello', 'echo pwned\"''']";
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn toml_encode_toml_injection_2() {
+        let result = setup_and_render_template(
+            TEMPLATE,
+            &json!({"settings": {"foo-string": [ "apiclient set motd=hello\", \"echo pwned\""]}}),
+        )
+        .unwrap();
+        let expected = "['apiclient set motd=hello\", \"echo pwned\"']";
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn toml_encode_toml_injection_3() {
+        let result = setup_and_render_template(
+            TEMPLATE,
+            &json!({"settings": {"foo-string": [ "apiclient set motd=hello\", \"echo pwned\", 'echo pwned2'"]}}),
+        )
+        .unwrap();
+        let expected = "[\"apiclient set motd=hello\\\", \\\"echo pwned\\\", 'echo pwned2'\"]";
+        assert_eq!(result, expected);
+    }
+}

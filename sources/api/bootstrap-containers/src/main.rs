@@ -87,7 +87,7 @@ use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 use std::str::FromStr;
 
-use bottlerocket_modeled_types::{BootstrapContainerMode, Identifier, Url, ValidBase64};
+use bottlerocket_modeled_types::{BootstrapMode, Identifier, Url, ValidBase64};
 
 const ENV_FILE_DIR: &str = "/etc/bootstrap-containers";
 const DROPIN_FILE_DIR: &str = "/etc/systemd/system";
@@ -101,7 +101,7 @@ struct BootstrapContainer {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     source: Option<Url>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    mode: Option<BootstrapContainerMode>,
+    mode: Option<BootstrapMode>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     user_data: Option<ValidBase64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -134,7 +134,7 @@ enum Subcommand {
 #[derive(Debug)]
 struct MarkBootstrapArgs {
     container_id: String,
-    mode: BootstrapContainerMode,
+    mode: BootstrapMode,
 }
 
 /// Print a usage message in the event a bad arg is passed
@@ -251,7 +251,7 @@ fn parse_mark_bootstrap_args(args: Vec<String>) -> Result<Subcommand> {
     Ok(Subcommand::MarkBootstrap(MarkBootstrapArgs {
         container_id,
         // Fail if 'mode' is invalid
-        mode: BootstrapContainerMode::try_from(mode).context(error::BootstrapContainerModeSnafu)?,
+        mode: BootstrapMode::try_from(mode).context(error::BootstrapModeSnafu)?,
     }))
 }
 
@@ -605,9 +605,9 @@ mod error {
             source: base64::DecodeError,
         },
 
-        // `try_from` in `BootstrapContainerMode` already returns a useful error message
+        // `try_from` in `BootstrapMode` already returns a useful error message
         #[snafu(display("Failed to parse mode: {}", source))]
-        BootstrapContainerMode {
+        BootstrapMode {
             source: bottlerocket_modeled_types::error::Error,
         },
 

@@ -575,9 +575,9 @@ async fn deactivate_update() -> Result<HttpResponse> {
 /// Reboots the machine
 async fn reboot() -> Result<HttpResponse> {
     debug!("Rebooting now");
-    let output = Command::new("/sbin/shutdown")
-        .arg("-r")
-        .arg("now")
+    let output = Command::new("/usr/bin/systemctl")
+        .arg("reboot")
+        .arg("--check-inhibitors=yes")
         .output()
         .context(error::ShutdownSnafu)?;
     ensure!(

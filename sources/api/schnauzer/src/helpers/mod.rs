@@ -22,7 +22,7 @@ use url::Url;
 pub mod stdlib;
 
 pub use stdlib::{
-    any_enabled, base64_decode, default, goarch, join_array, join_map, negate_or_else,
+    any_enabled, base64_decode, default, goarch, join_array, join_map, negate_or_else, toml_encode,
     IfNotNullHelper, IsArray, IsBool, IsNull, IsNumber, IsObject, IsString,
 };
 
@@ -281,6 +281,18 @@ mod error {
         InvalidMetadataServiceLimits {
             rps: handlebars::JsonValue,
             burst: handlebars::JsonValue,
+        },
+
+        #[snafu(display(
+            "Unable to encode input '{}' from template '{}' as toml: {}",
+            value,
+            source,
+            template
+        ))]
+        TomlEncode {
+            value: serde_json::Value,
+            source: serde_json::Error,
+            template: String,
         },
     }
 

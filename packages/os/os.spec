@@ -32,6 +32,7 @@ Source17: corndog-toml
 Source18: bootstrap-containers-toml
 Source19: host-containers-toml
 Source20: bottlerocket-fips-checks-metadata-json
+Source21: bootstrap-commands-toml
 
 # 1xx sources: systemd units
 Source100: apiserver.service
@@ -52,6 +53,7 @@ Source119: reboot-if-required.service
 Source120: warm-pool-wait.service
 Source122: has-boot-ever-succeeded.service
 Source123: pluto.service
+Source124: bootstrap-commands.service
 
 # 2xx sources: tmpfilesd configs
 Source200: migration-tmpfiles.conf
@@ -59,6 +61,7 @@ Source201: host-containers-tmpfiles.conf
 Source202: thar-be-updates-tmpfiles.conf
 Source203: bootstrap-containers-tmpfiles.conf
 Source204: storewolf-tmpfiles.conf
+Source205: bootstrap-commands-tmpfiles.conf
 
 # 3xx sources: udev rules
 Source300: ephemeral-storage.rules
@@ -74,6 +77,7 @@ BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}apiclient
 Requires: %{_cross_os}apiserver
 Requires: %{_cross_os}bloodhound
+Requires: %{_cross_os}bootstrap-commands
 Requires: %{_cross_os}corndog
 Requires: %{_cross_os}certdog
 Requires: %{_cross_os}ghostdog
@@ -246,6 +250,11 @@ Requires: %{_cross_os}binutils
 %description -n %{_cross_os}driverdog
 %{summary}.
 
+%package -n %{_cross_os}bootstrap-commands
+Summary: Manages bootstrap-commands
+%description -n %{_cross_os}bootstrap-commands
+%{summary}.
+
 %package -n %{_cross_os}bootstrap-containers
 Summary: Manages bootstrap-containers
 Requires: %{_cross_os}host-ctr
@@ -350,6 +359,7 @@ echo "** Output from non-static builds:"
     -p metricdog \
     -p ghostdog \
     -p corndog \
+    -p bootstrap-commands \
     -p bootstrap-containers \
     -p prairiedog \
     -p certdog \
@@ -385,7 +395,7 @@ for p in \
   storewolf settings-committer \
   migrator prairiedog certdog \
   signpost updog metricdog logdog \
-  ghostdog bootstrap-containers \
+  ghostdog bootstrap-commands bootstrap-containers \
   shimpei bloodhound \
   bottlerocket-cis-checks \
   bottlerocket-fips-checks \
@@ -473,14 +483,14 @@ if [ -s "%{_cross_repo_root_json}" ] ; then
 fi
 
 install -d %{buildroot}%{_cross_templatedir}
-install -p -m 0644 %{S:5} %{S:6} %{S:7} %{S:8} %{S:14} %{S:15} %{S:16} %{S:17} %{S:18} %{S:19} \
+install -p -m 0644 %{S:5} %{S:6} %{S:7} %{S:8} %{S:14} %{S:15} %{S:16} %{S:17} %{S:18} %{S:19} %{S:21} \
   %{buildroot}%{_cross_templatedir}
 
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 \
   %{S:100} %{S:102} %{S:103} %{S:105} \
   %{S:106} %{S:107} %{S:110} %{S:111} %{S:112} \
-  %{S:113} %{S:114} %{S:119} %{S:122} %{S:123} \
+  %{S:113} %{S:114} %{S:119} %{S:122} %{S:123} %{S:124} \
   %{buildroot}%{_cross_unitdir}
 
 sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:115} > link-kernel-modules.service
@@ -502,6 +512,7 @@ install -p -m 0644 %{S:201} %{buildroot}%{_cross_tmpfilesdir}/host-containers.co
 install -p -m 0644 %{S:202} %{buildroot}%{_cross_tmpfilesdir}/thar-be-updates.conf
 install -p -m 0644 %{S:203} %{buildroot}%{_cross_tmpfilesdir}/bootstrap-containers.conf
 install -p -m 0644 %{S:204} %{buildroot}%{_cross_tmpfilesdir}/storewolf.conf
+install -p -m 0644 %{S:205} %{buildroot}%{_cross_tmpfilesdir}/bootstrap-commands.conf
 
 install -d %{buildroot}%{_cross_udevrulesdir}
 install -p -m 0644 %{S:300} %{buildroot}%{_cross_udevrulesdir}/80-ephemeral-storage.rules
@@ -639,6 +650,12 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %files -n %{_cross_os}certdog
 %{_cross_bindir}/certdog
 %{_cross_templatedir}/certdog-toml
+
+%files -n %{_cross_os}bootstrap-commands
+%{_cross_bindir}/bootstrap-commands
+%{_cross_unitdir}/bootstrap-commands.service
+%{_cross_tmpfilesdir}/bootstrap-commands.conf
+%{_cross_templatedir}/bootstrap-commands-toml
 
 %files -n %{_cross_os}bootstrap-containers
 %{_cross_bindir}/bootstrap-containers
