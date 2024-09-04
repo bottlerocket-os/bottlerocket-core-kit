@@ -104,6 +104,7 @@ members = [
   "packages/oci-add-hooks",
   "packages/open-vm-tools",
   "packages/os",
+  "packages/pciutils",
   "packages/pigz",
   "packages/policycoreutils",
   "packages/procps",
