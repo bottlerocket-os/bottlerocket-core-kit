@@ -1,13 +1,13 @@
 %global debug_package %{nil}
 
 Name: %{_cross_os}kernel-6.1
-Version: 6.1.102
+Version: 6.1.106
 Release: 1%{?dist}
 Summary: The Linux kernel
 License: GPL-2.0 WITH Linux-syscall-note
 URL: https://www.kernel.org/
 # Use latest-srpm-url.sh to get this.
-Source0: https://cdn.amazonlinux.com/al2023/blobstore/bc929cd6c35e297ebc5760d75997d219080501a32b7936641003178bce778074/kernel-6.1.102-111.182.amzn2023.src.rpm
+Source0: https://cdn.amazonlinux.com/al2023/blobstore/f578e84fd35abf2a86cbe79936f7d773eed3ca0202ac5fa049cf01879ce9bbe3/kernel-6.1.106-116.188.amzn2023.src.rpm
 Source100: config-bottlerocket
 
 # This list of FIPS modules is extracted from /etc/fipsmodules in the initramfs
@@ -502,6 +502,7 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %endif
 %{_cross_kmoddir}/kernel/drivers/amazon/net/efa/efa.ko.*
 %{_cross_kmoddir}/kernel/drivers/amazon/net/ena/ena.ko.*
+%{_cross_kmoddir}/kernel/drivers/amazon/scsi/mpi3mr/mpi3mr.ko.gz
 %if "%{_cross_arch}" == "aarch64"
 %{_cross_kmoddir}/kernel/drivers/ata/ahci_platform.ko.*
 %{_cross_kmoddir}/kernel/drivers/ata/libahci_platform.ko.*
@@ -556,6 +557,7 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/kernel/drivers/edac/pnd2_edac.ko.*
 %{_cross_kmoddir}/kernel/drivers/edac/sb_edac.ko.*
 %{_cross_kmoddir}/kernel/drivers/edac/skx_edac.ko.*
+%{_cross_kmoddir}/kernel/drivers/edac/skx_edac_common.ko.gz
 %{_cross_kmoddir}/kernel/drivers/edac/x38_edac.ko.*
 %endif
 %{_cross_kmoddir}/kernel/drivers/firmware/dmi-sysfs.ko.*
