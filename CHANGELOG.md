@@ -1,3 +1,28 @@
+# v2.4.0 (2024-09-05)
+
+## OS Changes
+* Add ephemeral-storage commands ([#15]) - thanks @tzneal
+* Add support for bootstrap commands ([#62], [#127])
+* Update runc to 1.1.14 ([#123])
+* Update kernels to 5.10.224, 5.15.165 and 6.1.106 ([#128], [#126])
+
+## Orchestrator Changes
+
+### Kubernetes
+* Add Kubernetes 1.31 packages ([#117])
+* Apply EKS-D upstream patches for Kubernetes v1.23 to v1.26 ([#121])
+* Add latest instance types to eni-max-pods mapping ([#120])
+
+[#15]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/15
+[#62]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/62
+[#117]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/117
+[#120]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/120
+[#121]:https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/121
+[#123]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/123
+[#126]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/126
+[#127]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/127
+[#128]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/128
+
 # v2.3.6 (2024-08-28)
 
 ## Build Changes
