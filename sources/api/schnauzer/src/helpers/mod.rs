@@ -6,7 +6,9 @@ use bottlerocket_modeled_types::{OciDefaultsCapability, OciDefaultsResourceLimit
 use cidr::AnyIpCidr;
 use dns_lookup::lookup_host;
 use error::TemplateHelperError;
-use handlebars::{handlebars_helper,Context, Handlebars, Helper, Output, RenderContext, RenderError};
+use handlebars::{
+    handlebars_helper, Context, Handlebars, Helper, Output, RenderContext, RenderError,
+};
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde_json::value::Value;
@@ -244,11 +246,17 @@ mod error {
         #[snafu(display("Unknown architecture '{}' given to goarch helper", given))]
         UnknownArch { given: String },
 
-        #[snafu(display("Invalid Cidr format '{}'", cidr))]
-        InvalidCidr { cidr: String },
-        
+        #[snafu(display("Invalid Cidr format '{}': {}", cidr, source))]
+        InvalidCidr {
+            cidr: String,
+            source: cidr::errors::NetworkParseError,
+        },
+
         #[snafu(display("Invalid IP Address format '{}': {}", ip_address, source))]
-        InvalidIPAddress { ip_address: String, source: std::net::AddrParseError },
+        InvalidIPAddress {
+            ip_address: String,
+            source: std::net::AddrParseError,
+        },
 
         #[snafu(display(
             "Expected an absolute URL, got '{}' in template '{}': '{}'",
@@ -632,7 +640,6 @@ pub fn replace_ipv4_octet(
     renderctx: &mut RenderContext<'_, '_>,
     out: &mut dyn Output,
 ) -> Result<(), RenderError> {
-    
     trace!("Starting replace_ipv4_octet helper");
     let template_name = template_name(renderctx);
     check_param_count(helper, template_name, 3)?;
@@ -648,13 +655,14 @@ pub fn replace_ipv4_octet(
             value: ip_param.to_owned(),
             template: template_name,
         })?;
-    let octet_index = octet_index_param
-        .as_u64()
-        .with_context(|| error::InvalidTemplateValueSnafu {
-            expected: "integer",
-            value: octet_index_param.to_owned(),
-            template: template_name,
-        })? as usize;
+    let octet_index =
+        octet_index_param
+            .as_u64()
+            .with_context(|| error::InvalidTemplateValueSnafu {
+                expected: "integer",
+                value: octet_index_param.to_owned(),
+                template: template_name,
+            })? as usize;
     let new_value = new_value_param
         .as_str()
         .with_context(|| error::InvalidTemplateValueSnafu {
@@ -662,7 +670,7 @@ pub fn replace_ipv4_octet(
             value: new_value_param.to_owned(),
             template: template_name,
         })?;
-        
+
     let ip = Ipv4Addr::from_str(ip_str).map_err(|error| {
         RenderError::from(error::TemplateHelperError::InvalidIPAddress {
             ip_address: ip_str.to_string(),
@@ -683,15 +691,18 @@ pub fn replace_ipv4_octet(
         .map_err(|_| RenderError::new("Failed to parse the new octet value as an integer"))?;
 
     let new_ip = Ipv4Addr::from(octets).to_string();
-    out.write(&new_ip).with_context(|_| error::TemplateWriteSnafu {
-        template: template_name.to_owned(),
-    })?;
-    
+    out.write(&new_ip)
+        .with_context(|_| error::TemplateWriteSnafu {
+            template: template_name.to_owned(),
+        })?;
+
     Ok(())
 }
 
 fn validate_and_parse_cidr(cidr: &str) -> Result<IpAddr, RenderError> {
-    let parsed_cidr: AnyIpCidr = cidr.parse().map_err(|_| error::InvalidCidrSnafu { cidr: cidr.to_string() }.build())?;
+    let parsed_cidr: AnyIpCidr = cidr.parse().context(error::InvalidCidrSnafu {
+        cidr: cidr.to_string(),
+    })?;
 
     let ip_addr = parsed_cidr
         .first_address()
@@ -2196,8 +2207,14 @@ mod test_replace_ipv4_octet {
     #[test]
     fn test_valid_replace_ipv4_octet() {
         let test_cases = vec![
-            (json!({"ip": "192.168.1.1", "index": 3, "value": "10"}), "192.168.1.10"),
-            (json!({"ip": "10.0.0.0", "index": 0, "value": "172"}), "172.0.0.0"),
+            (
+                json!({"ip": "192.168.1.1", "index": 3, "value": "10"}),
+                "192.168.1.10",
+            ),
+            (
+                json!({"ip": "10.0.0.0", "index": 0, "value": "172"}),
+                "172.0.0.0",
+            ),
         ];
 
         test_cases.iter().for_each(|test_case| {
@@ -2232,7 +2249,11 @@ mod test_is_ipv4_is_ipv6 {
     const TEMPLATE_IPV4: &str = r#"{{is_ipv4 ipcidr}}"#;
     const TEMPLATE_IPV6: &str = r#"{{is_ipv6 ipcidr}}"#;
 
-    fn setup_and_render_template<T>(tmpl: &str, data: &T, helper_name: &str) -> Result<String, RenderError>
+    fn setup_and_render_template<T>(
+        tmpl: &str,
+        data: &T,
+        helper_name: &str,
+    ) -> Result<String, RenderError>
     where
         T: Serialize,
     {
@@ -2274,12 +2295,9 @@ mod test_is_ipv4_is_ipv6 {
         });
     }
 
-
     #[test]
     fn test_invalid() {
-        let test_cases = vec![
-            json!({"ipcidr": "invalid-cidr"}),
-        ];
+        let test_cases = vec![json!({"ipcidr": "invalid-cidr"})];
 
         test_cases.iter().for_each(|test_case| {
             let rendered = setup_and_render_template(TEMPLATE_IPV4, test_case, "is_ipv4");
@@ -2328,9 +2346,7 @@ mod test_cidr_to_ipaddr {
 
     #[test]
     fn test_invalid_cidr_to_ipaddr() {
-        let test_cases = vec![
-            json!({"ipcidr": "invalid-cidr"}), 
-        ];
+        let test_cases = vec![json!({"ipcidr": "invalid-cidr"})];
 
         test_cases.iter().for_each(|test_case| {
             let rendered = setup_and_render_template(TEMPLATE, test_case);
@@ -2341,7 +2357,7 @@ mod test_cidr_to_ipaddr {
 
 #[cfg(test)]
 mod test_combined_template_for_ip_cidr {
-    use crate::helpers::{is_ipv4, cidr_to_ipaddr, replace_ipv4_octet};
+    use crate::helpers::{cidr_to_ipaddr, is_ipv4, replace_ipv4_octet};
     use handlebars::{Handlebars, RenderError};
     use serde::Serialize;
     use serde_json::json;
@@ -2369,13 +2385,16 @@ mod test_combined_template_for_ip_cidr {
     #[test]
     fn test_combined_template_valid_cases() {
         let test_cases = vec![
-            (json!({"ipcidr": "192.168.1.0/24"}), "192.168.1.10"),  // IPv4 case with replacement
+            (json!({"ipcidr": "192.168.1.0/24"}), "192.168.1.10"), // IPv4 case with replacement
             (json!({"ipcidr": "2001:db8::/32"}), "2001:db8::a"),   // IPv6 case with 'a' suffix
         ];
 
         test_cases.iter().for_each(|test_case| {
             let (config, expected) = test_case;
-            let rendered = setup_and_render_template(TEMPLATE, config).unwrap().trim().to_string();
+            let rendered = setup_and_render_template(TEMPLATE, config)
+                .unwrap()
+                .trim()
+                .to_string();
             assert_eq!(expected, &rendered);
         });
     }

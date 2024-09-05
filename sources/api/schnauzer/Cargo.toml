@@ -43,7 +43,7 @@ toml.workspace = true
 url.workspace = true
 bottlerocket-modeled-types.workspace = true
 settings-extension-oci-defaults.workspace = true
-cidr = "0.2.3"
+cidr.workspace = true
 
 [dev-dependencies]
 # Workaround to enable a feature during integration tests.
