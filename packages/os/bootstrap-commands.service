@@ -5,6 +5,7 @@ After=systemd-logind.service settings-applier.service apiserver.service
 Requires=systemd-logind.service settings-applier.service apiserver.service
 RefuseManualStart=true
 RefuseManualStop=true
+ConditionPathExists=/etc/bootstrap-commands/bootstrap-commands.toml
 
 [Service]
 Type=oneshot
