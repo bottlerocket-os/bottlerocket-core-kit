@@ -1,4 +1,4 @@
-%global unversion 2_6_2
+%global unversion 2_6_3
 
 Name: %{_cross_os}libexpat
 Version: %(echo %{unversion} | sed 's/_/./g')
@@ -43,7 +43,6 @@ Requires: %{name}
 %{_cross_libdir}/*.so
 %{_cross_includedir}/*.h
 %{_cross_pkgconfigdir}/*.pc
-%exclude %{_cross_libdir}/*.la
 %exclude %{_cross_libdir}/cmake
 
 %changelog
