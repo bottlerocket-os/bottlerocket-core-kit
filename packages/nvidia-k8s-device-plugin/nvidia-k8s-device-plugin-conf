@@ -1,5 +1,5 @@
 [required-extensions]
-kubernetes = "v1"
+kubelet-device-plugins = "v1"
 std = { version = "v1", helpers = ["default"] }
 
 +++
@@ -8,6 +8,6 @@ flags:
   migStrategy: "none"
   failOnInitError: true
   plugin:
-    passDeviceSpecs: {{default true settings.kubernetes.device-plugins.nvidia.pass-device-specs}}
-    deviceListStrategy: {{default "volume-mounts" settings.kubernetes.device-plugins.nvidia.device-list-strategy}}
-    deviceIDStrategy: {{default "index" settings.kubernetes.device-plugins.nvidia.device-id-strategy}}
+    passDeviceSpecs: {{default true settings.kubelet-device-plugins.nvidia.pass-device-specs}}
+    deviceListStrategy: {{default "volume-mounts" settings.kubelet-device-plugins.nvidia.device-list-strategy}}
+    deviceIDStrategy: {{default "index" settings.kubelet-device-plugins.nvidia.device-id-strategy}}
