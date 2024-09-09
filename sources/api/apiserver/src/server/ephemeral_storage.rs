@@ -18,7 +18,10 @@ static FINDMNT: &str = "/usr/bin/findmnt";
 
 /// Name of the array (if created) and filesystem label. Selected to be 12 characters so it
 /// fits within both the xfs and ext4 volume label limit.
-static EPHEMERAL: &str = ".ephemeral";
+static EPHEMERAL_MNT: &str = ".ephemeral";
+/// Name of the device and its path from the MD driver
+static RAID_DEVICE_DIR: &str = "/dev/md/";
+static RAID_DEVICE_NAME: &str = "ephemeral";
 
 /// initialize prepares the ephemeral storage for formatting and formats it.  For multiple disks
 /// preparation is the creation of a RAID0 array, for a single disk this is a no-op. The array or disk
@@ -70,11 +73,14 @@ pub fn initialize(fs: Option<Filesystem>, disks: Option<Vec<String>>) -> Result<
             let scan_output = mdadm_scan()?;
             // no previously configured array found, so construct a new one
             if scan_output.is_empty() {
-                info!("creating array named {:?} from {:?}", EPHEMERAL, disks);
-                mdadm_create(EPHEMERAL, disks.iter().map(|x| x.as_str()).collect())?;
+                info!(
+                    "creating array named {:?} from {:?}",
+                    RAID_DEVICE_NAME, disks
+                );
+                mdadm_create(RAID_DEVICE_NAME, disks.iter().map(|x| x.as_str()).collect())?;
             }
-            // can't lookup the array until it's created
-            resolve_array_by_id()?
+            // Once it is built, it will be available in `/dev/md/`
+            format!("{}{}", RAID_DEVICE_DIR, RAID_DEVICE_NAME)
         }
     };
 
@@ -95,14 +101,18 @@ pub fn initialize(fs: Option<Filesystem>, disks: Option<Vec<String>>) -> Result<
 /// binds the specified directories to the pre-configured array, creating those directories if
 /// they do not exist.
 pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
-    // handle the no local instance storage case
-    if ephemeral_devices()?.is_empty() {
-        info!("no ephemeral disks found, skipping ephemeral storage binding");
-        return Ok(());
-    }
+    let device_name = match ephemeral_devices()?.len() {
+        // handle the no local instance storage case
+        0 => {
+            info!("no ephemeral disks found, skipping ephemeral storage binding");
+            return Ok(());
+        }
+        // If there is only one device, use that
+        1 => ephemeral_devices()?.first().expect("non-empty").clone(),
+        _ => format!("{}{}", RAID_DEVICE_DIR, RAID_DEVICE_NAME),
+    };
 
-    let device_name = resolve_device_by_label()?;
-    let mount_point = format!("/mnt/{}", EPHEMERAL);
+    let mount_point = format!("/mnt/{}", EPHEMERAL_MNT);
     let mount_point = Path::new(&mount_point);
     let allowed_dirs = allowed_bind_dirs(variant);
     for dir in &dirs {
@@ -202,34 +212,16 @@ fn is_mounted(path: &String) -> Result<bool> {
     Ok(status.success())
 }
 
-/// resolve_device_by_label resolves the by-label link for the raid array or single disk to the device name
-fn resolve_device_by_label() -> Result<String> {
-    canonical_name(format!("/dev/disk/by-label/{}", EPHEMERAL))
-}
-
-/// resolve_array_by_name resolves the by-id link for the raid array
-fn resolve_array_by_id() -> Result<String> {
-    canonical_name(format!("/dev/disk/by-id/md-name-{}", EPHEMERAL))
-}
-
-/// canonical_name will create the canonical, absolute form of a path  with all intermediate
-/// components normalized and symbolic links resolved
-fn canonical_name(name: String) -> Result<String> {
-    Ok(std::fs::canonicalize(OsString::from(name))
-        .context(error::CanonicalizeFailureSnafu {})?
-        .to_string_lossy()
-        .to_string())
-}
-
 /// creates the array with the given name from the specified disks
 fn mdadm_create<T: AsRef<str>>(name: T, disks: Vec<T>) -> Result<()> {
-    let mut device_name = OsString::from("/dev/md/");
+    let mut device_name = OsString::from(RAID_DEVICE_DIR);
     device_name.push(name.as_ref());
 
     let mut cmd = Command::new(MDADM);
     cmd.arg("--create");
     cmd.arg("--force");
     cmd.arg("--verbose");
+    cmd.arg("--homehost=any");
     cmd.arg(device_name);
     cmd.arg("--level=0");
     // By default, mdadm uses a 512KB chunk size. mkfs.xfs attempts to match some of its settings to
@@ -332,7 +324,7 @@ pub fn format_device<S: AsRef<OsStr>>(device: S, format: &Filesystem) -> Result<
     mkfs.arg(device.as_ref());
     // labeled, XFS has a max of 12 characters, EXT4 allows 16
     mkfs.arg("-L");
-    mkfs.arg(EPHEMERAL);
+    mkfs.arg(RAID_DEVICE_NAME);
 
     let output = mkfs
         .output()
@@ -405,9 +397,6 @@ pub mod error {
 
         #[snafu(display("Failed to create directory, {}", source))]
         Mkdir { source: std::io::Error },
-
-        #[snafu(display("Failed to canonicalize path, {}", source))]
-        CanonicalizeFailure { source: std::io::Error },
     }
 }
 
