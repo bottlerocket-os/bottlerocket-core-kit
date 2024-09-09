@@ -118,6 +118,7 @@ bytes = "1"
 cached = "0.49"
 cargo-readme = "3"
 chrono = { version = "0.4", default-features = false }
+cidr = "0.2"
 darling = { version = "0.20", default-features = false }
 dns-lookup = "2"
 env_logger = "0.11"

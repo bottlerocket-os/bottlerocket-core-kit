@@ -140,6 +140,12 @@ pub fn build_template_registry() -> Result<handlebars::Handlebars<'static>> {
         "ecs_metadata_service_limits",
         Box::new(helpers::ecs_metadata_service_limits),
     );
+
+    template_registry.register_helper("is_ipv4", Box::new(helpers::is_ipv4));
+    template_registry.register_helper("is_ipv6", Box::new(helpers::is_ipv6));
+    template_registry.register_helper("cidr_to_ipaddr", Box::new(helpers::cidr_to_ipaddr));
+    template_registry.register_helper("replace_ipv4_octet", Box::new(helpers::replace_ipv4_octet));
+
     template_registry.register_helper("is_null", Box::new(helpers::IsNull));
     template_registry.register_helper("is_bool", Box::new(helpers::IsBool));
     template_registry.register_helper("is_number", Box::new(helpers::IsNumber));

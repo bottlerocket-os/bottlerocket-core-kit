@@ -3,9 +3,12 @@
 // text at render time.
 
 use bottlerocket_modeled_types::{OciDefaultsCapability, OciDefaultsResourceLimitType};
+use cidr::AnyIpCidr;
 use dns_lookup::lookup_host;
 use error::TemplateHelperError;
-use handlebars::{Context, Handlebars, Helper, Output, RenderContext, RenderError};
+use handlebars::{
+    handlebars_helper, Context, Handlebars, Helper, Output, RenderContext, RenderError,
+};
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde_json::value::Value;
@@ -242,6 +245,18 @@ mod error {
 
         #[snafu(display("Unknown architecture '{}' given to goarch helper", given))]
         UnknownArch { given: String },
+
+        #[snafu(display("Invalid Cidr format '{}': {}", cidr, source))]
+        InvalidCidr {
+            cidr: String,
+            source: cidr::errors::NetworkParseError,
+        },
+
+        #[snafu(display("Invalid IP Address format '{}': {}", ip_address, source))]
+        InvalidIPAddress {
+            ip_address: String,
+            source: std::net::AddrParseError,
+        },
 
         #[snafu(display(
             "Expected an absolute URL, got '{}' in template '{}': '{}'",
@@ -573,6 +588,126 @@ pub fn host(
         })?;
 
     Ok(())
+}
+
+handlebars_helper!(is_ipv4: |cidr: str| {
+    let ip = validate_and_parse_cidr(cidr)?;
+
+    matches!(ip, IpAddr::V4(_))
+});
+
+handlebars_helper!(is_ipv6: |cidr: str| {
+    let ip = validate_and_parse_cidr(cidr)?;
+
+    matches!(ip, IpAddr::V6(_))
+});
+
+/// Converts a CIDR to its corresponding IP address part.
+pub fn cidr_to_ipaddr(
+    helper: &Helper<'_, '_>,
+    _: &Handlebars,
+    _: &Context,
+    renderctx: &mut RenderContext<'_, '_>,
+    out: &mut dyn Output,
+) -> Result<(), RenderError> {
+    trace!("Starting cidr_to_ipaddr helper");
+    let template_name = template_name(renderctx);
+    check_param_count(helper, template_name, 1)?;
+
+    let cidr_param = get_param(helper, 0)?;
+    let cidr = cidr_param
+        .as_str()
+        .with_context(|| error::InvalidTemplateValueSnafu {
+            expected: "string",
+            value: cidr_param.to_owned(),
+            template: template_name,
+        })?;
+
+    let ip = validate_and_parse_cidr(cidr)?;
+    out.write(&ip.to_string())
+        .with_context(|_| error::TemplateWriteSnafu {
+            template: template_name.to_owned(),
+        })?;
+
+    Ok(())
+}
+
+/// Replaces a specific octet in an IPv4 address with a new value. The octet is specified by index (0-3).
+pub fn replace_ipv4_octet(
+    helper: &Helper<'_, '_>,
+    _: &Handlebars,
+    _: &Context,
+    renderctx: &mut RenderContext<'_, '_>,
+    out: &mut dyn Output,
+) -> Result<(), RenderError> {
+    trace!("Starting replace_ipv4_octet helper");
+    let template_name = template_name(renderctx);
+    check_param_count(helper, template_name, 3)?;
+
+    let ip_param = get_param(helper, 0)?;
+    let octet_index_param = get_param(helper, 1)?;
+    let new_value_param = get_param(helper, 2)?;
+
+    let ip_str = ip_param
+        .as_str()
+        .with_context(|| error::InvalidTemplateValueSnafu {
+            expected: "string",
+            value: ip_param.to_owned(),
+            template: template_name,
+        })?;
+    let octet_index =
+        octet_index_param
+            .as_u64()
+            .with_context(|| error::InvalidTemplateValueSnafu {
+                expected: "integer",
+                value: octet_index_param.to_owned(),
+                template: template_name,
+            })? as usize;
+    let new_value = new_value_param
+        .as_str()
+        .with_context(|| error::InvalidTemplateValueSnafu {
+            expected: "string",
+            value: new_value_param.to_owned(),
+            template: template_name,
+        })?;
+
+    let ip = Ipv4Addr::from_str(ip_str).map_err(|error| {
+        RenderError::from(error::TemplateHelperError::InvalidIPAddress {
+            ip_address: ip_str.to_string(),
+            source: error,
+        })
+    })?;
+
+    let mut octets = ip.octets();
+    if octet_index > 3 {
+        return Err(RenderError::new(format!(
+            "Invalid index {} for IP address {}",
+            octet_index, ip_str
+        )));
+    }
+
+    octets[octet_index] = new_value
+        .parse::<u8>()
+        .map_err(|_| RenderError::new("Failed to parse the new octet value as an integer"))?;
+
+    let new_ip = Ipv4Addr::from(octets).to_string();
+    out.write(&new_ip)
+        .with_context(|_| error::TemplateWriteSnafu {
+            template: template_name.to_owned(),
+        })?;
+
+    Ok(())
+}
+
+fn validate_and_parse_cidr(cidr: &str) -> Result<IpAddr, RenderError> {
+    let parsed_cidr: AnyIpCidr = cidr.parse().context(error::InvalidCidrSnafu {
+        cidr: cidr.to_string(),
+    })?;
+
+    let ip_addr = parsed_cidr
+        .first_address()
+        .ok_or_else(|| RenderError::new("Empty CIDR block"))?;
+    Ok(ip_addr)
 }
 
 /// kube_reserve_memory and kube_reserve_cpu are taken from EKS' calculations.
@@ -2046,6 +2181,221 @@ mod test_ecs_metadata_service_limits {
         test_cases.iter().for_each(|test_case| {
             let rendered = setup_and_render_template(TEMPLATE, test_case);
             assert!(rendered.is_err());
+        });
+    }
+}
+
+#[cfg(test)]
+mod test_replace_ipv4_octet {
+    use crate::helpers::replace_ipv4_octet;
+    use handlebars::{Handlebars, RenderError};
+    use serde::Serialize;
+    use serde_json::json;
+
+    const TEMPLATE: &str = r#"{{replace_ipv4_octet ip index value}}"#;
+
+    fn setup_and_render_template<T>(tmpl: &str, data: &T) -> Result<String, RenderError>
+    where
+        T: Serialize,
+    {
+        let mut registry = Handlebars::new();
+        registry.register_helper("replace_ipv4_octet", Box::new(replace_ipv4_octet));
+
+        registry.render_template(tmpl, data)
+    }
+
+    #[test]
+    fn test_valid_replace_ipv4_octet() {
+        let test_cases = vec![
+            (
+                json!({"ip": "192.168.1.1", "index": 3, "value": "10"}),
+                "192.168.1.10",
+            ),
+            (
+                json!({"ip": "10.0.0.0", "index": 0, "value": "172"}),
+                "172.0.0.0",
+            ),
+        ];
+
+        test_cases.iter().for_each(|test_case| {
+            let (config, expected) = test_case;
+            let rendered = setup_and_render_template(TEMPLATE, config).unwrap();
+            assert_eq!(expected, &rendered);
+        });
+    }
+
+    #[test]
+    fn test_invalid_replace_ipv4_octet() {
+        let test_cases = vec![
+            json!({"ip": "192.168.1.1", "index": 4, "value": "10"}), // Invalid index
+            json!({"ip": "invalid-ip", "index": 3, "value": "10"}),  // Invalid IP
+            json!({"ip": "192.168.1.1", "index": 3, "value": "257"}), // Invalid octet value
+        ];
+
+        test_cases.iter().for_each(|test_case| {
+            let rendered = setup_and_render_template(TEMPLATE, test_case);
+            assert!(rendered.is_err());
+        });
+    }
+}
+
+#[cfg(test)]
+mod test_is_ipv4_is_ipv6 {
+    use crate::helpers::{is_ipv4, is_ipv6};
+    use handlebars::{Handlebars, RenderError};
+    use serde::Serialize;
+    use serde_json::json;
+
+    const TEMPLATE_IPV4: &str = r#"{{is_ipv4 ipcidr}}"#;
+    const TEMPLATE_IPV6: &str = r#"{{is_ipv6 ipcidr}}"#;
+
+    fn setup_and_render_template<T>(
+        tmpl: &str,
+        data: &T,
+        helper_name: &str,
+    ) -> Result<String, RenderError>
+    where
+        T: Serialize,
+    {
+        let mut registry = Handlebars::new();
+        match helper_name {
+            "is_ipv4" => registry.register_helper("is_ipv4", Box::new(is_ipv4)),
+            "is_ipv6" => registry.register_helper("is_ipv6", Box::new(is_ipv6)),
+            _ => panic!("Unknown helper"),
+        }
+
+        registry.render_template(tmpl, data)
+    }
+
+    #[test]
+    fn test_valid_is_ipv4() {
+        let test_cases = vec![
+            (json!({"ipcidr": "192.168.1.0/24"}), "true"),
+            (json!({"ipcidr": "2001:db8::/32"}), "false"),
+        ];
+
+        test_cases.iter().for_each(|test_case| {
+            let (config, expected) = test_case;
+            let rendered = setup_and_render_template(TEMPLATE_IPV4, config, "is_ipv4").unwrap();
+            assert_eq!(expected, &rendered);
+        });
+    }
+
+    #[test]
+    fn test_valid_is_ipv6() {
+        let test_cases = vec![
+            (json!({"ipcidr": "2001:db8::/32"}), "true"),
+            (json!({"ipcidr": "192.168.1.0/24"}), "false"),
+        ];
+
+        test_cases.iter().for_each(|test_case| {
+            let (config, expected) = test_case;
+            let rendered = setup_and_render_template(TEMPLATE_IPV6, config, "is_ipv6").unwrap();
+            assert_eq!(expected, &rendered);
+        });
+    }
+
+    #[test]
+    fn test_invalid() {
+        let test_cases = vec![json!({"ipcidr": "invalid-cidr"})];
+
+        test_cases.iter().for_each(|test_case| {
+            let rendered = setup_and_render_template(TEMPLATE_IPV4, test_case, "is_ipv4");
+            assert!(rendered.is_err());
+        });
+
+        test_cases.iter().for_each(|test_case| {
+            let rendered = setup_and_render_template(TEMPLATE_IPV6, test_case, "is_ipv6");
+            assert!(rendered.is_err());
+        });
+    }
+}
+
+#[cfg(test)]
+mod test_cidr_to_ipaddr {
+    use crate::helpers::cidr_to_ipaddr;
+    use handlebars::{Handlebars, RenderError};
+    use serde::Serialize;
+    use serde_json::json;
+
+    const TEMPLATE: &str = r#"{{cidr_to_ipaddr ipcidr}}"#;
+
+    fn setup_and_render_template<T>(tmpl: &str, data: &T) -> Result<String, RenderError>
+    where
+        T: Serialize,
+    {
+        let mut registry = Handlebars::new();
+        registry.register_helper("cidr_to_ipaddr", Box::new(cidr_to_ipaddr));
+
+        registry.render_template(tmpl, data)
+    }
+
+    #[test]
+    fn test_valid_cidr_to_ipaddr() {
+        let test_cases = vec![
+            (json!({"ipcidr": "192.168.1.0/24"}), "192.168.1.0"),
+            (json!({"ipcidr": "2001:db8::/32"}), "2001:db8::"),
+        ];
+
+        test_cases.iter().for_each(|test_case| {
+            let (config, expected) = test_case;
+            let rendered = setup_and_render_template(TEMPLATE, config).unwrap();
+            assert_eq!(expected, &rendered);
+        });
+    }
+
+    #[test]
+    fn test_invalid_cidr_to_ipaddr() {
+        let test_cases = vec![json!({"ipcidr": "invalid-cidr"})];
+
+        test_cases.iter().for_each(|test_case| {
+            let rendered = setup_and_render_template(TEMPLATE, test_case);
+            assert!(rendered.is_err());
+        });
+    }
+}
+
+#[cfg(test)]
+mod test_combined_template_for_ip_cidr {
+    use crate::helpers::{cidr_to_ipaddr, is_ipv4, replace_ipv4_octet};
+    use handlebars::{Handlebars, RenderError};
+    use serde::Serialize;
+    use serde_json::json;
+
+    const TEMPLATE: &str = r#"
+    {{#if (is_ipv4 ipcidr)}}
+      {{ replace_ipv4_octet (cidr_to_ipaddr ipcidr) 3 "10" }}
+    {{else}}
+      {{cidr_to_ipaddr ipcidr}}a
+    {{/if}}
+    "#;
+
+    fn setup_and_render_template<T>(tmpl: &str, data: &T) -> Result<String, RenderError>
+    where
+        T: Serialize,
+    {
+        let mut registry = Handlebars::new();
+        registry.register_helper("is_ipv4", Box::new(is_ipv4));
+        registry.register_helper("cidr_to_ipaddr", Box::new(cidr_to_ipaddr));
+        registry.register_helper("replace_ipv4_octet", Box::new(replace_ipv4_octet));
+
+        registry.render_template(tmpl, data)
+    }
+
+    #[test]
+    fn test_combined_template_valid_cases() {
+        let test_cases = vec![
+            (json!({"ipcidr": "192.168.1.0/24"}), "192.168.1.10"), // IPv4 case with replacement
+            (json!({"ipcidr": "2001:db8::/32"}), "2001:db8::a"),   // IPv6 case with 'a' suffix
+        ];
+
+        test_cases.iter().for_each(|test_case| {
+            let (config, expected) = test_case;
+            let rendered = setup_and_render_template(TEMPLATE, config)
+                .unwrap()
+                .trim()
+                .to_string();
+            assert_eq!(expected, &rendered);
         });
     }
 }
