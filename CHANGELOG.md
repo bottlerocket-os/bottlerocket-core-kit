@@ -1,3 +1,12 @@
+# v2.4.1 (2024-09-09)
+
+## OS Changes
+* Use direct paths for ephemeral storage ([#133])
+* Update libexpat to 2.6.3 ([#130])
+
+[#130]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/130
+[#133]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/133
+
 # v2.4.0 (2024-09-05)
 
 ## OS Changes
