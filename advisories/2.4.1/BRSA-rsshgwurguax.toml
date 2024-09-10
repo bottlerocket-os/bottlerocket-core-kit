@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-rsshgwurguax"
+title = "libexpat CVE-2024-45491"
+cve = "CVE-2024-45491"
+severity = "high"
+description = "An issue was discovered in libexpat before 2.6.3. dtdCopy in xmlparse.c can have an integer overflow for nDefaultAtts on 32-bit platforms (where UINT_MAX equals SIZE_MAX)."
+
+[[advisory.products]]
+package-name = "libexpat"
+patched-version = "2.6.3"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "yeazelm"
+issue-date = 2024-09-10T02:19:37Z
+arches = ["aarch64", "x86_64"]
+version = "2.4.1"
