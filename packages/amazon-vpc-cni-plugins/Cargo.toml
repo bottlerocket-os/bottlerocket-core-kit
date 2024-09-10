@@ -1,0 +1,16 @@
+[package]
+name = "amazon-vpc-cni-plugins"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/aws/amazon-vpc-cni-plugins/archive/be5214353252f8315a1341f4df9ffbd8cf69000c/amazon-vpc-cni-plugins.tar.gz"
+sha512 = "b1aa61d0000ff732dae67213cea2eac49363c048416716e27f36b2b43f6227db8b15ead27c43c5fd623569a49572cb6b2149c86d69363f75cec4620ddc9ef47b"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
