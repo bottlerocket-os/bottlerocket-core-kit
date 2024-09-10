@@ -4589,9 +4589,9 @@ dependencies = [
 
 [[package]]
 name = "tough"
-version = "0.17.1"
+version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8d7a87d51ca5a113542e1b9f5ee2b14b6864bf7f34d103740086fa9c3d57d3b"
+checksum = "0a11e87698820a64152f36682e12017944619631d1a4881aaad532cbd843d5dc"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -4707,9 +4707,9 @@ checksum = "6af6ae20167a9ece4bcb41af5b80f8a1f1df981f6391189ce00fd257af04126a"
 
 [[package]]
 name = "typed-path"
-version = "0.7.1"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "668404597c2c687647f6f8934f97c280fd500db28557f52b07c56b92d3dc500a"
+checksum = "04645b6c01cfb2ddabffc7c67ae6bfe7c3e28a5c37d729f6bb498e784f1fd70c"
 
 [[package]]
 name = "typenum"
