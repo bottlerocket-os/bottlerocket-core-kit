@@ -1,5 +1,5 @@
 Name: %{_cross_os}kmod-6.1-neuron
-Version: 2.16.7.0
+Version: 2.17.17.0
 Release: 1%{?dist}
 Summary: Neuron drivers for the 6.1 kernel
 License: GPL-2.0-only

@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/PhilipHazel/pcre2/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/PhilipHazel/pcre2/releases/download/pcre2-10.43/pcre2-10.43.tar.bz2"
-sha512 = "8ac1520c32e9e5672404aaf6104e23c9ee5c3c28ad28ff101435599d813cbb20e0491a3fd34e012b4411b3e0366a4c6dfa3f02d093acaa6ff0ab25478bb7ade9"
+url = "https://github.com/PhilipHazel/pcre2/releases/download/pcre2-10.44/pcre2-10.44.tar.bz2"
+sha512 = "ee91cc10a2962bc7818b03d368df3dd31f42ea9a7260ae51483ea8cd331b7431e36e63256b0adc213cc6d6741e7c90414fd420622308c0ae3fcb5dd878591be2"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
