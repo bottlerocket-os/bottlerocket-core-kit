@@ -1,0 +1,14 @@
+[Unit]
+Description=AWS OTEL collector
+After=network-online.target configured.target
+Wants=network-online.target configured.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/aws-otel-collector --config /etc/aws-otel-collector.yaml
+KillMode=process
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

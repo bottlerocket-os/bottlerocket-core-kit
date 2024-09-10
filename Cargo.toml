@@ -5,6 +5,7 @@ members = [
   "packages/acpid",
   "packages/amazon-ssm-agent",
   "packages/aws-iam-authenticator",
+  "packages/aws-otel-collector",
   "packages/aws-signing-helper",
   "packages/bash",
   "packages/binutils",

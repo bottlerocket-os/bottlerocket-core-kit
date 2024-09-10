@@ -1,0 +1,24 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 127.0.0.1:4317
+
+processors:
+  batch/traces:
+  batch/metrics:
+
+exporters:
+  otlp:
+    endpoint: 127.0.0.1:4318
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch/traces]
+      exporters: [otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch/metrics]
+      exporters: [otlp]
