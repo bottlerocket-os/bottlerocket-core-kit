@@ -177,6 +177,7 @@ dependencies = [
  "oci-add-hooks",
  "open-vm-tools",
  "os",
+ "pciutils",
  "pigz",
  "policycoreutils",
  "procps",
@@ -954,6 +955,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pciutils"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+]
+
+[[package]]
 name = "pigz"
 version = "0.1.0"
 dependencies = [
@@ -1020,6 +1028,7 @@ dependencies = [
  "nvme-cli",
  "oci-add-hooks",
  "os",
+ "pciutils",
  "policycoreutils",
  "procps",
  "selinux-policy",

@@ -124,6 +124,7 @@ Requires: %{_cross_os}makedumpfile
 Requires: %{_cross_os}mdadm
 Requires: %{_cross_os}netdog
 Requires: %{_cross_os}os
+Requires: %{_cross_os}pciutils
 Requires: %{_cross_os}policycoreutils
 Requires: %{_cross_os}procps
 Requires: %{_cross_os}selinux-policy

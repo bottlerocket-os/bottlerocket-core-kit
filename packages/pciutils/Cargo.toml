@@ -1,0 +1,19 @@
+[package]
+name = "pciutils"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://www.kernel.org/pub/software/utils/pciutils/"
+
+[[package.metadata.build-package.external-files]]
+url = "https://www.kernel.org/pub/software/utils/pciutils/pciutils-3.13.0.tar.gz"
+sha512 = "39cf4141c87c9a39fb42ec7a2412525f4283c62a1d1aa3533eb92bae4c59d3beb9a2ab1a9fcfe89b1f6cb8f0a011ef2f32fbed3111d357ce43d9569b3d0253d9"
+
+[build-dependencies]
+glibc = { path = "../glibc" }

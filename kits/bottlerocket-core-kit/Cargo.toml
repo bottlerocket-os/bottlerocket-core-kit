@@ -117,6 +117,7 @@ nvme-cli = { path = "../../packages/nvme-cli" }
 oci-add-hooks = { path = "../../packages/oci-add-hooks" }
 open-vm-tools = { path = "../../packages/open-vm-tools" }
 os = { path = "../../packages/os" }
+pciutils = { path = "../../packages/pciutils" }
 pigz = { path = "../../packages/pigz" }
 policycoreutils = { path = "../../packages/policycoreutils" }
 procps = { path = "../../packages/procps" }
