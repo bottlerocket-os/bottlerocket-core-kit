@@ -1,3 +1,33 @@
+# v2.5.0 (2024-09-11)
+
+## Build Changes
+* Update tough ([#136])
+* Update bottlerocket-sdk to v0.45.0 ([#131])
+
+## OS Changes
+* Build open source NVIDIA kernel modules ([#118])
+* Update third party packages ([#129], [#143])
+* Split ECS and VPC CNI plugins from ecs-agent ([#85])
+* Add helper functions for ipcidr ([#116])
+* Add aws-otel-collector package ([#50])
+* Add pciutils package ([#142])
+
+## Orchestrator Changes
+
+### Kubernetes
+* Use kubelet-device-plugins API ([#132])
+
+[#50]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/50
+[#85]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/85
+[#116]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/116
+[#118]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/118
+[#129]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/129
+[#131]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/131
+[#132]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/132
+[#136]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/136
+[#142]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/142
+[#143]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/143
+
 # v2.4.1 (2024-09-09)
 
 ## OS Changes
