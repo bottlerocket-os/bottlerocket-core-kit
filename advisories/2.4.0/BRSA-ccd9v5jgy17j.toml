@@ -1,0 +1,24 @@
+[advisory]
+id = "BRSA-ccd9v5jgy17j"
+title = "kernel CVE-2024-27397"
+cve = "CVE-2024-27397"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: netfilter: nf_tables: use timestamp to check for set element timeout"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.224-212.876.amzn2"
+patched-release = "0"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.165-110.161.amzn2"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "vyaghras"
+issue-date = 2024-09-05T19:08:38Z
+arches = ["x86_64", "aarch64"]
+version = "2.4.0"

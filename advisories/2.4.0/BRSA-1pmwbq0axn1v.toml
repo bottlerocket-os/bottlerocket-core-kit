@@ -1,0 +1,24 @@
+[advisory]
+id = "BRSA-1pmwbq0axn1v"
+title = "kernel CVE-2024-43870"
+cve = "CVE-2024-43870"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: perf: Fix event leak upon exit"
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.106-116.188.amzn2023"
+patched-release = "0"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.165-110.161.amzn2"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "vyaghras"
+issue-date = 2024-09-05T19:08:38Z
+arches = ["x86_64", "aarch64"]
+version = "2.4.0"
