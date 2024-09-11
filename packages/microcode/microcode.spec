@@ -3,8 +3,8 @@
 
 # These are specific to the upstream source RPM, and will likely need to be
 # updated for each new version.
-%global amd_ucode_version 20231111
-%global intel_ucode_version 20231114
+%global amd_ucode_version 20240909
+%global intel_ucode_version 20240813
 
 Name: %{_cross_os}microcode
 Version: 0.0
