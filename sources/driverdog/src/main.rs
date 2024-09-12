@@ -5,6 +5,11 @@ driverdog is a tool to link kernel modules at runtime. It uses a toml configurat
 `objects-source`: path where the objects used to link the kernel module are
 `object-files`: hash with the object files to be linked, each object in the map should include the files used to link it
 `kernel-modules`: hash with the kernel modules to be linked, each kernel module in the map should include the files used to link it
+
+There are two modes for driverdog: link then load and copy then load. Link then load takes unlinked files found in `objects-source`
+and matched in `object-files` and `kernel-modules` to link together these files then copy them to `lib-modules-path`. Copy then load
+finds the modules specified in `kernel-modules` and copies them to `lib-modules-path` from the source specified in `copy-source`. Both
+modes iterate over the `kernel-modules` and load them from that path with `modprobe`.
 */
 
 #[macro_use]
@@ -17,7 +22,7 @@ use snafu::{ensure, OptionExt, ResultExt};
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
 /// Path to the drivers configuration to use
@@ -62,8 +67,8 @@ struct Args {
 #[derive(FromArgs, Debug, PartialEq)]
 #[argh(subcommand)]
 enum Subcommand {
-    LinkModules(LinkModulesArgs),
-    LoadModules(LoadModulesArgs),
+    Link(LinkModulesArgs),
+    Load(LoadModulesArgs),
 }
 
 /// Links the kernel modules
@@ -76,17 +81,31 @@ struct LinkModulesArgs {}
 #[argh(subcommand, name = "load-modules")]
 struct LoadModulesArgs {}
 
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+/// Enum to hold the two types of configurations supported
+enum DriverType {
+    Linking(LinkingDriverConfig),
+    Copying(CopyingDriverConfig),
+}
+
 /// Holds the configuration used to link kernel modules
 #[derive(Deserialize, Debug)]
-struct DriverConfig {
+#[serde(rename_all = "kebab-case")]
+struct LinkingDriverConfig {
+    lib_modules_path: String,
+    objects_source: String,
+    kernel_modules: HashMap<String, Linkable>,
+    object_files: HashMap<String, Linkable>,
+}
+
+/// Holds the configuration used to copy kernel modules
+#[derive(Deserialize, Debug)]
+struct CopyingDriverConfig {
     #[serde(rename(deserialize = "lib-modules-path"))]
     lib_modules_path: String,
-    #[serde(rename(deserialize = "objects-source"))]
-    objects_source: String,
     #[serde(rename(deserialize = "kernel-modules"))]
-    kernel_modules: HashMap<String, Linkable>,
-    #[serde(rename(deserialize = "object-files"))]
-    object_files: HashMap<String, Linkable>,
+    kernel_modules: HashMap<String, NonLinkable>,
 }
 
 /// Holds the objects to be linked for the object/kernel module
@@ -96,9 +115,16 @@ struct Linkable {
     link_objects: Vec<String>,
 }
 
+/// Holds the modules to be copied and loaded
+#[derive(Deserialize, Debug)]
+struct NonLinkable {
+    #[serde(rename(deserialize = "copy-source"))]
+    copy_source: PathBuf,
+}
+
 // Links the modules in the modules sets
 fn link_modules_sets(
-    modules_sets: &HashMap<String, DriverConfig>,
+    modules_sets: &HashMap<String, DriverType>,
     target: Option<String>,
 ) -> Result<()> {
     // Get current kernel version
@@ -109,11 +135,17 @@ fn link_modules_sets(
         let driver_config = modules_sets
             .get(&target)
             .context(error::MissingModuleSetSnafu { target })?;
-        link_modules(driver_config, &kernel_version)?;
+        match driver_config {
+            DriverType::Copying(config) => copy_modules(config, &kernel_version)?,
+            DriverType::Linking(config) => link_modules(config, &kernel_version)?,
+        }
     } else {
         // Link all the modules sets if no target module was given
         for driver_config in modules_sets.values() {
-            link_modules(driver_config, &kernel_version)?;
+            match driver_config {
+                DriverType::Copying(config) => copy_modules(config, &kernel_version)?,
+                DriverType::Linking(config) => link_modules(config, &kernel_version)?,
+            }
         }
     }
 
@@ -121,7 +153,7 @@ fn link_modules_sets(
 }
 
 // Links the kernel modules for the given configuration, and for the given kernel version
-fn link_modules<S>(driver_config: &DriverConfig, kernel_version: S) -> Result<()>
+fn link_modules<S>(driver_config: &LinkingDriverConfig, kernel_version: S) -> Result<()>
 where
     S: AsRef<str>,
 {
@@ -144,7 +176,6 @@ where
         link_object_file(name, object_file, &build_dir, &driver_path)?;
     }
 
-    // Next, link the kernel modules
     for (name, kernel_module) in driver_config.kernel_modules.iter() {
         link_kernel_module(
             name,
@@ -276,9 +307,50 @@ where
     Ok(())
 }
 
+/// Copies the kernel modules for the given configuration, and for the given kernel version
+fn copy_modules<S>(driver_config: &CopyingDriverConfig, kernel_version: S) -> Result<()>
+where
+    S: AsRef<str>,
+{
+    let kernel_version = kernel_version.as_ref();
+
+    // Destination for the kernel modules
+    let modules_path = Path::new(LIB_MODULES_PATH)
+        .join(kernel_version)
+        .join(&driver_config.lib_modules_path);
+
+    // Next, copy the kernel modules
+    for (name, module) in driver_config.kernel_modules.iter() {
+        copy_kernel_module(name, &modules_path, &module.copy_source)?;
+    }
+
+    Ok(())
+}
+
+/// Copy the module to the modules path provided
+fn copy_kernel_module<S, P1, P2>(name: S, modules_path: P1, driver_source_path: P2) -> Result<()>
+where
+    S: AsRef<str>,
+    P1: AsRef<Path>,
+    P2: AsRef<Path>,
+{
+    let name = name.as_ref();
+    let driver_path = driver_source_path.as_ref();
+    let modules_path = modules_path.as_ref();
+
+    let source_path = driver_path.join(name);
+    let destination_path = modules_path.join(name);
+    fs::copy(&source_path, &destination_path).context(error::CopySnafu {
+        from: &source_path,
+        to: &destination_path,
+    })?;
+    info!("Copied {}", name);
+    Ok(())
+}
+
 // Loads the modules in the modules sets
 fn load_modules_sets(
-    modules_sets: &HashMap<String, DriverConfig>,
+    modules_sets: &HashMap<String, DriverType>,
     target: Option<String>,
 ) -> Result<()> {
     // Update the modules.dep before we attempt to load kernel modules
@@ -291,22 +363,31 @@ fn load_modules_sets(
         let driver_config = modules_sets
             .get(&target)
             .context(error::MissingModuleSetSnafu { target })?;
+
         load_modules(driver_config)?
-    }
-    // Load all the modules sets if no target module was given
-    for driver_config in modules_sets.values() {
-        load_modules(driver_config)?;
+    } else {
+        // Load all the modules sets if no target module was given
+        for driver_config in modules_sets.values() {
+            load_modules(driver_config)?;
+        }
     }
 
     Ok(())
 }
 
-fn load_modules(driver_config: &DriverConfig) -> Result<()> {
-    let mut kernel_modules: Vec<String> = driver_config
-        .kernel_modules
-        .keys()
-        .map(|k| k.split('.').collect::<Vec<&str>>()[0].to_string())
-        .collect();
+fn load_modules(driver_config: &DriverType) -> Result<()> {
+    let mut kernel_modules: Vec<String> = match driver_config {
+        DriverType::Copying(config) => config
+            .kernel_modules
+            .keys()
+            .map(|k| k.split('.').collect::<Vec<&str>>()[0].to_string())
+            .collect(),
+        DriverType::Linking(config) => config
+            .kernel_modules
+            .keys()
+            .map(|k| k.split('.').collect::<Vec<&str>>()[0].to_string())
+            .collect(),
+    };
 
     // Load kernel modules
     let mut args = vec!["-a".to_string()];
@@ -355,7 +436,7 @@ fn run() -> Result<()> {
     let args: Args = argh::from_env();
     setup_logger(&args)?;
     let driver_config_path = Path::new(&args.driver_config_path);
-    let mut all_modules_sets: HashMap<String, DriverConfig> = HashMap::new();
+    let mut all_modules_sets: HashMap<String, DriverType> = HashMap::new();
 
     for entry in (driver_config_path
         .read_dir()
@@ -365,7 +446,7 @@ fn run() -> Result<()> {
     .flatten()
     {
         let path = entry.path();
-        let modules_sets: HashMap<String, DriverConfig> = toml::from_str(
+        let modules_sets: HashMap<String, DriverType> = toml::from_str(
             &fs::read_to_string(&path).context(error::ReadPathSnafu { path: &path })?,
         )
         .context(error::DeserializeSnafu { path: &path })?;
@@ -374,8 +455,8 @@ fn run() -> Result<()> {
     }
 
     match args.subcommand {
-        Subcommand::LinkModules(_) => link_modules_sets(&all_modules_sets, args.modules_set),
-        Subcommand::LoadModules(_) => load_modules_sets(&all_modules_sets, args.modules_set),
+        Subcommand::Link(_) => link_modules_sets(&all_modules_sets, args.modules_set),
+        Subcommand::Load(_) => load_modules_sets(&all_modules_sets, args.modules_set),
     }
 }
 
@@ -439,3 +520,104 @@ mod error {
 }
 
 type Result<T> = std::result::Result<T, error::Error>;
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::path::PathBuf;
+    use walkdir::WalkDir;
+
+    fn test_data() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/tests")
+    }
+
+    #[test]
+    fn parse_linking_config() {
+        let driver_config_path = test_data();
+
+        let linking_path = driver_config_path.join("linking.conf");
+        let modules_sets: HashMap<String, DriverType> = toml::from_str(
+            &fs::read_to_string(&linking_path)
+                .context(error::ReadPathSnafu {
+                    path: &linking_path,
+                })
+                .unwrap(),
+        )
+        .context(error::DeserializeSnafu {
+            path: &linking_path,
+        })
+        .unwrap();
+        for (name, driver) in modules_sets {
+            assert_eq!(name, "linking-driver");
+            assert!(matches!(driver, DriverType::Linking { .. }));
+            match driver {
+                DriverType::Copying(_) => panic!("Wrong type of driver configuration found"),
+                DriverType::Linking(config) => {
+                    assert_eq!(config.object_files.len(), 2);
+                    assert_eq!(
+                        config.objects_source,
+                        "/usr/share/linking/module-objects.d/"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn parse_copying_config() {
+        let driver_config_path = test_data();
+
+        let copying_path = driver_config_path.join("copying.conf");
+        let modules_sets: HashMap<String, DriverType> = toml::from_str(
+            &fs::read_to_string(&copying_path)
+                .context(error::ReadPathSnafu {
+                    path: &copying_path,
+                })
+                .unwrap(),
+        )
+        .context(error::DeserializeSnafu {
+            path: &copying_path,
+        })
+        .unwrap();
+        let intended_copy_source = Path::new("/usr/share/factory/copying-driver");
+        for (name, driver) in modules_sets {
+            assert_eq!(name, "copying-driver");
+            assert!(matches!(driver, DriverType::Copying { .. }));
+            match driver {
+                DriverType::Linking(_) => panic!("Wrong type of driver configuration found"),
+                DriverType::Copying(config) => {
+                    for (_name, module) in config.kernel_modules.iter() {
+                        assert_eq!(module.copy_source, intended_copy_source);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn parse_invalid_config() {
+        let driver_config_path = test_data();
+
+        let invalid_files_path = driver_config_path.join("invalid");
+
+        // iterate over all .conf files in invalid/ directory
+        for invalid in WalkDir::new(invalid_files_path)
+            .into_iter()
+            .filter_map(|file| file.ok())
+            .filter(|e| e.file_name().to_string_lossy().ends_with(".conf"))
+        {
+            let invalid_path = &invalid.path();
+            let modules_sets: Result<HashMap<String, DriverType>> = toml::from_str(
+                &fs::read_to_string(&invalid_path)
+                    .context(error::ReadPathSnafu {
+                        path: &invalid_path,
+                    })
+                    .unwrap(),
+            )
+            .context(error::DeserializeSnafu {
+                path: &invalid_path,
+            });
+            assert!(modules_sets.is_err());
+        }
+    }
+}
