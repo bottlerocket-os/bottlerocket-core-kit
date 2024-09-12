@@ -255,3 +255,57 @@
 [#21]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/21
 [#22]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/22
 [#23]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/23
+
+# v2.0.0 (2024-06-20)
+
+## Kit Features
+
+* Move code to core kit ([#1])
+* Use Bottlerocket Settings SDK for settings models ([#7])
+
+## OS Changes
+
+* Add mdadm packages for software RAID ([#4035]) - Thanks tzneal!
+* Update kernels: 5.10.217, 5.15.156, and 6.1.92([#4049],[#4039], [#4005], [#3972], [#3976])
+* Update containerd to 1.7.17 ([#4016])
+
+## Build Changes
+
+* Change pluto to act more like a settings generator ([#4032])
+* Update pluto for kits and Out of Tree Builds ([#3828])
+* Remove API Client dependency on the Settings model ([#3987])
+* Create CloudFormation settings extension ([#4010])
+* Add symlink to latest version for amazon-ssm-agent ([#3986])
+* Prepare os package for build system changes ([#4006])
+* Move to DNS settings extension ([#3980])
+* Move to OCI Hooks Settings Extension ([#3978])
+* Add Metrics Settings Extension ([#3963])
+* Move to PKI Settings Extension ([#3971])
+* Remove metadata migration ([#3958])
+* Remove version from makefile ([#4])
+* Improve cache behavior ([#6])
+* Twoliter updates ([#8])
+
+[#1]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1
+[#4]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/4
+[#6]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/6
+[#7]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/7
+[#8]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/8
+[#3828]: https://github.com/bottlerocket-os/bottlerocket/pull/3828
+[#3958]: https://github.com/bottlerocket-os/bottlerocket/pull/3958
+[#3963]: https://github.com/bottlerocket-os/bottlerocket/pull/3963
+[#3971]: https://github.com/bottlerocket-os/bottlerocket/pull/3971
+[#3972]: https://github.com/bottlerocket-os/bottlerocket/pull/3972
+[#3976]: https://github.com/bottlerocket-os/bottlerocket/pull/3976
+[#3978]: https://github.com/bottlerocket-os/bottlerocket/pull/3978
+[#3980]: https://github.com/bottlerocket-os/bottlerocket/pull/3980
+[#3987]: https://github.com/bottlerocket-os/bottlerocket/pull/3987
+[#3986]: https://github.com/bottlerocket-os/bottlerocket/pull/3986
+[#4005]: https://github.com/bottlerocket-os/bottlerocket/pull/4005
+[#4006]: https://github.com/bottlerocket-os/bottlerocket/pull/4006
+[#4010]: https://github.com/bottlerocket-os/bottlerocket/pull/4010
+[#4016]: https://github.com/bottlerocket-os/bottlerocket/pull/4016
+[#4032]: https://github.com/bottlerocket-os/bottlerocket/pull/4032
+[#4035]: https://github.com/bottlerocket-os/bottlerocket/pull/4035
+[#4039]: https://github.com/bottlerocket-os/bottlerocket/pull/4039
+[#4049]: https://github.com/bottlerocket-os/bottlerocket/pull/4049
