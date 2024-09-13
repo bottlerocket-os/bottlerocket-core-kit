@@ -11,6 +11,7 @@ source-groups = [
     "bottlerocket-release",
     "metricdog",
     "parse-datetime",
+    "pciclient",
     "ghostdog",
     "updater",
     "logdog",
