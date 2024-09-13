@@ -2149,6 +2149,7 @@ dependencies = [
  "gptman",
  "hex-literal",
  "lazy_static",
+ "pciclient",
  "signpost",
  "snafu",
 ]

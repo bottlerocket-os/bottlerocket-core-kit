@@ -13,6 +13,7 @@ argh.workspace = true
 gptman.workspace = true
 hex-literal.workspace = true
 lazy_static.workspace = true
+pciclient.workspace = true
 signpost.workspace = true
 snafu.workspace = true
 

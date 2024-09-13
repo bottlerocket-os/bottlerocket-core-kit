@@ -1,6 +1,7 @@
 /*!
 ghostdog is a tool to manage ephemeral disks.
 It can be called as a udev helper program to identify ephemeral disks.
+It can also be called for EFA device detection which can be used for ExecCondition in systemd units.
 */
 
 use argh::FromArgs;
@@ -30,7 +31,13 @@ struct Args {
 enum SubCommand {
     Scan(ScanArgs),
     EbsDeviceName(EbsDeviceNameArgs),
+    EfaPresent(EfaPresentArgs),
 }
+
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "efa-present")]
+/// Detect if EFA devices are attached.
+struct EfaPresentArgs {}
 
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand, name = "scan")]
@@ -63,8 +70,19 @@ fn run() -> Result<()> {
             let device_name = find_device_name(format!("{}", path.display()))?;
             emit_device_name(&device_name);
         }
+        SubCommand::EfaPresent(_) => {
+            is_efa_attached()?;
+        }
     }
     Ok(())
+}
+
+fn is_efa_attached() -> Result<()> {
+    if pciclient::is_efa_attached().context(error::CheckEfaFailureSnafu)? {
+        Ok(())
+    } else {
+        Err(error::Error::NoEfaPresent)
+    }
 }
 
 /// Find the device type by examining the partition table, if present.
@@ -176,6 +194,10 @@ mod error {
         },
         #[snafu(display("Invalid device info for device '{}'", path.display()))]
         InvalidDeviceInfo { path: std::path::PathBuf },
+        #[snafu(display("Failed to check if EFA device is attached: {}", source))]
+        CheckEfaFailure { source: pciclient::PciClientError },
+        #[snafu(display("Did not detect EFA"))]
+        NoEfaPresent,
     }
 }
 
