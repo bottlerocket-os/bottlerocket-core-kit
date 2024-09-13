@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-d6axl1fngcgo"
+title = "runc CVE-2024-45310"
+cve = "CVE-2024-45310"
+severity = "low"
+description = "A flaw was found in runc which could allow for the creation of empty files or directories in arbitrary locations in the host filesystem by sharing a volume between two containers, which could lead to a denial of service."
+
+[[advisory.products]]
+package-name = "runc"
+patched-version = "1.1.14"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-09-05T19:08:38Z
+arches = ["x86_64", "aarch64"]
+version = "2.4.0"
