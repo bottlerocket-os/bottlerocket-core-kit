@@ -7,6 +7,8 @@ It sets kernel-related settings, for example:
 * sysctl values, based on key/value pairs in `settings.kernel.sysctl`
 * lockdown mode, based on the value of `settings.kernel.lockdown`
 
+corndog also provides a settings generator for hugepages, subcommand "generate-hugepages-setting".
+
 ## Colophon
 
 This text was generated from `README.tpl` using [cargo-readme](https://crates.io/crates/cargo-readme), and includes the rustdoc from `src/main.rs`.

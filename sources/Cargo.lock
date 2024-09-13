@@ -1553,10 +1553,13 @@ dependencies = [
  "bottlerocket-modeled-types",
  "generate-readme",
  "log",
+ "num_cpus",
+ "pciclient",
  "serde",
  "serde_json",
  "simplelog",
  "snafu",
+ "test-case",
  "toml",
 ]
 
