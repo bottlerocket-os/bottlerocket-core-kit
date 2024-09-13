@@ -5,9 +5,18 @@ TWOLITER := $(TWOLITER_DIR)/twoliter
 CARGO_HOME := $(TOP).cargo
 
 TWOLITER_VERSION ?= "0.4.5"
+TWOLITER_SHA256_AARCH64 ?= "799103bcc00e1daf931e11eb58630ca7c4d93c14752c3f4dcf25594759e3c3e7"
+TWOLITER_SHA256_X86_64 ?= "b0cd35c0a1257fc98992821eb5ea7a96c021dba166ee2b9d04449b9206b3d941"
 KIT ?= bottlerocket-core-kit
 ARCH ?= $(shell uname -m)
 VENDOR ?= bottlerocket
+
+ifeq ($(ARCH), aarch64)
+	TWOLITER_SHA256=$(TWOLITER_SHA256_AARCH64)
+else
+	TWOLITER_SHA256=$(TWOLITER_SHA256_X86_64)
+endif
+
 
 export GO_MODULES = ecs-gpu-init host-ctr
 
@@ -21,7 +30,7 @@ prep:
 		--version v$(TWOLITER_VERSION) \
 		--directory $(TWOLITER_DIR) \
 		--reuse-existing-install \
-		--allow-binary-install \
+		--allow-binary-install $(TWOLITER_SHA256) \
 		--allow-from-source
 
 update: prep
