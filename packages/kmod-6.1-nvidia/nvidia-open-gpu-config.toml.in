@@ -1,0 +1,11 @@
+[nvidia-open-gpu]
+lib-modules-path = "kernel/drivers/extra/video/nvidia/open-gpu"
+
+[nvidia-open-gpu.kernel-modules."nvidia.ko"]
+copy-source = "__NVIDIA_MODULES__"
+
+[nvidia-open-gpu.kernel-modules."nvidia-modeset.ko"]
+copy-source = "__NVIDIA_MODULES__"
+
+[nvidia-open-gpu.kernel-modules."nvidia-uvm.ko"]
+copy-source = "__NVIDIA_MODULES__"
