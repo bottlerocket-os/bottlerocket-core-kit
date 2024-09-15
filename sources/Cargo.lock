@@ -2150,6 +2150,8 @@ dependencies = [
  "hex-literal",
  "lazy_static",
  "pciclient",
+ "serde",
+ "serde_json",
  "signpost",
  "snafu",
 ]
