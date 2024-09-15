@@ -1,0 +1,8 @@
+[nvidia-open-gpu-copy-only]
+lib-modules-path = "kernel/drivers/extra/video/nvidia/open-gpu"
+
+[nvidia-open-gpu-copy-only.kernel-modules."nvidia-drm.ko"]
+copy-source = "__NVIDIA_MODULES__"
+
+[nvidia-open-gpu-copy-only.kernel-modules."nvidia-peermem.ko"]
+copy-source = "__NVIDIA_MODULES__"

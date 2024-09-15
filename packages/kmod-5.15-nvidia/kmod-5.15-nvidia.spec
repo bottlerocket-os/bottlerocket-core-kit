@@ -44,8 +44,10 @@ Source204: nvidia-fabricmanager.cfg
 # NVIDIA tesla conf files from 300 to 399
 Source300: nvidia-tesla-tmpfiles.conf
 Source301: nvidia-tesla-build-config.toml.in
-Source302: nvidia-tesla-path.env.in
-Source303: nvidia-ld.so.conf.in
+Source302: nvidia-open-gpu-config.toml.in
+Source303: nvidia-open-gpu-copy-only-config.toml.in
+Source304: nvidia-tesla-path.env.in
+Source305: nvidia-ld.so.conf.in
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}kernel-5.15-archive
@@ -141,9 +143,24 @@ popd
 
 # Grab the list of supported devices
 pushd NVIDIA-Linux-%{_cross_arch}-%{tesla_ver}/supported-gpus
-jq -r '.chips[] | select(.features[] | contains("kernelopen"))' supported-gpus.json | jq -s '{"open-gpu": .}' > open-gpu-supported-devices.json
-# confirm "NVIDIA A10G" is in the resulting file to catch shape changes
-jq -e '."open-gpu"[] | select(."devid" == "0x2237") | ."features"| index("kernelopen")' open-gpu-supported-devices.json
+# We want to grab all the `kernelopen` enabled chips except for this list that is best held back to the proprietary driver
+# 10de:1db1 is V100-16G (P3dn)
+# 10de:1db5 is V100-32G (P3dn)
+# 10de:1eb8 is T4 (G4dn)
+# 10de:1eb4 is T4G (G5g)
+# 10de:2237 is A10G (G5)
+# 10de:27b8 is L4 (G6)
+# 10de:26b9 is L40S (G6e)
+jq -r '.chips[] | select(.features[] | contains("kernelopen")) |
+select(.devid != "0x1DB1"
+and .devid != "0x1DB5"
+and .devid != "0x1DEB8"
+and .devid != "0x1EB4"
+and .devid != "0x2237"
+and .devid != "0x27B8"
+and .devid != "0x26B9")' supported-gpus.json | jq -s '{"open-gpu": .}' > open-gpu-supported-devices.json
+# confirm "NVIDIA H100" is in the resulting file to catch shape changes
+jq -e '."open-gpu"[] | select(."devid" == "0x2330") | ."features"| index("kernelopen")' open-gpu-supported-devices.json
 popd
 
 %install
@@ -182,15 +199,21 @@ install -m 0644 %{S:300} %{buildroot}%{_cross_tmpfilesdir}/nvidia-tesla.conf
 sed -e 's|__NVIDIA_MODULES__|%{_cross_datadir}/nvidia/tesla/module-objects.d/|' %{S:301} > \
   nvidia-tesla.toml
 install -m 0644 nvidia-tesla.toml %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/drivers
+sed -e 's|__NVIDIA_MODULES__|%{_cross_datadir}/nvidia/open-gpu/drivers/|' %{S:302} > \
+  nvidia-open-gpu.toml
+install -m 0644 nvidia-open-gpu.toml %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/drivers
+sed -e 's|__NVIDIA_MODULES__|%{_cross_datadir}/nvidia/open-gpu/drivers/|' %{S:303} > \
+  nvidia-open-gpu-copy-only.toml
+install -m 0644 nvidia-open-gpu-copy-only.toml %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/drivers
 # Install nvidia-path environment file, will be used as a drop-in for containerd.service since
 # libnvidia-container locates and mounts helper binaries into the containers from either
 # `PATH` or `NVIDIA_PATH`
-sed -e 's|__NVIDIA_BINDIR__|%{_cross_libexecdir}/nvidia/tesla/bin|' %{S:302} > nvidia-path.env
+sed -e 's|__NVIDIA_BINDIR__|%{_cross_libexecdir}/nvidia/tesla/bin|' %{S:304} > nvidia-path.env
 install -m 0644 nvidia-path.env %{buildroot}%{_cross_factorydir}/nvidia/tesla
 # We need to add `_cross_libdir` to the paths loaded by the ldconfig service
 # because libnvidia-container uses the `ldcache` file created by the service, to locate and mount the
 # libraries into the containers
-sed -e 's|__LIBDIR__|%{_cross_libdir}|' %{S:303} > nvidia-tesla.conf
+sed -e 's|__LIBDIR__|%{_cross_libdir}|' %{S:305} > nvidia-tesla.conf
 install -m 0644 nvidia-tesla.conf %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/ld.so.conf.d/
 
 # proprietary driver
@@ -315,6 +338,8 @@ popd
 
 # Configuration files
 %{_cross_factorydir}%{_cross_sysconfdir}/drivers/nvidia-tesla.toml
+%{_cross_factorydir}%{_cross_sysconfdir}/drivers/nvidia-open-gpu.toml
+%{_cross_factorydir}%{_cross_sysconfdir}/drivers/nvidia-open-gpu-copy-only.toml
 %{_cross_factorydir}%{_cross_sysconfdir}/ld.so.conf.d/nvidia-tesla.conf
 %{_cross_factorydir}/nvidia/tesla/nvidia-path.env
 %{_cross_datadir}/nvidia/open-gpu-supported-devices.json
