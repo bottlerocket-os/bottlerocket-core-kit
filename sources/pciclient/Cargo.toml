@@ -1,0 +1,23 @@
+[package]
+name = "pciclient"
+version = "0.1.0"
+authors = ["Yutong Sun <yutongsu@amazon.com>"]
+license = "Apache-2.0 OR MIT"
+edition = "2021"
+publish = false
+build = "build.rs"
+# Don't rebuild crate just because of changes to README.
+exclude = ["README.md"]
+
+[dependencies]
+bon.workspace = true
+derive-getters.workspace = true
+log.workspace = true
+serde_json.workspace = true
+snafu.workspace = true
+
+[build-dependencies]
+generate-readme.workspace = true
+
+[dev-dependencies]
+test-case.workspace = true
