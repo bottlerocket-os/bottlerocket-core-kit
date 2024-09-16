@@ -1,13 +1,13 @@
 %global debug_package %{nil}
 
 Name: %{_cross_os}kernel-6.1
-Version: 6.1.106
+Version: 6.1.109
 Release: 1%{?dist}
 Summary: The Linux kernel
 License: GPL-2.0 WITH Linux-syscall-note
 URL: https://www.kernel.org/
 # Use latest-srpm-url.sh to get this.
-Source0: https://cdn.amazonlinux.com/al2023/blobstore/f578e84fd35abf2a86cbe79936f7d773eed3ca0202ac5fa049cf01879ce9bbe3/kernel-6.1.106-116.188.amzn2023.src.rpm
+Source0: https://cdn.amazonlinux.com/al2023/blobstore/60b1be96cb0d00c8998e26b855b51b54e1cc82a655bb47a1d4f51c5ffbdd3148/kernel-6.1.109-118.189.amzn2023.src.rpm
 Source100: config-bottlerocket
 
 # This list of FIPS modules is extracted from /etc/fipsmodules in the initramfs
@@ -376,7 +376,6 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/System.map
 
 %if "%{_cross_arch}" == "x86_64"
-%{_cross_kmoddir}/kernel/arch/x86/crypto/aesni-intel.ko.*
 %{_cross_kmoddir}/kernel/arch/x86/crypto/blowfish-x86_64.ko.*
 %{_cross_kmoddir}/kernel/arch/x86/crypto/camellia-aesni-avx2.ko.*
 %{_cross_kmoddir}/kernel/arch/x86/crypto/camellia-aesni-avx-x86_64.ko.*
@@ -451,7 +450,6 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/kernel/crypto/chacha_generic.ko.*
 %{_cross_kmoddir}/kernel/crypto/cmac.ko.*
 %{_cross_kmoddir}/kernel/crypto/crc32_generic.ko.*
-%{_cross_kmoddir}/kernel/crypto/cryptd.ko.*
 %{_cross_kmoddir}/kernel/crypto/crypto_user.ko.*
 %{_cross_kmoddir}/kernel/crypto/cts.ko.*
 %{_cross_kmoddir}/kernel/crypto/des_generic.ko.*
@@ -485,12 +483,10 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/kernel/crypto/xts.ko.*
 %{_cross_kmoddir}/kernel/crypto/xxhash_generic.ko.*
 %{_cross_kmoddir}/kernel/crypto/zstd.ko.*
-%if "%{_cross_arch}" == "x86_64"
-%{_cross_kmoddir}/kernel/crypto/crypto_simd.ko.*
-%endif
 %if "%{_cross_arch}" == "aarch64"
 %{_cross_kmoddir}/kernel/crypto/sm3.ko.*
 %{_cross_kmoddir}/kernel/crypto/sm4.ko.*
+%{_cross_kmoddir}/kernel/crypto/cryptd.ko.*
 %endif
 %{_cross_kmoddir}/kernel/drivers/acpi/ac.ko.*
 %{_cross_kmoddir}/kernel/drivers/acpi/button.ko.*
@@ -702,6 +698,7 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/kernel/drivers/pci/hotplug/acpiphp_ibm.ko.*
 %{_cross_kmoddir}/kernel/drivers/pci/pci-stub.ko.*
 %if "%{_cross_arch}" == "x86_64"
+%{_cross_kmoddir}/kernel/drivers/pci/controller/pci-hyperv-intf.ko.*
 %{_cross_kmoddir}/kernel/drivers/pci/hotplug/cpcihp_generic.ko.*
 %{_cross_kmoddir}/kernel/drivers/platform/x86/wmi-bmof.ko.*
 %{_cross_kmoddir}/kernel/drivers/platform/x86/wmi.ko.*
@@ -783,6 +780,7 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/kernel/drivers/usb/usbip/usbip-core.ko.*
 %{_cross_kmoddir}/kernel/drivers/usb/usbip/usbip-host.ko.*
 %{_cross_kmoddir}/kernel/drivers/usb/usbip/vhci-hcd.ko.*
+%{_cross_kmoddir}/kernel/drivers/vfio/pci/mlx5/mlx5-vfio-pci.ko.*
 %{_cross_kmoddir}/kernel/drivers/vfio/pci/vfio-pci-core.ko.*
 %{_cross_kmoddir}/kernel/drivers/vfio/pci/vfio-pci.ko.*
 %{_cross_kmoddir}/kernel/drivers/vfio/vfio_iommu_type1.ko.*
