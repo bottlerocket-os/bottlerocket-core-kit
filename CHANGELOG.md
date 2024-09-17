@@ -1,3 +1,18 @@
+# v2.6.0 (2024-09-17)
+
+## Build Changes
+* Validate `twoliter` upon install ([#147])
+
+## OS Changes
+* Add the ability for driverdog to copy modules ([#119])
+* Add pciclient crate for high level access to `lspci` ([#149])
+* Update 6.1 kernel to 6.1.109 ([#151])
+
+[#119]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/119
+[#147]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/147
+[#149]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/149
+[#151]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/151
+
 # v2.5.0 (2024-09-11)
 
 ## Build Changes
