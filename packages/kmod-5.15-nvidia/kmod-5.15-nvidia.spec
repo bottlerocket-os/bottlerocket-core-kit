@@ -48,6 +48,10 @@ Source302: nvidia-open-gpu-config.toml.in
 Source303: nvidia-open-gpu-copy-only-config.toml.in
 Source304: nvidia-tesla-path.env.in
 Source305: nvidia-ld.so.conf.in
+Source306: link-tesla-kernel-modules.service.in
+Source307: load-tesla-kernel-modules.service.in
+Source308: copy-open-gpu-kernel-modules.service.in
+Source309: load-open-gpu-kernel-modules.service.in
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}kernel-5.15-archive
@@ -216,6 +220,21 @@ install -m 0644 nvidia-path.env %{buildroot}%{_cross_factorydir}/nvidia/tesla
 sed -e 's|__LIBDIR__|%{_cross_libdir}|' %{S:305} > nvidia-tesla.conf
 install -m 0644 nvidia-tesla.conf %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/ld.so.conf.d/
 
+# Services to link/copy/load modules
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:306} > link-tesla-kernel-modules.service
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:307} > load-tesla-kernel-modules.service
+install -p -m 0644 \
+  link-tesla-kernel-modules.service \
+  load-tesla-kernel-modules.service \
+  %{buildroot}%{_cross_unitdir}
+
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:308} > copy-open-gpu-kernel-modules.service
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:309} > load-open-gpu-kernel-modules.service
+install -p -m 0644 \
+  copy-open-gpu-kernel-modules.service \
+  load-open-gpu-kernel-modules.service \
+  %{buildroot}%{_cross_unitdir}
+
 # proprietary driver
 install kernel/nvidia.mod.o %{buildroot}%{_cross_datadir}/nvidia/tesla/module-objects.d
 install kernel/nvidia/nv-interface.o %{buildroot}%{_cross_datadir}/nvidia/tesla/module-objects.d
@@ -322,6 +341,12 @@ popd
 %dir %{_cross_libdir}/firmware/nvidia/%{tesla_ver}
 %dir %{_cross_datadir}/nvidia/tesla/module-objects.d
 %dir %{_cross_factorydir}/nvidia/tesla
+
+# Service files for link/copy/loading drivers
+%{_cross_unitdir}/link-tesla-kernel-modules.service
+%{_cross_unitdir}/load-tesla-kernel-modules.service
+%{_cross_unitdir}/copy-open-gpu-kernel-modules.service
+%{_cross_unitdir}/load-open-gpu-kernel-modules.service
 
 # Binaries
 %{_cross_libexecdir}/nvidia/tesla/bin/nvidia-debugdump
