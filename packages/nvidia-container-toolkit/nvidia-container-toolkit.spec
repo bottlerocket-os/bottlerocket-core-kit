@@ -58,6 +58,7 @@ export GOLDFLAGS="-compressdwarf=false -linkmode=external -extldflags '${CGO_LDF
 
 go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime-hook ./cmd/nvidia-container-runtime-hook
 go build -ldflags="${GOLDFLAGS}" -o nvidia-ctk ./cmd/nvidia-ctk
+go build -ldflags="${GOLDFLAGS}" -o nvidia-cdi-hook ./cmd/nvidia-cdi-hook
 
 %install
 install -d %{buildroot}%{_cross_bindir}
@@ -69,6 +70,7 @@ install -d %{buildroot}%{_cross_factorydir}/nvidia-container-runtime
 install -d %{buildroot}%{_cross_templatedir}/nvidia-container-runtime
 install -p -m 0755 nvidia-container-runtime-hook %{buildroot}%{_cross_bindir}/
 install -p -m 0755 nvidia-ctk %{buildroot}%{_cross_bindir}/
+install -p -m 0755 nvidia-cdi-hook %{buildroot}%{_cross_bindir}/
 install -m 0644 %{S:1} %{buildroot}%{_cross_factorydir}/nvidia-container-runtime/
 install -m 0644 %{S:2} %{buildroot}%{_cross_factorydir}/nvidia-container-runtime/
 install -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/nvidia-oci-hooks-json
@@ -83,6 +85,7 @@ ln -s shimpei %{buildroot}%{_cross_bindir}/nvidia-oci
 %{_cross_attribution_file}
 %{_cross_bindir}/nvidia-container-runtime-hook
 %{_cross_bindir}/nvidia-ctk
+%{_cross_bindir}/nvidia-cdi-hook
 %{_cross_bindir}/nvidia-oci
 %{_cross_templatedir}/nvidia-oci-hooks-json
 %{_cross_udevrulesdir}/90-nvidia-gpu-devices.rules
