@@ -1553,10 +1553,13 @@ dependencies = [
  "bottlerocket-modeled-types",
  "generate-readme",
  "log",
+ "num_cpus",
+ "pciclient",
  "serde",
  "serde_json",
  "simplelog",
  "snafu",
+ "test-case",
  "toml",
 ]
 
@@ -2146,6 +2149,7 @@ dependencies = [
  "gptman",
  "hex-literal",
  "lazy_static",
+ "pciclient",
  "signpost",
  "snafu",
 ]
@@ -3572,6 +3576,7 @@ dependencies = [
  "maplit",
  "models",
  "num_cpus",
+ "pciclient",
  "percent-encoding",
  "pest",
  "pest_derive",

@@ -29,6 +29,7 @@ log.workspace = true
 maplit.workspace = true
 models.workspace = true
 num_cpus.workspace = true
+pciclient.workspace = true
 percent-encoding.workspace = true
 pest.workspace = true
 pest_derive.workspace = true

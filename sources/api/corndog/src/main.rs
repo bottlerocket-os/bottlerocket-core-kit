@@ -3,6 +3,8 @@ corndog is a delicious way to get at the meat inside the kernels.
 It sets kernel-related settings, for example:
 * sysctl values, based on key/value pairs in `settings.kernel.sysctl`
 * lockdown mode, based on the value of `settings.kernel.lockdown`
+
+corndog also provides a settings generator for hugepages, subcommand "generate-hugepages-setting".
 */
 
 use bottlerocket_modeled_types::{Lockdown, SysctlKey};
@@ -20,6 +22,10 @@ use std::{env, process};
 const SYSCTL_PATH_PREFIX: &str = "/proc/sys";
 const LOCKDOWN_PATH: &str = "/sys/kernel/security/lockdown";
 const DEFAULT_CONFIG_PATH: &str = "/etc/corndog.toml";
+const NR_HUGEPAGES_PATH_SYSCTL: &str = "/proc/sys/vm/nr_hugepages";
+/// Number of hugepages we will assign per core.
+/// See [`compute_hugepages_for_efa`] for more detail on the computation consideration.
+const HUGEPAGES_2MB_PER_CORE: u64 = 110;
 
 /// Store the args we receive on the command line.
 struct Args {
@@ -45,19 +51,29 @@ fn run() -> Result<()> {
     SimpleLogger::init(args.log_level, LogConfig::default()).context(error::LoggerSnafu)?;
 
     // If the user has kernel settings, apply them.
-    let kernel = get_kernel_settings(args.config_path)?;
     match args.subcommand.as_ref() {
         "sysctl" => {
+            let kernel = get_kernel_settings(args.config_path)?;
             if let Some(sysctls) = kernel.sysctl {
                 debug!("Applying sysctls: {:#?}", sysctls);
                 set_sysctls(sysctls);
             }
         }
         "lockdown" => {
+            let kernel = get_kernel_settings(args.config_path)?;
             if let Some(lockdown) = kernel.lockdown {
                 debug!("Setting lockdown: {:#?}", lockdown);
                 set_lockdown(&lockdown)?;
             }
+        }
+        "generate-hugepages-setting" => {
+            let hugepages_setting = generate_hugepages_setting()?;
+            // We will only fail if we cannot serialize the output to JSON string.
+            // sundog expects JSON-serialized output so that many types can be represented, allowing the
+            // API model to use more accurate types.
+            let output =
+                serde_json::to_string(&hugepages_setting).context(error::SerializeJsonSnafu)?;
+            println!("{}", output);
         }
         _ => usage_msg(format!("Unknown subcommand '{}'", args.subcommand)), // should be unreachable
     }
@@ -105,6 +121,55 @@ where
             error!("Failed to write sysctl value '{}': {}", key, e);
         }
     }
+}
+
+/// Generate the hugepages setting for defaults.
+fn generate_hugepages_setting() -> Result<String> {
+    // Check if customer has directly written to the nr_hugepage file.
+    let mut hugepages = fs::read_to_string(NR_HUGEPAGES_PATH_SYSCTL)
+        .map(check_for_existing_hugepages)
+        .unwrap_or("0".to_string());
+
+    // Check for EFA and compute if necessary, only when hugepages is "0".
+    if &hugepages == "0" && pciclient::is_efa_attached().unwrap_or(false) {
+        // We will use [`num_cpus`] to get the number of cores for the compute.
+        hugepages = compute_hugepages_for_efa(num_cpus::get());
+    }
+    Ok(hugepages)
+}
+
+// Check if customer has directly written to the nr_hugepage file.
+//
+// This would be a rare case to hit, as customer would normally modify the hugepages value
+// via settings API. (It could happen with a custom variant if hugepages
+// are set via a sysctl.d drop-in, for example.)
+//
+// We expect the existing_hugepages_value to be valid numeric digits. Otherwise, we will
+// use "0" as default.
+fn check_for_existing_hugepages(existing_hugepages_value: String) -> String {
+    match existing_hugepages_value.trim().parse::<u64>() {
+        Ok(value) => {
+            return value.to_string();
+        }
+        Err(err) => {
+            warn!(
+                "Failed to parse the existing hugepage value, using 0 as default. Error: {}",
+                err
+            );
+        }
+    }
+    "0".to_string()
+}
+
+/// Computation:
+/// - We need to allocate 110MB memory for each libfabric endpoint.
+/// - For optimal setup, Open MPI will open 2 libfabric endpoints each core.
+/// - The total number of hugepages will be set as (110MB * 2) * number_of_cores / hugepage_size
+/// - We will allocate default hugepage_size = 2MB.
+/// - The number of hugepage per core would be 110MB * 2 / 2MB = 110.
+fn compute_hugepages_for_efa(num_cores: usize) -> String {
+    let number_of_hugepages = num_cores as u64 * HUGEPAGES_2MB_PER_CORE;
+    number_of_hugepages.to_string()
 }
 
 /// Sets the requested lockdown mode in the kernel.
@@ -165,6 +230,7 @@ fn usage() -> ! {
     Subcommands:
         sysctl
         lockdown
+        generate-hugepages-setting
 
     Global arguments:
         --config-path PATH
@@ -207,7 +273,7 @@ fn parse_args(args: env::Args) -> Args {
                 )
             }
 
-            "sysctl" | "lockdown" => subcommand = Some(arg),
+            "sysctl" | "lockdown" | "generate-hugepages-setting" => subcommand = Some(arg),
 
             _ => usage(),
         }
@@ -251,6 +317,9 @@ mod error {
             source: Box<toml::de::Error>,
         },
 
+        #[snafu(display("Error serializing to JSON: {}", source))]
+        SerializeJson { source: serde_json::error::Error },
+
         #[snafu(display(
             "Failed to change lockdown from '{}' to '{}': {}",
             current,
@@ -271,6 +340,8 @@ type Result<T> = std::result::Result<T, error::Error>;
 
 #[cfg(test)]
 mod test {
+    use test_case::test_case;
+
     use super::*;
 
     #[test]
@@ -304,5 +375,22 @@ mod test {
             "none integrity confidentiality",
             parse_kernel_setting("none integrity confidentiality\n")
         );
+    }
+
+    #[test]
+    fn test_compute_hugepages_for_efa() {
+        let num_cores: usize = 2;
+        let computed_hugepages = compute_hugepages_for_efa(num_cores);
+        assert_eq!(computed_hugepages, "220")
+    }
+
+    #[test_case("".to_string(), "0".to_string())]
+    #[test_case("0".to_string(), "0".to_string())]
+    #[test_case("-1".to_string(), "0".to_string())]
+    #[test_case("abc".to_string(), "0".to_string())]
+    #[test_case("100".to_string(), "100".to_string())]
+    fn test_check_for_existing_hugepages(existing_value: String, expected_hugepages: String) {
+        let actual_hugepages = check_for_existing_hugepages(existing_value);
+        assert_eq!(actual_hugepages, expected_hugepages);
     }
 }

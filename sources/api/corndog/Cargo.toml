@@ -11,6 +11,8 @@ exclude = ["README.md"]
 
 [dependencies]
 log.workspace = true
+num_cpus.workspace = true
+pciclient.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 simplelog.workspace = true
@@ -20,3 +22,6 @@ bottlerocket-modeled-types.workspace = true
 
 [build-dependencies]
 generate-readme.workspace = true
+
+[dev-dependencies]
+test-case.workspace = true

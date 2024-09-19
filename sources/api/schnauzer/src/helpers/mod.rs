@@ -125,6 +125,8 @@ const IPV6_LOCALHOST: IpAddr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1))
 
 const DEFAULT_ECS_METADATA_SERVICE_RPS: i32 = 40;
 const DEFAULT_ECS_METADATA_SERVICE_BURST: i32 = 60;
+/// We use -1 to indicate unlimited value for resource limits.
+const RLIMIT_UNLIMITED: i64 = -1;
 
 /// Potential errors during helper execution
 mod error {
@@ -257,6 +259,9 @@ mod error {
             ip_address: String,
             source: std::net::AddrParseError,
         },
+
+        #[snafu(display("Failed to check if EFA device is attached: {}", source))]
+        CheckEfaFailure { source: pciclient::PciClientError },
 
         #[snafu(display(
             "Expected an absolute URL, got '{}' in template '{}': '{}'",
@@ -1250,7 +1255,7 @@ pub fn oci_defaults(
             runtime.get_capabilities(capabilities)
         }
         OciSpecSection::ResourceLimits => {
-            let rlimits = oci_spec_resource_limits(oci_defaults_values)?;
+            let rlimits = generate_oci_resource_limits(oci_defaults_values, EfaLspciDetector {})?;
             rlimits
                 .iter()
                 .map(|(rlimit_type, values)| runtime.get_resource_limits(rlimit_type, values))
@@ -1308,10 +1313,40 @@ fn oci_spec_capabilities(value: &Value) -> Result<String, RenderError> {
 /// This helper function generates the resource limits section of
 /// the OCI runtime spec from the provided `value` parameter, which is
 /// the settings data from the datastore (`settings.oci-defaults.resource-limits`).
+fn generate_oci_resource_limits<T: EfaDetector>(
+    value: &Value,
+    efa_detector: T,
+) -> Result<HashMap<OciDefaultsResourceLimitType, OciDefaultsResourceLimitV1>, RenderError> {
+    let mut rlimits = oci_spec_resource_limits(value)?;
+    if efa_detector.is_efa_attached()? {
+        // We need to increase the locked memory limits from the default 8096KB to unlimited
+        // to account for hugepages allocation.
+        rlimits
+            .entry(OciDefaultsResourceLimitType::MaxLockedMemory)
+            .or_insert(OciDefaultsResourceLimitV1 {
+                soft_limit: RLIMIT_UNLIMITED,
+                hard_limit: RLIMIT_UNLIMITED,
+            });
+    }
+    Ok(rlimits)
+}
+
 fn oci_spec_resource_limits(
     value: &Value,
 ) -> Result<HashMap<OciDefaultsResourceLimitType, OciDefaultsResourceLimitV1>, RenderError> {
     Ok(serde_json::from_value(value.clone())?)
+}
+
+trait EfaDetector {
+    fn is_efa_attached(&self) -> Result<bool, TemplateHelperError>;
+}
+
+struct EfaLspciDetector;
+
+impl EfaDetector for EfaLspciDetector {
+    fn is_efa_attached(&self) -> Result<bool, TemplateHelperError> {
+        pciclient::is_efa_attached().context(error::CheckEfaFailureSnafu)
+    }
 }
 
 // =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
@@ -1992,6 +2027,22 @@ mod test_oci_spec {
     use serde_json::json;
     use OciDefaultsResourceLimitType::*;
 
+    // Custom struct that will always show that EFA is detected.
+    struct EfaPresentDetector;
+    impl EfaDetector for EfaPresentDetector {
+        fn is_efa_attached(&self) -> Result<bool, TemplateHelperError> {
+            Ok(true)
+        }
+    }
+
+    // Custom struct that will always show that EFA is not detected.
+    struct EfaNotPresentDetector;
+    impl EfaDetector for EfaNotPresentDetector {
+        fn is_efa_attached(&self) -> Result<bool, TemplateHelperError> {
+            Ok(false)
+        }
+    }
+
     #[test]
     fn oci_spec_capabilities_test() {
         let json = json!({
@@ -2056,6 +2107,28 @@ mod test_oci_spec {
         for rlimit in rlimits {
             check_all_rlimits(rlimit);
         }
+    }
+
+    #[test]
+    fn generate_oci_resource_limits_efa_detected() {
+        let json = json!({"max-open-files": {"hard-limit": 1, "soft-limit": 2}});
+        let rlimits = generate_oci_resource_limits(&json, EfaPresentDetector {}).unwrap();
+        let rendered = Containerd::get_resource_limits(
+            &MaxLockedMemory,
+            rlimits.get(&MaxLockedMemory).unwrap(),
+        );
+        assert_eq!(
+            rendered,
+            r#"{ "type": "RLIMIT_MEMLOCK", "hard": 18446744073709551615, "soft": 18446744073709551615 }"#
+        );
+    }
+
+    #[test]
+    fn generate_oci_resource_limits_efa_not_detected() {
+        let json = json!({"max-open-files": {"hard-limit": 1, "soft-limit": 2}});
+        let rlimits = generate_oci_resource_limits(&json, EfaNotPresentDetector {}).unwrap();
+        // If EFA is not detected, we will not set the max-locked-memory rlimit
+        assert_eq!(rlimits.get(&MaxLockedMemory), None)
     }
 
     #[test]
