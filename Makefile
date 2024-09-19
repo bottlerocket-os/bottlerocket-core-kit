@@ -8,10 +8,11 @@ TWOLITER_VERSION ?= "0.4.6"
 TWOLITER_SHA256_AARCH64 ?= "12ac3f5a6c641e29481c79289bd07cf1c3494a65e3d283d582feb1d28d8bf2a7"
 TWOLITER_SHA256_X86_64 ?= "4a2db7c4d0aac75c6b682336539ee57371cfb6dfea81689d07fc1f4a940fd5c5"
 KIT ?= bottlerocket-core-kit
-ARCH ?= $(shell uname -m)
+UNAME_ARCH = $(shell uname -m)
+ARCH ?= $(UNAME_ARCH)
 VENDOR ?= bottlerocket
 
-ifeq ($(ARCH), aarch64)
+ifeq ($(UNAME_ARCH), aarch64)
 	TWOLITER_SHA256=$(TWOLITER_SHA256_AARCH64)
 else
 	TWOLITER_SHA256=$(TWOLITER_SHA256_X86_64)
