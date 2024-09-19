@@ -1,3 +1,25 @@
+# v2.7.0 (2024-09-19)
+
+## Build Changes
+* Update twoliter to 0.4.6 ([#153])
+
+## OS Changes
+* Add the ability for ghostdog to detect EFA devices attachment ([#141])
+* Apply higher MEMLOCK limits in oci-defaults when EFA devices are detected ([#141])
+* Add the ability for corndog to generate the hugepages setting ([#141])
+* Compile `host-ctr` with go 1.23 ([#146])
+* Update `host-ctr` dependencies ([#146])
+* Include `nvidia-cdi-hook` in `nvidia-container-toolkit` ([#150])
+* Update kernels to 5.10.225 and 5.15.166 ([#154])
+* Use Go 1.22 for kubernetes 1.23, 1.24, 1.25, 1.26, 1.27, 1.28, 1.29 ([#155])
+
+[#141]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/141
+[#146]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/146
+[#150]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/150
+[#153]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/153
+[#154]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/154
+[#155]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/155
+
 # v2.6.0 (2024-09-17)
 
 ## Build Changes
