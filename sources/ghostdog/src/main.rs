@@ -2,12 +2,14 @@
 ghostdog is a tool to manage ephemeral disks.
 It can be called as a udev helper program to identify ephemeral disks.
 It can also be called for EFA device detection which can be used for ExecCondition in systemd units.
+It can also check if devices on the PCI bus match a particular NVIDIA driver.
 */
 
 use argh::FromArgs;
 use gptman::GPT;
 use hex_literal::hex;
 use lazy_static::lazy_static;
+use serde::Deserialize;
 use signpost::uuid_to_guid;
 use snafu::{ensure, ResultExt};
 use std::collections::HashSet;
@@ -18,6 +20,8 @@ use std::process::Command;
 
 const NVME_CLI_PATH: &str = "/sbin/nvme";
 const NVME_IDENTIFY_DATA_SIZE: usize = 4096;
+const NVIDIA_VENDOR_ID: &str = "10de";
+const OPEN_GPU_SUPPORTED_DEVICES_PATH: &str = "/usr/share/nvidia/open-gpu-supported-devices.json";
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// Manage ephemeral disks.
@@ -32,6 +36,7 @@ enum SubCommand {
     Scan(ScanArgs),
     EbsDeviceName(EbsDeviceNameArgs),
     EfaPresent(EfaPresentArgs),
+    MatchNvidiaDriver(MatchNvidiaDriverArgs),
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -55,6 +60,40 @@ struct EbsDeviceNameArgs {
     device: PathBuf,
 }
 
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "match-nvidia-driver")]
+/// Returns if devices on the PCI bus support the provided driver.
+struct MatchNvidiaDriverArgs {
+    #[argh(positional)]
+    driver_name: String,
+}
+
+#[derive(Deserialize)]
+/// Open GPU struct for comparing PCI ID's to a known list of supported devices.
+enum SupportedDevicesConfiguration {
+    #[serde(rename = "open-gpu")]
+    OpenGpu(Vec<GpuDeviceData>),
+}
+
+#[derive(Eq, Debug, Deserialize, Hash, PartialEq)]
+/// The GPU Device Data contains various features of the device. Only Name, Device ID, and Features are required
+/// for a particular device
+struct GpuDeviceData {
+    #[serde(rename = "devid")]
+    /// PCI Device ID
+    device_id: String,
+    #[serde(rename = "subdevid")]
+    /// PCI Subdevice ID
+    subdevice_id: Option<String>,
+    #[serde(rename = "subvendorid")]
+    /// PCI Subvendor ID
+    subvendor_id: Option<String>,
+    /// Name of the device
+    name: String,
+    /// List of features the device supports. Noteably we are looking for "kernelopen" to match the driver
+    features: Vec<String>,
+}
+
 // Main entry point.
 fn run() -> Result<()> {
     let args: Args = argh::from_env();
@@ -72,6 +111,10 @@ fn run() -> Result<()> {
         }
         SubCommand::EfaPresent(_) => {
             is_efa_attached()?;
+        }
+        SubCommand::MatchNvidiaDriver(driver) => {
+            let driver_name = driver.driver_name;
+            nvidia_driver_supported(&driver_name)?;
         }
     }
     Ok(())
@@ -143,6 +186,50 @@ fn parse_device_name(device_info: &[u8], path: String) -> Result<String> {
         .to_string())
 }
 
+/// Read a file into a SupportedDevicesConfiguration Enum
+fn read_supported_devices_file(path: PathBuf) -> Result<SupportedDevicesConfiguration> {
+    let mut supported_devices_file =
+        fs::File::open(&path).context(error::OpenFileSnafu { path: path.clone() })?;
+    let mut supported_devices_str = String::new();
+    supported_devices_file
+        .read_to_string(&mut supported_devices_str)
+        .context(error::ReadFileSnafu { path: path.clone() })?;
+    let device_configuration: SupportedDevicesConfiguration =
+        serde_json::from_str(supported_devices_str.as_str())
+            .context(error::ParseGpuDevicesFileSnafu)?;
+    Ok(device_configuration)
+}
+
+/// Search the Open GPU Supported Devices File to determine if the Open GPU Driver should be used based upon PCI devices present
+fn find_preferred_driver() -> Result<String> {
+    let open_gpu_devices = read_supported_devices_file(OPEN_GPU_SUPPORTED_DEVICES_PATH.into())?;
+    let list_input = pciclient::ListDevicesParam::builder()
+        .vendor(NVIDIA_VENDOR_ID)
+        .build();
+    let present_devices =
+        pciclient::list_devices(list_input).context(error::ListPciDevicesSnafu)?;
+
+    // If there a multiple devices with the same ID, dedup them to minimize iterations
+    let mut unique_ids = present_devices
+        .iter()
+        .map(|x| format!("0x{}", x.device().to_uppercase()).clone())
+        .collect::<HashSet<_>>()
+        .into_iter();
+
+    let open_gpu_device_set = match &open_gpu_devices {
+        SupportedDevicesConfiguration::OpenGpu(ref device_list) => device_list
+            .iter()
+            .map(|x| &x.device_id)
+            .collect::<HashSet<_>>(),
+    };
+
+    if unique_ids.any(|input_device| open_gpu_device_set.contains(&input_device)) {
+        Ok("open-gpu".to_string())
+    } else {
+        Ok("tesla".to_string())
+    }
+}
+
 /// Print the device type in the environment key format udev expects.
 fn emit_device_type(device_type: &str) {
     println!("BOTTLEROCKET_DEVICE_TYPE={}", device_type);
@@ -151,6 +238,19 @@ fn emit_device_type(device_type: &str) {
 /// Print the device name in the environment key format udev expects.
 fn emit_device_name(device_name: &str) {
     println!("XVD_DEVICE_NAME={}", device_name)
+}
+
+/// Exit with exit code 1 if the driver name provided doesn't match the preferred driver
+fn nvidia_driver_supported(driver_name: &str) -> Result<()> {
+    let preferred_driver = find_preferred_driver()?;
+    ensure!(
+        driver_name == preferred_driver,
+        error::DriverMismatchSnafu {
+            requested: driver_name,
+            preferred: preferred_driver
+        }
+    );
+    Ok(())
 }
 
 // Known system partition types for Bottlerocket.
@@ -198,6 +298,25 @@ mod error {
         CheckEfaFailure { source: pciclient::PciClientError },
         #[snafu(display("Did not detect EFA"))]
         NoEfaPresent,
+        #[snafu(display("Failed to open '{}': {}", path.display(), source))]
+        OpenFile {
+            path: std::path::PathBuf,
+            source: std::io::Error,
+        },
+        #[snafu(display("Failed to read '{}': {}", path.display(), source))]
+        ReadFile {
+            path: std::path::PathBuf,
+            source: std::io::Error,
+        },
+        #[snafu(display("Couldn't parse the GPU Devices File: {}", source))]
+        ParseGpuDevicesFile { source: serde_json::Error },
+        #[snafu(display("Failed to list PCI devices: {}", source))]
+        ListPciDevices { source: pciclient::PciClientError },
+        #[snafu(display("{} is not preferred driver: {}", requested, preferred))]
+        DriverMismatch {
+            requested: String,
+            preferred: String,
+        },
     }
 }
 
@@ -210,6 +329,10 @@ mod test {
     use gptman::{GPTPartitionEntry, GPT};
     use signpost::uuid_to_guid;
     use std::io::Cursor;
+
+    fn test_data() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/tests")
+    }
 
     fn gpt_data(partition_type: [u8; 16], partition_name: &str) -> Vec<u8> {
         let mut data = vec![0; 21 * 512 * 2048];
@@ -282,5 +405,18 @@ mod test {
         device_info.append(&mut padding);
 
         device_info
+    }
+
+    #[test]
+    fn parse_open_gpu_supported_devices_file() {
+        let test_json = test_data().join("open-gpu-supported-devices-test.json");
+
+        let test_data = read_supported_devices_file(test_json).unwrap();
+
+        match test_data {
+            SupportedDevicesConfiguration::OpenGpu(data) => {
+                assert!(data.len() == 6);
+            }
+        }
     }
 }

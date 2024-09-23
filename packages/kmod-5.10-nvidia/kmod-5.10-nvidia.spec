@@ -25,6 +25,8 @@ Source300: nvidia-tesla-tmpfiles.conf.in
 Source301: nvidia-tesla-build-config.toml.in
 Source302: nvidia-tesla-path.env.in
 Source303: nvidia-ld.so.conf.in
+Source304: link-tesla-kernel-modules.service.in
+Source305: load-tesla-kernel-modules.service.in
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}kernel-5.10-archive
@@ -121,6 +123,14 @@ sed -e 's|__LIBDIR__|%{_cross_libdir}|' %{S:303} | sed -e 's|__NVIDIA_VERSION__|
   > nvidia-tesla-%{tesla_470}.conf
 install -m 0644 nvidia-tesla-%{tesla_470}.conf %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/ld.so.conf.d/
 
+# Services to link/copy/load modules
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:304} > link-tesla-kernel-modules.service
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:305} > load-tesla-kernel-modules.service
+install -p -m 0644 \
+  link-tesla-kernel-modules.service \
+  load-tesla-kernel-modules.service \
+  %{buildroot}%{_cross_unitdir}
+
 # driver
 install kernel/nvidia.mod.o %{buildroot}%{_cross_datadir}/nvidia/tesla/%{tesla_470}/module-objects.d
 install kernel/nvidia/nv-interface.o %{buildroot}%{_cross_datadir}/nvidia/tesla/%{tesla_470}/module-objects.d
@@ -188,6 +198,10 @@ popd
 %dir %{tesla_470_libdir}
 %dir %{_cross_datadir}/nvidia/tesla/%{tesla_470}/module-objects.d
 %dir %{_cross_factorydir}/nvidia/tesla/%{tesla_470}
+
+# Service files for link/copy/loading drivers
+%{_cross_unitdir}/link-tesla-kernel-modules.service
+%{_cross_unitdir}/load-tesla-kernel-modules.service
 
 # Binaries
 %{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}/nvidia-debugdump

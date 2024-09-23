@@ -15,6 +15,8 @@ hex-literal.workspace = true
 lazy_static.workspace = true
 pciclient.workspace = true
 signpost.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 snafu.workspace = true
 
 [build-dependencies]
