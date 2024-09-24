@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-jopjxfpj3jhn"
+title = "microcode CVE-2023-31315"
+cve = "CVE-2023-31315"
+severity = "high"
+description = "Improper validation in a model specific register (MSR) could allow a program with ring0 access to modify SMM configuration while SMI lock is enabled. This flaw could lead to arbitrary code execution."
+
+[[advisory.products]]
+package-name = "microcode"
+patched-version = "20240813"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "yeazelm"
+issue-date = 2024-09-12T13:41:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.5.0"
