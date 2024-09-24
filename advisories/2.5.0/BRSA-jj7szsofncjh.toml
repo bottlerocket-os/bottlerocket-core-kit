@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-jj7szsofncjh"
+title = "microcode CVE-2023-49141"
+cve = "CVE-2023-49141"
+severity = "high"
+description = "Improper isolation in some Intel processors stream cache mechanism may lead to escalation of privilege via local access."
+
+[[advisory.products]]
+package-name = "microcode"
+patched-version = "20240813"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "yeazelm"
+issue-date = 2024-09-12T13:41:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.5.0"

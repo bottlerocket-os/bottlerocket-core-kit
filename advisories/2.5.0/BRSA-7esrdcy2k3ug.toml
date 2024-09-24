@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-7esrdcy2k3ug"
+title = "microcode CVE-2024-24980"
+cve = "CVE-2024-24980"
+severity = "medium"
+description = "A protection mechanism failure in some 3rd, 4th, and 5th Generation Intel Xeon processors may lead to escalation of privilege via local access."
+
+[[advisory.products]]
+package-name = "microcode"
+patched-version = "20240813"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "yeazelm"
+issue-date = 2024-09-12T13:41:00Z
+arches = ["x86_64", "aarch64"]
+version = "2.5.0"
