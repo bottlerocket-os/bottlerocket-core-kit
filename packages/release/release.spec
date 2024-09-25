@@ -211,22 +211,22 @@ install -p -m 0644 %{S:1102} \
 install -d %{buildroot}%{_cross_unitdir}/check-fips-modules.service.d
 
 LOWERPATH=$(systemd-escape --path %{_cross_sharedstatedir}/kernel-devel/.overlay/lower)
-sed -e 's|PREFIX|%{_cross_prefix}|' %{S:1080} > ${LOWERPATH}.mount
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:1080} > ${LOWERPATH}.mount
 install -p -m 0644 ${LOWERPATH}.mount %{buildroot}%{_cross_unitdir}
 
 # Mounting on usr/src/kernels requires using the real path: %{_cross_usrsrc}/kernels
 KERNELPATH=$(systemd-escape --path %{_cross_usrsrc}/kernels)
-sed -e 's|PREFIX|%{_cross_prefix}|' %{S:1081} > ${KERNELPATH}.mount
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:1081} > ${KERNELPATH}.mount
 install -p -m 0644 ${KERNELPATH}.mount %{buildroot}%{_cross_unitdir}
 
 # Mounting on usr/share/licenses requires using the real path: %{_cross_datadir}/licenses
 LICENSEPATH=$(systemd-escape --path %{_cross_licensedir})
-sed -e 's|PREFIX|%{_cross_prefix}|' %{S:1082} > ${LICENSEPATH}.mount
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:1082} > ${LICENSEPATH}.mount
 install -p -m 0644 ${LICENSEPATH}.mount %{buildroot}%{_cross_unitdir}
 
 # Mounting on lib/modules requires using the real path: %{_cross_libdir}/modules
 LIBDIRPATH=$(systemd-escape --path %{_cross_libdir})
-sed -e 's|PREFIX|%{_cross_prefix}|' %{S:1083} > ${LIBDIRPATH}-modules.mount
+sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:1083} > ${LIBDIRPATH}-modules.mount
 install -p -m 0644 ${LIBDIRPATH}-modules.mount %{buildroot}%{_cross_unitdir}
 
 # Mounting on usr/bin requires using the real path: %{_cross_bindir}

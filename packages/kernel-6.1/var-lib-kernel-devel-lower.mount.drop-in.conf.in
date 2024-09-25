@@ -1,0 +1,4 @@
+[Mount]
+What=PREFIX/share/bottlerocket/kernel-devel
+Type=none
+Options=rbind,rshared

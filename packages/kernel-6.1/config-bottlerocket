@@ -1,8 +1,9 @@
 # Because Bottlerocket does not have an initramfs, modules required to mount
 # the root filesystem must be set to y.
 
-# The root filesystem is ext4
+# The root filesystem is ext4 or erofs
 CONFIG_EXT4_FS=y
+CONFIG_EROFS_FS=y
 
 # btrfs support for compatibility
 CONFIG_BTRFS_FS=m
