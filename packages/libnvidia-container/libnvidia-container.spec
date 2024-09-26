@@ -1,7 +1,7 @@
 %global nvidia_modprobe_version 550.54.14
 
 Name: %{_cross_os}libnvidia-container
-Version: 1.16.1
+Version: 1.16.2
 Release: 1%{?dist}
 Summary: NVIDIA container runtime library
 # The COPYING and COPYING.LESSER files in the sources don't apply to libnvidia-container
