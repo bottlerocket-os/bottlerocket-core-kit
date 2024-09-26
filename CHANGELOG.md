@@ -1,3 +1,18 @@
+# v2.8.0 (2024-09-26)
+
+## Build Changes
+* Choose the correct checksum when validating a twoliter binary ([#157])
+
+## OS Changes
+* Use open GPU drivers on P4 and P5 instances ([#114])
+* Add package-level support for EROFS as a root filesystem ([#159])
+* Update libnvidia-container and nvidia-container-toolkit ([#161]) 
+
+[#114]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/114
+[#157]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/157
+[#159]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/159
+[#161]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/161
+
 # v2.7.0 (2024-09-19)
 
 ## Build Changes
