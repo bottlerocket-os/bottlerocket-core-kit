@@ -73,8 +73,7 @@ Requires: (%{name}-fips if %{_cross_os}image-feature(fips))
 
 %package devel
 Summary: Configured Linux kernel source for module building
-Requires: (%{name}-devel-squashed if %{_cross_os}image-feature(no-erofs-root-partition))
-Requires: (%{name}-devel-unpacked if %{_cross_os}image-feature(erofs-root-partition))
+Requires: (%{name}-devel-unpacked if %{_cross_os}image-feature(erofs-root-partition) else %{name}-devel-squashed)
 
 %description devel
 %{summary}.
