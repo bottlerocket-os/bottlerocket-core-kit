@@ -1,3 +1,10 @@
+# v2.8.1 (2024-09-27)
+
+## Build Changes
+* Install squashed kernel-devel if erofs is not positively selected ([#163])
+
+[#163]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/163
+
 # v2.8.0 (2024-09-26)
 
 ## Build Changes
@@ -6,7 +13,7 @@
 ## OS Changes
 * Use open GPU drivers on P4 and P5 instances ([#114])
 * Add package-level support for EROFS as a root filesystem ([#159])
-* Update libnvidia-container and nvidia-container-toolkit ([#161]) 
+* Update libnvidia-container and nvidia-container-toolkit to 1.16.2 ([#161]) 
 
 [#114]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/114
 [#157]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/157
