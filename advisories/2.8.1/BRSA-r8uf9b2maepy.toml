@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-r8uf9b2maepy"
+title = "nvidia-container-toolkit CVE-2024-0132"
+cve = "CVE-2024-0132"
+severity = "high"
+description = "A flaw was found in nvidia-container-toolkit where a specifically crafted container image may gain access to the host file system, which could lead to code execution, denial of service, escalation of privileges, information disclosure, and data tampering."
+
+[[advisory.products]]
+package-name = "nvidia-container-toolkit"
+patched-version = "1.16.2"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "kushupad"
+issue-date = 2024-09-27T11:24:11Z
+arches = ["x86_64", "aarch64"]
+version = "2.8.1"
