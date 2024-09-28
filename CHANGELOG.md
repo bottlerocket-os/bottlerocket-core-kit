@@ -1,3 +1,10 @@
+# v2.8.2 (2024-09-28)
+
+## OS Changes
+* Fix driver unit dependencies for ecs-gpu-init ([#166])
+
+[#166]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/166
+
 # v2.8.1 (2024-09-27)
 
 ## Build Changes
