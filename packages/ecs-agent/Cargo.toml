@@ -13,8 +13,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/aws/amazon-ecs-agent/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/aws/amazon-ecs-agent/archive/v1.82.3/amazon-ecs-agent-1.82.3.tar.gz"
-sha512 = "a26fdbe5c6cb96f5357afea701a97ccaa208ab3ae2149cd0205aa34b8686edd38c194ee8e0389b5385295bf284fcc1bee73dcacc2313c4b560e807eb27c1bafa"
+url = "https://github.com/aws/amazon-ecs-agent/archive/v1.86.3/amazon-ecs-agent-1.86.3.tar.gz"
+sha512 = "d93129c290c06cff332318644dced900618575b7e540674d58d69f8db1ef90c5a2cf8e41f5af63f97df06df1b20cf9f22bd2252d3e2317984f0ef79252ce25c5"
 
 # RPM BuildRequires
 [build-dependencies]
