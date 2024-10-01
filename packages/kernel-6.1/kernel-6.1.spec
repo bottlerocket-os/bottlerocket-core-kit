@@ -236,20 +236,20 @@ chmod 600 System.map
     \( -name module.lds -o -name vmlinux.lds.S -o -name Platform -o -name \*.tbl \) \
     -print
 
-  find arch/%{_cross_karch}/{include,lib}/ -type f ! -name \*.o ! -name \*.o.d -print
+  find arch/%{_cross_karch}/{include,lib}/ -type f ! -name \*.o ! -name \*.o.d ! -name \*.a -print
   echo arch/%{_cross_karch}/kernel/asm-offsets.s
   echo lib/vdso/gettimeofday.c
 
   for d in \
     arch/%{_cross_karch}/tools \
     arch/%{_cross_karch}/kernel/vdso ; do
-    [ -d "${d}" ] && find "${d}/" -type f -print
+    [ -d "${d}" ] && find "${d}/" -type f ! -name \*.o -print
   done
 
   find include -type f -print
   find scripts -type f ! -name \*.l ! -name \*.y ! -name \*.o -print
 
-  find tools/{arch/%{_cross_karch},include,objtool,scripts}/ -type f ! -name \*.o -print
+  find tools/{arch/%{_cross_karch},include,objtool,scripts}/ -type f ! -name \*.o ! -name \*.a -print
   echo tools/build/fixdep.c
   find tools/lib/subcmd -type f -print
   find tools/lib/{ctype,hweight,rbtree,string,str_error_r}.c
