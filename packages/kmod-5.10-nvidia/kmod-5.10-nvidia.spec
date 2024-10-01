@@ -88,6 +88,7 @@ install -d %{buildroot}%{_cross_libexecdir}
 install -d %{buildroot}%{_cross_libdir}
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -d %{buildroot}%{_cross_unitdir}
+install -d %{buildroot}%{_cross_bindir}
 install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/{drivers,ld.so.conf.d}
 
 KERNEL_VERSION=$(cat %{kernel_sources}/include/config/kernel.release)
@@ -162,6 +163,7 @@ install -m 755 nvidia-debugdump %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bi
 install -m 755 nvidia-cuda-mps-control %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
 install -m 755 nvidia-cuda-mps-server %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
 install -m 755 nvidia-persistenced %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
+install -m 4755 nvidia-modprobe %{buildroot}%{_cross_bindir}
 %if "%{_cross_arch}" == "x86_64"
 install -m 755 nvidia-ngx-updater %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}
 %endif
@@ -218,6 +220,7 @@ popd
 %{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}/nvidia-debugdump
 %{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}/nvidia-smi
 %{_cross_libexecdir}/nvidia/tesla/bin/%{tesla_470}/nvidia-persistenced
+%{_cross_bindir}/nvidia-modprobe
 
 # Configuration files
 %{_cross_factorydir}%{_cross_sysconfdir}/drivers/nvidia-tesla-%{tesla_470}.toml
