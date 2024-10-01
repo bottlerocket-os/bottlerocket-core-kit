@@ -161,7 +161,7 @@ CONFIGURE_OPTS=(
  -Defi=true
  -Dtpm=false
  -Denvironment-d=false
- -Dbinfmt=false
+ -Dbinfmt=true
  -Drepart=true
  -Dcoredump=false
  -Dpstore=true
@@ -313,6 +313,11 @@ rm -f %{buildroot}%{_cross_libdir}/systemd/{system,user}/default.target
 rm -f %{buildroot}%{_cross_libdir}/systemd/{system,user}/multi-user.target
 rm -f %{buildroot}%{_cross_libdir}/systemd/{system,user}/graphical.target
 
+# Ensure /proc/sys/fs/binfmt_misc mount is wanted by sysinit.target,
+# since we exclude the automount unit.
+ln -s  ../proc-sys-fs-binfmt_misc.mount \
+  %{buildroot}%{_cross_unitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.mount
+
 # Add art to the console
 install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}
 install -p -m 0644 %{S:4} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/issue
@@ -371,13 +376,18 @@ install -p -m 0644 %{S:4} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/i
 
 %dir %{_cross_libdir}/systemd
 %{_cross_libdir}/systemd/*
+%exclude %{_cross_libdir}/systemd/systemd-binfmt
 %exclude %{_cross_libdir}/systemd/systemd-user-runtime-dir
 %exclude %{_cross_unitdir}/dbus-org.freedesktop.login1.service
+%exclude %{_cross_unitdir}/proc-sys-fs-binfmt_misc.automount
+%exclude %{_cross_unitdir}/systemd-binfmt.service
 %exclude %{_cross_unitdir}/systemd-repart.service
 %exclude %{_cross_unitdir}/user-runtime-dir@.service
 %exclude %{_cross_unitdir}/user@.service
 %exclude %{_cross_unitdir}/user@.service.d
 %exclude %{_cross_unitdir}/user@0.service.d
+%exclude %{_cross_unitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
+%exclude %{_cross_unitdir}/sysinit.target.wants/systemd-binfmt.service
 
 %dir %{_cross_libdir}/udev
 %{_cross_libdir}/udev/*
