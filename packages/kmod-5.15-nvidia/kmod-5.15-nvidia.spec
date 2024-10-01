@@ -176,6 +176,7 @@ install -d %{buildroot}%{_cross_tmpfilesdir}
 install -d %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/{drivers,ld.so.conf.d}
 install -d %{buildroot}%{_cross_sysusersdir}
+install -d %{buildroot}%{_cross_bindir}
 
 KERNEL_VERSION=$(cat %{kernel_sources}/include/config/kernel.release)
 sed \
@@ -283,6 +284,7 @@ install -m 755 nvidia-debugdump %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bi
 install -m 755 nvidia-cuda-mps-control %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
 install -m 755 nvidia-cuda-mps-server %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
 install -m 755 nvidia-persistenced %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin/
+install -m 4755 nvidia-modprobe %{buildroot}%{_cross_bindir}
 %if "%{_cross_arch}" == "x86_64"
 install -m 755 nvidia-ngx-updater %{buildroot}%{_cross_libexecdir}/nvidia/tesla/bin
 %endif
@@ -364,6 +366,7 @@ popd
 %{_cross_libexecdir}/nvidia/tesla/bin/nv-fabricmanager
 %{_cross_libexecdir}/nvidia/tesla/bin/nvswitch-audit
 %{_cross_libexecdir}/nvidia/tesla/bin/nvidia-persistenced
+%{_cross_bindir}/nvidia-modprobe
 
 # nvswitch topologies
 %dir %{_cross_datadir}/nvidia/tesla/nvswitch
