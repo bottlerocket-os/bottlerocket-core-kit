@@ -1603,11 +1603,14 @@ name = "cfsignal"
 version = "0.1.0"
 dependencies = [
  "aws-config",
+ "aws-lc-rs",
  "aws-sdk-cloudformation",
+ "aws-smithy-experimental",
  "aws-types",
  "generate-readme",
  "imdsclient",
  "log",
+ "rustls 0.23.14",
  "serde",
  "simplelog",
  "snafu",
