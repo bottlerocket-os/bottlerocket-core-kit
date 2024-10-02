@@ -5,13 +5,13 @@ Subject: [PATCH] kbuild: do not outline atomics for arm64
 
 Signed-off-by: Ben Cressey <bcressey@amazon.com>
 ---
- usr/src/aws-neuronx-2.17.17.0/Kbuild | 1 +
+ usr/src/aws-neuronx-2.18.12.0/Kbuild | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/usr/src/aws-neuronx-2.17.17.0/Kbuild b/usr/src/aws-neuronx-2.17.17.0/Kbuild
+diff --git a/usr/src/aws-neuronx-2.18.12.0/Kbuild b/usr/src/aws-neuronx-2.18.12.0/Kbuild
 index 11f8490..6535608 100644
---- a/usr/src/aws-neuronx-2.17.17.0/Kbuild
-+++ b/usr/src/aws-neuronx-2.17.17.0/Kbuild
+--- a/usr/src/aws-neuronx-2.18.12.0/Kbuild
++++ b/usr/src/aws-neuronx-2.18.12.0/Kbuild
 @@ -16,3 +16,4 @@ neuron-objs += v3/notific.o v3/neuron_dhal_v3.o
  
  ccflags-y += -O3 -Wall -Werror -Wno-declaration-after-statement -Wunused-macros -Wunused-local-typedefs
