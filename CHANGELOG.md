@@ -1,3 +1,16 @@
+# v2.8.3 (2024-10-02)
+
+## OS Changes
+* Update ecs-agent to v1.86.3 ([#168])
+* Update kmod-6.1-neuron to 2.18.12.0 ([#170])
+
+## Build Changes
+* Exclude more object files from kernel-6.1-devel ([#172])
+
+[#168]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/168
+[#170]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/170
+[#172]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/172
+
 # v2.8.2 (2024-09-28)
 
 ## OS Changes
