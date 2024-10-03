@@ -20,7 +20,7 @@
 ; Specify a context for filesystems that do not support other ways to label.
 (genfscon autofs / any)
 (genfscon bdev / any)
-(genfscon binfmt_misc / any)
+(genfscon binfmt_misc / binfmt_misc_fs)
 (genfscon bpf / any)
 (genfscon cgroup / any)
 (genfscon cgroup2 / any)

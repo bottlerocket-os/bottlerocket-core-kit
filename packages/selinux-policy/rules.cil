@@ -179,11 +179,15 @@
 (allow all_s ephemeral_o (files (mutate mount)))
 
 ; Trusted subjects are allowed to write to and manage mounts
-; for "dynamic" files in /etc.
-(allow trusted_s dynamic_o (files (mutate mount)))
+; for files in /etc.
+(allow trusted_s etc_t (files (mutate mount)))
 
 ; wicked calls netdog which writes /etc/resolv.conf.
 (allow network_t etc_t (files (mutate)))
+
+; Privileged subjects are allowed to write to and manage mounts for
+; the binfmt_misc filesystem.
+(allow privileged_s binfmt_misc_fs_t (files (mutate mount)))
 
 ; Other subjects cannot modify these "dynamic" files.
 (neverallow other_s dynamic_o (files (mutate mount)))

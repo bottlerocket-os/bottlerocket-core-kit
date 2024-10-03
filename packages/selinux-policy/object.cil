@@ -59,6 +59,11 @@
 (roletype object_r proc_t)
 (context proc (system_u object_r proc_t s0))
 
+; Files in the binfmt_misc filesystem
+(type binfmt_misc_fs_t)
+(roletype object_r binfmt_misc_fs_t)
+(context binfmt_misc_fs (system_u object_r binfmt_misc_fs_t s0))
+
 ; Files where we have no specific policy objectives, such as
 ; tmpfs mounts and various kernel filesystems.
 (type any_t)
@@ -135,7 +140,7 @@
 
 ; Dynamic objects are files on temporary storage with special rules.
 (typeattribute dynamic_o)
-(typeattributeset dynamic_o (etc_t))
+(typeattributeset dynamic_o (etc_t binfmt_misc_fs_t))
 
 ; Shared objects are files on local storage for containers.
 (typeattribute shared_o)
@@ -204,7 +209,7 @@
   os_t init_exec_t api_exec_t clock_exec_t
   network_exec_t bus_exec_t runtime_exec_t
   mount_exec_t cni_exec_t csi_exec_t
-  any_t etc_t proc_t
+  any_t etc_t proc_t binfmt_misc_fs_t
   local_t data_t private_t secret_t cache_t
   lease_t measure_t state_t
   api_socket_t))
