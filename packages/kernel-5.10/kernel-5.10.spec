@@ -1,13 +1,13 @@
 %global debug_package %{nil}
 
 Name: %{_cross_os}kernel-5.10
-Version: 5.10.225
+Version: 5.10.226
 Release: 1%{?dist}
 Summary: The Linux kernel
 License: GPL-2.0 WITH Linux-syscall-note
 URL: https://www.kernel.org/
 # Use latest-srpm-url.sh to get this.
-Source0: https://cdn.amazonlinux.com/blobstore/3351af6379ce59bc5724cf19ad4819e5d6929dafdb2925afd0c9ea0e13d3be47/kernel-5.10.225-213.878.amzn2.src.rpm
+Source0: https://cdn.amazonlinux.com/blobstore/11c2c91624bd7d42460b998b80573fa17717ab1fe853099730a373452bde11a2/kernel-5.10.226-214.879.amzn2.src.rpm
 Source100: config-bottlerocket
 
 # Help out-of-tree module builds run `make prepare` automatically.
