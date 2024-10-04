@@ -26,27 +26,32 @@ Requires: %{name}
 %prep
 %autosetup -n libcap-%{version} -p1
 
+%global cross_make \
+make\\\
+  DESTDIR=%{buildroot}\\\
+  CROSS_COMPILE="%{_cross_target}-"\\\
+  CFLAGS="%{_cross_cflags} -fPIC"\\\
+  LDFLAGS="%{_cross_ldflags}"\\\
+  BUILD_CC="gcc"\\\
+  BUILD_CFLAGS="%{optflags}"\\\
+  BUILD_LDFLAGS="%{build_ldflags}"\\\
+  prefix=%{_cross_prefix}\\\
+  lib=%{_cross_lib}\\\
+  LIBDIR=%{_cross_libdir}\\\
+  SBINDIR=%{_cross_sbindir}\\\
+  INCDIR=%{_cross_includedir}\\\
+  MANDIR=%{_cross_mandir}\\\
+  PKGCONFIGDIR=%{_cross_pkgconfigdir}\\\
+  GOLANG=no\\\
+  RAISE_SETFCAP=no\\\
+  PAM_CAP=no\\\
+%{nil}
+
 %build
-make \
-  CC="%{_cross_target}-gcc" \
-  CFLAGS="%{_cross_cflags} -fPIC" \
-  BUILD_CC="gcc" BUILD_CFLAGS="%{optflags}" \
-  prefix=%{_cross_prefix} lib=%{_cross_lib} \
-  LIBDIR=%{_cross_libdir} SBINDIR=%{_cross_sbindir} \
-  INCDIR=%{_cross_includedir} MANDIR=%{_cross_mandir} \
-  PKGCONFIGDIR=%{_cross_pkgconfigdir} \
-  GOLANG=no RAISE_SETFCAP=no PAM_CAP=no \
+%{cross_make}
 
 %install
-make install \
-  DESTDIR=%{buildroot} \
-  CC="%{_cross_target}-gcc" CFLAGS="%{_cross_cflags}" \
-  BUILD_CC="gcc" BUILD_CFLAGS="%{optflags}" \
-  prefix=%{_cross_prefix} lib=%{_cross_lib} \
-  LIBDIR=%{_cross_libdir} SBINDIR=%{_cross_sbindir} \
-  INCDIR=%{_cross_includedir} MANDIR=%{_cross_mandir} \
-  PKGCONFIGDIR=%{_cross_pkgconfigdir} \
-  GOLANG=no RAISE_SETFCAP=no PAM_CAP=no \
+%{cross_make} install
 
 chmod +x %{buildroot}%{_cross_libdir}/*.so.*
 
