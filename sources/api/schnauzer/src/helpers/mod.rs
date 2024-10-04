@@ -2429,18 +2429,22 @@ mod test_cidr_to_ipaddr {
 }
 
 #[cfg(test)]
-mod test_combined_template_for_ip_cidr {
-    use crate::helpers::{cidr_to_ipaddr, is_ipv4, replace_ipv4_octet};
+mod test_full_template_for_ip_cidrs {
+    use crate::helpers::{cidr_to_ipaddr, is_ipv4, replace_ipv4_octet,IfNotNullHelper};
     use handlebars::{Handlebars, RenderError};
     use serde::Serialize;
     use serde_json::json;
 
     const TEMPLATE: &str = r#"
-    {{#if (is_ipv4 ipcidr)}}
-      {{ replace_ipv4_octet (cidr_to_ipaddr ipcidr) 3 "10" }}
-    {{else}}
-      {{cidr_to_ipaddr ipcidr}}a
-    {{/if}}
+{{#if_not_null ipcidrs}}
+    {{#each ipcidrs}}
+        {{#if (is_ipv4 this)}}
+bind {{ replace_ipv4_octet (cidr_to_ipaddr this) 3 "10" }}
+        {{else}}
+bind {{cidr_to_ipaddr this}}a
+        {{/if}}
+    {{/each}}
+{{/if_not_null}}
     "#;
 
     fn setup_and_render_template<T>(tmpl: &str, data: &T) -> Result<String, RenderError>
@@ -2451,19 +2455,20 @@ mod test_combined_template_for_ip_cidr {
         registry.register_helper("is_ipv4", Box::new(is_ipv4));
         registry.register_helper("cidr_to_ipaddr", Box::new(cidr_to_ipaddr));
         registry.register_helper("replace_ipv4_octet", Box::new(replace_ipv4_octet));
-
+        registry.register_helper("if_not_null", Box::new(IfNotNullHelper));
         registry.render_template(tmpl, data)
     }
 
     #[test]
-    fn test_combined_template_valid_cases() {
+    fn test_full_template_for_ip_cidrs_valid_cases() {
         let test_cases = vec![
-            (json!({"ipcidr": "192.168.1.0/24"}), "192.168.1.10"), // IPv4 case with replacement
-            (json!({"ipcidr": "2001:db8::/32"}), "2001:db8::a"),   // IPv6 case with 'a' suffix
+            (
+                json!({"ipcidrs": ["192.168.1.0/24", "10.100.0.0/16", "2001:db8::/32"]}),
+                "bind 192.168.1.10\nbind 10.100.0.10\nbind 2001:db8::a"
+            ),
         ];
 
-        test_cases.iter().for_each(|test_case| {
-            let (config, expected) = test_case;
+        test_cases.iter().for_each(|(config, expected)| {
             let rendered = setup_and_render_template(TEMPLATE, config)
                 .unwrap()
                 .trim()

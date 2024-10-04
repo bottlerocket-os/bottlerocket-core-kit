@@ -179,3 +179,33 @@ async fn render_07_aws_config() {
         expected_render
     );
 }
+
+#[tokio::test]
+async fn render_08_ipcidr() {
+    let template = include_str!("./templates/succeeds/08_ipcidr.template");
+
+    let expected_render = include_str!("./templates/succeeds_rendered/08_ipcidr.rendered");
+
+    let importer = FakeImporter::new(
+        json!({
+            "ipcidrs": [
+                "192.168.1.0/24",
+                "10.100.0.0/16",
+                "2001:db8::/32"
+            ]
+        }),
+        vec![
+            ("replace_ipv4_octet", schnauzer::helpers::replace_ipv4_octet),
+            ("cidr_to_ipaddr", schnauzer::helpers::cidr_to_ipaddr),
+            ("if_not_null", schnauzer::helpers::IfNotNullHelper),
+            ("is_ipv4", schnauzer::helpers::is_ipv4),
+        ],
+    );
+
+    assert_eq!(
+        schnauzer::v2::render_template_str(&importer, template)
+            .await
+            .unwrap(),
+        expected_render
+    );
+}
