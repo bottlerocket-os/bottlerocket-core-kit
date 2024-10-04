@@ -4,6 +4,7 @@
 Name: %{_cross_os}early-boot-config
 Version: 0.1
 Release: 0%{?dist}
+Epoch: 1
 Summary: early-boot-config
 License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket

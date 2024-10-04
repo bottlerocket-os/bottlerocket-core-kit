@@ -6,6 +6,7 @@
 Name: %{_cross_os}libgcc
 Version: 0.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: GCC runtime library
 License: GPL-3.0-or-later WITH GCC-exception-3.1
 URL: https://gcc.gnu.org/

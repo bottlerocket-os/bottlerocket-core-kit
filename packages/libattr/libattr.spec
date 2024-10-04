@@ -1,6 +1,7 @@
 Name: %{_cross_os}libattr
 Version: 2.5.2
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for extended attribute support
 License: LGPL-2.1-or-later
 URL: https://savannah.nongnu.org/projects/attr

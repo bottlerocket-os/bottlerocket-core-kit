@@ -33,6 +33,7 @@
 Name: %{_cross_os}%{gorepo}
 Version: %{rpmver}
 Release: 1%{?dist}
+Epoch: 1
 Summary: Container cluster management
 # base Apache-2.0, third_party Apache-2.0 AND BSD-3-Clause
 License: Apache-2.0 AND BSD-3-Clause

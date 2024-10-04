@@ -1,6 +1,7 @@
 Name: %{_cross_os}libnetfilter_queue
 Version: 1.0.5
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for netfilter queue
 License: GPL-2.0-or-later
 URL: http://netfilter.org

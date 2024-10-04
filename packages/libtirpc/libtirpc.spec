@@ -1,6 +1,7 @@
 Name: %{_cross_os}libtirpc
 Version: 1.3.5
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for RPC
 License: BSD-3-Clause
 URL: http://git.linux-nfs.org/?p=steved/libtirpc.git;a=summary

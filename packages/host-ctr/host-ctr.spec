@@ -4,6 +4,7 @@
 Name: %{_cross_os}%{workspace_name}
 Version: 0.0
 Release: 0%{?dist}
+Epoch: 1
 Summary: Bottlerocket host container runner
 License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket

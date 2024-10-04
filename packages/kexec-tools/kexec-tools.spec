@@ -1,6 +1,7 @@
 Name: %{_cross_os}kexec-tools
 Version: 2.0.29
 Release: 1%{?dist}
+Epoch: 1
 Summary: Linux tool to load kernels from the running system
 License: GPL-2.0-or-later AND GPL-2.0-only
 URL: https://www.kernel.org/doc/html/latest/admin-guide/kdump/kdump.html

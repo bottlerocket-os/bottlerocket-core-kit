@@ -1,6 +1,7 @@
 Name: %{_cross_os}libnvme
 Version: 1.10
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for NVM Express
 License: LGPL-2.1-only AND CC0-1.0 AND MIT
 URL: https://github.com/linux-nvme/libnvme

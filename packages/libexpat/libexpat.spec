@@ -3,6 +3,7 @@
 Name: %{_cross_os}libexpat
 Version: %(echo %{unversion} | sed 's/_/./g')
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for XML parsing
 License: MIT
 URL: https://libexpat.github.io/

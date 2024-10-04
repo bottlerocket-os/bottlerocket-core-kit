@@ -9,6 +9,7 @@
 Name: %{_cross_os}%{gorepo}
 Version: %{gover}
 Release: 1%{?dist}
+Epoch: 1
 Summary: CLI for running Open Containers
 License: Apache-2.0
 URL: https://%{goimport}

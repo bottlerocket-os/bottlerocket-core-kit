@@ -1,6 +1,7 @@
 Name: %{_cross_os}acpid
 Version: 2.0.34
 Release: 1%{?dist}
+Epoch: 1
 Summary: ACPI event daemon
 License: GPL-2.0-or-later
 URL: http://sourceforge.net/projects/acpid2/

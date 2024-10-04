@@ -1,6 +1,7 @@
 Name: %{_cross_os}libaudit
 Version: 3.1.4
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for the audit subsystem
 License: GPL-2.0-or-later AND LGPL-2.1-or-later
 URL: https://github.com/linux-audit/audit-userspace/

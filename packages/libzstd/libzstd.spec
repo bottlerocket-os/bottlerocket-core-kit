@@ -1,6 +1,7 @@
 Name: %{_cross_os}libzstd
 Version: 1.5.6
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for Zstandard compression
 License: BSD-3-Clause AND GPL-2.0-only
 URL: https://github.com/facebook/zstd/

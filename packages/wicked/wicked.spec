@@ -13,6 +13,7 @@
 Name: %{_cross_os}wicked
 Version: 0.6.68
 Release: 1%{?dist}
+Epoch: 1
 Summary: Network configuration infrastructure
 License: GPL-2.0-or-later AND (GPL-2.0-only OR BSD-3-Clause)
 URL: https://github.com/openSUSE/wicked

@@ -11,6 +11,7 @@
 Name: %{_cross_os}%{gorepo}
 Version: %{rpmver}
 Release: 1%{?dist}
+Epoch: 1
 Summary: An industry-standard container runtime
 License: Apache-2.0
 URL: https://%{goimport}

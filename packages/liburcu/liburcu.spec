@@ -1,6 +1,7 @@
 Name: %{_cross_os}liburcu
 Version: 0.14.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for userspace RCU
 License: LGPL-2.1-only AND GPL-2.0-or-later AND MIT
 URL: http://liburcu.org

@@ -1,6 +1,7 @@
 Name: %{_cross_os}libselinux
 Version: 3.6
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for SELinux
 License: LicenseRef-SELinux-PD
 URL: https://github.com/SELinuxProject/

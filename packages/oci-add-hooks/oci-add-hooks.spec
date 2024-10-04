@@ -8,6 +8,7 @@
 Name: %{_cross_os}oci-add-hooks
 Version: 1.0.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: OCI runtime wrapper that injects OCI hooks
 License: Apache-2.0 AND MIT
 URL: https://github.com/awslabs/oci-add-hooks

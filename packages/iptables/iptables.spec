@@ -1,6 +1,7 @@
 Name: %{_cross_os}iptables
 Version: 1.8.10
 Release: 1%{?dist}
+Epoch: 1
 Summary: Tools for managing Linux kernel packet filtering capabilities
 License: GPL-2.0-or-later AND GPL-2.0-only
 URL: http://www.netfilter.org/
