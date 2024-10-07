@@ -55,7 +55,6 @@ Source307: load-tesla-kernel-modules.service.in
 Source308: copy-open-gpu-kernel-modules.service.in
 Source309: load-open-gpu-kernel-modules.service.in
 
-BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}kernel-5.15-archive
 
 %description

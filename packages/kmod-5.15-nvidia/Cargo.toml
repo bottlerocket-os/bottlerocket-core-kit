@@ -42,5 +42,4 @@ sha512 = "f9cee68cbb12095af4b4e92d01c210461789ef41c70b64efefd6719d0b88468b7a67a3
 force-upstream = true
 
 [build-dependencies]
-glibc = { path = "../glibc" }
 kernel-5_15 = { path = "../kernel-5.15" }
