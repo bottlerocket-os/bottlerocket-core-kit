@@ -3,7 +3,7 @@
 
 Name: %{_cross_os}static-pods
 Version: 0.1
-Release: 0%{?dist}
+Release: 1%{?dist}
 Summary: Manages user-defined K*S static pods
 License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket

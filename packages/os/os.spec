@@ -3,7 +3,7 @@
 
 Name: %{_cross_os}os
 Version: 0.0
-Release: 0%{?dist}
+Release: 1%{?dist}
 Epoch: 1
 Summary: Bottlerocket's first-party code
 License: Apache-2.0 OR MIT

@@ -5,7 +5,7 @@
 
 Name: %{_cross_os}selinux-policy
 Version: 0.0
-Release: 0%{?dist}
+Release: 1%{?dist}
 Epoch: 1
 Summary: SELinux policy
 License: Apache-2.0 OR MIT

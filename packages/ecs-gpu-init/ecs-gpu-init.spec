@@ -3,7 +3,7 @@
 
 Name: %{_cross_os}%{workspace_name}
 Version: 0.0
-Release: 0%{?dist}
+Release: 1%{?dist}
 Summary: Tool to generate the ECS agent's GPU configuration
 License: Apache-2.0 OR MIT
 Source1: ecs-gpu-init.service
