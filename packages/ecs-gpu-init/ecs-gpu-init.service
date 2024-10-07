@@ -4,6 +4,11 @@ Description=Initialize ECS GPU config
 # otherwise the userspace component of the driver will fail to
 # query the /dev devices
 After=load-tesla-kernel-modules.service load-open-gpu-kernel-modules.service
+# Running this unit after nvidia persistenced ensures that
+# the /dev devices are created and the hardware set to
+# persistence mode.
+Requires=nvidia-persistenced.service
+After=nvidia-persistenced.service
 # Block manual interactions with this service. It doesn't
 # make sense to regenerate the GPU config file if the ECS
 # agent won't read it when it changes
