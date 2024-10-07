@@ -1,6 +1,6 @@
-From c835d2ddc855439173a8a59828c335d169c03d15 Mon Sep 17 00:00:00 2001
+From af0299d3f9ffb36b1f10b3c608b68301af664b1e Mon Sep 17 00:00:00 2001
 From: Kush Upadhyay <kushupad@amazon.com>
-Date: Tue, 2 Jul 2024 20:54:29 +0000
+Date: Mon, 7 Oct 2024 09:13:38 +0000
 Subject: [PATCH] agent: Add config to make shell optional
 
 Signed-off-by: Kush Upadhyay <kushupad@amazon.com>
@@ -11,11 +11,11 @@ Signed-off-by: Kush Upadhyay <kushupad@amazon.com>
  3 files changed, 28 insertions(+), 11 deletions(-)
 
 diff --git a/agent/appconfig/appconfig.go b/agent/appconfig/appconfig.go
-index b6abcf1..e214cd5 100644
+index 021d9f2..867f9e0 100644
 --- a/agent/appconfig/appconfig.go
 +++ b/agent/appconfig/appconfig.go
-@@ -118,6 +118,7 @@ func DefaultConfig() SsmagentConfig {
- 		SessionLogsRetentionDurationHours:     DefaultSessionLogsRetentionDurationHours,
+@@ -119,6 +119,7 @@ func DefaultConfig() SsmagentConfig {
+ 		SessionLogsDestination:                SessionLogsDestinationNone,
  		PluginLocalOutputCleanup:              DefaultPluginOutputRetention,
  		OrchestrationDirectoryCleanup:         DefaultOrchestrationDirCleanup,
 +		UseShell:                              false,
@@ -23,7 +23,7 @@ index b6abcf1..e214cd5 100644
  	var agent = AgentInfo{
  		Name:                                    "amazon-ssm-agent",
 diff --git a/agent/appconfig/contracts.go b/agent/appconfig/contracts.go
-index 1337398..0a66441 100644
+index 687aed2..dcb8412 100644
 --- a/agent/appconfig/contracts.go
 +++ b/agent/appconfig/contracts.go
 @@ -50,6 +50,8 @@ type SsmCfg struct {
