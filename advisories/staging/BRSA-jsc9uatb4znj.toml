@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-jsc9uatb4znj"
+title = "amazon-ssm-agent CVE-2023-45288"
+cve = "CVE-2023-45288"
+severity = "moderate"
+description = "A flaw was found in amazon-ssm-agent that could cause an HTTP/2 endpoint to read arbitrary amounts of header data by sending an excessive number of CONTINUATION frames. When a request's headers exceed MaxHeaderBytes, no memory is allocated to store the excess headers, but they are still parsed. This could cause an HTTP/2 endpoint to read arbitrary amounts of header data, all associated with a request which is going to be rejected."
+
+[[advisory.products]]
+package-name = "amazon-ssm-agent"
+patched-version = "3.3.987.0"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "kushupad"
+issue-date = 2024-10-07T18:33:08Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
