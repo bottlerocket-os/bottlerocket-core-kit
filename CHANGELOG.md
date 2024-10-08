@@ -1,3 +1,23 @@
+# v2.9.0 (2024-10-09)
+
+## OS Changes
+* Add nvidia-persistenced and nvidia-modprobe to kmod-*-nvidia ([#122])
+* Add NVIDIA time-slicing settings to nvidia-k8s-device-plugin ([#169])
+* libcap: fix cross-compile toolchain usage ([#174])
+* login: start the getty services earlier ([#175])
+* Update amazon-ssm-agent to v3.3.987.0 ([#182])
+
+## Build Changes
+* Update twoliter to 0.4.7 ([#183])
+* Update bottlerocket-settings-models to 0.6.0 ([#169])
+
+[#122]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/122
+[#169]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/169
+[#174]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/174
+[#175]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/175
+[#182]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/182
+[#183]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/183
+
 # v2.8.4 (2024-10-03)
 
 ## OS Changes
