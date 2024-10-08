@@ -1,0 +1,13 @@
+[required-extensions]
+std = { version = "v1", helpers = ["if_not_null", "cidr_to_ipaddr", "is_ipv4", "replace_ipv4_octet"] }
+coredns = "v1"
++++
+{{#if_not_null ipcidrs}}
+    {{#each ipcidrs}}
+        {{#if (is_ipv4 this)}}
+bind {{ replace_ipv4_octet (cidr_to_ipaddr this) 3 "10" }}
+        {{else}}
+bind {{cidr_to_ipaddr this}}a
+        {{/if}}
+    {{/each}}
+{{/if_not_null}}
