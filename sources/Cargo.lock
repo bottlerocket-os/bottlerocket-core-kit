@@ -3176,6 +3176,7 @@ dependencies = [
 name = "migrator"
 version = "0.1.0"
 dependencies = [
+ "aws-lc-rs",
  "bottlerocket-release",
  "bytes",
  "chrono",
