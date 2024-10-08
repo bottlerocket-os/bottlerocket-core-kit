@@ -384,6 +384,7 @@ checksum = "86fdf8605db99b54d3cd748a44c6d04df638eb5dafb219b135d0149bd0db01f6"
 name = "apiclient"
 version = "0.1.0"
 dependencies = [
+ "aws-lc-rs",
  "base64 0.22.1",
  "constants",
  "datastore",
@@ -401,6 +402,7 @@ dependencies = [
  "rand",
  "reqwest",
  "retry-read",
+ "rustls 0.23.14",
  "serde",
  "serde_json",
  "signal-hook",

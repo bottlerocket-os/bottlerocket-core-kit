@@ -82,7 +82,7 @@ members = [
 ]
 
 [workspace.dependencies]
-apiclient = { version = "0.1", path = "api/apiclient" }
+apiclient = { version = "0.1", path = "api/apiclient", default-features = false }
 aws-smithy-experimental = { version = "0.1", path = "aws-smithy-experimental" }
 block-party = { version = "0.1", path = "updater/block-party" }
 bottlerocket-release = { version = "0.1", path = "bottlerocket-release" }
