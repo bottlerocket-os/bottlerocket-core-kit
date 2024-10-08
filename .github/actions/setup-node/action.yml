@@ -3,7 +3,7 @@ description: "Performs setup for caching and other common needs."
 runs:
   using: "composite"
   steps:
-    - run: sudo apt -y install build-essential openssl libssl-dev pkg-config liblz4-tool
+    - run: sudo apt -y install build-essential openssl libssl-dev pkg-config liblz4-tool clang
       shell: bash
     - uses: actions/cache/restore@v4
       # Restore most recent cache if available.
