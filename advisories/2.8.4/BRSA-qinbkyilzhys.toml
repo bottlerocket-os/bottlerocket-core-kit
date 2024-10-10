@@ -1,0 +1,24 @@
+[advisory]
+id = "BRSA-qinbkyilzhys"
+title = "kernel CVE-2024-46721"
+cve = "CVE-2024-46721"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved:  apparmor: fix possible NULL pointer dereference"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.226-214.879.amzn2"
+patched-release = "0"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.167-112.165.amzn2"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-10-03T22:20:35Z
+arches = ["x86_64", "aarch64"]
+version = "2.8.4"

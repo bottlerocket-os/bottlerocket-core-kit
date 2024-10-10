@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-kzwthwuxdl5z"
+title = "kernel CVE-2024-46781"
+cve = "CVE-2024-46781"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: nilfs2: fix missing cleanup on rollforward recovery error"
+
+[[advisory.products]]
+package-name = "kernel-5.10"
+patched-version = "kernel-5.10.226-214.879.amzn2"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-10-03T22:20:35Z
+arches = ["aarch64", "x86_64"]
+version = "2.8.4"
