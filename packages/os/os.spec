@@ -1,5 +1,7 @@
 %global _cross_first_party 1
 %undefine _debugsource_packages
+%undefine cross_check_fips
+%undefine cross_check_fips
 
 Name: %{_cross_os}os
 Version: 0.0
