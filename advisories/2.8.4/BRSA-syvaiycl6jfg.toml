@@ -11,12 +11,6 @@ patched-version = "kernel-5.10.226-214.879.amzn2"
 patched-release = "0"
 patched-epoch = "0"
 
-[[advisory.products]]
-package-name = "kernel-5.10"
-patched-version = "kernel-5.10.226-214.879.amzn2"
-patched-release = "0"
-patched-epoch = "0"
-
 [updateinfo]
 author = "giinglis"
 issue-date = 2024-10-03T22:20:35Z
