@@ -326,16 +326,12 @@ exec 1>&3 2>&4
 exec 3>&1 4>&2
 aws_sdk_output="$(mktemp)"
 exec 1>"${aws_sdk_output}" 2>&1
-RUSTFLAGS="$(echo "%{__global_rustflags_shared}" | sed -e 's,-Ccodegen-units=1,,g')" \
-%{__cargo_cross_env} \
-CARGO_TARGET_DIR="${HOME}/.cache/.aws-sdk" \
-%{__cargo} build \
-    %{__cargo_cross_opts} \
-    --release \
-    --manifest-path %{_builddir}/sources/Cargo.toml \
-    -p pluto \
-    -p cfsignal \
-    &
+
+%cargo_build_aws_sdk --manifest-path %{_builddir}/sources/Cargo.toml \
+  -p pluto \
+  -p cfsignal \
+  &
+
 # Save the PID so we can wait for it later.
 aws_sdk_pid="$!"
 exec 1>&3 2>&4
@@ -403,24 +399,24 @@ for p in \
   shibaken \
   driverdog \
 ; do
-  install -p -m 0755 ${HOME}/.cache/%{__cargo_target}/release/${p} %{buildroot}%{_cross_bindir}
+  install -p -m 0755 %{__cargo_outdir}/${p} %{buildroot}%{_cross_bindir}
 done
 
 for p in \
   pluto \
   cfsignal \
 ; do
-  install -p -m 0755 ${HOME}/.cache/.aws-sdk/%{__cargo_target}/release/${p} %{buildroot}%{_cross_bindir}
+  install -p -m 0755 %{__cargo_outdir_aws_sdk}/${p} %{buildroot}%{_cross_bindir}
 done
 
 install -d %{buildroot}%{_cross_sbindir}
 for p in \
   xfs_admin xfs_info \
 ; do
-  install -p -m 0755 ${HOME}/.cache/%{__cargo_target}/release/${p} %{buildroot}%{_cross_sbindir}/
+  install -p -m 0755 %{__cargo_outdir}/${p} %{buildroot}%{_cross_sbindir}/
 done
 # Rename fsck_xfs binary to fsck.xfs
-install -p -m 0755 ${HOME}/.cache/%{__cargo_target}/release/fsck_xfs %{buildroot}%{_cross_sbindir}/fsck.xfs
+install -p -m 0755 %{__cargo_outdir}/fsck_xfs %{buildroot}%{_cross_sbindir}/fsck.xfs
 
 # Add the bloodhound checker symlinks
 mkdir -p %{buildroot}%{_cross_libexecdir}/cis-checks/bottlerocket
@@ -460,7 +456,7 @@ done
 install -m 0644 %{S:13} %{buildroot}%{_cross_libexecdir}/cis-checks/kubernetes/metadata.json
 
 for p in apiclient ; do
-  install -p -m 0755 ${HOME}/.cache/.static/%{__cargo_target_static}/release/${p} %{buildroot}%{_cross_bindir}
+  install -p -m 0755 %{__cargo_outdir_static}/${p} %{buildroot}%{_cross_bindir}
 done
 
 install -d %{buildroot}%{_cross_datadir}/bottlerocket

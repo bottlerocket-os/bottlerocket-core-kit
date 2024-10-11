@@ -71,30 +71,29 @@ Requires: %{name}-local
 %endif
     %{nil}
 
-%global cargo_outdir %{getenv:HOME}/.cache/%{__cargo_target}/release
 %global early_boot_config_bindir %{_cross_libexecdir}/early-boot-config/bin
 %global early_boot_config_provider_dir %{_cross_libexecdir}/early-boot-config/data-providers.d
 
 %install
 install -d %{buildroot}%{_cross_bindir}
-install -p -m 0755 %{cargo_outdir}/early-boot-config %{buildroot}%{_cross_bindir}
+install -p -m 0755 %{__cargo_outdir}/early-boot-config %{buildroot}%{_cross_bindir}
 
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:100} %{buildroot}%{_cross_unitdir}
 
 install -d %{buildroot}%{early_boot_config_bindir}
 install -p -m 0755 \
-    %{cargo_outdir}/ec2-identity-doc-user-data-provider \
-    %{cargo_outdir}/ec2-imds-user-data-provider \
-    %{cargo_outdir}/local-defaults-user-data-provider \
-    %{cargo_outdir}/local-file-user-data-provider \
-    %{cargo_outdir}/local-overrides-user-data-provider \
+    %{__cargo_outdir}/ec2-identity-doc-user-data-provider \
+    %{__cargo_outdir}/ec2-imds-user-data-provider \
+    %{__cargo_outdir}/local-defaults-user-data-provider \
+    %{__cargo_outdir}/local-file-user-data-provider \
+    %{__cargo_outdir}/local-overrides-user-data-provider \
     %{buildroot}%{early_boot_config_bindir}
 
 %ifarch x86_64
 install -p -m 0755 \
-    %{cargo_outdir}/vmware-cd-rom-user-data-provider \
-    %{cargo_outdir}/vmware-guestinfo-user-data-provider \
+    %{__cargo_outdir}/vmware-cd-rom-user-data-provider \
+    %{__cargo_outdir}/vmware-guestinfo-user-data-provider \
     %{buildroot}%{early_boot_config_bindir}
 %endif
 
