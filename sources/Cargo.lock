@@ -619,11 +619,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-lc-fips-sys"
+version = "0.12.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec4795bbabc13643a8b3532184041ab41dec5740046aa15734428219cb9a0bfc"
+dependencies = [
+ "bindgen",
+ "cmake",
+ "dunce",
+ "fs_extra",
+ "libc",
+ "paste",
+]
+
+[[package]]
 name = "aws-lc-rs"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdd82dba44d209fddb11c190e0a94b78651f95299598e472215667417a03ff1d"
 dependencies = [
+ "aws-lc-fips-sys",
  "aws-lc-sys",
  "mirai-annotations",
  "paste",
@@ -5213,6 +5228,7 @@ version = "0.1.0"
 dependencies = [
  "argh",
  "async-trait",
+ "aws-lc-rs",
  "bottlerocket-modeled-types",
  "bottlerocket-release",
  "bytes",
