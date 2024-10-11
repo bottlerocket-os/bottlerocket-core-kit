@@ -120,7 +120,6 @@ dependencies = [
  "kmod-5_15-nvidia",
  "kmod-6_1-neuron",
  "kmod-6_1-nvidia",
- "kubernetes-1_23",
  "kubernetes-1_24",
  "kubernetes-1_25",
  "kubernetes-1_26",
@@ -498,16 +497,6 @@ version = "0.1.0"
 dependencies = [
  "glibc",
  "kernel-6_1",
-]
-
-[[package]]
-name = "kubernetes-1_23"
-version = "0.1.0"
-dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider",
- "glibc",
- "static-pods",
 ]
 
 [[package]]
