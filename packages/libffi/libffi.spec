@@ -1,6 +1,7 @@
 Name: %{_cross_os}libffi
 Version: 3.4.6
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for FFI
 License: MIT
 URL: https://sourceware.org/libffi/

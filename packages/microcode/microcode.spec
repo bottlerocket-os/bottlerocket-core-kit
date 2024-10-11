@@ -9,6 +9,7 @@
 Name: %{_cross_os}microcode
 Version: 0.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: Microcode for AMD and Intel processors
 License: LicenseRef-scancode-amd-linux-firmware-export AND LicenseRef-scancode-intel-mcu-2018
 

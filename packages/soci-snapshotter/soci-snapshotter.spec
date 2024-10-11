@@ -5,6 +5,7 @@
 Name: %{_cross_os}soci-snapshotter
 Version: %{gover}
 Release: 1%{?dist}
+Epoch: 1
 Summary: A containerd snapshotter plugin which enables lazy loading for OCI images.
 License: Apache-2.0
 URL: https://github.com/awslabs/soci-snapshotter

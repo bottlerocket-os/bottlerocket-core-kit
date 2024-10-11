@@ -4,6 +4,7 @@
 Name: %{_cross_os}util-linux
 Version: %{version}
 Release: 1%{?dist}
+Epoch: 1
 Summary: A collection of basic system utilities
 License: BSD-3-Clause AND BSD-4-Clause-UC AND GPL-1.0-or-later AND GPL-2.0-only AND GPL-2.0-or-later AND GPL-3.0-or-later AND LGPL-2.0-or-later AND LGPL-2.1-or-later AND MIT
 URL: http://en.wikipedia.org/wiki/Util-linux

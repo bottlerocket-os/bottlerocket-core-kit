@@ -1,6 +1,7 @@
 Name: %{_cross_os}libelf
 Version: 0.191
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for ELF files
 License: GPL-2.0-or-later OR LGPL-3.0-or-later
 URL: https://sourceware.org/elfutils/

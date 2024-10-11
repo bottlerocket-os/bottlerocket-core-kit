@@ -1,6 +1,7 @@
 Name: %{_cross_os}nvme-cli
 Version: 2.10.2
 Release: 1%{?dist}
+Epoch: 1
 Summary: CLI to interact with NVMe devices
 License: LGPL-2.1-only AND GPL-2.0-only AND CC0-1.0 AND MIT
 URL: https://github.com/linux-nvme/nvme-cli

@@ -1,6 +1,7 @@
 Name: %{_cross_os}pciutils
 Version: 3.13.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: PCI bus related utilities
 License: GPL-2.0-only
 URL: https://www.kernel.org/pub/software/utils/pciutils/

@@ -1,6 +1,7 @@
 Name: %{_cross_os}socat
 Version: 1.8.0.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: Transfer data between two channels
 License: GPL-2.0-only
 URL: http://www.dest-unreach.org/socat/

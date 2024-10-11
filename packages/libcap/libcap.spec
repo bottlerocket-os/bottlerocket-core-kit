@@ -1,6 +1,7 @@
 Name: %{_cross_os}libcap
 Version: 2.70
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for getting and setting POSIX.1e capabilities
 License: GPL-2.0-only OR BSD-3-Clause
 URL: https://sites.google.com/site/fullycapable/

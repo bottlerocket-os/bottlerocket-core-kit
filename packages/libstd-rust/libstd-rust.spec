@@ -6,6 +6,7 @@
 Name: %{_cross_os}libstd-rust
 Version: 0.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: Rust standard library
 License: Apache-2.0 OR MIT
 URL: https://www.rust-lang.org/

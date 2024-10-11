@@ -1,6 +1,7 @@
 Name: %{_cross_os}glibc
 Version: 2.38
 Release: 1%{?dist}
+Epoch: 1
 Summary: The GNU libc libraries
 License: LGPL-2.1-or-later AND (LGPL-2.1-or-later WITH GCC-exception-2.0) AND GPL-2.0-or-later AND (GPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND ISC
 URL: http://www.gnu.org/software/glibc/

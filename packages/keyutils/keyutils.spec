@@ -1,6 +1,7 @@
 Name: %{_cross_os}keyutils
 Version: 1.6.1
 Release: 1%{?dist}
+Epoch: 1
 Summary: Linux key management utilities
 License: GPL-2.0-or-later AND GPL-2.1-or-later
 Url: http://people.redhat.com/~dhowells/keyutils/

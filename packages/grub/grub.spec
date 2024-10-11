@@ -12,6 +12,7 @@
 Name: %{_cross_os}grub
 Version: 2.06
 Release: 1%{?dist}
+Epoch: 1
 Summary: Bootloader with support for Linux and more
 License: GPL-3.0-or-later AND Unicode-DFS-2015
 URL: https://www.gnu.org/software/grub/

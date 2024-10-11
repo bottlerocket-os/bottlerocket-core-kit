@@ -3,6 +3,7 @@
 Name: %{_cross_os}login
 Version: 0.0.1
 Release: 1%{?dist}
+Epoch: 1
 Summary: A login helper
 License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket

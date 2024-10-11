@@ -1,6 +1,7 @@
 Name: %{_cross_os}libnetfilter_cttimeout
 Version: 1.0.1
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for netfilter cttimeout
 License: GPL-2.0-or-later
 URL: http://netfilter.org

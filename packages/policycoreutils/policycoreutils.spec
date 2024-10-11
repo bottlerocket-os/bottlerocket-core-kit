@@ -1,6 +1,7 @@
 Name: %{_cross_os}policycoreutils
 Version: 3.6
 Release: 1%{?dist}
+Epoch: 1
 Summary: A set of SELinux policy tools
 License: GPL-2.0-only
 URL: https://github.com/SELinuxProject/

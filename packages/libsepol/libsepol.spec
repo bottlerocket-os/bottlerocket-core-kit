@@ -1,6 +1,7 @@
 Name: %{_cross_os}libsepol
 Version: 3.6
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for SELinux policy manipulation
 License: LGPL-2.1-or-later
 URL: https://github.com/SELinuxProject/

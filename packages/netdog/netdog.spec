@@ -3,7 +3,8 @@
 
 Name: %{_cross_os}netdog
 Version: 0.1.1
-Release: 0%{?dist}
+Release: 1%{?dist}
+Epoch: 1
 Summary: Bottlerocket network configuration helper
 License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket

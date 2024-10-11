@@ -1,6 +1,7 @@
 Name: %{_cross_os}libacl
 Version: 2.3.2
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for access control list support
 License: LGPL-2.1-or-later
 URL: https://savannah.nongnu.org/projects/acl

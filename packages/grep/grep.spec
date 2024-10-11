@@ -1,6 +1,7 @@
 Name: %{_cross_os}grep
 Version: 3.11
 Release: 1%{?dist}
+Epoch: 1
 Summary: GNU grep utility
 URL: https://www.gnu.org/software/grep/
 License: GPL-3.0-or-later

@@ -4,6 +4,7 @@
 Name: %{_cross_os}filesystem
 Version: 1.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: The basic directory layout
 License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket
