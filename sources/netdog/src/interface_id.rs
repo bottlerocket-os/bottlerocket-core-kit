@@ -50,7 +50,7 @@ impl TryFrom<String> for MacAddress {
     fn try_from(input: String) -> Result<Self> {
         let mut octets = 0;
 
-        for octet in input.split(|b| b == '-' || b == ':') {
+        for octet in input.split(['-', ':']) {
             // If we've gotten to 6 and are still iterating, the MAC is too long
             ensure!(
                 octets != 6 && octet.len() == 2,

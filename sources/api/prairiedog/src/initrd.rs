@@ -56,7 +56,7 @@ mod tests {
         let bootconfig = GOOD_BOOTCONFIG;
         assert_eq!(
             INITRD_FROM_GOOD_BOOTCONFIG,
-            generate_initrd(&bootconfig.as_bytes()).unwrap()
+            generate_initrd(bootconfig.as_bytes()).unwrap()
         );
     }
 }

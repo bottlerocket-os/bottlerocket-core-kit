@@ -319,7 +319,7 @@ mod test {
         };
         let check_efa_attachment_result = check_efa_attachment(mock_pci_client);
         assert!(check_efa_attachment_result.is_ok());
-        assert_eq!(check_efa_attachment_result.unwrap(), true);
+        assert!(check_efa_attachment_result.unwrap());
     }
 
     #[test]
@@ -330,6 +330,6 @@ mod test {
         };
         let check_efa_attachment_result = check_efa_attachment(mock_pci_client);
         assert!(check_efa_attachment_result.is_ok());
-        assert_eq!(check_efa_attachment_result.unwrap(), false);
+        assert!(!check_efa_attachment_result.unwrap());
     }
 }

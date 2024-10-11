@@ -77,19 +77,19 @@ mod tests {
         let mut prio = GptPrio(0x5555555555555555);
         assert_eq!(prio.priority(), 5);
         assert_eq!(prio.tries_left(), 5);
-        assert_eq!(prio.successful(), true);
-        assert_eq!(prio.will_boot(), true);
+        assert!(prio.successful());
+        assert!(prio.will_boot());
         prio.set_priority(0);
         assert_eq!(prio.0, 0x5550555555555555);
         prio.set_tries_left(0);
         assert_eq!(prio.0, 0x5500555555555555);
         prio.set_successful(false);
         assert_eq!(prio.0, 0x5400555555555555);
-        assert_eq!(prio.will_boot(), false);
+        assert!(!prio.will_boot());
 
         prio = GptPrio(0x0000000000000000);
-        assert_eq!(prio.has_boot_succeeded(), false);
+        assert!(!prio.has_boot_succeeded());
         prio.boot_has_succeeded();
-        assert_eq!(prio.has_boot_succeeded(), true);
+        assert!(prio.has_boot_succeeded());
     }
 }

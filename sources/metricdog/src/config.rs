@@ -66,7 +66,7 @@ mod test {
         assert_eq!("https://example.com", config.metrics_url.as_str());
         assert!(config.send_metrics);
         assert_eq!(3, config.service_checks.len());
-        assert_eq!("a", config.service_checks.get(0).unwrap());
+        assert_eq!("a", config.service_checks.first().unwrap());
         assert_eq!("b", config.service_checks.get(1).unwrap());
         assert_eq!("c", config.service_checks.get(2).unwrap());
         assert_eq!("us-west-2", config.region);
@@ -84,7 +84,7 @@ mod test {
         assert_eq!("", config.metrics_url.as_str());
         assert!(!config.send_metrics);
         assert_eq!(3, config.service_checks.len());
-        assert_eq!("a", config.service_checks.get(0).unwrap());
+        assert_eq!("a", config.service_checks.first().unwrap());
         assert_eq!("b", config.service_checks.get(1).unwrap());
         assert_eq!("c", config.service_checks.get(2).unwrap());
         assert_eq!("us-west-2", config.region);

@@ -242,7 +242,7 @@ async fn assert_directory_structure_with_failed_migration(
                 .to_str()
                 .unwrap()
                 .starts_with(&to_ver_unique_prefix)
-                .then(|| ())
+                .then_some(())
         })
         .collect::<Vec<()>>()
         .len();
@@ -355,7 +355,7 @@ async fn migrate_forward() {
     let contents = std::fs::read_to_string(&output_file).unwrap();
     let lines: Vec<&str> = contents.split('\n').collect();
     assert_eq!(lines.len(), 4);
-    let first_line = *lines.get(0).unwrap();
+    let first_line = *lines.first().unwrap();
     let want = format!("{}: --forward", FIRST_MIGRATION);
     let got: String = first_line.chars().take(want.len()).collect();
     assert_eq!(got, want);
@@ -402,7 +402,7 @@ async fn migrate_backward() {
     let contents = std::fs::read_to_string(&output_file).unwrap();
     let lines: Vec<&str> = contents.split('\n').collect();
     assert_eq!(lines.len(), 4);
-    let first_line = *lines.get(0).unwrap();
+    let first_line = *lines.first().unwrap();
     let want = format!("{}: --backward", THIRD_MIGRATION);
     let got: String = first_line.chars().take(want.len()).collect();
     assert_eq!(got, want);
@@ -450,7 +450,7 @@ async fn migrate_forward_with_failed_migration() {
     let contents = std::fs::read_to_string(&output_file).unwrap();
     let lines: Vec<&str> = contents.split('\n').collect();
     assert_eq!(lines.len(), 4);
-    let first_line = *lines.get(0).unwrap();
+    let first_line = *lines.first().unwrap();
     let want = format!("{}: --forward", FIRST_MIGRATION);
     let got: String = first_line.chars().take(want.len()).collect();
     assert_eq!(got, want);
@@ -502,7 +502,7 @@ async fn migrate_backward_with_failed_migration() {
     let contents = std::fs::read_to_string(&output_file).unwrap();
     let lines: Vec<&str> = contents.split('\n').collect();
     assert_eq!(lines.len(), 4);
-    let first_line = *lines.get(0).unwrap();
+    let first_line = *lines.first().unwrap();
     let want = format!("{}: --backward", THIRD_MIGRATION);
     let got: String = first_line.chars().take(want.len()).collect();
     assert_eq!(got, want);

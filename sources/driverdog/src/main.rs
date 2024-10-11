@@ -608,7 +608,7 @@ mod test {
         {
             let invalid_path = &invalid.path();
             let modules_sets: Result<HashMap<String, DriverType>> = toml::from_str(
-                &fs::read_to_string(&invalid_path)
+                &fs::read_to_string(invalid_path)
                     .context(error::ReadPathSnafu {
                         path: &invalid_path,
                     })

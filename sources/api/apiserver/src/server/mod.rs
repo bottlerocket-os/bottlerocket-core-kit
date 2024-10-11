@@ -746,11 +746,7 @@ fn comma_separated<'a>(key_name: &'static str, input: &'a str) -> Result<HashSet
 }
 
 fn transaction_name(query: &web::Query<HashMap<String, String>>) -> &str {
-    if let Some(name_str) = query.get("tx") {
-        name_str
-    } else {
-        "default"
-    }
+    query.get("tx").map(String::as_str).unwrap_or("default")
 }
 
 // Helpers methods for the 'set' API

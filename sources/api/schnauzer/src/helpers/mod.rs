@@ -2228,7 +2228,7 @@ mod test_ecs_metadata_service_limits {
 
     #[test]
     fn test_valid_ecs_metadata_service_limits() {
-        let test_cases = vec![
+        let test_cases = [
             (json!({"settings": {"rps": 1, "burst": 1}}), r#"1,1"#),
             (json!({"settings": {"rps": 1}}), r#"1,60"#),
             (json!({"settings": {"burst": 1}}), r#"40,1"#),
@@ -2244,7 +2244,7 @@ mod test_ecs_metadata_service_limits {
 
     #[test]
     fn test_invalid_ecs_metadata_service_limits() {
-        let test_cases = vec![
+        let test_cases = [
             json!({"settings": {"rps": [], "burst": 1}}),
             json!({"settings": {"rps": 1, "burst": []}}),
             json!({"settings": {"rps": [], "burst": []}}),
@@ -2279,7 +2279,7 @@ mod test_replace_ipv4_octet {
 
     #[test]
     fn test_valid_replace_ipv4_octet() {
-        let test_cases = vec![
+        let test_cases = [
             (
                 json!({"ip": "192.168.1.1", "index": 3, "value": "10"}),
                 "192.168.1.10",
@@ -2299,7 +2299,7 @@ mod test_replace_ipv4_octet {
 
     #[test]
     fn test_invalid_replace_ipv4_octet() {
-        let test_cases = vec![
+        let test_cases = [
             json!({"ip": "192.168.1.1", "index": 4, "value": "10"}), // Invalid index
             json!({"ip": "invalid-ip", "index": 3, "value": "10"}),  // Invalid IP
             json!({"ip": "192.168.1.1", "index": 3, "value": "257"}), // Invalid octet value
@@ -2342,7 +2342,7 @@ mod test_is_ipv4_is_ipv6 {
 
     #[test]
     fn test_valid_is_ipv4() {
-        let test_cases = vec![
+        let test_cases = [
             (json!({"ipcidr": "192.168.1.0/24"}), "true"),
             (json!({"ipcidr": "2001:db8::/32"}), "false"),
         ];
@@ -2356,7 +2356,7 @@ mod test_is_ipv4_is_ipv6 {
 
     #[test]
     fn test_valid_is_ipv6() {
-        let test_cases = vec![
+        let test_cases = [
             (json!({"ipcidr": "2001:db8::/32"}), "true"),
             (json!({"ipcidr": "192.168.1.0/24"}), "false"),
         ];
@@ -2370,7 +2370,7 @@ mod test_is_ipv4_is_ipv6 {
 
     #[test]
     fn test_invalid() {
-        let test_cases = vec![json!({"ipcidr": "invalid-cidr"})];
+        let test_cases = [json!({"ipcidr": "invalid-cidr"})];
 
         test_cases.iter().for_each(|test_case| {
             let rendered = setup_and_render_template(TEMPLATE_IPV4, test_case, "is_ipv4");
@@ -2405,7 +2405,7 @@ mod test_cidr_to_ipaddr {
 
     #[test]
     fn test_valid_cidr_to_ipaddr() {
-        let test_cases = vec![
+        let test_cases = [
             (json!({"ipcidr": "192.168.1.0/24"}), "192.168.1.0"),
             (json!({"ipcidr": "2001:db8::/32"}), "2001:db8::"),
         ];
@@ -2419,7 +2419,7 @@ mod test_cidr_to_ipaddr {
 
     #[test]
     fn test_invalid_cidr_to_ipaddr() {
-        let test_cases = vec![json!({"ipcidr": "invalid-cidr"})];
+        let test_cases = [json!({"ipcidr": "invalid-cidr"})];
 
         test_cases.iter().for_each(|test_case| {
             let rendered = setup_and_render_template(TEMPLATE, test_case);
@@ -2457,9 +2457,9 @@ mod test_combined_template_for_ip_cidr {
 
     #[test]
     fn test_combined_template_valid_cases() {
-        let test_cases = vec![
+        let test_cases = [
             (json!({"ipcidr": "192.168.1.0/24"}), "192.168.1.10"), // IPv4 case with replacement
-            (json!({"ipcidr": "2001:db8::/32"}), "2001:db8::a"),   // IPv6 case with 'a' suffix
+            (json!({"ipcidr": "2001:db8::/32"}), "2001:db8::a"),
         ];
 
         test_cases.iter().for_each(|test_case| {

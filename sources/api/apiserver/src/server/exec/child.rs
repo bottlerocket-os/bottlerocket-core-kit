@@ -69,10 +69,10 @@ pub(crate) struct ChildHandles {
 impl ChildHandles {
     /// Parameters:
     /// * init: The initialization parameters for the process, meaning the target container, the
-    /// command, and any TTY settings.
+    ///   command, and any TTY settings.
     ///
     /// * exec_socket_path: The containerd socket we'll use to start the process in the desired
-    /// container's namespace.
+    ///   container's namespace.
     ///
     /// * ws_addr: The address of the WebSocket actor, for sending messages back.
     pub(crate) fn new(
@@ -194,10 +194,7 @@ impl ChildHandles {
         })()
         // If anything went wrong when configuring the child process, kill it and return the
         // original error.
-        .map_err(|e| {
-            Self::stop_impl(pid);
-            e
-        })
+        .inspect(|_| Self::stop_impl(pid))
     }
 
     /// Terminates the child process.
@@ -262,7 +259,7 @@ impl ChildFds {
     /// * child: The Command for which we want read and write file descriptors.
     ///
     /// * tty: Represents the user's desire for a TTY.  If None, don't create a PTY.  If Some,
-    /// create a PTY, and start it with the specs given in TtyInit.
+    ///   create a PTY, and start it with the specs given in TtyInit.
     fn new(child: &mut Command, tty: &Option<TtyInit>) -> Result<Self> {
         if let Some(tty_init) = tty {
             Self::tty_fds(child, tty_init)
@@ -451,8 +448,8 @@ impl WaitForChild {
     /// * ws_addr: The address of the WebSocket actor, to which we'll send the return code.
     ///
     /// * read_complete_rx: We should receive a signal on this channel when the reader thread is
-    /// finished.  PTY I/O is buffered in the kernel, so when a process exits, it doesn't mean
-    /// we're done reading from the PTY; this lets us be sure.
+    ///   finished.  PTY I/O is buffered in the kernel, so when a process exits, it doesn't mean
+    ///   we're done reading from the PTY; this lets us be sure.
     fn new(pid: Pid, ws_addr: Addr<WsExec>, read_complete_rx: Receiver<()>) -> Self {
         debug!("Spawning thread to wait for child exit");
         thread::spawn(move || Self::wait_for_child(pid, ws_addr, read_complete_rx));
