@@ -110,6 +110,7 @@ actix-web-actors = { version = "4", default-features = false }
 argh = "0.1"
 async-trait = "0.1"
 aws-config = "1"
+aws-lc-rs = "1"
 aws-sdk-cloudformation = "1"
 aws-sdk-ec2 = "1"
 aws-sdk-eks = "1"
@@ -145,7 +146,7 @@ httptest = "0.15"
 hyper = { version = "0.14", default-features = false }
 hyper-rustls = { version = "0.24", default-features = false }
 hyper-unix-connector = "0.2"
-indexmap = "1"
+indexmap = "2"
 ipnet = "2"
 itertools = "0.13"
 lazy_static = "1"
@@ -167,7 +168,7 @@ quick-xml = "0.26"
 quote = "1"
 rand = { version = "0.8", default-features = false }
 regex = "1"
-reqwest = { version = "0.11", default-features = false }
+reqwest = { version = "0.12", default-features = false }
 semver = "1"
 serde = "1"
 serde-xml-rs = "0.6"
@@ -190,7 +191,7 @@ tokio-test = "0.4"
 tokio-tungstenite = { version = "0.20", default-features = false }
 tokio-util = "0.7"
 toml = "0.8"
-tough = "0.18"
+tough = "0.19"
 unindent = "0.2"
 url = "2"
 walkdir = "2.4"
