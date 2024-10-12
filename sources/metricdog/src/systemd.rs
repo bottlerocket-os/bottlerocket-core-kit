@@ -168,8 +168,7 @@ mod parse_property_tests {
             format!("{}=0", EXIT_STATUS_PROPERTY).as_str(),
             EXIT_STATUS_PROPERTY,
         )
-        .map(|exit_code| exit_code.parse::<i32>().ok())
-        .flatten()
+        .and_then(|exit_code| exit_code.parse::<i32>().ok())
         .unwrap();
 
         let want = 0;
@@ -182,8 +181,7 @@ mod parse_property_tests {
             format!("{}=255", EXIT_STATUS_PROPERTY).as_str(),
             EXIT_STATUS_PROPERTY,
         )
-        .map(|exit_code| exit_code.parse::<i32>().ok())
-        .flatten()
+        .and_then(|exit_code| exit_code.parse::<i32>().ok())
         .unwrap();
 
         let want = 255;
@@ -196,8 +194,7 @@ mod parse_property_tests {
             format!("{}=0\n", EXIT_STATUS_PROPERTY).as_str(),
             EXIT_STATUS_PROPERTY,
         )
-        .map(|exit_code| exit_code.parse::<i32>().ok())
-        .flatten()
+        .and_then(|exit_code| exit_code.parse::<i32>().ok())
         .unwrap();
 
         let want = 0;
@@ -210,8 +207,7 @@ mod parse_property_tests {
             format!("{}=255\n", EXIT_STATUS_PROPERTY).as_str(),
             EXIT_STATUS_PROPERTY,
         )
-        .map(|exit_code| exit_code.parse::<i32>().ok())
-        .flatten()
+        .and_then(|exit_code| exit_code.parse::<i32>().ok())
         .unwrap();
 
         let want = 255;
@@ -224,8 +220,7 @@ mod parse_property_tests {
             format!("{}=255foo", EXIT_STATUS_PROPERTY).as_str(),
             EXIT_STATUS_PROPERTY,
         )
-        .map(|exit_code| exit_code.parse::<i32>().ok())
-        .flatten();
+        .and_then(|exit_code| exit_code.parse::<i32>().ok());
 
         assert!(got.is_none());
     }
@@ -236,8 +231,7 @@ mod parse_property_tests {
             format!("{} = 123", EXIT_STATUS_PROPERTY).as_str(),
             EXIT_STATUS_PROPERTY,
         )
-        .map(|exit_code| exit_code.parse::<i32>().ok())
-        .flatten();
+        .and_then(|exit_code| exit_code.parse::<i32>().ok());
 
         assert!(got.is_none());
     }
@@ -245,8 +239,7 @@ mod parse_property_tests {
     #[test]
     fn parse_stdout_empty_string() {
         let got = parse_property("", EXIT_STATUS_PROPERTY)
-            .map(|exit_code| exit_code.parse::<i32>().ok())
-            .flatten();
+            .and_then(|exit_code| exit_code.parse::<i32>().ok());
 
         assert!(got.is_none());
     }
@@ -254,8 +247,7 @@ mod parse_property_tests {
     #[test]
     fn parse_stdout_property_only() {
         let got = parse_property(EXIT_STATUS_PROPERTY, EXIT_STATUS_PROPERTY)
-            .map(|exit_code| exit_code.parse::<i32>().ok())
-            .flatten();
+            .and_then(|exit_code| exit_code.parse::<i32>().ok());
 
         assert!(got.is_none());
     }
@@ -266,8 +258,7 @@ mod parse_property_tests {
             format!("{}=", EXIT_STATUS_PROPERTY).as_str(),
             EXIT_STATUS_PROPERTY,
         )
-        .map(|exit_code| exit_code.parse::<i32>().ok())
-        .flatten();
+        .and_then(|exit_code| exit_code.parse::<i32>().ok());
 
         assert!(got.is_none());
     }

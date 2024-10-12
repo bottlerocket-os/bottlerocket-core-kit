@@ -63,7 +63,7 @@ mod tests {
         let outfilepath = outdir.path().join("somefile.tar.gz");
 
         // run the function under test.
-        create_tarball(&indir.path().to_path_buf(), &outfilepath).unwrap();
+        create_tarball(indir.path(), &outfilepath).unwrap();
 
         // assert that the output tarball exists.
         assert!(Path::new(&outfilepath).is_file());

@@ -138,7 +138,7 @@ fn handle_dns_settings(primary_interface: String) -> Result<()> {
 
             let mut dropin_file_path = dropin_dir_path.join("10-dns");
             dropin_file_path.set_extension("conf");
-            fs::write(&dropin_file_path, &interface_drop_in.to_string()).context(
+            fs::write(&dropin_file_path, interface_drop_in.to_string()).context(
                 error::DropInFileWriteSnafu {
                     path: dropin_file_path,
                 },

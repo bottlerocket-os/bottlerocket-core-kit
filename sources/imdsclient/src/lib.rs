@@ -925,7 +925,7 @@ mod test {
         assert_eq!(3, parsed_list.len());
         assert_eq!(
             "meta-data/public-keys/0/openssh-key",
-            parsed_list.get(0).unwrap()
+            parsed_list.first().unwrap()
         );
         assert_eq!(
             "meta-data/public-keys/1/openssh-key",

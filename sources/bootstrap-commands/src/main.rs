@@ -261,6 +261,8 @@ mod error {
     }
 }
 
+type Result<T> = std::result::Result<T, error::Error>;
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -280,7 +282,7 @@ mod test {
 
         let temp_dir = tempfile::TempDir::new().unwrap();
         let temp_config = Path::join(temp_dir.path(), "bootstrap-commands.toml");
-        let _ = std::fs::write(&temp_config, config_toml).unwrap();
+        std::fs::write(&temp_config, config_toml).unwrap();
 
         let bootstrap_command_config = get_bootstrap_commands(&temp_config).unwrap();
         let bootstrap_commands = bootstrap_command_config.bootstrap_commands;
@@ -332,7 +334,7 @@ mod test {
 
         let temp_dir = tempfile::TempDir::new().unwrap();
         let temp_config = Path::join(temp_dir.path(), "bootstrap-commands.toml");
-        let _ = std::fs::write(&temp_config, config_toml).unwrap();
+        std::fs::write(&temp_config, config_toml).unwrap();
 
         let bootstrap_command_config = get_bootstrap_commands(&temp_config).unwrap();
         let bootstrap_commands = bootstrap_command_config.bootstrap_commands;
@@ -360,11 +362,9 @@ mod test {
 
         let temp_dir = tempfile::TempDir::new().unwrap();
         let temp_config = Path::join(temp_dir.path(), "bootstrap-commands.toml");
-        let _ = std::fs::write(&temp_config, config_toml).unwrap();
+        std::fs::write(&temp_config, config_toml).unwrap();
 
         // It should fail because one of the commands is not valid.
         assert!(get_bootstrap_commands(&temp_config).is_err());
     }
 }
-
-type Result<T> = std::result::Result<T, error::Error>;

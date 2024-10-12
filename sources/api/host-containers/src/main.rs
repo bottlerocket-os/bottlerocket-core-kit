@@ -506,7 +506,7 @@ mod test {
 
         let temp_dir = tempfile::TempDir::new().unwrap();
         let temp_config = Path::join(temp_dir.path(), "host-containers.toml");
-        let _ = std::fs::write(&temp_config, config_toml).unwrap();
+        std::fs::write(&temp_config, config_toml).unwrap();
 
         let host_containers = get_host_containers(&temp_config).unwrap();
 

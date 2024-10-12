@@ -10,7 +10,7 @@ It queries the API for their settings, then configures the system by:
   container at /.bottlerocket/bootstrap-containers/<name>/user-data)
 * creating an environment file used by a bootstrap-container-specific instance of a systemd service
 * creating a systemd drop-in configuration file used by a bootstrap-container-specific
-instance of a systemd service
+  instance of a systemd service
 * ensuring that the bootstrap container's systemd service is enabled/disabled for the next boot
 
 # Examples
