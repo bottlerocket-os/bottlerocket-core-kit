@@ -194,7 +194,7 @@ impl ChildHandles {
         })()
         // If anything went wrong when configuring the child process, kill it and return the
         // original error.
-        .inspect(|_| Self::stop_impl(pid))
+        .inspect_err(|_| Self::stop_impl(pid))
     }
 
     /// Terminates the child process.
