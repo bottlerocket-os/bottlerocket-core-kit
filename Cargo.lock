@@ -472,7 +472,6 @@ dependencies = [
 name = "kmod-5_10-nvidia"
 version = "0.1.0"
 dependencies = [
- "glibc",
  "kernel-5_10",
 ]
 
@@ -480,7 +479,6 @@ dependencies = [
 name = "kmod-5_15-nvidia"
 version = "0.1.0"
 dependencies = [
- "glibc",
  "kernel-5_15",
 ]
 
@@ -495,7 +493,6 @@ dependencies = [
 name = "kmod-6_1-nvidia"
 version = "0.1.0"
 dependencies = [
- "glibc",
  "kernel-6_1",
 ]
 
