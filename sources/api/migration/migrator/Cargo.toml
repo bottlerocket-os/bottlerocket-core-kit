@@ -24,7 +24,7 @@ simplelog.workspace = true
 snafu.workspace = true
 tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread"] }
 tokio-util = { workspace = true, features = ["compat", "io-util"] }
-tough = { workspace = true, features = ["http"] }
+tough = { workspace = true }
 update_metadata.workspace = true
 url.workspace = true
 
