@@ -429,6 +429,8 @@ async fn run() -> Result<()> {
     let current_settings = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
     let mut aws_k8s_info = SettingsViewDelta::from_api_response(current_settings);
 
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+
     generate_cluster_dns_ip(&mut client, &mut aws_k8s_info).await?;
     generate_node_ip(&mut client, &mut aws_k8s_info).await?;
     generate_max_pods(&mut client, &mut aws_k8s_info).await?;

@@ -9,6 +9,12 @@ build = "build.rs"
 # Don't rebuild crate just because of changes to README.
 exclude = ["README.md"]
 
+[features]
+fips = ["aws-lc-rs/fips", "aws-smithy-experimental/crypto-aws-lc-fips", "rustls/fips"]
+
+[package.metadata.build-package]
+source-groups = ["aws-smithy-experimental"]
+
 [dependencies]
 bottlerocket-modeled-types.workspace = true
 bottlerocket-settings-models.workspace = true
@@ -21,11 +27,14 @@ hyper = { workspace = true, features = ["default"] }
 hyper-rustls = { workspace = true, features = ["http2", "logging", "native-tokio", "tls12"] }
 imdsclient.workspace = true
 aws-config.workspace = true
+aws-lc-rs = { workspace = true, features = ["bindgen"] }
 aws-sdk-eks.workspace = true
 aws-sdk-ec2.workspace = true
 aws-types.workspace = true
 aws-smithy-types.workspace = true
 aws-smithy-runtime.workspace = true
+aws-smithy-experimental = { workspace = true, features = ["crypto-aws-lc"] }
+rustls.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 snafu.workspace = true

@@ -8,6 +8,7 @@ build = "../build.rs"
 [package.metadata.build-package]
 source-groups = [
     "api",
+    "aws-smithy-experimental",
     "bottlerocket-release",
     "metricdog",
     "parse-datetime",

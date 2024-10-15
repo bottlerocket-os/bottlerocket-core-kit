@@ -3647,8 +3647,10 @@ name = "pluto"
 version = "0.1.0"
 dependencies = [
  "aws-config",
+ "aws-lc-rs",
  "aws-sdk-ec2",
  "aws-sdk-eks",
+ "aws-smithy-experimental",
  "aws-smithy-runtime",
  "aws-smithy-types",
  "aws-types",
@@ -3665,6 +3667,7 @@ dependencies = [
  "hyper-rustls 0.24.2",
  "imdsclient",
  "log",
+ "rustls 0.23.14",
  "serde",
  "serde_json",
  "snafu",
