@@ -14,8 +14,60 @@ path = "../packages.rs"
 package-name = "kubernetes-1.27"
 
 [[package.metadata.build-package.external-files]]
-url = "https://distro.eks.amazonaws.com/kubernetes-1-27/releases/34/artifacts/kubernetes/v1.27.14/kubernetes-src.tar.gz"
-sha512 = "c7a6acb127cfc510194b44a36d2f56883c89e363007312906e2aea5b21c53fd83b826f8661762e6b7afcab8027079c9d9bc1ba9f6848304845d16248698355b4"
+url = "https://dl.k8s.io/v1.27.16/kubernetes-src.tar.gz"
+sha512 = "fba641f745b5eef6f17e16501025959e570ae88912d79e2e08b4c79d18475430b879f98947d516871407feb297d5dac9b2fbc4ca565d3770c600d9550f3cffac"
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0001-EKS-PATCH-admission-webhook-exclusion-from-file.patch"
+sha512 = "ef176d578e1239f5ab6dea1970193e7d6cf1ba570fe062334858c2b02eb7d0a5698d66c223192de4c4b8c6301fb35c73baa637884a5bbf94018c8d43da718c70"
+
+# There is no patch 0002-xxxx
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0003-EKS-PATCH-add-Authentication-tracking-request-error-.patch"
+sha512 = "047845b5bb3fe309923e1c3a4a9a388c76e55c305bdb3f9bab3efaa49a297f062936f8eff8173e1f9791f75085c0d6409eb2f5e740416aad745760627c9bdd53"
+
+# There is no patch 0004-xxxx
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0005-EKS-PATCH-Fix-CVE-for-kube-proxy-v1.27.3.patch"
+sha512 = "f628ee49ac6bafb85767729443d267043ea63237b43c1f083267a05f11e667856c67026b0353467a703b0367c11c9ec6868d8f975b8924ea8da1a83831524c72"
+
+# There is no patch 0006-xxxx
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0007-EKS-PATCH-Support-tracking-executing-requests.patch"
+sha512 = "06ba5a31e31468a67df4f2ed41e126ac2e656aa2dd81e29dff42bfec3b5802ebe76d1d4be26ba2dca173f6dfd774cffa81323c58e1f7b60468abccae20846947"
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0008-EKS-PATCH-Fix-etcd-storage_events_received_total-met.patch"
+sha512 = "08dce9f94f345638a8f81176e8aeb5bd8458e9332e7a4227a4a700d3003cfd3030f347312f53be14b9b641f93dc78d38a299038a6a4866ec09bb0a0c360d0cc9"
+
+# There is no patch 0009-xxxx
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0010-EKS-PATCH-Update-log-verbosity-for-node-health-and-t.patch"
+sha512 = "887fc5648a698297f331af0c0d0674b415ec1a1317f1981096359799a1c39198375421f4c0e963683a31887f2a776e2d2cd5a83a343ca52286dc16383f5200cb"
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0011-EKS-PATCH-apiserver-fix-watch-namespace.patch"
+sha512 = "c9f46dda047957e331fc1ff50f870b1c72db4052b56be7eaf31b15de219c28bf7ce8c49f5525f96d824f72ca737d671fd6690a284c8f05c01ab24abc8f03ee79"
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0012-EKS-PATCH-add-resource-to-the-transformation-metrics.patch"
+sha512 = "4f3de6d1e5f71cc9bd44fb0433255c6e31a8b014c76ec84634699c1764d08a2148753bb491fdd648c70ac11f17c1c6195172d13f2b70f3f06c53ab54a3ad2fc7"
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0013-EKS-PATCH-Check-git-directory-to-be-max-1-level-deep.patch"
+sha512 = "c6fbd4167fb1fcc86f1f1c32f01f4c3cc871800d50f6771adee5852c67d2774f1486e1e92734c72cc1faf70cc67921a21ed01338111cb28187201235874cfe75"
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0014-EKS-PATCH-Bumps-runc-version-to-fix-CVE-2024-45310.patch"
+sha512 = "e36830d54594aa9ccca4b2ff3b44105b69522beceee8455846338292b7ab5127c6f4ed6233c775fa0b1f6bea48e6c8ee26db791621dedde95ebe5b9be328b3fc"
+
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0015-EKS-PATCH-Add-apf-queue-wait-audit-log-latency-annot.patch"
+sha512 = "489e9baba81a3683e7be5de260e82c56628c0546f7032695e2107d3bc42dfbaf059f424f8d423d15ded5d7845ebb21966a886af9eefed132b8c361b8393efe44"
 
 # RPM BuildRequires
 [build-dependencies]
