@@ -87,6 +87,7 @@ Source1100: systemd-tmpfiles-setup-service-debug.conf
 Source1101: systemd-resolved-service-env.conf
 Source1102: systemd-networkd-service-env.conf
 Source1103: systemd-logind-inhibit-maxdelay.conf
+Source1104: systemd-service-security.conf
 
 # network link rules
 Source1200: 80-release.link
@@ -207,6 +208,9 @@ install -d %{buildroot}%{_cross_unitdir}/systemd-networkd.service.d
 install -p -m 0644 %{S:1102} \
   %{buildroot}%{_cross_unitdir}/systemd-networkd.service.d/00-env.conf
 
+install -d %{buildroot}%{_cross_unitdir}/service.d/
+install -p -m 0644 %{S:1104} %{buildroot}%{_cross_unitdir}/service.d/10-security.conf
+
 # Empty (but packaged) directory. The FIPS packages for kernels will add drop-ins to
 # this directory to arrange for the right modules to be loaded before the check runs.
 install -d %{buildroot}%{_cross_unitdir}/check-fips-modules.service.d
@@ -312,6 +316,7 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/prepare-local-fs.service
 %{_cross_unitdir}/deprecation-warning@.service
 %{_cross_unitdir}/deprecation-warning@.timer
+%{_cross_unitdir}/service.d/10-security.conf
 %dir %{_cross_unitdir}/systemd-resolved.service.d
 %{_cross_unitdir}/systemd-resolved.service.d/00-env.conf
 %dir %{_cross_unitdir}/systemd-networkd.service.d
