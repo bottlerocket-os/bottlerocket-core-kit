@@ -223,3 +223,8 @@ license-files = [
 skip-files = [
     "aws-lc/third_party/jitterentropy/LICENSE.gplv2"
 ]
+[clarify.half]
+expression = "MIT OR Apache-2.0"
+license-files = [
+    { path = "LICENSE", hash = 0xa9f8b3a2 },
+]

@@ -17,3 +17,9 @@ operating system images.
 Contains modified hyper-proxy files [mod.rs, stream.rs, tunnel.rs] from
 https://github.com/tafia/hyper-proxy 2021-09-20.
 Copyright (c) 2017 Johann Tuffe. Licensed under the MIT License.
+
+=^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
+
+Contains aws-smithy-experimental from
+https://github.com/smithy-lang/smithy-rs/tree/release-2024-10-09.
+Licensed under the Apache-2.0 License.

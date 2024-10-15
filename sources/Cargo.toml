@@ -20,6 +20,7 @@ members = [
     "api/shibaken",
     "api/prairiedog",
     "api/simple-settings-plugin",
+    "aws-smithy-experimental",
 
     "bloodhound",
 
@@ -82,6 +83,7 @@ members = [
 
 [workspace.dependencies]
 apiclient = { version = "0.1", path = "api/apiclient" }
+aws-smithy-experimental = { version = "0.1", path = "aws-smithy-experimental" }
 block-party = { version = "0.1", path = "updater/block-party" }
 bottlerocket-release = { version = "0.1", path = "bottlerocket-release" }
 constants = { version = "0.1", path = "constants" }
@@ -115,7 +117,9 @@ aws-sdk-cloudformation = "1"
 aws-sdk-ec2 = "1"
 aws-sdk-eks = "1"
 aws-smithy-runtime = "1"
+aws-smithy-runtime-api = "1"
 aws-smithy-types = "1"
+aws-smithy-async = "1"
 aws-types = "1"
 bit_field = "0.10"
 bon = "2"
@@ -138,12 +142,15 @@ futures-util = { version = "0.3", default-features = false }
 glob = "0.3"
 gptman = { version = "1", default-features = false }
 handlebars = "4"
+h2 = "0.4"
 headers = "0.3"
 hex-literal = "0.4"
 http = "0.2"
 httparse = "1"
 httptest = "0.15"
 hyper = { version = "0.14", default-features = false }
+hyper-util = "0.1"
+# FIXME: bump to 0.27 once hyper-proxy is dropped
 hyper-rustls = { version = "0.24", default-features = false }
 hyper-unix-connector = "0.2"
 indexmap = "2"
@@ -159,16 +166,19 @@ num = "0.4"
 num-derive = "0.4"
 num-traits = "0.2"
 num_cpus = "1"
+once_cell = "1"
 pentacle = "1"
 percent-encoding = "2"
 pest = "2.5"
 pest_derive = "2.5"
+pin-project-lite = "0.2"
 proc-macro2 = "1"
 quick-xml = "0.26"
 quote = "1"
 rand = { version = "0.8", default-features = false }
 regex = "1"
 reqwest = { version = "0.12", default-features = false }
+rustls = "0.23"
 semver = "1"
 serde = "1"
 serde-xml-rs = "0.6"
@@ -192,6 +202,8 @@ tokio-tungstenite = { version = "0.20", default-features = false }
 tokio-util = "0.7"
 toml = "0.8"
 tough = "0.19"
+tower = "0.4"
+tracing = "0.1"
 unindent = "0.2"
 url = "2"
 walkdir = "2.4"
