@@ -1035,6 +1035,8 @@ func pullImage(ctx context.Context, source string, client *containerd.Client, re
 				Error("failed to read registry config")
 			return nil, err
 		}
+	} else {
+		registryConfig = NewBlankRegistryConfig()
 	}
 
 	// Pull the image
@@ -1155,9 +1157,12 @@ func withDynamicResolver(ctx context.Context, ref string, registryConfig *Regist
 		}
 	// For Amazon ECR Public registries, we should try and fetch credentials before resolving the image reference
 	case strings.HasPrefix(ref, "public.ecr.aws/"):
-		// ... not if the user has specified their own registry credentials for 'public.ecr.aws'; In that case we use the default resolver.
-		if _, found := registryConfig.Credentials["public.ecr.aws"]; found {
-			return defaultResolver
+		// if we have registryConfig, and the user specified credentials for
+		// 'public.ecr.aws', then use defaultResolver.
+		if registryConfig != nil {
+			if _, found := registryConfig.Credentials["public.ecr.aws"]; found {
+				return defaultResolver
+			}
 		}
 
 		// Try to get credentials for authenticated pulls from ECR Public
