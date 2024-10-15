@@ -69,6 +69,10 @@ sha512 = "6267486606741f25e12b2d0bd19d3243c485b21cce4ae992258a64db714c42ea3542c0
 url = "https://raw.githubusercontent.com/aws/eks-distro/main/projects/kubernetes/kubernetes/1-26/patches/0015-EKS-PATCH-Check-git-directory-to-be-max-1-level-deep.patch"
 sha512 = "7b65bb30ee2863ea19dbcb74a855c2a898b85e99e43d772228eec81859017cad0949dd0758461a2c6f7c496907718153ddbd2c30eb578c6b5c11599d593ac72d"
 
+[[package.metadata.build-package.external-files]]
+url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-26/patches/0016-EKS-PATCH-Add-sourceARN-to-sts-headers.patch"
+sha512 = "6a916a0644e98ab8f1bd00c1ac8fc408667ad1d7e0cbb179d2c6fd8d9d9db04fcd0ec8528464b08e5cb5a1718d8e926052138e7dd42301e4acc6f692c4cdbd38"
+
 # RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
