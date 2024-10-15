@@ -9,6 +9,7 @@ publish = false
 exclude = ["README.md"]
 
 [dependencies]
+aws-lc-rs = { workspace = true, features = ["bindgen"] }
 async-trait.workspace = true
 argh.workspace = true
 bottlerocket-release.workspace = true

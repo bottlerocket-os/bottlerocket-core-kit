@@ -19,9 +19,8 @@ The result is returned as a `String` _(ex. m5.large)_.
 
 use std::sync::RwLock;
 
-use http::StatusCode;
 use log::{debug, info, trace, warn};
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
 use snafu::{ensure, OptionExt, ResultExt};
 use tokio::time::{timeout, Duration};
 use tokio_retry::{strategy::FibonacciBackoff, Retry};
@@ -478,7 +477,7 @@ async fn fetch_token(
 }
 
 mod error {
-    use http::StatusCode;
+    use reqwest::StatusCode;
     use snafu::Snafu;
 
     // Extracts the status code from a reqwest::Error and converts it to a string to be displayed.
