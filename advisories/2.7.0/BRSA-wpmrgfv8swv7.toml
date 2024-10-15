@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-wpmrgfv8swv7"
+title = "kernel CVE-2024-41098"
+cve = "CVE-2024-41098"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: ata: libata-core: Fix null pointer dereference on error"
+
+[[advisory.products]]
+package-name = "kernel-5.15"
+patched-version = "kernel-5.15.166-111.163.amzn2"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-09-20T01:39:55Z
+arches = ["x86_64", "aarch64"]
+version = "2.7.0"
