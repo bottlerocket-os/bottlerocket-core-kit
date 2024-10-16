@@ -13,6 +13,6 @@ patched-epoch = "0"
 
 [updateinfo]
 author = "kushupad"
-issue-date = 2024-10-07T18:33:08Z
+issue-date = 2024-10-09T22:16:25Z
 arches = ["x86_64", "aarch64"]
-version = "staging"
+version = "2.9.0"
