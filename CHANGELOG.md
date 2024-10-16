@@ -1,3 +1,11 @@
+# v2.9.1 (2024-10-16)
+
+## OS Changes
+* Update kernels to 5.10.226, 5.15.167 and 6.1.112 ([#200])
+
+
+[#200]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/200
+
 # v2.9.0 (2024-10-09)
 
 ## OS Changes
