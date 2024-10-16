@@ -1,13 +1,13 @@
 %global debug_package %{nil}
 
 Name: %{_cross_os}kernel-6.1
-Version: 6.1.109
+Version: 6.1.112
 Release: 1%{?dist}
 Summary: The Linux kernel
 License: GPL-2.0 WITH Linux-syscall-note
 URL: https://www.kernel.org/
 # Use latest-srpm-url.sh to get this.
-Source0: https://cdn.amazonlinux.com/al2023/blobstore/60b1be96cb0d00c8998e26b855b51b54e1cc82a655bb47a1d4f51c5ffbdd3148/kernel-6.1.109-118.189.amzn2023.src.rpm
+Source0: https://cdn.amazonlinux.com/al2023/blobstore/b88530d26f68ef4d2080a189cb3ff1b722a7298e63a286d4bbb86116075ba469/kernel-6.1.112-122.189.amzn2023.src.rpm
 Source100: config-bottlerocket
 
 # This list of FIPS modules is extracted from /etc/fipsmodules in the initramfs

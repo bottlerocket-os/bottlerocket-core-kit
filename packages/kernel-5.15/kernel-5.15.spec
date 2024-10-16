@@ -7,7 +7,7 @@ Summary: The Linux kernel
 License: GPL-2.0 WITH Linux-syscall-note
 URL: https://www.kernel.org/
 # Use latest-srpm-url.sh to get this.
-Source0: https://cdn.amazonlinux.com/blobstore/7d9322ae0af16962b5b12f984ec34e1644fe111beb5933bf6d75a1cf7f267201/kernel-5.15.167-112.165.amzn2.src.rpm
+Source0: https://cdn.amazonlinux.com/blobstore/6e5bde865f2f534b3e5c1ae2c3065e711f6c55b7fa5e4f91f0dc55894b1ad844/kernel-5.15.167-112.166.amzn2.src.rpm
 Source100: config-bottlerocket
 
 # Help out-of-tree module builds run `make prepare` automatically.
