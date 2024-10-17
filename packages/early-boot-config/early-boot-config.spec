@@ -1,7 +1,8 @@
 %global _cross_first_party 1
+%global early_boot_config_bindir %{_cross_libexecdir}/early-boot-config/bin
+%global early_boot_config_fips_bindir %{_cross_fips_libexecdir}/early-boot-config/bin
+%global early_boot_config_provider_dir %{_cross_libexecdir}/early-boot-config/data-providers.d
 %undefine _debugsource_packages
-%undefine cross_check_fips
-%undefine cross_check_fips
 
 Name: %{_cross_os}early-boot-config
 Version: 0.1
@@ -32,8 +33,27 @@ Summary: local-provider
 Summary: early-boot-config package for AWS
 Requires: %{name}
 Requires: %{name}-local
+Requires: %{name}-aws(binaries)
 
 %description aws
+%{summary}.
+
+%package aws-bin
+Summary: early-boot-config binaries for AWS
+Provides: %{name}-aws(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{name}-aws)
+Conflicts: (%{_cross_os}image-feature(fips) or %{name}-aws-fips-bin)
+
+%description aws-bin
+%{summary}.
+
+%package aws-fips-bin
+Summary: early-boot-config binaries for AWS, FIPS edition
+Provides: %{name}-aws(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{name}-aws)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-aws-bin)
+
+%description aws-fips-bin
 %{summary}.
 
 %ifarch x86_64
@@ -58,6 +78,12 @@ Requires: %{name}-local
 %setup -T -c
 %cargo_prep
 
+# Some of the AWS-LC sources are built with `-O0`. This is not compatible with
+# `-Wp,-D_FORTIFY_SOURCE=2`, which needs at least `-O2`.
+sed -i 's/-Wp,-D_FORTIFY_SOURCE=2//g' \
+  %_cross_cmake_toolchain_conf \
+  %_cross_cmake_toolchain_conf_static
+
 %build
 %cargo_build --manifest-path %{_builddir}/sources/Cargo.toml \
     -p early-boot-config \
@@ -72,8 +98,27 @@ Requires: %{name}-local
 %endif
     %{nil}
 
-%global early_boot_config_bindir %{_cross_libexecdir}/early-boot-config/bin
-%global early_boot_config_provider_dir %{_cross_libexecdir}/early-boot-config/data-providers.d
+# Store the output so we can print it after waiting for the backgrounded job.
+exec 3>&1 4>&2
+fips_output="$(mktemp)"
+exec 1>"${fips_output}" 2>&1
+# Build FIPS binaries in the background
+%cargo_build_fips --manifest-path %{_builddir}/sources/Cargo.toml \
+    -p ec2-identity-doc-user-data-provider \
+    -p ec2-imds-user-data-provider \
+    &
+# Save the PID so we can wait for it later.
+fips_pid="$!"
+exec 1>&3 2>&4
+
+# Wait for fips builds from the background, if they're not already done.
+set +e; wait "${fips_pid}"; fips_rc="${?}"; set -e
+echo -e "\n** Output from FIPS builds:"
+cat "${fips_output}"
+
+if [ "${fips_rc}" -ne 0 ]; then
+   exit "${fips_rc}"
+fi
 
 %install
 install -d %{buildroot}%{_cross_bindir}
@@ -83,6 +128,13 @@ install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:100} %{buildroot}%{_cross_unitdir}
 
 install -d %{buildroot}%{early_boot_config_bindir}
+install -d %{buildroot}%{early_boot_config_fips_bindir}
+
+for p in ec2-identity-doc-user-data-provider ec2-imds-user-data-provider; do
+  install -p -m 0755 %{__cargo_outdir}/${p} %{buildroot}%{early_boot_config_bindir}
+  install -p -m 0755 %{__cargo_outdir_fips}/${p} %{buildroot}%{early_boot_config_fips_bindir}
+done
+
 install -p -m 0755 \
     %{__cargo_outdir}/ec2-identity-doc-user-data-provider \
     %{__cargo_outdir}/ec2-imds-user-data-provider \
@@ -144,10 +196,16 @@ ln -rs \
 %{early_boot_config_provider_dir}/99-local-overrides
 
 %files aws
-%{early_boot_config_bindir}/ec2-identity-doc-user-data-provider
-%{early_boot_config_bindir}/ec2-imds-user-data-provider
 %{early_boot_config_provider_dir}/30-ec2-identity-doc
 %{early_boot_config_provider_dir}/40-ec2-imds
+
+%files aws-bin
+%{early_boot_config_bindir}/ec2-identity-doc-user-data-provider
+%{early_boot_config_bindir}/ec2-imds-user-data-provider
+
+%files aws-fips-bin
+%{early_boot_config_fips_bindir}/ec2-identity-doc-user-data-provider
+%{early_boot_config_fips_bindir}/ec2-imds-user-data-provider
 
 %ifarch x86_64
 %files vmware

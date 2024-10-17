@@ -16,6 +16,8 @@ name = "10-reverse-dns"
 path = "bin/reverse.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+fips = ["imdsclient/fips"]
 
 [dependencies]
 argh.workspace = true

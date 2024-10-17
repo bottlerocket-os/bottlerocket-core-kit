@@ -8,11 +8,16 @@ publish = false
 # Don't rebuild crate just because of changes to README.
 exclude = ["README.md"]
 
+[features]
+fips = ["rustls/fips", "aws-lc-rs/fips"]
+
 [dependencies]
 argh.workspace = true
+aws-lc-rs = { workspace = true, features = ["bindgen"] }
 bottlerocket-release.workspace = true
 log.workspace = true
 reqwest = { workspace = true, features = ["blocking", "rustls-tls-native-roots"] }
+rustls.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 simplelog.workspace = true

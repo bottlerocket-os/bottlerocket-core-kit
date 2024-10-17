@@ -1,7 +1,5 @@
 %global _cross_first_party 1
 %undefine _debugsource_packages
-%undefine cross_check_fips
-%undefine cross_check_fips
 
 Name: %{_cross_os}netdog
 Version: 0.1.1
@@ -53,12 +51,34 @@ Summary: Reverse DNS Hostname detector
 
 %package -n %{_cross_os}hostname-imds
 Summary: IMDS Hostname detector
+Requires: %{_cross_os}hostname-imds(binaries)
 %description -n %{_cross_os}hostname-imds
+%{summary}
+
+%package -n %{_cross_os}hostname-imds-bin
+Summary: IMDS Hostname detector binaries
+Provides: %{_cross_os}hostname-imds(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}hostname-imds)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}hostname-imds-fips-bin)
+%description -n %{_cross_os}hostname-imds-bin
+%{summary}
+
+%package -n %{_cross_os}hostname-imds-fips-bin
+Summary: IMDS Hostname detector binaries, FIPS edition
+Provides: %{_cross_os}hostname-imds(binaries)
+Requires: %{_cross_os}hostname-imds(binaries)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}hostname-imds-bin)
+%description -n %{_cross_os}hostname-imds-fips-bin
 %{summary}
 
 %prep
 %setup -T -c
 %cargo_prep
+
+# Some of the AWS-LC sources are built with `-O0`. This is not compatible with
+# `-Wp,-D_FORTIFY_SOURCE=2`, which needs at least `-O2`.
+sed -i 's/-Wp,-D_FORTIFY_SOURCE=2//g' \
+  %_cross_cmake_toolchain_conf
 
 %build
 mkdir bin
@@ -66,8 +86,11 @@ mkdir bin
 echo "** Build Dogtag Hostname Detectors"
 %cargo_build --manifest-path %{_builddir}/sources/Cargo.toml \
     -p dogtag \
-    --bins \
-    --target-dir=${HOME}/.cache/dogtag
+    --bins
+
+%cargo_build_fips --manifest-path %{_builddir}/sources/Cargo.toml \
+    -p dogtag \
+    --bin 20-imds
 
 echo "** Build Netdog Binaries"
 %cargo_build --manifest-path %{_builddir}/sources/Cargo.toml \
@@ -81,8 +104,10 @@ echo "** Build Netdog Binaries"
 
 %install
 install -d %{buildroot}%{_cross_libexecdir}/hostname-detectors
-install -p -m 0755 ${HOME}/.cache/dogtag/%{__cargo_target}/release/20-imds %{buildroot}%{_cross_libexecdir}/hostname-detectors/20-imds
-install -p -m 0755 ${HOME}/.cache/dogtag/%{__cargo_target}/release/10-reverse-dns %{buildroot}%{_cross_libexecdir}/hostname-detectors/10-reverse-dns
+install -d %{buildroot}%{_cross_fips_libexecdir}/hostname-detectors
+install -p -m 0755 %{__cargo_outdir}/10-reverse-dns %{buildroot}%{_cross_libexecdir}/hostname-detectors/10-reverse-dns
+install -p -m 0755 %{__cargo_outdir}/20-imds %{buildroot}%{_cross_libexecdir}/hostname-detectors/20-imds
+install -p -m 0755 %{__cargo_outdir_fips}/20-imds %{buildroot}%{_cross_fips_libexecdir}/hostname-detectors/20-imds
 
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 ${HOME}/.cache/networkd/%{__cargo_target}/release/netdog %{buildroot}%{_cross_bindir}/netdog-systemd-networkd
@@ -114,7 +139,12 @@ posix.symlink("netdog-systemd-networkd", "%{_cross_bindir}/netdog")
 %{_cross_libexecdir}/hostname-detectors/10-reverse-dns
 
 %files -n %{_cross_os}hostname-imds
+
+%files -n %{_cross_os}hostname-imds-bin
 %{_cross_libexecdir}/hostname-detectors/20-imds
+
+%files -n %{_cross_os}hostname-imds-fips-bin
+%{_cross_fips_libexecdir}/hostname-detectors/20-imds
 
 %files systemd-networkd
 %{_cross_bindir}/netdog-systemd-networkd

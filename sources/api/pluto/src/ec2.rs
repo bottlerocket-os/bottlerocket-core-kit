@@ -1,5 +1,8 @@
 use crate::aws::sdk_config;
 use crate::proxy;
+#[cfg(feature = "fips")]
+use aws_smithy_experimental::hyper_1_0::{CryptoMode, HyperClientBuilder};
+#[cfg(not(feature = "fips"))]
 use aws_smithy_runtime::client::http::hyper_014::HyperClientBuilder;
 use aws_smithy_types::error::display::DisplayErrorContext;
 use snafu::{OptionExt, ResultExt, Snafu};
@@ -52,16 +55,12 @@ where
 {
     let config = sdk_config(region).await;
 
-    let client = if let Some(https_proxy) = https_proxy {
-        let http_connector = proxy::setup_http_client(https_proxy, no_proxy)?;
-        let http_client = HyperClientBuilder::new().build(http_connector);
-        let ec2_config = aws_sdk_ec2::config::Builder::from(&config)
-            .http_client(http_client)
-            .build();
-        aws_sdk_ec2::Client::from_conf(ec2_config)
-    } else {
-        aws_sdk_ec2::Client::new(&config)
-    };
+    #[cfg(not(feature = "fips"))]
+    let client = build_client(https_proxy, no_proxy, config)?;
+
+    // FIXME!: support proxies in FIPS mode
+    #[cfg(feature = "fips")]
+    let client = build_client(config)?;
 
     tokio::time::timeout(
         FETCH_PRIVATE_DNS_NAME_TIMEOUT,
@@ -93,4 +92,41 @@ where
     )
     .await
     .context(FetchPrivateDnsNameTimeoutSnafu)?
+}
+
+#[cfg(not(feature = "fips"))]
+fn build_client<H, N>(
+    https_proxy: Option<H>,
+    no_proxy: Option<&[N]>,
+    config: aws_config::SdkConfig,
+) -> Result<aws_sdk_ec2::Client>
+where
+    H: AsRef<str>,
+    N: AsRef<str>,
+{
+    let client = if let Some(https_proxy) = https_proxy {
+        let http_connector = proxy::setup_http_client(https_proxy, no_proxy)?;
+        let http_client = HyperClientBuilder::new().build(http_connector);
+        let ec2_config = aws_sdk_ec2::config::Builder::from(&config)
+            .http_client(http_client)
+            .build();
+        aws_sdk_ec2::Client::from_conf(ec2_config)
+    } else {
+        aws_sdk_ec2::Client::new(&config)
+    };
+
+    Ok(client)
+}
+
+// FIXME!: support proxies in FIPS mode
+#[cfg(feature = "fips")]
+fn build_client(config: aws_config::SdkConfig) -> Result<aws_sdk_ec2::Client> {
+    let http_client = HyperClientBuilder::new()
+        .crypto_mode(CryptoMode::AwsLcFips)
+        .build_https();
+    let ec2_config = aws_sdk_ec2::config::Builder::from(&config)
+        .http_client(http_client)
+        .build();
+
+    Ok(aws_sdk_ec2::Client::from_conf(ec2_config))
 }
