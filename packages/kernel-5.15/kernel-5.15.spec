@@ -6,9 +6,15 @@ Release: 1%{?dist}
 Summary: The Linux kernel
 License: GPL-2.0 WITH Linux-syscall-note
 URL: https://www.kernel.org/
-# Use latest-srpm-url.sh to get this.
+# Use latest-kernel-srpm-url.sh to get this.
 Source0: https://cdn.amazonlinux.com/blobstore/6e5bde865f2f534b3e5c1ae2c3065e711f6c55b7fa5e4f91f0dc55894b1ad844/kernel-5.15.167-112.166.amzn2.src.rpm
+# Use latest-neuron-srpm-url.sh to get this.
+Source1: https://yum.repos.neuron.amazonaws.com/aws-neuronx-dkms-2.18.12.0.noarch.rpm
 Source100: config-bottlerocket
+
+# Neuron-related drop-ins.
+Source220: neuron-sysinit.target.drop-in.conf
+Source221: modprobe@neuron.service.drop-in.conf
 
 # Help out-of-tree module builds run `make prepare` automatically.
 Patch1001: 1001-Makefile-add-prepare-target-for-external-modules.patch
@@ -36,6 +42,11 @@ Requires: %{_cross_os}microcode-licenses
 # Pull in expected modules and development files.
 Requires: %{name}-modules = %{version}-%{release}
 Requires: %{name}-devel = %{version}-%{release}
+
+# Pull in platform-dependent modules.
+%if "%{_cross_arch}" == "x86_64"
+Requires: (%{name}-modules-neuron if (%{_cross_os}variant-platform(aws) without %{_cross_os}variant-flavor(nvidia)))
+%endif
 
 # The 5.15 kernel is not FIPS certified.
 Conflicts: %{_cross_os}image-feature(fips)
@@ -66,6 +77,18 @@ Summary: Modules for the Linux kernel
 
 %description modules
 %{summary}.
+
+%if "%{_cross_arch}" == "x86_64"
+%package modules-neuron
+Summary: Modules for the Linux kernel with Neuron hardware
+Requires: %{name}
+Requires: %{_cross_os}ghostdog
+Requires: %{_cross_os}variant-platform(aws)
+Conflicts: %{_cross_os}variant-flavor(nvidia)
+
+%description modules-neuron
+%{summary}.
+%endif
 
 %package headers
 Summary: Header files for the Linux kernel for use by glibc
@@ -105,6 +128,13 @@ scripts/kconfig/merge_config.sh \
 
 rm -f ../config-* ../*.patch
 
+%if "%{_cross_arch}" == "x86_64"
+cd %{_builddir}
+rpm2cpio %{SOURCE1} | cpio -idmu './usr/src/aws-neuronx-*'
+find usr/src/ -mindepth 1 -maxdepth 1 -type d -exec mv {} neuron \;
+rm -r usr
+%endif
+
 %global kmake \
 make -s\\\
   ARCH="%{_cross_karch}"\\\
@@ -120,9 +150,17 @@ make -s\\\
 %kmake %{?_smp_mflags} %{_cross_kimage}
 %kmake %{?_smp_mflags} modules
 
+%if "%{_cross_arch}" == "x86_64"
+%kmake %{?_smp_mflags} M=%{_builddir}/neuron
+%endif
+
 %install
 %kmake %{?_smp_mflags} headers_install
 %kmake %{?_smp_mflags} modules_install
+
+%if "%{_cross_arch}" == "x86_64"
+%kmake %{?_smp_mflags} M=%{_builddir}/neuron modules_install
+%endif
 
 install -d %{buildroot}/boot
 install -T -m 0755 arch/%{_cross_karch}/boot/%{_cross_kimage} %{buildroot}/boot/vmlinuz
@@ -232,6 +270,18 @@ rm -f %{buildroot}%{kernel_libdir}/build %{buildroot}%{kernel_libdir}/source
 ln -sf %{_usrsrc}/kernels/%{version} %{buildroot}%{kernel_libdir}/build
 ln -sf %{_usrsrc}/kernels/%{version} %{buildroot}%{kernel_libdir}/source
 
+# Install a copy of System.map so that module dependencies can be regenerated.
+install -p -m 0600 System.map %{buildroot}%{kernel_libdir}
+
+%if "%{_cross_arch}" == "x86_64"
+# Add Neuron-related drop-ins to load the module when the hardware is present.
+mkdir -p %{buildroot}%{_cross_unitdir}/sysinit.target.d
+install -p -m 0644 %{S:220} %{buildroot}%{_cross_unitdir}/sysinit.target.d/neuron.conf
+
+mkdir -p %{buildroot}%{_cross_unitdir}/modprobe@neuron.service.d
+install -p -m 0644 %{S:221} %{buildroot}%{_cross_unitdir}/modprobe@neuron.service.d/neuron.conf
+%endif
+
 %files
 %license COPYING LICENSES/preferred/GPL-2.0 LICENSES/exceptions/Linux-syscall-note
 %{_cross_attribution_file}
@@ -241,6 +291,14 @@ ln -sf %{_usrsrc}/kernels/%{version} %{buildroot}%{kernel_libdir}/source
 %files modules
 %dir %{_cross_libdir}/modules
 %{_cross_libdir}/modules/*
+%exclude %{kernel_libdir}/extra/neuron.ko.gz
+
+%if "%{_cross_arch}" == "x86_64"
+%files modules-neuron
+%{kernel_libdir}/extra/neuron.ko.gz
+%{_cross_unitdir}/sysinit.target.d/neuron.conf
+%{_cross_unitdir}/modprobe@neuron.service.d/neuron.conf
+%endif
 
 %files headers
 %dir %{_cross_includedir}/asm
