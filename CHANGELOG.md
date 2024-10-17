@@ -1,3 +1,26 @@
+# v3.0.0 (2024-10-17)
+
+## OS Changes
+* Drop kubernetes-1.23 ([#184])
+* Move kmod-5.10-nvidia from branch R470 to R535 ([#181])
+* Block writeable/executable memory in systemd services by default ([#158])
+
+## Build Changes
+* Update twoliter to 0.5.0 ([#195])
+* Update bottlerocket-sdk to 0.46.0 ([#191])
+* Update `tough` and `reqwest` to latest versions ([#197])
+* Set Epoch to 1 in necessary packages ([#180])
+* Drop dependency on glibc for nvidia kmods ([#194])
+
+[#158]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/158
+[#180]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/180
+[#181]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/181
+[#184]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/184
+[#191]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/191
+[#194]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/194
+[#195]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/195
+[#197]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/197
+
 # v2.9.1 (2024-10-16)
 
 ## OS Changes
