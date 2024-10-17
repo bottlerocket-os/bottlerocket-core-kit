@@ -10,7 +10,7 @@
 %global gorepo kubernetes
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.27.14
+%global gover 1.27.16
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -38,7 +38,7 @@ Summary: Container cluster management
 # base Apache-2.0, third_party Apache-2.0 AND BSD-3-Clause
 License: Apache-2.0 AND BSD-3-Clause
 URL: https://%{goimport}
-Source0: https://distro.eks.amazonaws.com/kubernetes-1-27/releases/34/artifacts/kubernetes/v%{gover}/kubernetes-src.tar.gz
+Source0: https://dl.k8s.io/v%{gover}/kubernetes-src.tar.gz
 Source1: kubelet.service
 Source2: kubelet-env
 Source3: kubelet-config
@@ -66,6 +66,18 @@ Source101: pause-manifest.json
 Source102: pod-infra-container-image
 
 Source1000: clarify.toml
+
+Patch0001: 0001-EKS-PATCH-admission-webhook-exclusion-from-file.patch
+Patch0003: 0003-EKS-PATCH-add-Authentication-tracking-request-error-.patch
+Patch0005: 0005-EKS-PATCH-Fix-CVE-for-kube-proxy-v1.27.3.patch
+Patch0007: 0007-EKS-PATCH-Support-tracking-executing-requests.patch
+Patch0008: 0008-EKS-PATCH-Fix-etcd-storage_events_received_total-met.patch
+Patch0010: 0010-EKS-PATCH-Update-log-verbosity-for-node-health-and-t.patch
+Patch0011: 0011-EKS-PATCH-apiserver-fix-watch-namespace.patch
+Patch0012: 0012-EKS-PATCH-add-resource-to-the-transformation-metrics.patch
+Patch0013: 0013-EKS-PATCH-Check-git-directory-to-be-max-1-level-deep.patch
+Patch0014: 0014-EKS-PATCH-Bumps-runc-version-to-fix-CVE-2024-45310.patch
+Patch0015: 0015-EKS-PATCH-Add-apf-queue-wait-audit-log-latency-annot.patch
 
 BuildRequires: git
 BuildRequires: rsync
