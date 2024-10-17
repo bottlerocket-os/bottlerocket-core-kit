@@ -38,7 +38,8 @@ import (
 // Example 1: 777777777777.dkr.ecr.us-west-2.amazonaws.com/my_image:latest
 // Example 2: 777777777777.dkr.ecr.cn-north-1.amazonaws.com.cn/my_image:latest
 // Example 3: 777777777777.dkr.ecr.eu-isoe-west-1.cloud.adc-e.uk/my_image:latest
-var ecrRegex = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.(amazonaws\.com(\.cn)?|cloud\.adc-e\.uk).*`)
+// Example 4: 777777777777.dkr.ecr-fips.us-west-2.amazonaws.com/my_image:latest
+var ecrRegex = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr(-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.(amazonaws\.com(\.cn)?|cloud\.adc-e\.uk).*`)
 
 const (
 	// The maximum size of an	image label.
@@ -594,12 +595,21 @@ func cleanUp(containerdSocket string, namespace string, containerID string) erro
 
 // parseImageURISpecialRegions mimics the parsing in ecr.ParseImageURI but
 // constructs the canonical ECR references while skipping certain checks.
-// We only do this for special regions that are not yet supported by the aws-go-sdk.
+// We only do this for special regions that are not yet supported by the aws-go-sdk and for ECR FIPS endpoints.
 // Referenced source: https://github.com/awslabs/amazon-ecr-containerd-resolver/blob/a5058cf091f4fc573813a032db37a9820952f1f9/ecr/ref.go#L70-L71
 func parseImageURISpecialRegions(input string) (ecr.ECRSpec, error) {
 	ecrRefPrefixMapping := map[string]string{
 		"ap-southeast-5": "ecr.aws/arn:aws:ecr:ap-southeast-5:",
 		"eu-isoe-west-1": "ecr.aws/arn:aws-iso-e:ecr:eu-isoe-west-1:",
+	}
+	// A set of the currently supported FIPS regions for ECR: https://docs.aws.amazon.com/general/latest/gr/ecr.html
+	fipsSupportedEcrRegionSet := map[string]bool{
+		"us-east-1":     true,
+		"us-east-2":     true,
+		"us-west-1":     true,
+		"us-west-2":     true,
+		"us-gov-east-1": true,
+		"us-gov-west-1": true,
 	}
 	// Matching on account, region
 	matches := ecrRegex.FindStringSubmatch(input)
@@ -607,8 +617,6 @@ func parseImageURISpecialRegions(input string) (ecr.ECRSpec, error) {
 		return ecr.ECRSpec{}, fmt.Errorf("invalid image URI: %s", input)
 	}
 	account := matches[1]
-	region := matches[2]
-
 	// Need to include the full repository path and the imageID (e.g. /eks/image-name:tag)
 	tokens := strings.SplitN(input, "/", 2)
 	if len(tokens) != 2 {
@@ -626,6 +634,23 @@ func parseImageURISpecialRegions(input string) (ecr.ECRSpec, error) {
 		strings.HasSuffix(fullRepoPath, "@"):
 		return ecr.ECRSpec{}, errors.New("incomplete reference provided")
 	}
+
+	// Return early if the FIPS endpoint is being used. amazon-ecr-containerd-resolver doesn't yet support FIPS urls:
+	// https://github.com/awslabs/amazon-ecr-containerd-resolver/blob/7b72333e780f5a5168936eae79fb89448e2f2a8f/ecr/ref.go#L43
+	// The ecr-prefix helper for admin and control host containers will have already accounted for setting this endpoint
+	// if the region has FIPS support.
+	if matches[2] == "-fips" {
+		region := matches[3]
+		_, isFips := fipsSupportedEcrRegionSet[region]
+		if !isFips {
+			return ecr.ECRSpec{}, fmt.Errorf("%s: %s", "invalid FIPS region", region)
+		}
+		ecrRefPrefix := fmt.Sprintf("ecr.aws/arn:aws:ecr-fips:%s:", region)
+		return ecr.ParseRef(fmt.Sprintf("%s%s:repository/%s", ecrRefPrefix, account, fullRepoPath))
+	}
+
+	// The provided URI does not specify the FIPS endpoint, and the second match is the region.
+	region := matches[2]
 
 	// Get the ECR image reference prefix from the AWS region
 	ecrRefPrefix, ok := ecrRefPrefixMapping[region]
