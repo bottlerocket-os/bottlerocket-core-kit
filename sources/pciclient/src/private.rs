@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::{ffi::OsStr, process::Command};
 
 use snafu::{ensure, OptionExt, ResultExt};
@@ -12,6 +13,15 @@ use crate::{
 
 const AMAZON_VENDOR_CODE: &str = "1d0f";
 const EFA_KEYWORD: &str = "efa";
+const NEURON_DEVICES: [&str; 7] = [
+    "7064", // inf1 device id 0
+    "7065", // inf1 device id 1
+    "7066", // inf1 device id 2
+    "7067", // inf1 device id 3
+    "7164", // trn1 device id 0
+    "7264", // inf2 device id 0
+    "7364", // trn2 device id 0
+];
 
 const LSPCI_PATH: &str = "/usr/bin/lspci";
 
@@ -148,6 +158,20 @@ pub(crate) fn check_efa_attachment<T: CommandExecutor>(command_executor: T) -> R
         .any(|device_info| device_info.device.contains(EFA_KEYWORD)))
 }
 
+/// Call `lspci` and check if there is any Neuron device attached.
+/// Internal usage, adding command_executor as parameter allows us to better unit test.
+/// For external usage, check [`crate::is_neuron_attached`].
+pub(crate) fn check_neuron_attachment<T: CommandExecutor>(command_executor: T) -> Result<bool> {
+    let neuron_devices: HashSet<_> = NEURON_DEVICES.iter().map(|s| s.to_string()).collect();
+    let list_devices_param = ListDevicesParam::builder()
+        .vendor(AMAZON_VENDOR_CODE.to_string())
+        .build();
+    let list_device_results = call_list_devices(command_executor, list_devices_param)?;
+    Ok(list_device_results
+        .iter()
+        .any(|device_info| neuron_devices.contains(&device_info.device)))
+}
+
 /// Internal usage, adding command_executor as parameter allows us to better unit test.
 /// For external usage, check [`list_devices`].
 pub(crate) fn call_list_devices<T: CommandExecutor>(
@@ -167,7 +191,8 @@ mod test {
     use crate::{ListDevicesOutput, ListDevicesParam, Result};
 
     use super::{
-        call_list_devices, check_efa_attachment, parse_list_devices_output, CommandExecutor,
+        call_list_devices, check_efa_attachment, check_neuron_attachment,
+        parse_list_devices_output, CommandExecutor,
     };
 
     struct MockPciClient {
@@ -331,5 +356,31 @@ mod test {
         let check_efa_attachment_result = check_efa_attachment(mock_pci_client);
         assert!(check_efa_attachment_result.is_ok());
         assert!(!check_efa_attachment_result.unwrap());
+    }
+
+    #[test]
+    fn test_is_neuron_attached() {
+        let mock_pci_client = MockPciClient {
+            // trn1 device has class code: 0880 for system peripheral, vendor 1d0f for amazon, device code 7164.
+            // Below is an actual output from lspci for trn1 device.
+            output: vec![
+                r#"00:1e.0 "0880" "1d0f" "7164" -p00 "" """#.to_string(),
+                r#"00:1e.0 "0302" "10de" "1eb8" -ra1 -p00 "10de" "12a2""#.to_string(),
+            ],
+        };
+        let check_neuron_attachment_result = check_neuron_attachment(mock_pci_client);
+        assert!(check_neuron_attachment_result.is_ok());
+        assert!(check_neuron_attachment_result.unwrap());
+    }
+
+    #[test]
+    fn test_is_neuron_attached_negative_case() {
+        let mock_pci_client = MockPciClient {
+            // Below is an actual output from lspci for ena device (not neuron).
+            output: vec![r#"00:06.0 "0200" "1d0f" "ec20" -p00 "1d0f" "ec20""#.to_string()],
+        };
+        let check_neuron_attachment_result = check_neuron_attachment(mock_pci_client);
+        assert!(check_neuron_attachment_result.is_ok());
+        assert!(!check_neuron_attachment_result.unwrap());
     }
 }
