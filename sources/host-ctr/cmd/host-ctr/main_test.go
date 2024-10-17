@@ -194,6 +194,18 @@ func TestFetchECRRef(t *testing.T) {
 			"ecr.aws/arn:aws-us-gov:ecr:us-gov-west-1:111111111111:repository/bottlerocket/container:1.2.3",
 		},
 		{
+			"Parse FIPS region for normal use-cases",
+			"111111111111.dkr.ecr-fips.us-west-2.amazonaws.com/bottlerocket/container:1.2.3",
+			false,
+			"ecr.aws/arn:aws:ecr-fips:us-west-2:111111111111:repository/bottlerocket/container:1.2.3",
+		},
+		{
+			"Fail for region that does not have FIPS support",
+			"111111111111.dkr.ecr-fips.ca-central-1.amazonaws.com/bottlerocket/container:1.2.3",
+			true,
+			"",
+		},
+		{
 			"Fail for invalid region",
 			"111111111111.dkr.ecr.outer-space.amazonaws.com/bottlerocket/container:1.2.3",
 			true,
