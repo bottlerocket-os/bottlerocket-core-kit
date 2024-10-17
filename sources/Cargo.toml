@@ -60,6 +60,8 @@ members = [
 
     "models",
 
+    "nvidia-migmanager",
+
     "static-pods",
 
     "parse-datetime",

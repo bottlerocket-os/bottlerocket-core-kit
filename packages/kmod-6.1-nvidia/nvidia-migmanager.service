@@ -1,0 +1,18 @@
+[Unit]
+Description=NVIDIA MIG manager service
+After=nvidia-fabricmanager.service
+RefuseManualStart=true
+RefuseManualStop=true
+# If a sentinel file exists for this bootstrap container, it means we should skip
+# since we've run this bootstrap container already.
+
+[Service]
+Type=oneshot
+# Create a sentinel file to mark that we've run
+ExecStart=/usr/bin/nvidia-migmanager
+RemainAfterExit=true
+StandardError=journal+console
+SyslogIdentifier=nvidia-migmanager
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,29 @@
+[package]
+name = "nvidia-migmanager"
+version = "0.1.0"
+authors = ["Piyush Jena <jepiyush@amazon.com>"]
+license = "Apache-2.0 OR MIT"
+edition = "2021"
+publish = false
+build = "build.rs"
+# Don't rebuild crate just because of changes to README.
+exclude = ["README.md"]
+
+[dependencies]
+base64.workspace = true
+constants.workspace = true
+log.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+simplelog.workspace = true
+snafu.workspace = true
+toml.workspace = true
+itertools.workspace = true
+bottlerocket-modeled-types.workspace = true
+bottlerocket-settings-models.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[build-dependencies]
+generate-readme.workspace = true

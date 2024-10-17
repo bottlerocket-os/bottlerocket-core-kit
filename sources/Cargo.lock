@@ -2990,6 +2990,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "nvidia-migmanager"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "bottlerocket-modeled-types",
+ "bottlerocket-settings-models",
+ "constants",
+ "generate-readme",
+ "itertools",
+ "log",
+ "serde",
+ "serde_json",
+ "simplelog",
+ "snafu",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
 name = "object"
 version = "0.36.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

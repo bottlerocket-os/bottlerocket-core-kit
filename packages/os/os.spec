@@ -76,6 +76,7 @@ Requires: %{_cross_os}apiclient
 Requires: %{_cross_os}apiserver
 Requires: %{_cross_os}bloodhound
 Requires: %{_cross_os}bootstrap-commands
+Requires: %{_cross_os}nvidia-migmanager
 Requires: %{_cross_os}corndog
 Requires: %{_cross_os}certdog
 Requires: %{_cross_os}ghostdog
@@ -253,6 +254,11 @@ Summary: Manages bootstrap-commands
 %description -n %{_cross_os}bootstrap-commands
 %{summary}.
 
+%package -n %{_cross_os}nvidia-migmanager
+Summary: Manages nvidia-migmanager
+%description -n %{_cross_os}nvidia-migmanager
+%{summary}.
+
 %package -n %{_cross_os}bootstrap-containers
 Summary: Manages bootstrap-containers
 Requires: %{_cross_os}host-ctr
@@ -358,6 +364,7 @@ echo "** Output from non-static builds:"
     -p ghostdog \
     -p corndog \
     -p bootstrap-commands \
+    -p nvidia-migmanager \
     -p bootstrap-containers \
     -p prairiedog \
     -p certdog \
@@ -393,7 +400,7 @@ for p in \
   storewolf settings-committer \
   migrator prairiedog certdog \
   signpost updog metricdog logdog \
-  ghostdog bootstrap-commands bootstrap-containers \
+  ghostdog nvidia-migmanager bootstrap-commands bootstrap-containers \
   shimpei bloodhound \
   bottlerocket-cis-checks \
   bottlerocket-fips-checks \
@@ -645,6 +652,9 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_unitdir}/bootstrap-commands.service
 %{_cross_tmpfilesdir}/bootstrap-commands.conf
 %{_cross_templatedir}/bootstrap-commands-toml
+
+%files -n %{_cross_os}nvidia-migmanager
+%{_cross_bindir}/nvidia-migmanager
 
 %files -n %{_cross_os}bootstrap-containers
 %{_cross_bindir}/bootstrap-containers

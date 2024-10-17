@@ -40,6 +40,8 @@ Source200: nvidia-tmpfiles.conf.in
 Source202: nvidia-dependencies-modules-load.conf
 Source203: nvidia-fabricmanager.service
 Source204: nvidia-fabricmanager.cfg
+Source205: nvidia-migmanager.service
+Source206: nvidia-migmanager-tmpfiles.conf
 
 # NVIDIA tesla conf files from 300 to 399
 Source300: nvidia-tesla-tmpfiles.conf
@@ -185,7 +187,7 @@ install -d %{buildroot}%{_cross_libdir}/modules-load.d
 install -p -m 0644 %{S:202} %{buildroot}%{_cross_libdir}/modules-load.d/nvidia-dependencies.conf
 
 # NVIDIA fabric manager service unit and config
-install -p -m 0644 %{S:203} %{buildroot}%{_cross_unitdir}
+install -p -m 0644 %{S:203} %{S:205} %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/nvidia
 install -p -m 0644 %{S:204} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/nvidia/fabricmanager.cfg
 
@@ -200,6 +202,7 @@ install -d %{buildroot}%{_cross_factorydir}/nvidia/open-gpu
 install -d %{buildroot}%{_cross_datadir}/nvidia/open-gpu/drivers
 
 install -m 0644 %{S:300} %{buildroot}%{_cross_tmpfilesdir}/nvidia-tesla.conf
+install -p -m 0644 %{S:206} %{buildroot}%{_cross_tmpfilesdir}/nvidia-migmanager.conf
 sed -e 's|__NVIDIA_MODULES__|%{_cross_datadir}/nvidia/tesla/module-objects.d/|' %{S:301} > \
   nvidia-tesla.toml
 install -m 0644 nvidia-tesla.toml %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/drivers
@@ -385,6 +388,7 @@ popd
 
 # tmpfiles
 %{_cross_tmpfilesdir}/nvidia-tesla.conf
+%{_cross_tmpfilesdir}/nvidia-migmanager.conf
 
 # We only install the libraries required by all the DRIVER_CAPABILITIES, described here:
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html#driver-capabilities
@@ -518,3 +522,5 @@ popd
 %files fabricmanager
 %{_cross_factorydir}%{_cross_sysconfdir}/nvidia/fabricmanager.cfg
 %{_cross_unitdir}/nvidia-fabricmanager.service
+
+%{_cross_unitdir}/nvidia-migmanager.service
