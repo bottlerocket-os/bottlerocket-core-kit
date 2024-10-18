@@ -125,6 +125,8 @@ pub(crate) fn main_inner(
     // instantiate the metricdog object
     let metricdog = Metricdog::from_parts(config, os_release, service_check, host_check)?;
 
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+
     // execute the specified command
     match arguments.command {
         Command::SendBootSuccess(_) => {

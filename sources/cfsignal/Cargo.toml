@@ -7,6 +7,9 @@ publish = false
 # Don't rebuild crate just because of changes to README.
 exclude = ["README.md"]
 
+[features]
+fips = ["aws-lc-rs/fips", "aws-smithy-experimental/crypto-aws-lc-fips", "imdsclient/fips"]
+
 [dependencies]
 log.workspace = true
 serde = { workspace = true, features = ["derive"] }
@@ -15,7 +18,9 @@ snafu.workspace = true
 toml.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 aws-config.workspace = true
+aws-lc-rs = { workspace = true, features = ["bindgen"] }
 aws-sdk-cloudformation.workspace = true
+aws-smithy-experimental = { workspace = true, features = ["crypto-aws-lc"] }
 aws-types.workspace = true
 imdsclient.workspace = true
 

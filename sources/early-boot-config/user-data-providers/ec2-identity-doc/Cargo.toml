@@ -8,6 +8,9 @@ publish = false
 # Don't rebuild crate just because of changes to README.
 exclude = ["README.md"]
 
+[features]
+fips = ["imdsclient/fips"]
+
 [dependencies]
 async-trait.workspace = true
 imdsclient.workspace = true

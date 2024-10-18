@@ -9,6 +9,9 @@ build = "build.rs"
 # Don't rebuild crate just because of changes to README.
 exclude = ["README.md"]
 
+[features]
+fips = ["imdsclient/fips"]
+
 [dependencies]
 argh.workspace = true
 base64.workspace = true

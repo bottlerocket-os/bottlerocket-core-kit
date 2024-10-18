@@ -8,10 +8,14 @@ publish = false
 # Don't rebuild crate just because of changes to README.
 exclude = ["README.md"]
 
+[features]
+fips = ["imdsclient/fips"]
+
 [dependencies]
 async-trait.workspace = true
 imdsclient.workspace = true
 log.workspace = true
+rustls.workspace = true
 snafu.workspace = true
 tokio = { workspace = true, features = ["macros", "process", "rt-multi-thread"] }
 early-boot-config-provider.workspace = true

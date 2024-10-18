@@ -1,7 +1,5 @@
 %global _cross_first_party 1
 %undefine _debugsource_packages
-%undefine cross_check_fips
-%undefine cross_check_fips
 
 Name: %{_cross_os}os
 Version: 0.0
@@ -121,7 +119,24 @@ Requires: %{_cross_os}settings-plugins
 
 %package -n %{_cross_os}apiclient
 Summary: Bottlerocket API client
+Requires: %{_cross_os}apiclient(binaries)
 %description -n %{_cross_os}apiclient
+%{summary}.
+
+%package -n %{_cross_os}apiclient-bin
+Summary: Bottlerocket API client binaries
+Provides: %{_cross_os}apiclient(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}apiclient)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}apiclient-fips-bin)
+%description -n %{_cross_os}apiclient-bin
+%{summary}.
+
+%package -n %{_cross_os}apiclient-fips-bin
+Summary: Bottlerocket API client binaries, FIPS edition
+Provides: %{_cross_os}apiclient(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}apiclient)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}apiclient-bin)
+%description -n %{_cross_os}apiclient-fips-bin
 %{summary}.
 
 %package -n %{_cross_os}sundog
@@ -172,7 +187,26 @@ Requires: %{_cross_os}settings-defaults
 %package -n %{_cross_os}migration
 Summary: Tools to migrate version formats
 Conflicts: %{_cross_os}image-feature(no-in-place-updates)
+Requires: %{_cross_os}migration(binaries)
 %description -n %{_cross_os}migration
+
+%package -n %{_cross_os}migration-bin
+Summary: Binaries to migrate version formats
+Provides: %{_cross_os}migration(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}migration)
+Conflicts: %{_cross_os}image-feature(no-in-place-updates)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}migration-fips-bin)
+%description -n %{_cross_os}migration-bin
+%{summary}.
+
+%package -n %{_cross_os}migration-fips-bin
+Summary: Binaries to migrate version formats, FIPS edition
+Provides: %{_cross_os}migration(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}migration)
+Conflicts: %{_cross_os}image-feature(no-in-place-updates)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}migration-bin)
+%description -n %{_cross_os}migration-fips-bin
+%{summary}.
 
 %package -n %{_cross_os}settings-committer
 Summary: Commits settings from user data, defaults, and generators at boot
@@ -192,19 +226,68 @@ Summary: Bottlerocket GPT priority querier/switcher
 
 %package -n %{_cross_os}updog
 Summary: Bottlerocket updater CLI
+Requires: %{_cross_os}updog(binaries)
 Conflicts: %{_cross_os}image-feature(no-in-place-updates)
 %description -n %{_cross_os}updog
 not much what's up with you
 
+%package -n %{_cross_os}updog-bin
+Summary: Bottlerocket updater CLI binaries
+Provides: %{_cross_os}updog(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}updog)
+Conflicts: (%{_cross_os}image-feature(no-in-place-updates) or %{_cross_os}image-feature(fips) or %{_cross_os}updog-fips-bin)
+%description -n %{_cross_os}updog-bin
+%{summary}.
+
+%package -n %{_cross_os}updog-fips-bin
+Summary: Bottlerocket updater CLI binaries, FIPS edition
+Provides: %{_cross_os}updog(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}updog)
+Conflicts: (%{_cross_os}image-feature(no-in-place-updates) or %{_cross_os}image-feature(no-fips) or %{_cross_os}updog-bin)
+%description -n %{_cross_os}updog-fips-bin
+%{summary}.
+
 %package -n %{_cross_os}metricdog
 Summary: Bottlerocket health metrics sender
+Requires: %{_cross_os}metricdog(binaries)
 %description -n %{_cross_os}metricdog
+%{summary}.
+
+%package -n %{_cross_os}metricdog-bin
+Summary: Bottlerocket health metrics sender binaries
+Provides: %{_cross_os}metricdog(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}metricdog)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}metricdog-fips-bin)
+%description -n %{_cross_os}metricdog-bin
+%{summary}.
+
+%package -n %{_cross_os}metricdog-fips-bin
+Summary: Bottlerocket health metrics sender binaries, FIPS edition
+Provides: %{_cross_os}metricdog(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}metricdog)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}metricdog-bin)
+%description -n %{_cross_os}metricdog-fips-bin
 %{summary}.
 
 %package -n %{_cross_os}logdog
 Summary: Bottlerocket log extractor
+Requires: %{_cross_os}logdog(binaries)
 %description -n %{_cross_os}logdog
-use logdog to extract logs from the Bottlerocket host
+%{summary}.
+
+%package -n %{_cross_os}logdog-bin
+Summary: Bottlerocket log extractor binaries
+Provides: %{_cross_os}logdog(binaries)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}logdog-fips-bin)
+%description -n %{_cross_os}logdog-bin
+%{summary}.
+
+%package -n %{_cross_os}logdog-fips-bin
+Summary: Bottlerocket log extractor binaries, FIPS edition
+Provides: %{_cross_os}logdog(binaries)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}logdog-bin)
+%description -n %{_cross_os}logdog-fips-bin
+%{summary}.
 
 %package -n %{_cross_os}prairiedog
 Summary: Tools for kdump support
@@ -220,12 +303,46 @@ Summary: Bottlerocket certificates handler
 
 %package -n %{_cross_os}pluto
 Summary: Dynamic setting generator for kubernetes
+Requires: %{_cross_os}pluto(binaries)
 %description -n %{_cross_os}pluto
 %{summary}.
 
+%package -n %{_cross_os}pluto-bin
+Summary: Dynamic setting generator for kubernetes binaries
+Provides: %{_cross_os}pluto(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}pluto)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}pluto-fips-bin)
+%description -n %{_cross_os}pluto-bin
+%{summary}.
+
+%package -n %{_cross_os}pluto-fips-bin
+Summary: Dynamic setting generator for kubernetes binaries, FIPS edition
+Provides: %{_cross_os}pluto(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}pluto)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}pluto-bin)
+%description -n %{_cross_os}pluto-fips-bin
+%{summary}.
+
 %package -n %{_cross_os}shibaken
-Summary: Run tasks reliant on IMDS
+Summary: IMDS client and settings generator
+Requires: %{_cross_os}shibaken(binaries)
 %description -n %{_cross_os}shibaken
+%{summary}.
+
+%package -n %{_cross_os}shibaken-bin
+Summary: IMDS client and settings generator binaries
+Provides: %{_cross_os}shibaken(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}shibaken)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}shibaken-fips-bin)
+%description -n %{_cross_os}shibaken-bin
+%{summary}.
+
+%package -n %{_cross_os}shibaken-fips-bin
+Summary: IMDS client and settings generator binaries, FIPS edition
+Provides: %{_cross_os}shibaken(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}shibaken)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}shibaken-bin)
+%description -n %{_cross_os}shibaken-fips-bin
 %{summary}.
 
 %package -n %{_cross_os}warm-pool-wait
@@ -236,7 +353,24 @@ Requires: %{_cross_os}shibaken
 
 %package -n %{_cross_os}cfsignal
 Summary: Bottlerocket CloudFormation Stack signaler
+Requires: %{_cross_os}cfsignal(binaries)
 %description -n %{_cross_os}cfsignal
+%{summary}.
+
+%package -n %{_cross_os}cfsignal-bin
+Summary: Bottlerocket CloudFormation Stack signaler binaries
+Provides: %{_cross_os}cfsignal(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}cfsignal)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}cfsignal-fips-bin)
+%description -n %{_cross_os}cfsignal-bin
+%{summary}.
+
+%package -n %{_cross_os}cfsignal-fips-bin
+Summary: Bottlerocket CloudFormation Stack signaler binaries, FIPS edition
+Provides: %{_cross_os}cfsignal(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}cfsignal)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}cfsignal-bin)
+%description -n %{_cross_os}cfsignal-fips-bin
 %{summary}.
 
 %package -n %{_cross_os}shimpei
@@ -291,6 +425,12 @@ Summary: XFS progs cli
 %setup -T -c
 %cargo_prep
 
+# Some of the AWS-LC sources are built with `-O0`. This is not compatible with
+# `-Wp,-D_FORTIFY_SOURCE=2`, which needs at least `-O2`.
+sed -i 's/-Wp,-D_FORTIFY_SOURCE=2//g' \
+  %_cross_cmake_toolchain_conf \
+  %_cross_cmake_toolchain_conf_static
+
 %build
 mkdir bin
 
@@ -317,24 +457,61 @@ exec 1>"${static_output}" 2>&1
 %cargo_build_static --manifest-path %{_builddir}/sources/Cargo.toml \
     -p apiclient \
     &
+    
 # Save the PID so we can wait for it later.
 static_pid="$!"
 exec 1>&3 2>&4
 
-# The AWS SDK crates are extremely slow to build with only one codegen unit.
-# Pessimize the release build for just the crates that depend on them.
+exec 3>&1 4>&2
+static_fips_output="$(mktemp)"
+exec 1>"${static_fips_output}" 2>&1
+
+# Build static binaries in the background.
+%cargo_build_static_fips --manifest-path %{_builddir}/sources/Cargo.toml \
+    -p apiclient \
+    &
+# Save the PID so we can wait for it later.
+static_fips_pid="$!"
+exec 1>&3 2>&4
+
+# Pessimize the release build for the crates with slow builds, e.g. those that
+# depend on the AWS SDK crates.
 # Store the output so we can print it after waiting for the backgrounded job.
 exec 3>&1 4>&2
 aws_sdk_output="$(mktemp)"
 exec 1>"${aws_sdk_output}" 2>&1
-
-%cargo_build_aws_sdk --manifest-path %{_builddir}/sources/Cargo.toml \
+  %cargo_build_aws_sdk --manifest-path %{_builddir}/sources/Cargo.toml \
   -p pluto \
   -p cfsignal \
   &
-
 # Save the PID so we can wait for it later.
 aws_sdk_pid="$!"
+exec 1>&3 2>&4
+
+exec 3>&1 4>&2
+fips_aws_sdk_output="$(mktemp)"
+exec 1>"${fips_aws_sdk_output}" 2>&1
+  %cargo_build_fips_aws_sdk --manifest-path %{_builddir}/sources/Cargo.toml \
+  -p pluto \
+  -p cfsignal \
+  &
+# Save the PID so we can wait for it later.
+fips_aws_sdk_pid="$!"
+exec 1>&3 2>&4
+
+# Build non-static FIPS builds in the background
+exec 3>&1 4>&2
+fips_output="$(mktemp)"
+exec 1>"${fips_output}" 2>&1
+  %cargo_build_fips --manifest-path %{_builddir}/sources/Cargo.toml \
+    -p logdog \
+    -p metricdog \
+    -p migrator \
+    -p updog \
+    -p shibaken \
+    &
+# Save the PID so we can wait for it later.
+fips_pid="$!"
 exec 1>&3 2>&4
 
 # Run non-static builds in the foreground.
@@ -367,24 +544,53 @@ echo "** Output from non-static builds:"
     -p driverdog \
     %{nil}
 
+# Wait for fips builds from the background, if they're not already done.
+set +e; wait "${fips_pid}"; fips_rc="${?}"; set -e
+echo -e "\n** Output from FIPS builds:"
+cat "${fips_output}"
+
 # Wait for static builds from the background, if they're not already done.
 set +e; wait "${static_pid}"; static_rc="${?}"; set -e
 echo -e "\n** Output from static builds:"
 cat "${static_output}"
-if [ "${static_rc}" -ne 0 ]; then
-   exit "${static_rc}"
-fi
+
+set +e; wait "${static_fips_pid}"; static_fips_rc="${?}"; set -e
+echo -e "\n** Output from FIPS static builds:"
+cat "${static_fips_output}"
 
 # Wait for AWS SDK builds from the background, if they're not already done.
 set +e; wait "${aws_sdk_pid}"; aws_sdk_rc="${?}"; set -e
 echo -e "\n** Output from AWS SDK builds:"
 cat "${aws_sdk_output}"
+
+set +e; wait "${fips_aws_sdk_pid}"; fips_aws_sdk_rc="${?}"; set -e
+echo -e "\n** Output from AWS SDK FIPS builds:"
+cat "${fips_aws_sdk_output}"
+
+if [ "${fips_rc}" -ne 0 ]; then
+   exit "${fips_rc}"
+fi
+
+if [ "${fips_aws_sdk_rc}" -ne 0 ]; then
+   exit "${fips_aws_sdk_rc}"
+fi
+
+if [ "${static_fips_rc}" -ne 0 ]; then
+   exit "${static_fips_rc}"
+fi
+
+if [ "${static_rc}" -ne 0 ]; then
+   exit "${static_rc}"
+fi
+
 if [ "${aws_sdk_rc}" -ne 0 ]; then
    exit "${aws_sdk_rc}"
 fi
 
+
 %install
 install -d %{buildroot}%{_cross_bindir}
+install -d %{buildroot}%{_cross_fips_bindir}
 for p in \
   apiserver \
   sundog schnauzer schnauzer-v2 bork \
@@ -404,10 +610,18 @@ for p in \
 done
 
 for p in \
+  logdog migrator metricdog \
+  shibaken updog \
+; do
+  install -p -m 0755 %{__cargo_outdir_fips}/${p} %{buildroot}%{_cross_fips_bindir}
+done
+
+for p in \
   pluto \
   cfsignal \
 ; do
   install -p -m 0755 %{__cargo_outdir_aws_sdk}/${p} %{buildroot}%{_cross_bindir}
+  install -p -m 0755 %{__cargo_outdir_aws_sdk_fips}/${p} %{buildroot}%{_cross_fips_bindir}
 done
 
 install -d %{buildroot}%{_cross_sbindir}
@@ -458,6 +672,7 @@ install -m 0644 %{S:13} %{buildroot}%{_cross_libexecdir}/cis-checks/kubernetes/m
 
 for p in apiclient ; do
   install -p -m 0755 %{__cargo_outdir_static}/${p} %{buildroot}%{_cross_bindir}
+  install -p -m 0755 %{__cargo_outdir_static_fips}/${p} %{buildroot}%{_cross_fips_bindir}
 done
 
 install -d %{buildroot}%{_cross_datadir}/bottlerocket
@@ -528,7 +743,12 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_sysusersdir}/api.conf
 
 %files -n %{_cross_os}apiclient
+
+%files -n %{_cross_os}apiclient-bin
 %{_cross_bindir}/apiclient
+
+%files -n %{_cross_os}apiclient-fips-bin
+%{_cross_fips_bindir}/apiclient
 
 %files -n %{_cross_os}corndog
 %{_cross_bindir}/corndog
@@ -568,9 +788,14 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_tmpfilesdir}/storewolf.conf
 
 %files -n %{_cross_os}migration
-%{_cross_bindir}/migrator
 %{_cross_unitdir}/migrator.service
 %{_cross_tmpfilesdir}/migration.conf
+
+%files -n %{_cross_os}migration-bin
+%{_cross_bindir}/migrator
+
+%files -n %{_cross_os}migration-fips-bin
+%{_cross_fips_bindir}/migrator
 
 %files -n %{_cross_os}settings-committer
 %{_cross_bindir}/settings-committer
@@ -587,44 +812,74 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_unitdir}/has-boot-ever-succeeded.service
 
 %files -n %{_cross_os}updog
-%{_cross_bindir}/updog
 %{_cross_datadir}/updog
 %dir %{_cross_templatedir}
 %{_cross_templatedir}/updog-toml
 
+%files -n %{_cross_os}updog-bin
+%{_cross_bindir}/updog
+
+%files -n %{_cross_os}updog-fips-bin
+%{_cross_fips_bindir}/updog
+
 %files -n %{_cross_os}metricdog
-%{_cross_bindir}/metricdog
 %dir %{_cross_templatedir}
 %{_cross_templatedir}/metricdog-toml
 %{_cross_unitdir}/metricdog.service
 %{_cross_unitdir}/metricdog.timer
 %{_cross_unitdir}/send-boot-success.service
 
+%files -n %{_cross_os}metricdog-bin
+%{_cross_bindir}/metricdog
+
+%files -n %{_cross_os}metricdog-fips-bin
+%{_cross_fips_bindir}/metricdog
+
 %files -n %{_cross_os}logdog
+
+%files -n %{_cross_os}logdog-bin
 %{_cross_bindir}/logdog
 
+%files -n %{_cross_os}logdog-fips-bin
+%{_cross_fips_bindir}/logdog
+
 %files -n %{_cross_os}shibaken
-%{_cross_bindir}/shibaken
 %dir %{_cross_templatedir}
+
+%files -n %{_cross_os}shibaken-bin
+%{_cross_bindir}/shibaken
+
+%files -n %{_cross_os}shibaken-fips-bin
+%{_cross_fips_bindir}/shibaken
 
 %files -n %{_cross_os}warm-pool-wait
 %{_cross_templatedir}/warm-pool-wait-toml
 %{_cross_unitdir}/warm-pool-wait.service
 
 %files -n %{_cross_os}cfsignal
-%{_cross_bindir}/cfsignal
 %dir %{_cross_templatedir}
 %{_cross_templatedir}/cfsignal-toml
 %{_cross_unitdir}/cfsignal.service
+
+%files -n %{_cross_os}cfsignal-bin
+%{_cross_bindir}/cfsignal
+
+%files -n %{_cross_os}cfsignal-fips-bin
+%{_cross_fips_bindir}/cfsignal
 
 %files -n %{_cross_os}driverdog
 %{_cross_bindir}/driverdog
 
 %files -n %{_cross_os}pluto
-%{_cross_bindir}/pluto
 %{_cross_unitdir}/pluto.service
 %dir %{_cross_datadir}/eks
 %{_cross_datadir}/eks/eni-max-pods
+
+%files -n %{_cross_os}pluto-bin
+%{_cross_bindir}/pluto
+
+%files -n %{_cross_os}pluto-fips-bin
+%{_cross_fips_bindir}/pluto
 
 %files -n %{_cross_os}shimpei
 %{_cross_bindir}/shimpei

@@ -2,6 +2,7 @@ use aws_config::BehaviorVersion;
 use std::str::FromStr;
 
 use crate::error::{self, Result};
+use aws_smithy_experimental::hyper_1_0::{CryptoMode, HyperClientBuilder};
 use aws_types::region::Region;
 use imdsclient::ImdsClient;
 use log::info;
@@ -26,7 +27,22 @@ pub async fn signal_resource(
         .region(Region::new(region.to_owned()))
         .load()
         .await;
-    let client = aws_sdk_cloudformation::Client::new(&config);
+
+    // TODO: add support for HTTP Proxy
+    #[cfg(feature = "fips")]
+    let crypto_mode = CryptoMode::AwsLcFips;
+    #[cfg(not(feature = "fips"))]
+    let crypto_mode = CryptoMode::AwsLc;
+
+    let http_client = HyperClientBuilder::new()
+        .crypto_mode(crypto_mode)
+        .build_https();
+
+    let cloudformation_config = aws_sdk_cloudformation::config::Builder::from(&config)
+        .http_client(http_client)
+        .build();
+
+    let client = aws_sdk_cloudformation::Client::from_conf(cloudformation_config);
 
     client
         .signal_resource()
