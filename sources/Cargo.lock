@@ -3086,10 +3086,12 @@ checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
 name = "logdog"
 version = "0.1.0"
 dependencies = [
+ "aws-lc-rs",
  "flate2",
  "generate-readme",
  "glob",
  "reqwest",
+ "rustls 0.23.14",
  "serde_json",
  "shell-words",
  "snafu",
