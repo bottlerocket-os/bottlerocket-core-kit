@@ -80,6 +80,7 @@ Patch0012: 0012-EKS-PATCH-Bumps-dependency-for-CVE-2023-45288.patch
 Patch0013: 0013-EKS-PATCH-Update-aws-sdk-go-for-new-regions.patch
 Patch0014: 0014-EKS-PATCH-Fix-CVE-2024-5321.patch
 Patch0015: 0015-EKS-PATCH-Check-git-directory-to-be-max-1-level-deep.patch
+Patch0016: 0016-EKS-PATCH-Add-sourceARN-to-sts-headers.patch
 
 BuildRequires: git
 BuildRequires: rsync

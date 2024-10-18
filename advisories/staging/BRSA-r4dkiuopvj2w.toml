@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-r4dkiuopvj2w"
+title = "libcontainer CVE-2024-45310"
+cve = "CVE-2024-45310"
+severity = "low"
+description = "A flaw was found in libcontainer which could create empty files or directories on the host."
+
+[[advisory.products]]
+package-name = "kubernetes-1.29"
+patched-version = "1.29.8"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "mharrimn"
+issue-date = 2024-10-09T19:21:40Z
+arches = ["aarch64", "x86_64"]
+version = "staging"
