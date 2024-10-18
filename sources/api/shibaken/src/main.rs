@@ -53,6 +53,8 @@ enum Commands {
 async fn run() -> Result<()> {
     let args: Args = argh::from_env();
 
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+
     // TerminalMode::Stderr will send all logs to stderr, as sundog only expects the json output of
     // the setting on stdout.
     TermLogger::init(
