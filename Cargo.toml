@@ -48,7 +48,6 @@ members = [
   "packages/kmod",
   "packages/kmod-5.10-nvidia",
   "packages/kmod-5.15-nvidia",
-  "packages/kmod-6.1-neuron",
   "packages/kmod-6.1-nvidia",
   "packages/kubernetes-1.24",
   "packages/kubernetes-1.25",

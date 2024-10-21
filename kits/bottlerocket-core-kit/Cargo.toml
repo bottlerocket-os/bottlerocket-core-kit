@@ -58,7 +58,6 @@ keyutils = { path = "../../packages/keyutils" }
 kmod-5_10-nvidia = { path = "../../packages/kmod-5.10-nvidia" }
 kmod-5_15-nvidia = { path = "../../packages/kmod-5.15-nvidia" }
 kmod-6_1-nvidia = { path = "../../packages/kmod-6.1-nvidia" }
-kmod-6_1-neuron = { path = "../../packages/kmod-6.1-neuron" }
 kmod = { path = "../../packages/kmod" }
 kubernetes-1_24 = { path = "../../packages/kubernetes-1.24" }
 kubernetes-1_25 = { path = "../../packages/kubernetes-1.25" }

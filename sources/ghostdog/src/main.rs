@@ -36,6 +36,7 @@ enum SubCommand {
     Scan(ScanArgs),
     EbsDeviceName(EbsDeviceNameArgs),
     EfaPresent(EfaPresentArgs),
+    NeuronPresent(NeuronPresentArgs),
     MatchNvidiaDriver(MatchNvidiaDriverArgs),
 }
 
@@ -43,6 +44,11 @@ enum SubCommand {
 #[argh(subcommand, name = "efa-present")]
 /// Detect if EFA devices are attached.
 struct EfaPresentArgs {}
+
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "neuron-present")]
+/// Detect if Neuron devices are attached.
+struct NeuronPresentArgs {}
 
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand, name = "scan")]
@@ -112,6 +118,9 @@ fn run() -> Result<()> {
         SubCommand::EfaPresent(_) => {
             is_efa_attached()?;
         }
+        SubCommand::NeuronPresent(_) => {
+            is_neuron_attached()?;
+        }
         SubCommand::MatchNvidiaDriver(driver) => {
             let driver_name = driver.driver_name;
             nvidia_driver_supported(&driver_name)?;
@@ -125,6 +134,14 @@ fn is_efa_attached() -> Result<()> {
         Ok(())
     } else {
         Err(error::Error::NoEfaPresent)
+    }
+}
+
+fn is_neuron_attached() -> Result<()> {
+    if pciclient::is_neuron_attached().context(error::CheckNeuronFailureSnafu)? {
+        Ok(())
+    } else {
+        Err(error::Error::NoNeuronPresent)
     }
 }
 
@@ -296,8 +313,12 @@ mod error {
         InvalidDeviceInfo { path: std::path::PathBuf },
         #[snafu(display("Failed to check if EFA device is attached: {}", source))]
         CheckEfaFailure { source: pciclient::PciClientError },
+        #[snafu(display("Failed to check if Neuron device is attached: {}", source))]
+        CheckNeuronFailure { source: pciclient::PciClientError },
         #[snafu(display("Did not detect EFA"))]
         NoEfaPresent,
+        #[snafu(display("Did not detect Neuron"))]
+        NoNeuronPresent,
         #[snafu(display("Failed to open '{}': {}", path.display(), source))]
         OpenFile {
             path: std::path::PathBuf,
