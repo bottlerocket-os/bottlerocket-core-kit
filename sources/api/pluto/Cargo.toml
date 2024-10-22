@@ -16,6 +16,7 @@ fips = ["aws-lc-rs/fips", "aws-smithy-experimental/crypto-aws-lc-fips", "rustls/
 source-groups = ["aws-smithy-experimental"]
 
 [dependencies]
+base64.workspace = true
 bottlerocket-modeled-types.workspace = true
 bottlerocket-settings-models.workspace = true
 bytes.workspace = true
@@ -38,6 +39,7 @@ rustls.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 snafu.workspace = true
+tempfile.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-retry.workspace = true
 tokio-rustls.workspace = true
