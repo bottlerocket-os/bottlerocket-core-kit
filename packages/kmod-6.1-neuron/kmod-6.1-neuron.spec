@@ -1,6 +1,7 @@
 Name: %{_cross_os}kmod-6.1-neuron
 Version: 2.18.12.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: Neuron drivers for the 6.1 kernel
 License: GPL-2.0-only
 URL: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/

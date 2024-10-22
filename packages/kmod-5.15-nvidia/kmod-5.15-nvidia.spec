@@ -18,6 +18,7 @@
 Name: %{_cross_os}kmod-5.15-nvidia
 Version: 1.0.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: NVIDIA drivers for the 5.15 kernel
 # We use these licences because we only ship our own software in the main package,
 # each subpackage includes the LICENSE file provided by the Licenses.toml file

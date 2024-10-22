@@ -8,6 +8,7 @@
 Name: %{_cross_os}nvidia-k8s-device-plugin
 Version: %{rpmver}
 Release: 1%{?dist}
+Epoch: 1
 Summary: Kubernetes device plugin for NVIDIA GPUs
 License: Apache-2.0
 URL: https://github.com/NVIDIA/k8s-device-plugin

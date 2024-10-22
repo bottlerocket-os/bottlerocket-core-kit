@@ -10,6 +10,7 @@
 Name: %{_cross_os}ecr-credential-provider-1.31
 Version: %{rpmver}
 Release: 1%{?dist}
+Epoch: 1
 Summary: Amazon ECR credential provider
 License: Apache-2.0
 URL: https://github.com/kubernetes/cloud-provider-aws

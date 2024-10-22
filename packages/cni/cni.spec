@@ -10,6 +10,7 @@
 Name: %{_cross_os}%{gorepo}
 Version: %{rpmver}
 Release: 1%{?dist}
+Epoch: 1
 Summary: Plugins for container networking
 License: Apache-2.0
 URL: https://%{goimport}

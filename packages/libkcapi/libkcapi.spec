@@ -21,6 +21,7 @@ ln -s .libkcapi.so.%{version}.hmac .libkcapi.so.1.hmac\
 Name: %{_cross_os}libkcapi
 Version: 1.5.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for kernel crypto API
 License: BSD-3-Clause OR GPL-2.0-only
 URL: https://www.chronox.de/libkcapi/html/index.html

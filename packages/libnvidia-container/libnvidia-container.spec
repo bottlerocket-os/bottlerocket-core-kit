@@ -3,6 +3,7 @@
 Name: %{_cross_os}libnvidia-container
 Version: 1.16.2
 Release: 1%{?dist}
+Epoch: 1
 Summary: NVIDIA container runtime library
 # The COPYING and COPYING.LESSER files in the sources don't apply to libnvidia-container
 # they are there because they apply to libelf in elfutils

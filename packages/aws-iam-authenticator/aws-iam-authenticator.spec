@@ -10,6 +10,7 @@
 Name: %{_cross_os}%{gorepo}
 Version: %{rpmver}
 Release: 1%{?dist}
+Epoch: 1
 Summary: AWS IAM authenticator
 License: Apache-2.0
 URL: https://%{goimport}
