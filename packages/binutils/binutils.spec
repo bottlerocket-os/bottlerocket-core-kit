@@ -1,6 +1,7 @@
 Name: %{_cross_os}binutils
 Version: 2.38
 Release: 1%{?dist}
+Epoch: 1
 Summary: Tools for working with binaries
 URL: https://sourceware.org/binutils
 License: GPL-2.0-or-later AND LGPL-2.0-or-later AND GPL-3.0-or-later

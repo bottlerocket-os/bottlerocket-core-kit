@@ -7,6 +7,7 @@
 Name: %{_cross_os}amazon-vpc-cni-plugins
 Version: %{vpccni_gover}
 Release: 1%{?dist}
+Epoch: 1
 Summary: VPC CNI plugins for Amazon ECS and EKS
 License: Apache-2.0
 URL: https://%{vpccni_goimport}

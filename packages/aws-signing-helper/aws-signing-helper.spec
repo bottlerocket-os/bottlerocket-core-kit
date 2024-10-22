@@ -10,6 +10,7 @@
 Name: %{_cross_os}aws-signing-helper
 Version: %{rpmver}
 Release: 1%{?dist}
+Epoch: 1
 Summary: AWS signing helper for IAM Roles Anywhere support
 License: Apache-2.0
 URL: https://github.com/aws/rolesanywhere-credential-helper

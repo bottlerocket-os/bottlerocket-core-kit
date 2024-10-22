@@ -8,6 +8,7 @@
 Name: %{_cross_os}nvidia-container-toolkit
 Version: %{rpmver}
 Release: 1%{?dist}
+Epoch: 1
 Summary: Tool to build and run GPU accelerated containers
 License: Apache-2.0
 URL: https://%{goimport}

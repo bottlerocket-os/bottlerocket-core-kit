@@ -1,6 +1,7 @@
 Name: %{_cross_os}libdbus
 Version: 1.15.6
 Release: 1%{?dist}
+Epoch: 1
 Summary: Library for a message bus
 License: AFL-2.1 OR GPL-2.0-or-later
 URL: http://www.freedesktop.org/Software/dbus/

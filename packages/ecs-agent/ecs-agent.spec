@@ -15,6 +15,7 @@
 Name: %{_cross_os}ecs-agent
 Version: %{agent_gover}
 Release: 1%{?dist}
+Epoch: 1
 Summary: Amazon Elastic Container Service agent
 License: Apache-2.0
 URL: https://%{agent_goimport}
