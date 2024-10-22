@@ -1,3 +1,14 @@
+# v3.1.0 (2024-10-22)
+
+## OS Changes
+* Update NVIDIA driver versions to 535.216.01 ([#209])
+
+## Build Changes
+* Set Epoch to 1 in necessary packages ([#208])
+
+[#208]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/208
+[#209]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/209
+
 # v3.0.0 (2024-10-17)
 
 ## OS Changes
