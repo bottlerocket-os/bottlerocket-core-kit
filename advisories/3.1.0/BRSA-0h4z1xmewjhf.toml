@@ -1,0 +1,30 @@
+[advisory]
+id = "BRSA-0h4z1xmewjhf"
+title = "kmod-nvidia CVE-2024-0126"
+cve = "CVE-2024-0126"
+severity = "high"
+description = "A flaw was found in NVIDIA GPU software for Windows and Linux which could lead to code execution, denial of service, escalation of privileges, information disclosure, and data tampering"
+
+[[advisory.products]]
+package-name = "kmod-5.10-nvidia"
+patched-version = "1.0.0"
+patched-release = "0"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "kmod-5.15-nvidia"
+patched-version = "1.0.0"
+patched-release = "0"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "kmod-6.1-nvidia"
+patched-version = "1.0.0"
+patched-release = "0"
+patched-epoch = "1"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2024-10-23T02:50:50Z
+arches = ["aarch64", "x86_64"]
+version = "3.1.0"

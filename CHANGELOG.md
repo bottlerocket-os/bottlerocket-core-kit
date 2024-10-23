@@ -6,6 +6,12 @@
 ## Build Changes
 * Set Epoch to 1 in necessary packages ([#208])
 
+## Orchestrator Changes
+
+### Kubernetes
+* Apply upstream patches for Kubernetes v1.24 to v1.31 ([#186])
+
+[#186]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/186
 [#208]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/208
 [#209]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/209
 

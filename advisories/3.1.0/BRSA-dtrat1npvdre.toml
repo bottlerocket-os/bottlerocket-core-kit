@@ -9,10 +9,10 @@ description = "A flaw was found in libcontainer which could leak file descriptor
 package-name = "kubernetes-1.29"
 patched-version = "1.29.8"
 patched-release = "0"
-patched-epoch = "0"
+patched-epoch = "1"
 
 [updateinfo]
 author = "mharrimn"
-issue-date = 2024-10-09T18:59:32Z
+issue-date = 2024-10-23T02:50:50Z
 arches = ["aarch64", "x86_64"]
-version = "staging"
+version = "3.1.0"
