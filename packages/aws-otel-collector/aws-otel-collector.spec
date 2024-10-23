@@ -3,7 +3,7 @@
 %global goimport %{goproject}/%{gorepo}
 
 Name: %{_cross_os}aws-otel-collector
-Version: 0.40.0
+Version: 0.41.1
 Release: 1%{?dist}
 Epoch: 1
 Summary: AWS Distro for OpenTelemetry Collector
