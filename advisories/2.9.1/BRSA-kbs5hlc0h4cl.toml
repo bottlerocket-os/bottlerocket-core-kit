@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-kbs5hlc0h4cl"
+title = "kernel CVE-2024-46752"
+cve = "CVE-2024-46752"
+severity = "moderate"
+description = "In the Linux kernel, the following vulnerability has been resolved: btrfs: replace BUG_ON() with error handling at update_ref_for_cow()"
+
+[[advisory.products]]
+package-name = "kernel-6.1"
+patched-version = "kernel-6.1.111-120.187.amzn2023"
+patched-release = "0"
+patched-epoch = "0"
+
+[updateinfo]
+author = "mharrimn"
+issue-date = 2024-10-17T00:33:43Z
+arches = ["aarch64", "x86_64"]
+version = "2.9.1"
