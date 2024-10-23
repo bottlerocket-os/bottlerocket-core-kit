@@ -35,6 +35,7 @@ fn all_helpers() -> HashMap<ExtensionName, HashMap<HelperName, Box<dyn HelperDef
     hashmap! {
         "aws" => hashmap! {
             "ecr-prefix" => helper!(handlebars_helpers::ecr_prefix),
+            "aws_config" => helper!(handlebars_helpers::aws_config)
         },
 
         "ecs" => hashmap! {
