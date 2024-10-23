@@ -16,33 +16,29 @@ fips = ["aws-lc-rs/fips", "aws-smithy-experimental/crypto-aws-lc-fips", "rustls/
 source-groups = ["aws-smithy-experimental"]
 
 [dependencies]
-bottlerocket-modeled-types.workspace = true
-bottlerocket-settings-models.workspace = true
-bytes.workspace = true
-constants.workspace = true
-futures-util.workspace = true
-headers.workspace = true
-http.workspace = true
-hyper = { workspace = true, features = ["default"] }
-hyper-rustls = { workspace = true, features = ["http2", "logging", "native-tokio", "tls12"] }
-imdsclient.workspace = true
 aws-config.workspace = true
 aws-lc-rs = { workspace = true, features = ["bindgen"] }
 aws-sdk-eks.workspace = true
 aws-sdk-ec2.workspace = true
-aws-types.workspace = true
+aws-smithy-experimental = {workspace = true, features = ["crypto-aws-lc"]}
 aws-smithy-types.workspace = true
-aws-smithy-runtime.workspace = true
-aws-smithy-experimental = { workspace = true, features = ["crypto-aws-lc"] }
+aws-types.workspace = true
+bottlerocket-modeled-types.workspace = true
+bottlerocket-settings-models.workspace = true
+constants.workspace = true
+headers.workspace = true
+hyper = { workspace = true, features = ["default"] }
+hyper-http-proxy.workspace = true
+hyper-util = { workspace = true, features = ["client", "client-legacy", "tokio"] }
+hyper-rustls = { workspace = true, features = ["http1","http2", "logging", "native-tokio", "tls12"] }
+imdsclient.workspace = true
 rustls.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 snafu.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-retry.workspace = true
-tokio-rustls.workspace = true
 url.workspace = true
-log.workspace = true
 
 [build-dependencies]
 generate-readme.workspace = true

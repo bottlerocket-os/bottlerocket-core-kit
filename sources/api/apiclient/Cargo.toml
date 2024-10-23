@@ -23,7 +23,7 @@ futures.workspace = true
 futures-channel.workspace = true
 http.workspace = true
 httparse.workspace = true
-hyper = { workspace = true, features = ["client", "http1", "http2", "tcp"] }
+hyper = { version = "0.14", features = ["client", "http1", "http2", "tcp"] }
 hyper-unix-connector.workspace = true
 libc.workspace = true
 log.workspace = true

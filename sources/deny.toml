@@ -67,9 +67,9 @@ skip-tree = [
     { name = "httptest", version = "=0.15" },
     # schnauzer uses cached, which uses an older version of darling
     { name = "darling", version = "=0.14" },
-    # reqwest brings a set of new dependencies that the aws-sdk doesn't
-    # support
-    { name = "reqwest", version = "=0.12" },
+    # aws-smithy-experimental brings a set of new dependencies that
+    # the aws-sdk doesn't support
+    { name = "aws-smithy-experimental", version = "=0.1" },
 ]
 
 [bans.workspace-dependencies]

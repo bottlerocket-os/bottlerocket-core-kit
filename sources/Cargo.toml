@@ -143,15 +143,15 @@ glob = "0.3"
 gptman = { version = "1", default-features = false }
 handlebars = "4"
 h2 = "0.4"
-headers = "0.3"
+headers = "0.4"
 hex-literal = "0.4"
 http = "0.2"
 httparse = "1"
 httptest = "0.15"
-hyper = { version = "0.14", default-features = false }
-hyper-util = "0.1"
-# FIXME: bump to 0.27 once hyper-proxy is dropped
-hyper-rustls = { version = "0.24", default-features = false }
+hyper = { version = "1", default-features = false }
+hyper-http-proxy = "1"
+hyper-rustls = { version = "0.27", default-features = false }
+hyper-util = { version = "0.1", default-features = false }
 hyper-unix-connector = "0.2"
 indexmap = "2"
 ipnet = "2"
@@ -194,9 +194,8 @@ syn = { version = "2", default-features = false }
 tar = { version = "0.4", default-features = false }
 tempfile = "3"
 test-case = "3"
-tokio = { version = "~1.32", default-features = false }  # LTS
+tokio = { version = "~1.36", default-features = false }  # LTS
 tokio-retry = "0.3"
-tokio-rustls = "0.24"
 tokio-test = "0.4"
 tokio-tungstenite = { version = "0.20", default-features = false }
 tokio-util = "0.7"

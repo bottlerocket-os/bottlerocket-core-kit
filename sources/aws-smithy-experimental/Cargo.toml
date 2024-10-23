@@ -19,7 +19,7 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(crypto_unstable)'] }
 aws-smithy-types = { workspace = true, features = ["http-body-1-x"] }
 aws-smithy-runtime-api = { workspace = true, features = ["client", "http-1x"] }
 aws-smithy-runtime = { workspace = true, features = ["client"] }
-aws-smithy-async.workspace = true 
+aws-smithy-async.workspace = true
 h2.workspace = true
 hyper-util.workspace = true
 once_cell.workspace = true
@@ -28,9 +28,8 @@ rustls.workspace = true
 tracing.workspace = true
 tokio.workspace = true
 tower.workspace = true
-# FIXME: migrate these dependencies once we migrate to http-hyper-proxy
-hyper = { version = "1", features = ["client", "http1", "http2"] }
-hyper-rustls = { version = "0.27", features = ["http2", "http1", "native-tokio", "tls12"], default-features = false }
+hyper = { workspace = true, features = ["client", "http1", "http2"] }
+hyper-rustls = { workspace = true, features = ["http2", "http1", "native-tokio", "tls12"], default-features = false }
 http = "1"
 
 [dev-dependencies]
