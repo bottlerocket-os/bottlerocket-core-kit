@@ -1,18 +1,18 @@
 [advisory]
-id = "BRSA-drwh5tbpr8wv"
+id = "BRSA-fdnhjaspych2"
 title = "libcontainer CVE-2024-21626"
 cve = "CVE-2024-21626"
 severity = "high"
 description = "A flaw was found in libcontainer which could leak file descriptors and give a container access to a host filesystem."
 
 [[advisory.products]]
-package-name = "kubernetes-1.27"
-patched-version = "1.27.16"
+package-name = "kubernetes-1.28"
+patched-version = "1.28.13"
 patched-release = "0"
-patched-epoch = "0"
+patched-epoch = "1"
 
 [updateinfo]
 author = "mharrimn"
-issue-date = 2024-10-09T18:37:37Z
-arches = ["x86_64", "aarch64"]
-version = "staging"
+issue-date = 2024-10-23T02:50:50Z
+arches = ["aarch64", "x86_64"]
+version = "3.1.0"
