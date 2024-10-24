@@ -86,9 +86,11 @@
 ; Restrict process transitions unless one of these conditions is met:
 ; * the new label exactly matches the old label
 ; * the source context is for a trusted subject
+; * the target context is not forbidden
 
 (mlsconstrain (processes (transform))
-  (or (eq t1 trusted_s)
+  (or (and (eq t1 trusted_s)
+           (neq t2 forbidden_t))
       (and (and (and (and
            (eq u1 u2)
            (eq r1 r2))

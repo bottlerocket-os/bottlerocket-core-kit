@@ -166,9 +166,27 @@
 ; Subjects that must run verified code can execute immutable objects, since
 ; those are all protected by dm-verity.
 (allow verified_s immutable_o (files (execute)))
+(allow kernel_t immutable_o (files (execute)))
 
 ; Subjects that must run verified code cannot execute mutable objects.
 (neverallow verified_s mutable_o (files (execute)))
+
+; Ideally the kernel would also be denied permission to execute mutable
+; objects. However, this breaks certain scenarios such as serving files
+; over NFS, where the kernel's permissions are checked.
+(allow kernel_t mutable_o (file (execute)))
+
+; Prevent the kernel from executing mutable objects by blocking execution
+; unless there's a defined transition.
+(neverallow kernel_t mutable_o (file (execute_no_trans)))
+
+; Backstop against kernel execution of mutable objects by defining a type
+; transition, which is then explicitly disallowed.
+(typetransition kernel_t mutable_o process forbidden_t)
+(neverallow kernel_t forbidden_t (processes (transform)))
+
+; Block the use of any object as an entry point to the forbidden type.
+(neverallow forbidden_t all_o (files (enter)))
 
 ; All subjects are allowed to write to objects with their own label.
 ; This includes files like the ones under /proc/self.
