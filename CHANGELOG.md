@@ -1,3 +1,10 @@
+# v3.1.1 (2024-10-24)
+
+## OS Changes
+* Revert system-wide configuration to block writeable/executable memory in systemd services ([#215])
+
+[#215]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/215
+
 # v3.1.0 (2024-10-22)
 
 ## OS Changes
