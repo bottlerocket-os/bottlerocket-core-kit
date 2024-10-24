@@ -1,8 +1,9 @@
-use crate::hyper_proxy::{Proxy, ProxyConnector};
 use headers::Authorization;
-use hyper::client::HttpConnector;
 use hyper::Uri;
-use hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
+use hyper_http_proxy::{Proxy, ProxyConnector};
+use hyper_rustls::{ConfigBuilderExt, HttpsConnector};
+use hyper_util::client::legacy::connect::dns::GaiResolver;
+use hyper_util::client::legacy::connect::HttpConnector;
 use snafu::{ResultExt, Snafu};
 use url::Url;
 
@@ -90,11 +91,19 @@ where
         ));
     }
 
-    let https_connector = HttpsConnectorBuilder::new()
-        .with_native_roots()
+    let mut base_connector = HttpConnector::new_with_resolver(GaiResolver::new());
+    base_connector.enforce_http(false);
+    let https_connector = hyper_rustls::HttpsConnectorBuilder::new()
+        .with_tls_config(
+            rustls::ClientConfig::builder()
+                .with_native_roots()
+                .expect("error with TLS configuration.")
+                .with_no_client_auth(),
+        )
         .https_or_http()
+        .enable_http1()
         .enable_http2()
-        .build();
+        .wrap_connector(base_connector);
     let proxy_connector =
         ProxyConnector::from_proxy(https_connector, proxy).context(ProxyConnectorSnafu)?;
     Ok(proxy_connector)

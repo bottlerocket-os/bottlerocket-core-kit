@@ -1,10 +1,7 @@
 use crate::aws::sdk_config;
-use crate::proxy;
+use crate::{proxy, PROVIDER};
 use aws_sdk_eks::types::KubernetesNetworkConfigResponse;
-#[cfg(feature = "fips")]
-use aws_smithy_experimental::hyper_1_0::{CryptoMode, HyperClientBuilder as Hyper10ClientBuilder};
-#[cfg(not(feature = "fips"))]
-use aws_smithy_runtime::client::http::hyper_014::HyperClientBuilder;
+use aws_smithy_experimental::hyper_1_0::HyperClientBuilder;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
 
@@ -48,12 +45,7 @@ where
 {
     let config = sdk_config(region).await;
 
-    #[cfg(not(feature = "fips"))]
     let client = build_client(https_proxy, no_proxy, config)?;
-
-    // FIXME!: support proxies in FIPS mode
-    #[cfg(feature = "fips")]
-    let client = build_client(config)?;
 
     tokio::time::timeout(
         EKS_DESCRIBE_CLUSTER_TIMEOUT,
@@ -70,7 +62,6 @@ where
     })
 }
 
-#[cfg(not(feature = "fips"))]
 fn build_client<H, N>(
     https_proxy: Option<H>,
     no_proxy: Option<&[N]>,
@@ -80,26 +71,16 @@ where
     H: AsRef<str>,
     N: AsRef<str>,
 {
-    let client = if let Some(https_proxy) = https_proxy {
+    let http_client = if let Some(https_proxy) = https_proxy {
         let http_connector = proxy::setup_http_client(https_proxy, no_proxy)?;
-        let http_client = HyperClientBuilder::new().build(http_connector);
-        let eks_config = aws_sdk_eks::config::Builder::from(&config)
-            .http_client(http_client)
-            .build();
-        aws_sdk_eks::Client::from_conf(eks_config)
+        HyperClientBuilder::new()
+            .crypto_mode(PROVIDER)
+            .build_with_connector(http_connector)
     } else {
-        aws_sdk_eks::Client::new(&config)
+        HyperClientBuilder::new()
+            .crypto_mode(PROVIDER)
+            .build_https()
     };
-
-    Ok(client)
-}
-
-// FIXME!: support proxies in FIPS mode
-#[cfg(feature = "fips")]
-fn build_client(config: aws_config::SdkConfig) -> Result<aws_sdk_eks::Client> {
-    let http_client = Hyper10ClientBuilder::new()
-        .crypto_mode(CryptoMode::AwsLcFips)
-        .build_https();
     let eks_config = aws_sdk_eks::config::Builder::from(&config)
         .http_client(http_client)
         .build();

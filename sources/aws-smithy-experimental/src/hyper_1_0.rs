@@ -664,6 +664,18 @@ impl HyperClientBuilder<CryptoProviderSelected> {
             )
         })
     }
+
+    /// Create a hyper client using a custom HTTP connector
+    pub fn build_with_connector<C>(self, tcp_connector: C) -> SharedHttpClient
+    where
+        C: Clone + Send + Sync + 'static,
+        C: tower::Service<Uri>,
+        C::Response: Connection + Read + Write + Send + Sync + Unpin + 'static,
+        C::Future: Unpin + Send + 'static,
+        C::Error: Into<BoxError>,
+    {
+        build_with_fn(self.client_builder, move || tcp_connector.clone())
+    }
 }
 
 impl HyperClientBuilder<CryptoUnset> {
