@@ -9,7 +9,11 @@ build = "build.rs"
 # Don't rebuild crate just because of changes to README.
 exclude = ["README.md"]
 
+[features]
+fips = ["tough/fips"]
+
 [dependencies]
+aws-lc-rs = { workspace = true, features = ["bindgen"] }
 bottlerocket-release.workspace = true
 bytes.workspace = true
 futures = { workspace = true, features = ["default"] }

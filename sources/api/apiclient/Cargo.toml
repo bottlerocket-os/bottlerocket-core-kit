@@ -9,7 +9,13 @@ build = "build.rs"
 # Don't rebuild crate just because of changes to README.
 exclude = ["README.md"]
 
+[features]
+default = ["tls"]
+tls = ["dep:rustls", "dep:aws-lc-rs", "reqwest/rustls-tls-native-roots"]
+fips = ["tls", "aws-lc-rs/fips", "rustls/fips"]
+
 [dependencies]
+aws-lc-rs = { workspace = true, optional = true, features = ["bindgen"] }
 base64.workspace = true
 constants.workspace = true
 datastore.workspace = true
@@ -24,8 +30,9 @@ log.workspace = true
 models.workspace = true
 nix.workspace = true
 rand = { workspace = true, features = ["default"] }
-reqwest = { workspace = true, features = ["rustls-tls-native-roots"] }
+reqwest.workspace = true
 retry-read.workspace = true
+rustls = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 signal-hook.workspace = true

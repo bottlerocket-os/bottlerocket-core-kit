@@ -1,0 +1,39 @@
+[package]
+name = "aws-smithy-experimental"
+version = "0.1.4"
+authors = ["AWS Rust SDK Team <aws-sdk-rust@amazon.com>"]
+description = "Experiments for the smithy-rs ecosystem"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[features]
+crypto-ring = ["rustls/ring"]
+crypto-aws-lc = ["rustls/aws_lc_rs"]
+crypto-aws-lc-fips = ["rustls/fips"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(crypto_unstable)'] }
+
+[dependencies]
+aws-smithy-types = { workspace = true, features = ["http-body-1-x"] }
+aws-smithy-runtime-api = { workspace = true, features = ["client", "http-1x"] }
+aws-smithy-runtime = { workspace = true, features = ["client"] }
+aws-smithy-async.workspace = true 
+h2.workspace = true
+hyper-util.workspace = true
+once_cell.workspace = true
+pin-project-lite.workspace = true
+rustls.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+tower.workspace = true
+# FIXME: migrate these dependencies once we migrate to http-hyper-proxy
+hyper = { version = "1", features = ["client", "http1", "http2"] }
+hyper-rustls = { version = "0.27", features = ["http2", "http1", "native-tokio", "tls12"], default-features = false }
+http = "1"
+
+[dev-dependencies]
+aws-smithy-async = { workspace = true, features = ["rt-tokio", "test-util"] }
+aws-smithy-runtime = { workspace = true, features = ["client", "test-util", "connector-hyper-0-14-x"]}
+tokio = { workspace = true, features = ["full", "test-util"]}
