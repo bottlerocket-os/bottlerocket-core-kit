@@ -39,15 +39,17 @@ mod hyper_proxy;
 mod proxy;
 
 use api::{settings_view_get, settings_view_set, SettingsViewDelta};
+use base64::Engine;
 use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
 use imdsclient::ImdsClient;
 use snafu::{ensure, OptionExt, ResultExt};
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 use std::net::IpAddr;
-use std::process;
+use std::path::Path;
 use std::str::FromStr;
 use std::string::String;
+use std::{env, process};
 
 // This is the default DNS unless our CIDR block begins with "10."
 const DEFAULT_DNS_CLUSTER_IP: &str = "10.100.0.10";
@@ -55,6 +57,12 @@ const DEFAULT_DNS_CLUSTER_IP: &str = "10.100.0.10";
 const DEFAULT_10_RANGE_DNS_CLUSTER_IP: &str = "172.20.0.10";
 
 const ENI_MAX_PODS_PATH: &str = "/usr/share/eks/eni-max-pods";
+
+/// The name of the AWS config file used by pluto. The file is placed in a tempdir, and
+/// the contents of settings.aws.config are decoded and written here.
+const AWS_CONFIG_FILE: &str = "config.pluto";
+/// The environment variable that specifies the path to the AWS config file.
+const AWS_CONFIG_FILE_ENV_VAR: &str = "AWS_CONFIG_FILE";
 
 mod error {
     use crate::{api, ec2, eks};
@@ -72,6 +80,9 @@ mod error {
 
         #[snafu(display("Missing AWS region"))]
         AwsRegion,
+
+        #[snafu(display("Unable to decode base64 in of AWS config: {}", source))]
+        AwsBase64Decode { source: base64::DecodeError },
 
         #[snafu(display("Failed to parse setting {} as u32: {}", setting, source))]
         ParseToU32 {
@@ -130,6 +141,19 @@ mod error {
             instance_type
         ))]
         NoInstanceTypeMaxPods { instance_type: String },
+
+        #[snafu(display("Unable to create AWS config file '{}': {}", filepath, source))]
+        CreateAwsConfigFile {
+            filepath: String,
+            source: std::io::Error,
+        },
+        #[snafu(display("Unable to write AWS config file to '{}': {}", filepath, source))]
+        WriteAwsConfigFile {
+            filepath: String,
+            source: std::io::Error,
+        },
+        #[snafu(display("Unable to create tempdir: {}", source))]
+        Tempdir { source: std::io::Error },
     }
 }
 
@@ -424,12 +448,41 @@ async fn generate_node_name(
     Ok(())
 }
 
+/// Temporarily copy the yet-to-be-committed settings.aws.config value to a file
+/// and set the environment variable AWS_CONFIG_FILE to this file's location.
+/// This ensures that subsequent calls via pluto to the AWS SDK will respect settings.aws.config.
+fn set_aws_config(aws_k8s_info: &SettingsViewDelta, filepath: &Path) -> Result<()> {
+    if let Some(config_contents) = settings_view_get!(aws_k8s_info.aws.config) {
+        // Decode settings.aws.config.
+        let decoded_bytes = base64::engine::general_purpose::STANDARD
+            .decode(config_contents.as_bytes())
+            .context(error::AwsBase64DecodeSnafu)?;
+
+        // Write the decoded bytes to the provided filepath.
+        let mut file = File::create(filepath).context(error::CreateAwsConfigFileSnafu {
+            filepath: filepath.to_str().unwrap(),
+        })?;
+        file.write_all(&decoded_bytes)
+            .context(error::WriteAwsConfigFileSnafu {
+                filepath: filepath.to_str().unwrap(),
+            })?;
+
+        env::set_var(AWS_CONFIG_FILE_ENV_VAR, filepath);
+    }
+
+    Ok(())
+}
+
 async fn run() -> Result<()> {
     let mut client = ImdsClient::new();
     let current_settings = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
     let mut aws_k8s_info = SettingsViewDelta::from_api_response(current_settings);
 
     let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+
+    let temp_dir = tempfile::tempdir().context(error::TempdirSnafu)?;
+    let aws_config_file_path = temp_dir.path().join(AWS_CONFIG_FILE);
+    set_aws_config(&aws_k8s_info, Path::new(&aws_config_file_path))?;
 
     generate_cluster_dns_ip(&mut client, &mut aws_k8s_info).await?;
     generate_node_ip(&mut client, &mut aws_k8s_info).await?;
@@ -471,6 +524,7 @@ mod test {
     use super::*;
     use crate::api::SettingsViewDelta;
     use api::SettingsView;
+    use bottlerocket_modeled_types::ValidBase64;
     use bottlerocket_settings_models::AwsSettingsV1;
     use httptest::{matchers::*, responders::*, Expectation, Server};
 
@@ -487,6 +541,52 @@ mod test {
         let input = "123_456_789_0/123";
         let result = get_dns_from_ipv4_cidr(input);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_set_aws_config() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_file_path = temp_dir.path().join("config.fake");
+
+        // base64 encoded string:
+        // [default]
+        // use_fips_endpoint=false
+        let config_base64 =
+            ValidBase64::try_from("W2RlZmF1bHRdCnVzZV9maXBzX2VuZHBvaW50PWZhbHNl").unwrap();
+        let input = SettingsViewDelta::from_api_response(SettingsView {
+            aws: Some(AwsSettingsV1 {
+                config: Some(config_base64),
+                ..Default::default()
+            }),
+            ..Default::default()
+        });
+        let result = set_aws_config(&input, &temp_file_path);
+
+        assert!(result.is_ok());
+        assert!(env::var(AWS_CONFIG_FILE_ENV_VAR).is_ok());
+        assert_eq!(
+            env::var(AWS_CONFIG_FILE_ENV_VAR).unwrap(),
+            temp_file_path.to_str().unwrap()
+        );
+
+        // Remove the env variable such that it's no longer set.
+        env::remove_var(AWS_CONFIG_FILE_ENV_VAR);
+    }
+
+    #[test]
+    fn test_set_aws_config_is_not_set() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_file_path = temp_dir.path().join("config.fake");
+
+        let input = SettingsViewDelta::from_api_response(SettingsView {
+            aws: Some(AwsSettingsV1 {
+                ..Default::default()
+            }),
+            ..Default::default()
+        });
+        let result = set_aws_config(&input, &temp_file_path);
+        assert!(result.is_ok());
+        assert!(env::var(AWS_CONFIG_FILE_ENV_VAR).is_err()); // NotPresent
     }
 
     #[tokio::test]

@@ -2,6 +2,7 @@
 // be registered with the Handlebars library to assist in manipulating
 // text at render time.
 
+use base64::Engine;
 use bottlerocket_modeled_types::{OciDefaultsCapability, OciDefaultsResourceLimitType};
 use cidr::AnyIpCidr;
 use dns_lookup::lookup_host;
@@ -152,6 +153,12 @@ mod error {
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
     pub(super) enum TemplateHelperError {
+        #[snafu(display("Expected an AWS profile, got '{}' in template {}", value, template))]
+        AwsProfile {
+            value: handlebars::JsonValue,
+            template: String,
+        },
+
         #[snafu(display("Expected an AWS region, got '{}' in template {}", value, template))]
         AwsRegion {
             value: handlebars::JsonValue,
@@ -533,6 +540,77 @@ pub fn tuf_prefix(
         })?;
 
     Ok(())
+}
+
+/// The `aws_config` helper is used to create an AWS config file
+/// with `use_fips_endpoint` value set based on if the variant is FIPS enabled.
+///
+/// # Fallback
+///
+/// If this helper runs and `settings.aws.config` is set,
+/// the helper will return early, leaving the existing content intact.
+///
+/// # Example
+///
+/// The AWS config value is generated via
+/// `{{ aws_config settings.aws.config settings.aws.profile }}`
+///
+/// This would result in something like:
+/// ```toml
+/// [default]
+/// use_fips_endpoint=false
+/// ```
+///
+/// The helper will then base64 encode this content and set as `settings.aws.config`.
+pub fn aws_config(
+    helper: &Helper<'_, '_>,
+    _: &Handlebars,
+    _: &Context,
+    renderctx: &mut RenderContext<'_, '_>,
+    out: &mut dyn Output,
+) -> Result<(), RenderError> {
+    trace!("Starting aws-config-fips-endpoint helper");
+    let template_name = template_name(renderctx);
+
+    check_param_count(helper, template_name, 2)?;
+
+    let aws_config = get_param(helper, 0)?;
+    if let Value::Null = aws_config {
+        // get the profile parameter, which is probably given by the template value
+        // settings.aws.profile. Regardless, it is expected to be a string.
+        let aws_profile = get_param(helper, 1)?;
+        let aws_profile = aws_profile
+            .as_str()
+            .with_context(|| error::AwsProfileSnafu {
+                value: aws_profile.to_owned(),
+                template: template_name,
+            })?;
+        let fips_enabled = fips_enabled();
+
+        // construct the base64 encoded AWS config
+        let new_aws_config = build_aws_config(aws_profile, fips_enabled);
+
+        // write it to the template
+        out.write(&new_aws_config)
+            .with_context(|_| error::TemplateWriteSnafu {
+                template: template_name.to_owned(),
+            })?;
+    }
+
+    Ok(())
+}
+
+/// Constructs the base64 encoded AWS config for a variant, setting
+/// `use_fips_endpoint`.
+fn build_aws_config<S: AsRef<str>>(profile: S, fips_enabled: bool) -> String {
+    let aws_config_str = format!(
+        r#"[{}]
+use_fips_endpoint={}"#,
+        profile.as_ref(),
+        fips_enabled
+    );
+
+    base64::engine::general_purpose::STANDARD.encode(&aws_config_str)
 }
 
 /// Utility function to determine if a variant is in FIPS mode based
@@ -1739,6 +1817,53 @@ mod test_tuf_repository {
         )
         .unwrap();
         assert_eq!(result, EXPECTED_URL_EU_ISOE_WEST_1);
+    }
+}
+
+#[cfg(test)]
+mod test_aws_config_fips_endpoint {
+    use super::*;
+    use handlebars::RenderError;
+    use serde::Serialize;
+    use serde_json::json;
+
+    // A thin wrapper around the handlebars render_template method that includes
+    // setup and registration of helpers
+    fn setup_and_render_template<T>(tmpl: &str, data: &T) -> Result<String, RenderError>
+    where
+        T: Serialize,
+    {
+        let mut aws_config_helper = Handlebars::new();
+        aws_config_helper.register_helper("aws_config", Box::new(aws_config));
+
+        aws_config_helper.render_template(tmpl, data)
+    }
+
+    const METADATA_TEMPLATE: &str = "{{ aws_config settings.aws.config settings.aws.profile }}";
+
+    // base64 encoded string:
+    // [default]
+    // use_fips_endpoint=false
+    const EXPECTED_CONFIG_DEFAULT: &str = "W2RlZmF1bHRdCnVzZV9maXBzX2VuZHBvaW50PWZhbHNl";
+
+    #[test]
+    fn config_default() {
+        let result = setup_and_render_template(
+            METADATA_TEMPLATE,
+            &json!({"settings": {"aws": {"profile": "default"}}}),
+        )
+        .unwrap();
+        assert_eq!(result, EXPECTED_CONFIG_DEFAULT);
+    }
+
+    #[test]
+    fn config_already_exists() {
+        let result = setup_and_render_template(
+            METADATA_TEMPLATE,
+            &json!({"settings": {"aws": {"profile": "default", "config": "abc"}}}),
+        )
+        .unwrap();
+        assert_eq!(result, "");
     }
 }
 
