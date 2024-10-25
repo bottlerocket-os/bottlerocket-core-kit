@@ -13,11 +13,11 @@ The build system requires certain operating system packages to be installed.
 Ensure the following packages are installed:
 ##### Ubuntu
 ```shell
-apt install build-essential openssl libssl-dev pkg-config liblz4-tool
+apt install build-essential openssl libssl-dev pkg-config liblz4-tool clang
 ```
 ##### Fedora
 ```shell
-yum install make automake gcc openssl openssl-devel pkg-config lz4 perl-FindBin perl-lib
+dnf install make automake gcc openssl openssl-devel pkg-config lz4 perl-FindBin perl-lib clang-tools-extra
 ```
 
 #### Rust
