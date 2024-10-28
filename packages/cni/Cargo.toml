@@ -16,11 +16,5 @@ url = "https://github.com/containernetworking/cni/archive/v1.2.3/cni-1.2.3.tar.g
 sha512 = "7df2a2d01b85ace4e73ea577017e7c98a5d3b86373da5cf9e4ec7f50a1439753ed447c8f7fc871876c624336d91848fd42f309481bffbccc388377dbfad2e133"
 bundle-modules = [ "go" ]
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-# `iptables` is only needed at runtime, and is pulled in by `release`.
-# iptables = { path = "../iptables" }

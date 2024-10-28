@@ -20,7 +20,3 @@ glibc = { path = "../glibc" }
 libinih = { path = "../libinih" }
 liburcu = { path = "../liburcu" }
 util-linux = { path = "../util-linux" }
-
-# RPM Requires
-[dependencies]
-# none

@@ -15,16 +15,7 @@ releases-url = "https://github.com/moby/moby/releases"
 url = "https://github.com/moby/moby/archive/v25.0.6/moby-25.0.6.tar.gz"
 sha512 = "dc3370927654dd2b0d201d112effc8b83416a4df4ed1c5ac6ffaec40a260b0ebdf95107e8f3dcfe91e54f885697273a2b415541f5ea87ec7c491f6325c51a4cc"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
 libseccomp = { path = "../libseccomp" }
 systemd = { path = "../systemd" }
-
-# RPM Requires
-[dependencies]
-# `containerd`, `iptables`, and `procps` are only needed at runtime, and are
-# pulled in by `release`.
-# containerd = { path = "../containerd" }
-# iptables = { path = "../iptables" }
-# procps = { path = "../procps" }

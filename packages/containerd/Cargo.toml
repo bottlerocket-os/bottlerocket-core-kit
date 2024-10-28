@@ -15,11 +15,5 @@ releases-url = "https://github.com/containerd/containerd/releases"
 url = "https://github.com/containerd/containerd/archive/v1.7.22/containerd-1.7.22.tar.gz"
 sha512 = "9572f2b0f49365cc3888999a0c0b7d29694922f0cbefb33e1fbbfc71781cde402537da3a23e36fd3a600a1d819bcef9acbeee423df2699fa9e3f07cfde7f9128"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-runc = { path = "../runc" }
-pigz = { path = "../pigz" }

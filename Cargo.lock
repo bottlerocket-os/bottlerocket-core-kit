@@ -238,8 +238,6 @@ name = "containerd"
 version = "0.1.0"
 dependencies = [
  "glibc",
- "pigz",
- "runc",
 ]
 
 [[package]]
@@ -341,7 +339,6 @@ dependencies = [
 name = "ecs-agent"
 version = "0.1.0"
 dependencies = [
- "amazon-ssm-agent",
  "glibc",
 ]
 
@@ -493,80 +490,56 @@ dependencies = [
 name = "kubernetes-1_24"
 version = "0.1.0"
 dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider",
  "glibc",
- "static-pods",
 ]
 
 [[package]]
 name = "kubernetes-1_25"
 version = "0.1.0"
 dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider",
  "glibc",
- "static-pods",
 ]
 
 [[package]]
 name = "kubernetes-1_26"
 version = "0.1.0"
 dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider",
  "glibc",
- "static-pods",
 ]
 
 [[package]]
 name = "kubernetes-1_27"
 version = "0.1.0"
 dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider-1_27",
  "glibc",
- "static-pods",
 ]
 
 [[package]]
 name = "kubernetes-1_28"
 version = "0.1.0"
 dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider-1_27",
  "glibc",
- "static-pods",
 ]
 
 [[package]]
 name = "kubernetes-1_29"
 version = "0.1.0"
 dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider-1_29",
  "glibc",
- "static-pods",
 ]
 
 [[package]]
 name = "kubernetes-1_30"
 version = "0.1.0"
 dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider-1_30",
  "glibc",
- "static-pods",
 ]
 
 [[package]]
 name = "kubernetes-1_31"
 version = "0.1.0"
 dependencies = [
- "aws-signing-helper",
- "ecr-credential-provider-1_31",
  "glibc",
- "static-pods",
 ]
 
 [[package]]
@@ -851,9 +824,7 @@ version = "0.1.0"
 name = "login"
 version = "0.0.1"
 dependencies = [
- "bash",
  "glibc",
- "systemd",
 ]
 
 [[package]]
@@ -882,8 +853,6 @@ name = "netdog"
 version = "0.1.0"
 dependencies = [
  "glibc",
- "systemd",
- "wicked",
 ]
 
 [[package]]
@@ -985,45 +954,6 @@ dependencies = [
 [[package]]
 name = "release"
 version = "0.0.0"
-dependencies = [
- "acpid",
- "binutils",
- "chrony",
- "conntrack-tools",
- "containerd",
- "coreutils",
- "dbus-broker",
- "e2fsprogs",
- "early-boot-config",
- "ethtool",
- "filesystem",
- "findutils",
- "glibc",
- "grep",
- "grub",
- "iproute",
- "iptables",
- "kexec-tools",
- "keyutils",
- "libaudit",
- "libgcc",
- "libkcapi",
- "libstd-rust",
- "makedumpfile",
- "mdadm",
- "netdog",
- "nvme-cli",
- "oci-add-hooks",
- "os",
- "pciutils",
- "policycoreutils",
- "procps",
- "selinux-policy",
- "shim",
- "systemd",
- "util-linux",
- "xfsprogs",
-]
 
 [[package]]
 name = "runc"

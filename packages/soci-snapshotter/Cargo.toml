@@ -23,7 +23,6 @@ url = "https://github.com/awslabs/soci-snapshotter/archive/refs/tags/v0.7.0.tar.
 sha512 = "91c07db47a971b0e32554457036ae4eb90850c076e6e7c3c99d590332dd24a805ca977a8092bf60cf72fb82b42e2fb22c29fdf96de801625e1d44a4c9431b9b9"
 bundle-modules = [ "go" ]
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
 libz = { path = "../libz" }

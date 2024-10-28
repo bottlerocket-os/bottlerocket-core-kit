@@ -16,15 +16,5 @@ releases-url = "https://github.com/aws/amazon-ecs-agent/releases"
 url = "https://github.com/aws/amazon-ecs-agent/archive/v1.86.3/amazon-ecs-agent-1.86.3.tar.gz"
 sha512 = "d93129c290c06cff332318644dced900618575b7e540674d58d69f8db1ef90c5a2cf8e41f5af63f97df06df1b20cf9f22bd2252d3e2317984f0ef79252ce25c5"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-# `docker-engine` is only needed at runtime, and is included in the variant
-# definition.
-# docker-engine = { path = "../docker-engine" }
-# `iptables` is only needed at runtime, and is pulled in by `release`.
-# iptables = { path = "../iptables" }
-amazon-ssm-agent = { path = "../amazon-ssm-agent" }

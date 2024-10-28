@@ -17,17 +17,5 @@ package-name = "kubernetes-1.28"
 url = "https://distro.eks.amazonaws.com/kubernetes-1-28/releases/33/artifacts/kubernetes/v1.28.13/kubernetes-src.tar.gz"
 sha512 = "7664cb9c178840e7499ceec22a198d8f6feb794423b533a632d4dd6294f6b4616313bb620473ba2a71171304b498d84d33a87038ae57482de03e040c8c1b3c18"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-aws-signing-helper = { path = "../aws-signing-helper" }
-ecr-credential-provider-1_27 = { path = "../ecr-credential-provider-1.27" }
-static-pods = { path = "../static-pods" }
-# `conntrack-tools`, `containerd` and `findutils` are only needed at runtime,
-# and are pulled in by `release`.
-# conntrack-tools = { path = "../conntrack-tools" }
-# containerd = { path = "../containerd" }
-# findutils = { path = "../findutils" }

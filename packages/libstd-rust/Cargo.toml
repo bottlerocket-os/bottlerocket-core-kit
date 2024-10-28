@@ -5,7 +5,6 @@ edition = "2021"
 publish = false
 build = "../build.rs"
 
-
 [package.metadata.build-package]
 
 [lib]

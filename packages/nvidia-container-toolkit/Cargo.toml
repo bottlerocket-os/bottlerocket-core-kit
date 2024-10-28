@@ -18,6 +18,3 @@ sha512 = "166c0e4644196688dbc7036020e8d2ff1b99e8c164d921fa698655033da6e1a3a76d83
 [build-dependencies]
 glibc = { path = "../glibc" }
 libnvidia-container = { path = "../libnvidia-container" }
-# This package depends on `shimpei`, but it is built in the `os` package
-# which is expected to be pulled in
-# os = { path = "../os" }

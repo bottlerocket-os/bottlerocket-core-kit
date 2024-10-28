@@ -15,11 +15,5 @@ releases-url = "https://github.com/containernetworking/plugins/releases"
 url = "https://github.com/containernetworking/plugins/archive/v1.5.1/plugins-1.5.1.tar.gz"
 sha512 = "d2e01958dd8328407164cb6be9d962321742dae7011ce7cd7b2342f5e4b4bbcd992d8249c53d3d81250a60c27f049969bbf329a75440524f52c1f1466b6e7132"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-# `iptables` is only needed at runtime, and is pulled in by `release`.
-# iptables = { path = "../iptables" }

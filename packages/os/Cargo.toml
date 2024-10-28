@@ -29,21 +29,5 @@ source-groups = [
 [lib]
 path = "../packages.rs"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-# We depend on these packages at runtime, and they are expected to be built
-# because they are included in the core kit.
-# `host-ctr` for host containers functionality
-# host-ctr = { path = "../host-ctr" }
-# kexec-tools and makedumpfile required for prairiedog functionality
-# kexec-tools = { path = "../kexec-tools" }
-# makedumpfile = { path = "../makedumpfile" }
-# binutils required for driverdog functionality
-# binutils = { path = "../binutils" }
-# oci-add-hooks required for shimpei functionality
-# oci-add-hooks = { path = "../oci-add-hooks" }
-# nvme-cli = { path = "../nvme-cli" }

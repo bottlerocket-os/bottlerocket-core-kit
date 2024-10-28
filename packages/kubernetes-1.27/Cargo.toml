@@ -69,17 +69,5 @@ sha512 = "e36830d54594aa9ccca4b2ff3b44105b69522beceee8455846338292b7ab5127c6f4ed
 url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-27/patches/0015-EKS-PATCH-Add-apf-queue-wait-audit-log-latency-annot.patch"
 sha512 = "489e9baba81a3683e7be5de260e82c56628c0546f7032695e2107d3bc42dfbaf059f424f8d423d15ded5d7845ebb21966a886af9eefed132b8c361b8393efe44"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-aws-signing-helper = { path = "../aws-signing-helper" }
-ecr-credential-provider-1_27 = { path = "../ecr-credential-provider-1.27" }
-static-pods = { path = "../static-pods" }
-# `conntrack-tools`, `containerd` and `findutils` are only needed at runtime,
-# and are pulled in by `release`.
-# conntrack-tools = { path = "../conntrack-tools" }
-# containerd = { path = "../containerd" }
-# findutils = { path = "../findutils" }

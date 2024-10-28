@@ -15,7 +15,6 @@ releases-url = "https://github.com/libbpf/libbpf/releases"
 url = "https://github.com/libbpf/libbpf/archive/refs/tags/v1.4.5.tar.gz"
 sha512 = "c5ed459e89a8897ef7c892723c61efb2f2fdb0e7bea63eaff1c9936d368d2cc9e63b8c093207eef0df3109c021156c52ddb570757f69c54e713909e866dbb2f5"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
 libelf = { path = "../libelf" }

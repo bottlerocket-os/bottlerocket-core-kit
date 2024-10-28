@@ -17,17 +17,5 @@ package-name = "kubernetes-1.31"
 url = "https://distro.eks.amazonaws.com/kubernetes-1-31/releases/4/artifacts/kubernetes/v1.31.0/kubernetes-src.tar.gz"
 sha512 = "c19a550d7e998f967a307abfde0d060f69a520f4000ef054e8652f05ae925792fa254ce9df3be15255684573c4b61c02eb722b480f6791648783dac6b0ed4c50"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-aws-signing-helper = { path = "../aws-signing-helper" }
-ecr-credential-provider-1_31 = { path = "../ecr-credential-provider-1.31" }
-static-pods = { path = "../static-pods" }
-# `conntrack-tools`, `containerd` and `findutils` are only needed at runtime,
-# and are pulled in by `release`.
-# conntrack-tools = { path = "../conntrack-tools" }
-# containerd = { path = "../containerd" }
-# findutils = { path = "../findutils" }

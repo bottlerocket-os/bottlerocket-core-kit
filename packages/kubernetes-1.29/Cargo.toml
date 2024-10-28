@@ -17,17 +17,5 @@ package-name = "kubernetes-1.29"
 url = "https://distro.eks.amazonaws.com/kubernetes-1-29/releases/22/artifacts/kubernetes/v1.29.8/kubernetes-src.tar.gz"
 sha512 = "89dbb4d282da817be9f61035383467339f1146809e3bbd8d848d72cef6ae6c6cc9fc19bcd7ff3d9da0fee6b7fef13e272a76839282a4092a183a55c64c1695fa"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-aws-signing-helper = { path = "../aws-signing-helper" }
-ecr-credential-provider-1_29 = { path = "../ecr-credential-provider-1.29" }
-static-pods = { path = "../static-pods" }
-# `conntrack-tools`, `containerd` and `findutils` are only needed at runtime,
-# and are pulled in by `release`.
-# conntrack-tools = { path = "../conntrack-tools" }
-# containerd = { path = "../containerd" }
-# findutils = { path = "../findutils" }

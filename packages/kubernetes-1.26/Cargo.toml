@@ -73,17 +73,5 @@ sha512 = "7b65bb30ee2863ea19dbcb74a855c2a898b85e99e43d772228eec81859017cad0949dd
 url = "https://raw.githubusercontent.com/aws/eks-distro/refs/heads/main/projects/kubernetes/kubernetes/1-26/patches/0016-EKS-PATCH-Add-sourceARN-to-sts-headers.patch"
 sha512 = "6a916a0644e98ab8f1bd00c1ac8fc408667ad1d7e0cbb179d2c6fd8d9d9db04fcd0ec8528464b08e5cb5a1718d8e926052138e7dd42301e4acc6f692c4cdbd38"
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
-aws-signing-helper = { path = "../aws-signing-helper" }
-ecr-credential-provider = { path = "../ecr-credential-provider" }
-static-pods = { path = "../static-pods" }
-# `conntrack-tools`, `containerd` and `findutils` are only needed at runtime,
-# and are pulled in by `release`.
-# conntrack-tools = { path = "../conntrack-tools" }
-# containerd = { path = "../containerd" }
-# findutils = { path = "../findutils" }

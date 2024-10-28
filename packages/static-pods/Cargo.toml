@@ -15,5 +15,3 @@ path = "../packages.rs"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-[dependencies]

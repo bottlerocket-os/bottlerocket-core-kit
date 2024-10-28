@@ -22,9 +22,5 @@ source-groups = [
     "early-boot-config/user-data-providers/vmware-guestinfo",
 ]
 
-# RPM BuildRequires
 [build-dependencies]
 glibc = { path = "../glibc" }
-
-# RPM Requires
-[dependencies]
