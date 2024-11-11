@@ -67,7 +67,7 @@ Requires: %{name}-devel = %{version}-%{release}
 # Pull in platform-dependent boot config snippets.
 Requires: (%{name}-bootconfig-aws if %{_cross_os}variant-platform(aws))
 Requires: (%{name}-bootconfig-vmware if %{_cross_os}variant-platform(vmware))
-Requires: (%{name}-bootconfig-metal if %{_cross_os}variant-platform(vmware))
+Requires: (%{name}-bootconfig-metal if %{_cross_os}variant-platform(metal))
 
 # Pull in platform-dependent modules.
 Requires: (%{name}-modules-metal if %{_cross_os}variant-platform(metal))
