@@ -1,3 +1,19 @@
+# v3.3.0 (2024-11-12)
+
+## Orchestrator Changes
+### Kubernetes
+* Add latest instance types to eni-max-pods mapping ([#250])
+
+## OS Changes
+* Include `rdma-core` in AWS variants ([#252])
+* Add `libstdc++` subpackage to `libgcc` ([#253])
+* Update third-party packages ([#254])
+
+[#250]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/250
+[#252]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/252
+[#253]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/253
+[#254]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/254
+
 # v3.2.0 (2024-11-06)
 
 ## Orchestrator Changes
@@ -193,7 +209,7 @@
 ## OS Changes
 * Use open GPU drivers on P4 and P5 instances ([#114])
 * Add package-level support for EROFS as a root filesystem ([#159])
-* Update libnvidia-container and nvidia-container-toolkit to 1.16.2 ([#161]) 
+* Update libnvidia-container and nvidia-container-toolkit to 1.16.2 ([#161])
 
 [#114]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/114
 [#157]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/157
@@ -442,7 +458,7 @@
 ## Build Changes
 
 * Update Twoliter to 0.4.3 ([#39])
-    
+
 [#39]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/39
 [#40]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/40
 [#42]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/42
