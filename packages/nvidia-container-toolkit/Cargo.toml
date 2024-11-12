@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/NVIDIA/nvidia-container-toolkit/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/NVIDIA/nvidia-container-toolkit/archive/v1.17.0/nvidia-container-toolkit-1.17.0.tar.gz"
-sha512 = "339e823ccd231cf7f140fceb036cc06b88b8e3af3acd90c5e0dc1edc8c7479e6e7122d7a10054005e42f88201701dad2501edd4b8016b05b6d343cd0f1132f22"
+url = "https://github.com/NVIDIA/nvidia-container-toolkit/archive/v1.17.1/nvidia-container-toolkit-1.17.1.tar.gz"
+sha512 = "166c0e4644196688dbc7036020e8d2ff1b99e8c164d921fa698655033da6e1a3a76d83d8e8a27bc0bd967469c2a9fb4c2764dc0148af6c8f195c49b3c7c871d1"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
