@@ -119,6 +119,12 @@ CONFIG_BOOT_CONFIG=y
 # Enables support for checkpoint/restore
 CONFIG_CHECKPOINT_RESTORE=y
 
+# Disable user-mode helpers for BPF preload and bpfilter, since they rely on a
+# more complete set of userspace libraries for the target than we want to
+# depend on at kernel build time.
+# CONFIG_BPF_PRELOAD_UMD is not set
+# CONFIG_BPFILTER_UMH is not set
+
 # Disable unused filesystems.
 # CONFIG_AFS_FS is not set
 # CONFIG_CRAMFS is not set
