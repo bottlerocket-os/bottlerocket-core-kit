@@ -114,6 +114,7 @@ Requires: (%{_cross_os}driverdog if %{_cross_os}variant-flavor(nvidia))
 %package -n %{_cross_os}apiserver
 Summary: Bottlerocket API server
 Requires: %{_cross_os}settings-plugins
+Requires: %{_cross_datadir}/xfs/mkfs.xfs.conf
 %description -n %{_cross_os}apiserver
 %{summary}.
 
