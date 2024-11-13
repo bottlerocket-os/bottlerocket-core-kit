@@ -16,6 +16,9 @@ Source100: config-bottlerocket
 Source220: neuron-sysinit.target.drop-in.conf
 Source221: modprobe@neuron.service.drop-in.conf
 
+# XFS configuration
+Source300: lts_5.10.conf
+
 # Help out-of-tree module builds run `make prepare` automatically.
 Patch1001: 1001-Makefile-add-prepare-target-for-external-modules.patch
 # Enable INITRAMFS_FORCE config option for our use case.
@@ -81,6 +84,12 @@ Summary: Archived Linux kernel source for module building
 Summary: Modules for the Linux kernel
 
 %description modules
+%{summary}.
+
+%package mkfs-confs
+Summary: mkfs confiigurations for different file systems
+
+%description mkfs-confs
 %{summary}.
 
 %if "%{_cross_arch}" == "x86_64"
@@ -291,6 +300,9 @@ mkdir -p %{buildroot}%{_cross_unitdir}/modprobe@neuron.service.d
 install -p -m 0644 %{S:221} %{buildroot}%{_cross_unitdir}/modprobe@neuron.service.d/neuron.conf
 %endif
 
+mkdir -p %{buildroot}%{_cross_datadir}/xfs
+install -p -m 0644 %{S:300} %{buildroot}%{_cross_datadir}/xfs/mkfs.xfs.conf
+
 %files
 %license COPYING LICENSES/preferred/GPL-2.0 LICENSES/exceptions/Linux-syscall-note
 %{_cross_attribution_file}
@@ -339,5 +351,8 @@ install -p -m 0644 %{S:221} %{buildroot}%{_cross_unitdir}/modprobe@neuron.servic
 
 %files archive
 %{_cross_datadir}/bottlerocket/kernel-devel.tar.xz
+
+%files mkfs-confs
+%{_cross_datadir}/xfs/mkfs.xfs.conf
 
 %changelog
