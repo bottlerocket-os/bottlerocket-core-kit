@@ -15,6 +15,7 @@ static BLKID: &str = "/usr/sbin/blkid";
 static MKFSXFS: &str = "/usr/sbin/mkfs.xfs";
 static MKFSEXT4: &str = "/usr/sbin/mkfs.ext4";
 static FINDMNT: &str = "/usr/bin/findmnt";
+static XFS_MKFS_CONF: &str = "/usr/share/xfs/mkfs.xfs.conf";
 
 /// Name of the array (if created) and filesystem label. Selected to be 12 characters so it
 /// fits within both the xfs and ext4 volume label limit.
@@ -325,6 +326,12 @@ pub fn format_device<S: AsRef<OsStr>>(device: S, format: &Filesystem) -> Result<
     // labeled, XFS has a max of 12 characters, EXT4 allows 16
     mkfs.arg("-L");
     mkfs.arg(RAID_DEVICE_NAME);
+
+    // Apply XFS config file if formatting with XFS
+    if matches!(format, Filesystem::Xfs) {
+        mkfs.arg("-c");
+        mkfs.arg(format!("options={}", XFS_MKFS_CONF));
+    }
 
     let output = mkfs
         .output()
