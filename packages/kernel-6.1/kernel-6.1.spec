@@ -31,6 +31,9 @@ Source300: bootconfig-aws.conf
 Source301: bootconfig-vmware.conf
 Source302: bootconfig-metal.conf
 
+# XFS configuration
+Source400: lts_6.1.conf
+
 # Help out-of-tree module builds run `make prepare` automatically.
 Patch1001: 1001-Makefile-add-prepare-target-for-external-modules.patch
 # Expose tools/* targets for out-of-tree module builds.
@@ -137,6 +140,12 @@ Summary: Modules for the Linux kernel
 Summary: Modules for the Linux kernel on bare metal
 
 %description modules-metal
+%{summary}.
+
+%package mkfs-confs
+Summary: mkfs confiigurations for different file systems
+
+%description mkfs-confs
 %{summary}.
 
 %if "%{_cross_arch}" == "x86_64"
@@ -377,6 +386,9 @@ install -p -m 0644 %{S:220} %{buildroot}%{_cross_unitdir}/sysinit.target.d/neuro
 mkdir -p %{buildroot}%{_cross_unitdir}/modprobe@neuron.service.d
 install -p -m 0644 %{S:221} %{buildroot}%{_cross_unitdir}/modprobe@neuron.service.d/neuron.conf
 %endif
+
+mkdir -p %{buildroot}%{_cross_datadir}/xfs
+install -p -m 0644 %{S:300} %{buildroot}%{_cross_datadir}/xfs/mkfs.xfs.conf
 
 # Install platform-specific bootconfig snippets.
 install -d %{buildroot}%{_cross_bootconfigdir}
@@ -1432,5 +1444,8 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_unitdir}/sysinit.target.d/neuron.conf
 %{_cross_unitdir}/modprobe@neuron.service.d/neuron.conf
 %endif
+
+%files mkfs-confs
+%{_cross_datadir}/xfs/mkfs.xfs.conf
 
 %changelog
