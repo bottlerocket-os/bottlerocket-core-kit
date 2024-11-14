@@ -13,8 +13,8 @@ path = "../packages.rs"
 
 [[package.metadata.build-package.external-files]]
 # Use latest-kernel-srpm-url.sh to get this.
-url = "https://cdn.amazonlinux.com/al2023/blobstore/3b0aa0d6cf05ca272d9802ccddfc28201675b2abac6abb307f5c4b8d3ca68d26/kernel-6.1.112-124.190.amzn2023.src.rpm"
-sha512 = "f7c78716a78d453a0eaaae45f6aaf00a466d7b65e7def0c887f5ff267726b668f725b8a359770a93dbee477313cf297fa6b641580c073aa76dcefda39c19f5c2"
+url = "https://cdn.amazonlinux.com/al2023/blobstore/d6984bd6e9f17839ebf3e0b0c4d7dd72aeb4db5911bf697ed299caea93c83327/kernel-6.1.115-126.197.amzn2023.src.rpm"
+sha512 = "eb1e9bdbbcc4b74cc678c894b19279437e1396c56e9db0904d1dd6898e6babf4fa3c4c53908ca189ee8558c5d249314a819b255f183fe100e4a3ed068ce2e6cf"
 
 [[package.metadata.build-package.external-files]]
 # Use latest-neuron-srpm-url.sh to get this.

@@ -1,13 +1,13 @@
 %global debug_package %{nil}
 
 Name: %{_cross_os}kernel-6.1
-Version: 6.1.112
+Version: 6.1.115
 Release: 1%{?dist}
 Summary: The Linux kernel
 License: GPL-2.0 WITH Linux-syscall-note
 URL: https://www.kernel.org/
 # Use latest-kernel-srpm-url.sh to get this.
-Source0: https://cdn.amazonlinux.com/al2023/blobstore/3b0aa0d6cf05ca272d9802ccddfc28201675b2abac6abb307f5c4b8d3ca68d26/kernel-6.1.112-124.190.amzn2023.src.rpm
+Source0: https://cdn.amazonlinux.com/al2023/blobstore/d6984bd6e9f17839ebf3e0b0c4d7dd72aeb4db5911bf697ed299caea93c83327/kernel-6.1.115-126.197.amzn2023.src.rpm
 # Use latest-neuron-srpm-url.sh to get this.
 Source1: https://yum.repos.neuron.amazonaws.com/aws-neuronx-dkms-2.18.12.0.noarch.rpm
 
@@ -45,9 +45,6 @@ Patch1004: 1004-af_unix-increase-default-max_dgram_qlen-to-512.patch
 # Drop AL revert of upstream patch to minimize delta. The necessary dependency
 # options for nvidia are instead included through DRM_SIMPLE
 Patch1005: 1005-Revert-Revert-drm-fb_helper-improve-CONFIG_FB-depend.patch
-
-# Fix cgroup v1 I/O statistics in blk-throttle to count all I/Os, not just throttled ones, aligning with cgroup v2 methods.
-Patch1100: 1100-blk-throttle-Fix-io-statistics-for-cgroup-v1.patch
 
 BuildRequires: bc
 BuildRequires: elfutils-devel
@@ -1027,7 +1024,6 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/kernel/lib/ts_fsm.ko.*
 %{_cross_kmoddir}/kernel/lib/ts_kmp.ko.*
 %{_cross_kmoddir}/kernel/lib/zstd/zstd_compress.ko.*
-%{_cross_kmoddir}/kernel/mm/z3fold.ko.*
 %{_cross_kmoddir}/kernel/mm/zsmalloc.ko.*
 %{_cross_kmoddir}/kernel/net/8021q/8021q.ko.*
 %{_cross_kmoddir}/kernel/net/802/garp.ko.*
