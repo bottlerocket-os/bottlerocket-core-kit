@@ -1,0 +1,136 @@
+From 55011a89968539f9d54d3425dc7ab73a0812851e Mon Sep 17 00:00:00 2001
+From: Oliver Steffen <osteffen@redhat.com>
+Date: Fri, 26 May 2023 13:35:47 +0200
+Subject: [PATCH] kern/misc, kern/efi: Extract UTF-8 to UTF-16 code
+
+Create a new function for UTF-8 to UTF-16 conversion called
+grub_utf8_to_utf16_alloc() in the grub-code/kern/misc.c and replace
+charset conversion code used in some places in the EFI code. It is
+modeled after the grub_utf8_to_ucs4_alloc() like functions in
+include/grub/charset.h. It can't live in include/grub/charset.h,
+because it needs to be reachable from the kern/efi code.
+
+Add a check for integer overflow and remove redundant NUL-termination.
+
+Signed-off-by: Oliver Steffen <osteffen@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+[bcressey: backport to 2.06]
+Signed-off-by: Ben Cressey <bcressey@amazon.com>
+
+(cherry picked from commit a0b16564ee2e8eb7f597926bf60c4de2d696cd66)
+---
+ grub-core/kern/efi/efi.c | 21 ++++++---------------
+ grub-core/kern/misc.c    | 32 ++++++++++++++++++++++++++++++++
+ include/grub/misc.h      |  3 +++
+ 3 files changed, 41 insertions(+), 15 deletions(-)
+
+diff --git a/grub-core/kern/efi/efi.c b/grub-core/kern/efi/efi.c
+index ab9a53966..354343935 100644
+--- a/grub-core/kern/efi/efi.c
++++ b/grub-core/kern/efi/efi.c
+@@ -217,15 +217,11 @@ grub_efi_set_variable_with_attributes (const char *var, const grub_efi_guid_t *g
+   grub_efi_status_t status;
+   grub_efi_runtime_services_t *r;
+   grub_efi_char16_t *var16;
+-  grub_size_t len, len16;
+ 
+-  len = grub_strlen (var);
+-  len16 = len * GRUB_MAX_UTF16_PER_UTF8;
+-  var16 = grub_calloc (len16 + 1, sizeof (var16[0]));
+-  if (!var16)
++  grub_utf8_to_utf16_alloc (var, &var16, NULL);
++
++  if (var16 == NULL)
+     return grub_errno;
+-  len16 = grub_utf8_to_utf16 (var16, len16, (grub_uint8_t *) var, len, NULL);
+-  var16[len16] = 0;
+ 
+   r = grub_efi_system_table->runtime_services;
+ 
+@@ -262,18 +258,13 @@ grub_efi_get_variable_with_attributes (const char *var,
+   grub_efi_runtime_services_t *r;
+   grub_efi_char16_t *var16;
+   void *data;
+-  grub_size_t len, len16;
+ 
+   *data_out = NULL;
+   *datasize_out = 0;
+ 
+-  len = grub_strlen (var);
+-  len16 = len * GRUB_MAX_UTF16_PER_UTF8;
+-  var16 = grub_calloc (len16 + 1, sizeof (var16[0]));
+-  if (!var16)
+-    return GRUB_EFI_OUT_OF_RESOURCES;
+-  len16 = grub_utf8_to_utf16 (var16, len16, (grub_uint8_t *) var, len, NULL);
+-  var16[len16] = 0;
++  grub_utf8_to_utf16_alloc (var, &var16, NULL);
++  if (var16 == NULL)
++    return grub_errno;
+ 
+   r = grub_efi_system_table->runtime_services;
+ 
+diff --git a/grub-core/kern/misc.c b/grub-core/kern/misc.c
+index a95d182ba..f9be124d9 100644
+--- a/grub-core/kern/misc.c
++++ b/grub-core/kern/misc.c
+@@ -28,6 +28,8 @@
+ #if DEBUG_WITH_TIMESTAMPS
+ #include <grub/time.h>
+ #endif
++#include <grub/types.h>
++#include <grub/charset.h>
+ 
+ static void
+ parse_printf_args (const char *fmt0, struct grub_printf_args *args,
+@@ -1280,6 +1282,36 @@ grub_fatal (const char *fmt, ...)
+   grub_abort ();
+ }
+ 
++grub_ssize_t
++grub_utf8_to_utf16_alloc (const char *str8, grub_uint16_t **utf16_msg, grub_uint16_t **last_position)
++{
++  grub_size_t len;
++  grub_size_t len16;
++
++  len = grub_strlen (str8);
++
++  /* Check for integer overflow */
++  if (len > GRUB_SSIZE_MAX / GRUB_MAX_UTF16_PER_UTF8 - 1)
++    {
++      grub_error (GRUB_ERR_BAD_ARGUMENT, N_("string too long"));
++      *utf16_msg = NULL;
++      return -1;
++    }
++
++  len16 = len * GRUB_MAX_UTF16_PER_UTF8;
++
++  *utf16_msg = grub_calloc (len16 + 1, sizeof (*utf16_msg[0]));
++  if (*utf16_msg == NULL)
++    return -1;
++
++  len16 = grub_utf8_to_utf16 (*utf16_msg, len16, (grub_uint8_t *) str8, len, NULL);
++
++  if (last_position != NULL)
++    *last_position = *utf16_msg + len16;
++
++  return len16;
++}
++
+ #if BOOT_TIME_STATS
+ 
+ #include <grub/time.h>
+diff --git a/include/grub/misc.h b/include/grub/misc.h
+index a359b0dee..8716e486d 100644
+--- a/include/grub/misc.h
++++ b/include/grub/misc.h
+@@ -536,4 +536,7 @@ void EXPORT_FUNC(grub_real_boot_time) (const char *file,
+ 
+ #define grub_log2ull(n) (GRUB_TYPE_BITS (grub_uint64_t) - __builtin_clzll (n) - 1)
+ 
++grub_ssize_t
++EXPORT_FUNC(grub_utf8_to_utf16_alloc) (const char *str8, grub_uint16_t **utf16_msg, grub_uint16_t **last_position);
++
+ #endif /* ! GRUB_MISC_HEADER */
+-- 
+2.47.0
+

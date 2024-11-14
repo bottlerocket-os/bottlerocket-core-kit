@@ -1,0 +1,129 @@
+From a76d5d1d5f425eb6128cadee06d9aaeff1b24b83 Mon Sep 17 00:00:00 2001
+From: Ben Cressey <bcressey@amazon.com>
+Date: Thu, 14 Nov 2024 20:29:13 +0000
+Subject: [PATCH] efi: set LoaderTimeInitUSec and LoaderTimeExecUSec
+
+This implements the part of the Boot Loader Interface [0] that's used
+by `systemd-analyze` to calculate the time spent in the firmware and
+bootloader, prior to kernel execution.
+
+[0] https://systemd.io/BOOT_LOADER_INTERFACE/
+
+Signed-off-by: Ben Cressey <bcressey@amazon.com>
+---
+ grub-core/kern/arm64/efi/init.c | 23 +++++++++++++++++++++++
+ grub-core/kern/i386/efi/init.c  | 26 ++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
+
+diff --git a/grub-core/kern/arm64/efi/init.c b/grub-core/kern/arm64/efi/init.c
+index 5010caefd..52e87d582 100644
+--- a/grub-core/kern/arm64/efi/init.c
++++ b/grub-core/kern/arm64/efi/init.c
+@@ -22,6 +22,7 @@
+ #include <grub/misc.h>
+ #include <grub/mm.h>
+ #include <grub/time.h>
++#include <grub/efi/api.h>
+ #include <grub/efi/efi.h>
+ #include <grub/loader.h>
+ 
+@@ -36,11 +37,16 @@ grub_efi_get_time_ms (void)
+   return tmr / timer_frequency_in_khz;
+ }
+ 
++static const grub_efi_guid_t bli_vendor_guid = GRUB_EFI_VENDOR_BOOT_LOADER_INTERFACE_GUID;
++static const grub_efi_uint32_t bli_efivar_attr =
++  GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS | GRUB_EFI_VARIABLE_RUNTIME_ACCESS;
+ 
+ void
+ grub_machine_init (void)
+ {
+   grub_uint64_t timer_frequency;
++  grub_efi_uint64_t init_ms;
++  char *init_usec;
+ 
+   grub_efi_init ();
+ 
+@@ -48,11 +54,28 @@ grub_machine_init (void)
+   timer_frequency_in_khz = timer_frequency / 1000;
+ 
+   grub_install_get_time_ms (grub_efi_get_time_ms);
++
++  init_ms = grub_get_time_ms ();
++  init_usec = grub_xasprintf ("%lu000", init_ms);
++  grub_efi_set_variable_to_string ("LoaderTimeInitUSec",
++				   &bli_vendor_guid,
++				   init_usec,
++				   bli_efivar_attr);
+ }
+ 
+ void
+ grub_machine_fini (int flags)
+ {
++  grub_efi_uint64_t exec_ms;
++  char *exec_usec;
++
++  exec_ms = grub_get_time_ms ();
++  exec_usec = grub_xasprintf ("%lu000", exec_ms);
++  grub_efi_set_variable_to_string ("LoaderTimeExecUSec",
++				   &bli_vendor_guid,
++				   exec_usec,
++				   bli_efivar_attr);
++
+   if (!(flags & GRUB_LOADER_FLAG_NORETURN))
+     return;
+ 
+diff --git a/grub-core/kern/i386/efi/init.c b/grub-core/kern/i386/efi/init.c
+index 46476e27e..1e237cfcb 100644
+--- a/grub-core/kern/i386/efi/init.c
++++ b/grub-core/kern/i386/efi/init.c
+@@ -24,20 +24,46 @@
+ #include <grub/dl.h>
+ #include <grub/cache.h>
+ #include <grub/kernel.h>
++#include <grub/efi/api.h>
+ #include <grub/efi/efi.h>
+ #include <grub/i386/tsc.h>
+ #include <grub/loader.h>
++#include <grub/time.h>
++
++static const grub_efi_guid_t bli_vendor_guid = GRUB_EFI_VENDOR_BOOT_LOADER_INTERFACE_GUID;
++static const grub_efi_uint32_t bli_efivar_attr =
++  GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS | GRUB_EFI_VARIABLE_RUNTIME_ACCESS;
+ 
+ void
+ grub_machine_init (void)
+ {
++  grub_efi_uint64_t init_ms;
++  char *init_usec;
++
+   grub_efi_init ();
+   grub_tsc_init ();
++
++  init_ms = grub_get_time_ms ();
++  init_usec = grub_xasprintf ("%lu000", init_ms);
++  grub_efi_set_variable_to_string ("LoaderTimeInitUSec",
++				   &bli_vendor_guid,
++				   init_usec,
++				   bli_efivar_attr);
+ }
+ 
+ void
+ grub_machine_fini (int flags)
+ {
++  grub_efi_uint64_t exec_ms;
++  char *exec_usec;
++
++  exec_ms = grub_get_time_ms ();
++  exec_usec = grub_xasprintf ("%lu000", exec_ms);
++  grub_efi_set_variable_to_string ("LoaderTimeExecUSec",
++				   &bli_vendor_guid,
++				   exec_usec,
++				   bli_efivar_attr);
++
+   if (!(flags & GRUB_LOADER_FLAG_NORETURN))
+     return;
+ 
+-- 
+2.47.0
+

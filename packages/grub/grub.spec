@@ -68,6 +68,13 @@ Patch0045: 0045-mkimage-pgp-move-single-public-key-into-its-own-sect.patch
 Patch0046: 0046-Revert-sb-Add-fallback-to-EFI-LoadImage-if-shim_lock.patch
 Patch0047: 0047-Revert-UBUNTU-Move-verifiers-after-decompressors.patch
 Patch0048: 0048-add-flag-to-only-search-root-dev.patch
+Patch0049: 0049-efi-Add-grub_efi_set_variable_with_attributes.patch
+Patch0050: 0050-include-grub-types.h-Add-GRUB_SSIZE_MAX.patch
+Patch0051: 0051-kern-misc-kern-efi-Extract-UTF-8-to-UTF-16-code.patch
+Patch0052: 0052-efi-Add-grub_efi_set_variable_to_string.patch
+Patch0053: 0053-efi-add-vendor-GUID-for-Boot-Loader-Interface.patch
+Patch0054: 0054-efi-set-LoaderTimeInitUSec-and-LoaderTimeExecUSec.patch
+Patch0055: 0055-tsc-drop-tsc_boot_time-offset.patch
 
 BuildRequires: automake
 BuildRequires: bison

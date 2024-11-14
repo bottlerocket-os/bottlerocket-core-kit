@@ -1,0 +1,40 @@
+From abacbb46f1a73e33a6b7644a8a8081244c43c28f Mon Sep 17 00:00:00 2001
+From: Oliver Steffen <osteffen@redhat.com>
+Date: Fri, 26 May 2023 13:35:46 +0200
+Subject: [PATCH] include/grub/types.h: Add GRUB_SSIZE_MAX
+
+In the same way as GRUB_SIZE_MAX, add GRUB_SSIZE_MAX.
+
+Signed-off-by: Oliver Steffen <osteffen@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+[bcressey: backport to 2.06]
+Signed-off-by: Ben Cressey <bcressey@amazon.com>
+
+(cherry picked from commit 389d3dc835a37c42184d2fab978ccd902a2399f7)
+---
+ include/grub/types.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/grub/types.h b/include/grub/types.h
+index ba446d990..ebf672b46 100644
+--- a/include/grub/types.h
++++ b/include/grub/types.h
+@@ -122,6 +122,7 @@ typedef grub_uint64_t	grub_size_t;
+ typedef grub_int64_t	grub_ssize_t;
+ 
+ # define GRUB_SIZE_MAX 18446744073709551615UL
++# define GRUB_SSIZE_MAX 9223372036854775807L
+ 
+ # if GRUB_CPU_SIZEOF_LONG == 8
+ #  define PRIxGRUB_SIZE	 "lx"
+@@ -140,6 +141,7 @@ typedef grub_uint32_t	grub_size_t;
+ typedef grub_int32_t	grub_ssize_t;
+ 
+ # define GRUB_SIZE_MAX 4294967295UL
++# define GRUB_SSIZE_MAX 2147483647L
+ 
+ # define PRIxGRUB_SIZE	"x"
+ # define PRIxGRUB_ADDR	"x"
+-- 
+2.47.0
+

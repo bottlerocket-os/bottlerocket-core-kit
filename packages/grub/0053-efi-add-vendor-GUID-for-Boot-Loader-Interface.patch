@@ -1,0 +1,32 @@
+From ec2bbc9d87079cd080feaad6b7512624a52ee555 Mon Sep 17 00:00:00 2001
+From: Ben Cressey <bcressey@amazon.com>
+Date: Thu, 14 Nov 2024 19:24:42 +0000
+Subject: [PATCH] efi: add vendor GUID for Boot Loader Interface
+
+Backports the relevant part of upstream commit e0fa7dc8 ("bli: Add a
+module for the Boot Loader Interface").
+
+Signed-off-by: Ben Cressey <bcressey@amazon.com>
+---
+ include/grub/efi/api.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/include/grub/efi/api.h b/include/grub/efi/api.h
+index 464842ba3..f301913e6 100644
+--- a/include/grub/efi/api.h
++++ b/include/grub/efi/api.h
+@@ -368,6 +368,11 @@
+     { 0xa1, 0x92, 0xbf, 0x1d, 0x57, 0xd0, 0xb1, 0x89 } \
+   }
+ 
++#define GRUB_EFI_VENDOR_BOOT_LOADER_INTERFACE_GUID \
++  { 0x4a67b082, 0x0a4c, 0x41cf, \
++    { 0xb6, 0xc7, 0x44, 0x0b, 0x29, 0xbb, 0x8c, 0x4f } \
++  }
++
+ struct grub_efi_sal_system_table
+ {
+   grub_uint32_t signature;
+-- 
+2.47.0
+

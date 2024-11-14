@@ -1,0 +1,71 @@
+From 28bf9df5e7146610fd1890ea5856c0c0a86dac1c Mon Sep 17 00:00:00 2001
+From: Oliver Steffen <osteffen@redhat.com>
+Date: Fri, 26 May 2023 13:35:48 +0200
+Subject: [PATCH] efi: Add grub_efi_set_variable_to_string()
+
+Add a function that sets an EFI variable to a string value.
+The string is converted from UTF-8 to UTF-16.
+
+Signed-off-by: Oliver Steffen <osteffen@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+[bcressey:
+  - backport to 2.06
+  - avoid changes from 06edd40d ("guid: Unify GUID types")]
+Signed-off-by: Ben Cressey <bcressey@amazon.com>
+
+(cherry picked from commit e83a88f6ea7f97d643387681fe044f45dcd732b9)
+---
+ grub-core/kern/efi/efi.c | 22 ++++++++++++++++++++++
+ include/grub/efi/efi.h   |  3 +++
+ 2 files changed, 25 insertions(+)
+
+diff --git a/grub-core/kern/efi/efi.c b/grub-core/kern/efi/efi.c
+index 354343935..a65ef27bd 100644
+--- a/grub-core/kern/efi/efi.c
++++ b/grub-core/kern/efi/efi.c
+@@ -297,6 +297,28 @@ grub_efi_get_variable_with_attributes (const char *var,
+   return status;
+ }
+ 
++grub_err_t
++grub_efi_set_variable_to_string (const char *name, const grub_efi_guid_t *guid,
++			         const char *value, grub_efi_uint32_t attributes)
++{
++  grub_efi_char16_t *value_16;
++  grub_ssize_t len16;
++  grub_err_t status;
++
++  len16 = grub_utf8_to_utf16_alloc (value, &value_16, NULL);
++
++  if (len16 < 0)
++    return grub_errno;
++
++  status = grub_efi_set_variable_with_attributes (name, guid,
++			(void *) value_16, (len16 + 1) * sizeof (value_16[0]),
++			attributes);
++
++  grub_free (value_16);
++
++  return status;
++}
++
+ grub_efi_status_t
+ grub_efi_get_variable (const char *var, const grub_efi_guid_t *guid,
+ 		       grub_size_t *datasize_out, void **data_out)
+diff --git a/include/grub/efi/efi.h b/include/grub/efi/efi.h
+index a08f9474d..a82741ef2 100644
+--- a/include/grub/efi/efi.h
++++ b/include/grub/efi/efi.h
+@@ -138,6 +138,9 @@ EXPORT_FUNC (grub_efi_set_variable) (const char *var,
+ 				     const grub_efi_guid_t *guid,
+ 				     void *data,
+ 				     grub_size_t datasize);
++grub_err_t
++EXPORT_FUNC (grub_efi_set_variable_to_string) (const char *name, const grub_efi_guid_t *guid,
++					       const char *value, grub_efi_uint32_t attributes);
+ int
+ EXPORT_FUNC (grub_efi_compare_device_paths) (const grub_efi_device_path_t *dp1,
+ 					     const grub_efi_device_path_t *dp2);
+-- 
+2.47.0
+
