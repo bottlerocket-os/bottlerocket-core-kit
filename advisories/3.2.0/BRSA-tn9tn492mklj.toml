@@ -1,0 +1,24 @@
+[advisory]
+id = "BRSA-tn9tn492mklj"
+title = "nvidia-container-toolkit CVE-2024-0134"
+cve = "CVE-2024-0134"
+severity = "moderate"
+description = "A flaw was found in the NVIDIA Container Toolkit and NVIDIA GPU Operator for Linux where a specially crafted container image could lead to the creation of files on the host."
+
+[[advisory.products]]
+package-name = "libnvidia-container"
+patched-version = "1.17.0"
+patched-release = "0"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "nvidia-container-toolkit"
+patched-version = "1.17.0"
+patched-release = "0"
+patched-epoch = "1"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-11-07T00:41:20Z
+arches = ["aarch64", "x86_64"]
+version = "3.2.0"
