@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/linux-nvme/libnvme/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/linux-nvme/libnvme/archive/v1.10/libnvme-1.10.tar.gz"
-sha512 = "44e8a407c9fda8c296163832c14ba167caab53eab315bd2dee94275458532429f12a35e0adef1356420d83127e658a354ce65ac946acaa53bef2d46a8189054c"
+url = "https://github.com/linux-nvme/libnvme/archive/v1.11/libnvme-1.11.tar.gz"
+sha512 = "5c1d00fe57ff699be01c326e24612da25e1772578928e2c70fb5f67e8a9fe0fa4c95e18f58d4abefa0e163e99c9e37b1109298e805e174b033e749d19865336b"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
