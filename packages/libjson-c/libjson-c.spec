@@ -14,6 +14,8 @@ BuildRequires: %{_cross_os}glibc-devel
 
 %package devel
 Summary: Files for development using the library for JSON
+Requires: %{name}
+
 %description devel
 %{summary}.
 

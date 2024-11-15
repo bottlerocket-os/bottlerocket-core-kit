@@ -17,4 +17,5 @@ sha512 = "33de20ad990a3b87fef46fa486832edde41907223aa6b8a47606e605b360745fd7e205
 
 [build-dependencies]
 glibc = { path = "../glibc" }
+libjson-c = { path = "../libjson-c" }
 libnvme = { path = "../libnvme" }
