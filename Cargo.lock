@@ -132,6 +132,7 @@ dependencies = [
  "libglib",
  "libinih",
  "libiw",
+ "libjson-c",
  "libkcapi",
  "libmnl",
  "libncurses",
@@ -629,6 +630,13 @@ dependencies = [
 
 [[package]]
 name = "libiw"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+]
+
+[[package]]
+name = "libjson-c"
 version = "0.1.0"
 dependencies = [
  "glibc",

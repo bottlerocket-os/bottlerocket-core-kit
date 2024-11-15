@@ -75,6 +75,7 @@ libdbus = { path = "../../packages/libdbus" }
 libelf = { path = "../../packages/libelf" }
 libexpat = { path = "../../packages/libexpat" }
 libffi = { path = "../../packages/libffi" }
+libjson-c = { path = "../../packages/libjson-c" }
 libgcc = { path = "../../packages/libgcc" }
 libglib = { path = "../../packages/libglib" }
 libinih = { path = "../../packages/libinih" }
