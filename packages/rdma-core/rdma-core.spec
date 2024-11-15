@@ -21,6 +21,8 @@ Requires: %{_cross_os}libnl
 
 %package devel
 Summary: RDMA core development libraries and headers
+Requires: %{name}
+
 %description devel
 %{summary}.
 
