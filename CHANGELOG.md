@@ -1,8 +1,15 @@
+# v3.3.2 (2024-11-15)
+
+## OS Changes
+* Add kernel-5.15 patch to fix IPv6 typo (#266)
+
+[#266]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/266
+
 # v3.3.1 (2024-11-14)
 
 ## OS Changes
 * Update kernel 5.10.228 and kernel 6.1.115 (#263)
- 
+
 [#263]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/263
 
 # v3.3.0 (2024-11-12)
