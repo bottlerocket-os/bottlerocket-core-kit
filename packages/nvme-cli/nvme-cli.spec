@@ -1,5 +1,5 @@
 Name: %{_cross_os}nvme-cli
-Version: 2.10.2
+Version: 2.11
 Release: 1%{?dist}
 Epoch: 1
 Summary: CLI to interact with NVMe devices
