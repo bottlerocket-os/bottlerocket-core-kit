@@ -1,5 +1,5 @@
 Name: %{_cross_os}libdbus
-Version: 1.15.6
+Version: 1.15.12
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for a message bus
@@ -26,22 +26,40 @@ Requires: %{name}
 %autosetup -n dbus-%{version} -p1
 
 %build
-%cross_configure \
-  --disable-asserts \
-  --disable-doxygen-docs \
-  --disable-ducktype-docs \
-  --disable-tests \
-  --disable-xml-docs \
-  --disable-selinux \
-  --disable-systemd \
-  --with-xml=expat \
+CONFIGURE_OPTS=(
+ -Dasserts=false
+ -Dcontainers=false
+ -Dembedded_tests=false
+ -Dinstalled_tests=false
+ -Dmessage_bus=false
+ -Dstats=false
+ -Dtools=false
+ -Dtraditional_activation=false
+ -Duser_session=false
 
-%force_disable_rpath
+ -Dapparmor=disabled
+ -Ddoxygen_docs=disabled
+ -Dducktype_docs=disabled
+ -Dkqueue=disabled
+ -Dlaunchd=disabled
+ -Dlibaudit=disabled
+ -Dmodular_tests=disabled
+ -Dqt_help=disabled
+ -Drelocation=disabled
+ -Dselinux=disabled
+ -Dsystemd=disabled
+ -Dvalgrind=disabled
+ -Dx11_autolaunch=disabled
+ -Dxml_docs=disabled
 
-%make_build
+ -Dchecks=true
+)
+
+%cross_meson "${CONFIGURE_OPTS[@]}"
+%cross_meson_build
 
 %install
-%make_install
+%cross_meson_install
 
 rm -rf %{buildroot}%{_cross_docdir}/dbus/examples
 
@@ -49,15 +67,10 @@ rm -rf %{buildroot}%{_cross_docdir}/dbus/examples
 %license COPYING
 %{_cross_attribution_file}
 %{_cross_libdir}/*.so.*
-%exclude %{_cross_bindir}
-%exclude %{_cross_datadir}/dbus-1
 %exclude %{_cross_datadir}/doc
 %exclude %{_cross_datadir}/xml
-%exclude %{_cross_libexecdir}
-%exclude %{_cross_sysconfdir}
 
 %files devel
-%{_cross_libdir}/*.a
 %{_cross_libdir}/*.so
 %dir %{_cross_libdir}/dbus-1.0
 %{_cross_libdir}/dbus-1.0/*
