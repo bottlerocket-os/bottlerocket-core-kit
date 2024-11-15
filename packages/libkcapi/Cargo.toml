@@ -11,6 +11,7 @@ path = "../packages.rs"
 [[package.metadata.build-package.external-files]]
 url = "https://cdn.amazonlinux.com/al2023/blobstore/0eef74b3b4eb1ec321bab80f867aee89b94dc9fc95571da58ea5bba7a70e6224/libkcapi-1.4.0-105.amzn2023.0.1.src.rpm"
 sha512 = "6498147434059343f1ccdd7efadcd425ad7074e41b4e019fc995129d5df326b781e0a61a4324e1ce8d6771162d1612b754ce24625fb3b1458811f6bde8f638c9"
+force-upstream = true
 
 [build-dependencies]
 glibc = { path = "../glibc" }

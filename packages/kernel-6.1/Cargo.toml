@@ -15,11 +15,13 @@ path = "../packages.rs"
 # Use latest-kernel-srpm-url.sh to get this.
 url = "https://cdn.amazonlinux.com/al2023/blobstore/d6984bd6e9f17839ebf3e0b0c4d7dd72aeb4db5911bf697ed299caea93c83327/kernel-6.1.115-126.197.amzn2023.src.rpm"
 sha512 = "eb1e9bdbbcc4b74cc678c894b19279437e1396c56e9db0904d1dd6898e6babf4fa3c4c53908ca189ee8558c5d249314a819b255f183fe100e4a3ed068ce2e6cf"
+force-upstream = true
 
 [[package.metadata.build-package.external-files]]
 # Use latest-neuron-srpm-url.sh to get this.
 url = "https://yum.repos.neuron.amazonaws.com/aws-neuronx-dkms-2.18.12.0.noarch.rpm"
 sha512 = "4ed92e661d0ba368eaf8f60e1a68c202062a26819231fcfd42a5ff05d20ad2f34b82b23359a88e80eea22ee5d0056ad769b6febd5d7e7b161da0e36434ba2579"
+force-upstream = true
 
 [build-dependencies]
 microcode = { path = "../microcode" }
