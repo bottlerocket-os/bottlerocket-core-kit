@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/libexpat/libexpat/releases/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/libexpat/libexpat/releases/download/R_2_6_3/expat-2.6.3.tar.xz"
-sha512 = "e02c4ad88f9d539258aa1c1db71ded7770a8f12c77b5535e5b34f040ae5b1361ef23132f16d96bdb7c096a83acd637a7c907916bdfcc6d5cfb9e35d04020ca0b"
+url = "https://github.com/libexpat/libexpat/releases/download/R_2_6_4/expat-2.6.4.tar.xz"
+sha512 = "620da34d98524478b445038bf1dd439790fe11169496516425fca922226797835c27549fc5fb825792b516563b24eb922d9ad8f27d20a0229e7ee8cd640dfb25"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
