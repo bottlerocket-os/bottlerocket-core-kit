@@ -28,6 +28,9 @@ Patch1003: 1003-initramfs-unlink-INITRAMFS_FORCE-from-CMDLINE_-EXTEN.patch
 # Increase default of sysctl net.unix.max_dgram_qlen to 512.
 Patch1004: 1004-af_unix-increase-default-max_dgram_qlen-to-512.patch
 
+# Fix typo that breaks IPv6 via ip6tables commands
+Patch1100: 1100-netfilter-xtables-fix-typo-causing-some-targets-not-.patch
+
 BuildRequires: bc
 BuildRequires: elfutils-devel
 BuildRequires: hostname
