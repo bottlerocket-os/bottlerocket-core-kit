@@ -4,8 +4,10 @@
 %global ecscni_gitrev 53a8481891251e66e35847554d52a13fc7c4fd03
 
 Name: %{_cross_os}amazon-ecs-cni-plugins
-Version: %{ecscni_gitrev}
+# https://github.com/aws/amazon-ecs-cni-plugins/blob/53a8481891251e66e35847554d52a13fc7c4fd03/VERSION#L1
+Version: 2020.09.0
 Release: 1%{?dist}
+Epoch: 1
 Summary: Networking plugins for ECS task networking
 License: Apache-2.0
 URL: https://%{ecscni_goimport}
