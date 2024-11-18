@@ -889,6 +889,12 @@ func withDefaultMounts(containerID string, persistentDir string) oci.SpecOpts {
 			Destination: "/etc/bottlerocket-release",
 			Source:      "/etc/os-release",
 		},
+		// Bottlerocket host certs for the container
+		{
+			Options:     []string{"bind", "ro"},
+			Destination: "/.bottlerocket/certs",
+			Source:      "/etc/pki/tls/certs",
+		},
 		// Bottlerocket RPM inventory available to the container
 		{
 			Options:     []string{"bind", "ro"},
