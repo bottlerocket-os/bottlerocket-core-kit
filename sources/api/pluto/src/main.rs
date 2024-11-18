@@ -56,6 +56,7 @@ const DEFAULT_DNS_CLUSTER_IP: &str = "10.100.0.10";
 const DEFAULT_10_RANGE_DNS_CLUSTER_IP: &str = "172.20.0.10";
 
 const ENI_MAX_PODS_PATH: &str = "/usr/share/eks/eni-max-pods";
+const ENI_MAX_PODS_OVERRIDE_PATH: &str = "/usr/share/eks/eni-max-pods-override";
 
 /// The name of the AWS config file used by pluto. The file is placed in a tempdir, and
 /// the contents of settings.aws.config are decoded and written here.
@@ -190,12 +191,18 @@ async fn get_max_pods(client: &mut ImdsClient) -> Result<u32> {
             what: "instance_type",
         })?;
 
+    if let Ok(max_pods) = get_max_pods_from_file(&instance_type, ENI_MAX_PODS_OVERRIDE_PATH).await {
+        return Ok(max_pods);
+    }
+    get_max_pods_from_file(&instance_type, ENI_MAX_PODS_PATH).await
+}
+
+// Returns the max-pods as determined by the specified instance type and max-pods file
+async fn get_max_pods_from_file(instance_type: &str, pods_file: &'static str) -> Result<u32> {
     // Find the corresponding maximum number of pods supported by this instance type
-    let file = BufReader::new(File::open(ENI_MAX_PODS_PATH).context(
-        error::EniMaxPodsFileSnafu {
-            path: ENI_MAX_PODS_PATH,
-        },
-    )?);
+    let file = BufReader::new(
+        File::open(pods_file).context(error::EniMaxPodsFileSnafu { path: pods_file })?,
+    );
     for line in file.lines() {
         let line = line.context(error::IoReadLineSnafu)?;
         // Skip the comments in the file
