@@ -3,13 +3,6 @@
 version = 3
 
 [[package]]
-name = "acpid"
-version = "0.1.0"
-dependencies = [
- "glibc",
-]
-
-[[package]]
 name = "amazon-ecs-cni-plugins"
 version = "0.1.0"
 dependencies = [
@@ -72,7 +65,6 @@ dependencies = [
 name = "bottlerocket-core-kit"
 version = "0.1.0"
 dependencies = [
- "acpid",
  "amazon-ecs-cni-plugins",
  "amazon-ssm-agent",
  "amazon-vpc-cni-plugins",

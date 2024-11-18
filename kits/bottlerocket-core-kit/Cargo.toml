@@ -12,7 +12,6 @@ vendor = "bottlerocket"
 path = "../kit.rs"
 
 [build-dependencies]
-acpid = { path = "../../packages/acpid" }
 amazon-ecs-cni-plugins = { path = "../../packages/amazon-ecs-cni-plugins" }
 amazon-ssm-agent = { path = "../../packages/amazon-ssm-agent" }
 amazon-vpc-cni-plugins = { path = "../../packages/amazon-vpc-cni-plugins" }

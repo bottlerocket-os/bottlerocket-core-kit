@@ -101,7 +101,6 @@ Source1400: logdog.common.conf
 # bootconfig snippets.
 Source1500: bootconfig-fips.conf
 
-Requires: %{_cross_os}acpid
 Requires: %{_cross_os}audit
 Requires: %{_cross_os}chrony
 Requires: %{_cross_os}conntrack-tools
