@@ -10,7 +10,7 @@
 %global gorepo kubernetes
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.31.0
+%global gover 1.31.1
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -38,7 +38,7 @@ Summary: Container cluster management
 # base Apache-2.0, third_party Apache-2.0 AND BSD-3-Clause
 License: Apache-2.0 AND BSD-3-Clause
 URL: https://%{goimport}
-Source0: https://distro.eks.amazonaws.com/kubernetes-1-31/releases/4/artifacts/kubernetes/v%{gover}/kubernetes-src.tar.gz
+Source0: https://distro.eks.amazonaws.com/kubernetes-1-31/releases/6/artifacts/kubernetes/v%{gover}/kubernetes-src.tar.gz
 Source1: kubelet.service
 Source2: kubelet-env
 Source3: kubelet-config
