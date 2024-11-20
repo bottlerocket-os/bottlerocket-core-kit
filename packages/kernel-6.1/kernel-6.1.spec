@@ -45,6 +45,8 @@ Patch1004: 1004-af_unix-increase-default-max_dgram_qlen-to-512.patch
 # Drop AL revert of upstream patch to minimize delta. The necessary dependency
 # options for nvidia are instead included through DRM_SIMPLE
 Patch1005: 1005-Revert-Revert-drm-fb_helper-improve-CONFIG_FB-depend.patch
+# Prevent applications using io_uring from hanging
+Patch1100: 1100-io_uring-always-lock-__io_cqring_overflow_flush.patch
 
 BuildRequires: bc
 BuildRequires: elfutils-devel
