@@ -1,5 +1,5 @@
 Name: %{_cross_os}binutils
-Version: 2.38
+Version: 2.41
 Release: 1%{?dist}
 Epoch: 1
 Summary: Tools for working with binaries
@@ -63,6 +63,10 @@ Requires: %{name}
 %exclude %{_cross_bindir}/readelf
 %exclude %{_cross_bindir}/size
 %exclude %{_cross_bindir}/strings
+%exclude %{_cross_bindir}/gp-*
+%exclude %{_cross_bindir}/gprofng*
+%exclude %{_cross_libdir}/gprofng/*
+%exclude /etc/gprofng.rc
 
 %files devel
 %{_cross_libdir}/*.a
