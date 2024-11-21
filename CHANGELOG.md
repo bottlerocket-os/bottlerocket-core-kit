@@ -1,3 +1,31 @@
+# v4.0.0 (2024-11-20)
+
+## OS Changes
+* Disable BPF preload and bpfilter helpers for kernel (#261)
+* Allow overriding max-pods file with one from variant (#279)
+* Update libdbus and libexpat (#270)
+* Remove acpid package (#280)
+* Prevent io_uring calls from hanging (#284)
+
+## Orchestrator Changes
+### Kubernetes
+* Update EKS 1.28-1.31 versions to latest (#281)
+
+## Build Changes
+* Use upstream sources for packages sourced from Amazon Linux (#265)
+* Update twoliter to v0.5.1 (#259)
+* Drop "dependencies" table for all packages (#262)
+
+[#259]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/259
+[#261]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/261
+[#262]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/262
+[#265]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/265
+[#270]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/270
+[#279]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/279
+[#280]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/280
+[#281]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/281
+[#284]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/284
+
 # v3.3.2 (2024-11-15)
 
 ## OS Changes
