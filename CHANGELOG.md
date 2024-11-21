@@ -1,20 +1,20 @@
 # v4.0.0 (2024-11-20)
 
 ## OS Changes
-* Disable BPF preload and bpfilter helpers for kernel (#261)
-* Allow overriding max-pods file with one from variant (#279)
-* Update libdbus and libexpat (#270)
-* Remove acpid package (#280)
-* Prevent io_uring calls from hanging (#284)
+* Disable BPF preload and bpfilter helpers for kernel ([#261])
+* Allow overriding max-pods file with one from variant ([#279])
+* Update libdbus and libexpat ([#270])
+* Remove acpid package ([#280])
+* Prevent io_uring calls from hanging ([#284])
 
 ## Orchestrator Changes
 ### Kubernetes
-* Update EKS 1.28-1.31 versions to latest (#281)
+* Update EKS 1.28-1.31 versions to latest ([#281])
 
 ## Build Changes
-* Use upstream sources for packages sourced from Amazon Linux (#265)
-* Update twoliter to v0.5.1 (#259)
-* Drop "dependencies" table for all packages (#262)
+* Use upstream sources for packages sourced from Amazon Linux ([#265])
+* Update twoliter to v0.5.1 ([#259])
+* Drop "dependencies" table for all packages ([#262])
 
 [#259]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/259
 [#261]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/261
@@ -29,14 +29,14 @@
 # v3.3.2 (2024-11-15)
 
 ## OS Changes
-* Add kernel-5.15 patch to fix IPv6 typo (#266)
+* Add kernel-5.15 patch to fix IPv6 typo ([#266])
 
 [#266]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/266
 
 # v3.3.1 (2024-11-14)
 
 ## OS Changes
-* Update kernel 5.10.228 and kernel 6.1.115 (#263)
+* Update kernel 5.10.228 and kernel 6.1.115 ([#263])
 
 [#263]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/263
 
