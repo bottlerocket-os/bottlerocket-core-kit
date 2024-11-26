@@ -162,7 +162,103 @@ func TestBadRegistryHosts(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestParseImageURIAsECR(t *testing.T) {
+	tests := []struct {
+		name           string
+		ecrImgURI      string
+		expectedErr    bool
+		expectedResult *parsedECR
+	}{
+		{
+			"Parse typical region for normal use-cases",
+			"777777777777.dkr.ecr.us-west-2.amazonaws.com/my_image:latest",
+			false,
+			&parsedECR{
+				Account:  "777777777777",
+				Region:   "us-west-2",
+				RepoPath: "my_image:latest",
+				Fips:     false,
+			},
+		},
+		{
+			"Parse China regions",
+			"777777777777.dkr.ecr.cn-north-1.amazonaws.com.cn/my_image:latest",
+			false,
+			&parsedECR{
+				Account:  "777777777777",
+				Region:   "cn-north-1",
+				RepoPath: "my_image:latest",
+				Fips:     false,
+			},
+		},
+		{
+			"Parse special region",
+			"777777777777.dkr.ecr.eu-isoe-west-1.cloud.adc-e.uk/my_image:latest",
+			false,
+			&parsedECR{
+				Account:  "777777777777",
+				Region:   "eu-isoe-west-1",
+				RepoPath: "my_image:latest",
+				Fips:     false,
+			},
+		},
+		{
+			"Parse FIPS region for normal use-cases",
+			"777777777777.dkr.ecr-fips.us-west-2.amazonaws.com/my_image:latest",
+			false,
+			&parsedECR{
+				Account:  "777777777777",
+				Region:   "us-west-2",
+				RepoPath: "my_image:latest",
+				Fips:     true,
+			},
+		},
+		{
+			"Fail for no region",
+			"111111111111.dkr.ecr..amazonaws.com/bottlerocket/container:1.2.3",
+			true,
+			nil,
+		},
+		{
+			"Empty string fails",
+			"",
+			true,
+			nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := parseImageURIAsECR(tc.ecrImgURI)
+			if tc.expectedErr {
+				// handle error cases
+				if err == nil {
+					t.Fail()
+				}
+			} else {
+				// handle happy paths
+				assert.Equal(t, tc.expectedResult, result)
+			}
+		})
+	}
+}
+
 func TestFetchECRRef(t *testing.T) {
+	specialRegions := specialRegions{
+		FipsSupportedEcrRegions: map[string]bool{
+			"us-east-1":     true,
+			"us-east-2":     true,
+			"us-west-1":     true,
+			"us-west-2":     true,
+			"us-gov-east-1": true,
+			"us-gov-west-1": true,
+		},
+		EcrRefPrefixMappings: map[string]string{
+			"ap-southeast-7": "ecr.aws/arn:aws:ecr:ap-southeast-7:",
+			"eu-isoe-west-1": "ecr.aws/arn:aws-iso-e:ecr:eu-isoe-west-1:",
+			"mx-central-1":   "ecr.aws/arn:aws:ecr:mx-central-1:",
+		},
+	}
 	tests := []struct {
 		name        string
 		ecrImgURI   string
@@ -177,9 +273,15 @@ func TestFetchECRRef(t *testing.T) {
 		},
 		{
 			"Parse special region",
-			"111111111111.dkr.ecr.il-central-1.amazonaws.com/bottlerocket/container:1.2.3",
+			"111111111111.dkr.ecr.eu-isoe-west-1.amazonaws.com/bottlerocket/container:1.2.3",
 			false,
-			"ecr.aws/arn:aws:ecr:il-central-1:111111111111:repository/bottlerocket/container:1.2.3",
+			"ecr.aws/arn:aws-iso-e:ecr:eu-isoe-west-1:111111111111:repository/bottlerocket/container:1.2.3",
+		},
+		{
+			"Parse special region",
+			"111111111111.dkr.ecr.mx-central-1.amazonaws.com/bottlerocket-control:v0.7.17",
+			false,
+			"ecr.aws/arn:aws:ecr:mx-central-1:111111111111:repository/bottlerocket-control:v0.7.17",
 		},
 		{
 			"Parse China regions",
@@ -221,7 +323,7 @@ func TestFetchECRRef(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := fetchECRRef(context.TODO(), tc.ecrImgURI)
+			result, err := fetchECRRef(context.TODO(), tc.ecrImgURI, specialRegions)
 			if tc.expectedErr {
 				// handle error cases
 				if err == nil {
