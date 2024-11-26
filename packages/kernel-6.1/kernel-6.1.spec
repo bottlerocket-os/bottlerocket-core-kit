@@ -1312,6 +1312,7 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_bootconfigdir}/05-metal.conf
 %{_cross_kmoddir}/kernel/net/netfilter/xt_TPROXY.ko.*
 %{_cross_kmoddir}/kernel/net/netfilter/xt_TRACE.ko.*
 %{_cross_kmoddir}/kernel/net/netfilter/xt_u32.ko.*
+%{_cross_kmoddir}/kernel/net/netlink/netlink_diag.ko.*
 %{_cross_kmoddir}/kernel/net/nsh/nsh.ko.*
 %{_cross_kmoddir}/kernel/net/openvswitch/openvswitch.ko.*
 %{_cross_kmoddir}/kernel/net/openvswitch/vport-geneve.ko.*
