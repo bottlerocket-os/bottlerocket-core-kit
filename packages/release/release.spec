@@ -88,6 +88,7 @@ Source1101: systemd-resolved-service-env.conf
 Source1102: systemd-networkd-service-env.conf
 Source1103: systemd-logind-inhibit-maxdelay.conf
 Source1104: aws-config.conf
+Source1105: wait-for-selinux-policy.conf
 
 # network link rules
 Source1200: 80-release.link
@@ -256,6 +257,9 @@ install -p -m 0644 %{S:207} %{buildroot}%{_cross_templatedir}/aws-credentials
 install -p -m 0644 %{S:208} %{buildroot}%{_cross_templatedir}/modules-load
 install -p -m 0644 %{S:209} %{buildroot}%{_cross_templatedir}/log4j-hotpatch-enabled
 
+install -d %{buildroot}%{_cross_unitdir}/systemd-udev-trigger.service.d/
+install -p -m 0644 %{S:1105} %{buildroot}%{_cross_unitdir}/systemd-udev-trigger.service.d/00-selinux.conf
+
 install -d %{buildroot}%{_cross_udevrulesdir}
 install -p -m 0644 %{S:1300} %{buildroot}%{_cross_udevrulesdir}/61-mount-cdrom.rules
 
@@ -323,6 +327,8 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/systemd-networkd.service.d/00-env.conf
 %dir %{_cross_unitdir}/systemd-tmpfiles-setup.service.d
 %{_cross_unitdir}/systemd-tmpfiles-setup.service.d/00-debug.conf
+%dir %{_cross_unitdir}/systemd-udev-trigger.service.d
+%{_cross_unitdir}/systemd-udev-trigger.service.d/00-selinux.conf
 %dir %{_cross_templatedir}
 %{_cross_templatedir}/modprobe-conf
 %{_cross_templatedir}/netdog-toml
