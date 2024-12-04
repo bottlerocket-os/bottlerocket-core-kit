@@ -1,46 +1,78 @@
-From 46605e1f1d67bf2344ffab9447e763ebc13f6387 Mon Sep 17 00:00:00 2001
+From e4049b66c97a04b8ec39a91af93c3550e2ebf3c2 Mon Sep 17 00:00:00 2001
 From: Sparks Song <shijiao@amazon.com>
-Date: Thu, 14 Nov 2024 00:17:10 +0000
-Subject: [PATCH] mkfs: source defaults from config file
+Date: Tue, 3 Dec 2024 21:33:43 +0000
+Subject: [PATCH] mkfs: source defaults from config file to make nrext64
+ default off on multiple kernel versions
 
 ---
- mkfs/xfs_mkfs.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ mkfs/xfs_mkfs.c | 47 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 46 insertions(+), 1 deletion(-)
 
 diff --git a/mkfs/xfs_mkfs.c b/mkfs/xfs_mkfs.c
-index 6d2469c..bc76b80 100644
+index 6d2469c..0476c41 100644
 --- a/mkfs/xfs_mkfs.c
 +++ b/mkfs/xfs_mkfs.c
-@@ -14,6 +14,7 @@
- #include "libfrog/dahashselftest.h"
- #include "proto.h"
- #include <ini.h>
-+#include <unistd.h>
- 
- #define TERABYTES(count, blog)	((uint64_t)(count) << (40 - (blog)))
- #define GIGABYTES(count, blog)	((uint64_t)(count) << (30 - (blog)))
-@@ -4369,6 +4370,21 @@ main(
- 	 * printf(_("Default configuration sourced from %s\n"), dft.source);
+@@ -39,6 +39,9 @@
+  */
+ #define WHACK_SIZE (128 * 1024)
+
++/* Default path for the mkfs.xfs configuration file */
++#define DEFAULT_CONFIG_PATH "/usr/share/xfs/mkfs.xfs.conf"
++
+ /*
+  * XXX: The configured block and sector sizes are defined as global variables so
+  * that they don't need to be passed to getnum/cvtnum().
+@@ -4428,7 +4431,49 @@ main(
+ 	 * the options from this file parsed, we can then proceed with parameter
+ 	 * and bounds checking and making the filesystem.
  	 */
- 
-+	char *default_config_path = "/usr/share/xfs/mkfs.xfs.conf";
-+	char *original_cfgfile = cli.cfgfile;  // Save the original value (from -c if specified)
+-	cfgfile_parse(&cli);
++fprintf(stderr, _("Test Sparks: Function called\n"));
++fprintf(stderr, _("Test Sparks: Initial reflink state: %d\n"), cli.sb_feat.reflink);
++fprintf(stderr, _("Test Sparks: Initial cli.cfgfile = %s\n"), cli.cfgfile ? cli.cfgfile : "NULL");
 +
-+	// First try to load the default config if it exists
-+	if (access(default_config_path, R_OK) == 0) {
-+		cli.cfgfile = default_config_path;
-+		cfgfile_parse(&cli);
-+		printf(_("Default configuration sourced from %s\n"), default_config_path);
-+	} else {
-+		fprintf(stderr, _("Warning: Default config file %s not found or not readable\n"), default_config_path);
-+	}
++fprintf(stderr, _("Test Sparks 1\n"));
++if (cli.cfgfile == NULL) {
++    fprintf(stderr, _("Test Sparks 2\n"));
++    fprintf(stderr, _("Test Sparks: Reflink state before opening default config: %d\n"), cli.sb_feat.reflink);
 +
-+	// Restore the original cfgfile value (from -c if specified)
-+	cli.cfgfile = original_cfgfile;
++    /* No user config file specified, try default config */
++    FILE *default_config_file = fopen(DEFAULT_CONFIG_PATH, "r");
++    if (default_config_file != NULL) {
++        fprintf(stderr, _("Test Sparks: Default config file opened successfully\n"));
 +
- 	/* copy new defaults into CLI parsing structure */
- 	memcpy(&cli.sb_feat, &dft.sb_feat, sizeof(cli.sb_feat));
- 	memcpy(&cli.fsx, &dft.fsx, sizeof(cli.fsx));
--- 
++		// Print the contents of the default config file
++        fprintf(stderr, _("Test Sparks: Default config file contents:\n"));
++        char buffer[1024];
++        while (fgets(buffer, sizeof(buffer), default_config_file) != NULL) {
++            fprintf(stderr, _("Test Sparks: %s"), buffer);
++        }
++        fprintf(stderr, _("Test Sparks: End of default config file contents\n"));
++
++        // Reset file pointer to the beginning of the file
++        rewind(default_config_file);
++
++        fclose(default_config_file);
++        cli.cfgfile = DEFAULT_CONFIG_PATH;
++        fprintf(stderr, _("Test Sparks: About to parse default config file\n"));
++        cfgfile_parse(&cli);
++        fprintf(stderr, _("Test Sparks: Finished parsing default config file\n"));
++    } else {
++        fprintf(stderr, _("Test Sparks: Failed to open default config file\n"));
++    }
++} else {
++    /* User specified their own config file, use that */
++    fprintf(stderr, _("Test Sparks 3\n"));
++    fprintf(stderr, _("Test Sparks: About to parse user-specified config file\n"));
++    cfgfile_parse(&cli);
++    fprintf(stderr, _("Test Sparks: Finished parsing user-specified config file\n"));
++}
++
++fprintf(stderr, _("Test Sparks: Final reflink state: %d\n"), cli.sb_feat.reflink);
++fprintf(stderr, _("Test Sparks: Final cli.cfgfile = %s\n"), cli.cfgfile ? cli.cfgfile : "NULL");
+
+ 	protostring = setup_proto(cli.protofile);
+
+--
 2.47.0
 

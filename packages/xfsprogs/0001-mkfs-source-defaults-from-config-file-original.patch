@@ -1,0 +1,42 @@
+From 9cc3425d36d9e9c7c9ecc3949ebda8de7211723d Mon Sep 17 00:00:00 2001
+From: Sparks Song <shijiao@amazon.com>
+Date: Wed, 20 Nov 2024 02:30:28 +0000
+Subject: [PATCH] mkfs: source defaults from config file to make nrext64
+ default off on multiple kernel versions
+
+---
+ mkfs/xfs_mkfs.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/mkfs/xfs_mkfs.c b/mkfs/xfs_mkfs.c
+index 6d2469c..49e74f9 100644
+--- a/mkfs/xfs_mkfs.c
++++ b/mkfs/xfs_mkfs.c
+@@ -39,6 +39,9 @@
+  */
+ #define WHACK_SIZE (128 * 1024)
+ 
++/* Default path for the mkfs.xfs configuration file */
++#define DEFAULT_CONFIG_PATH "/usr/share/xfs/mkfs.xfs.conf"
++
+ /*
+  * XXX: The configured block and sector sizes are defined as global variables so
+  * that they don't need to be passed to getnum/cvtnum().
+@@ -4369,6 +4372,14 @@ main(
+ 	 * printf(_("Default configuration sourced from %s\n"), dft.source);
+ 	 */
+ 
++    FILE *default_config_file = fopen(DEFAULT_CONFIG_PATH, "r");
++    if (default_config_file != NULL) {
++        fclose(default_config_file);
++        cli.cfgfile = DEFAULT_CONFIG_PATH;
++        cfgfile_parse(&cli);
++    }
++    cli.cfgfile = NULL;
++
+ 	/* copy new defaults into CLI parsing structure */
+ 	memcpy(&cli.sb_feat, &dft.sb_feat, sizeof(cli.sb_feat));
+ 	memcpy(&cli.fsx, &dft.fsx, sizeof(cli.fsx));
+-- 
+2.47.0
+
