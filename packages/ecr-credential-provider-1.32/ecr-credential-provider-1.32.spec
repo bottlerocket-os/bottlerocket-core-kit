@@ -3,13 +3,13 @@
 %global goimport %{goproject}/%{gorepo}
 
 %global gover 1.31.0
-%global rpmver %{gover}
+%global rpmver 1.32.0
 
 %global _dwz_low_mem_die_limit 0
 
 Name: %{_cross_os}ecr-credential-provider-1.32
 Version: %{rpmver}
-Release: 1%{?dist}
+Release: 0.beta1%{?dist}
 Epoch: 1
 Summary: Amazon ECR credential provider
 License: Apache-2.0

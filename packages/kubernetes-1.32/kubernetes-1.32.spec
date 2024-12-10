@@ -11,7 +11,7 @@
 %global goimport %{goproject}/%{gorepo}
 
 %global gover 1.31.1
-%global rpmver %{gover}
+%global rpmver 1.32.0
 
 %global _dwz_low_mem_die_limit 0
 
@@ -32,7 +32,7 @@
 
 Name: %{_cross_os}%{gorepo}
 Version: %{rpmver}
-Release: 1%{?dist}
+Release: 0.beta1%{?dist}
 Epoch: 1
 Summary: Container cluster management
 # base Apache-2.0, third_party Apache-2.0 AND BSD-3-Clause
