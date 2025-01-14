@@ -1,3 +1,22 @@
+# v5.4.0 (2025-01-14)
+
+## OS Change
+* Allow bind mounts prefixed with /mnt/ for ephemeral storage ([#320]) - Thanks @zaheerm!
+* Improve API Server error message for invalid metadata ([#342])
+
+## Orchestrator Changes
+
+### Kubernetes
+* Add support for `device-ownership-from-security-context` to nvidia ([#343])
+
+### ECS
+* Update `ecs-agent` to 1.89.2 and bump the `amazon-ecs-cni-plugins` version ([#341])
+
+[#320]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/320
+[#341]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/341
+[#342]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/342
+[#343]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/343
+
 # v5.3.0 (2025-01-03)
 
 ## Orchestrator Changes
