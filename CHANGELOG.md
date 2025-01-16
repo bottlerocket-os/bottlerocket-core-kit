@@ -1,3 +1,12 @@
+# v5.4.1 (2025-01-16)
+
+## OS Change
+* Parse proxy URI after prepending URL scheme ([#339])
+* Normalize inputs for ephemeral-storage ([#350])
+
+[#339]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/339
+[#350]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/350
+
 # v5.4.0 (2025-01-14)
 
 ## OS Change

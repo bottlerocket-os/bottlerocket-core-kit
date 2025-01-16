@@ -36,7 +36,7 @@ prior to `preconfigured.target` while `host-containers@.service` which is a requ
 running "exec" commands are launched after preconfigured.target.
 */
 
-use log::info;
+use log::{info, warn};
 use serde::Deserialize;
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use snafu::{ensure, OptionExt, ResultExt};
@@ -100,10 +100,15 @@ where
 {
     let mut command = Command::new(bin_path);
 
-    command
+    let output = command
         .args(args)
-        .status()
+        .output()
         .context(error::ExecutionFailureSnafu { command })?;
+
+    ensure!(
+        output.status.success(),
+        error::CommandFailureSnafu { bin_path, output }
+    );
 
     Ok(())
 }
@@ -198,10 +203,13 @@ fn run() -> Result<()> {
     for (bootstrap_command_name, bootstrap_command) in bootstrap_commands.iter() {
         let name = bootstrap_command_name.as_ref();
         let essential = bootstrap_command.essential;
-        let status = handle_bootstrap_command(name, bootstrap_command);
+        let result = handle_bootstrap_command(name, bootstrap_command);
 
+        if let Err(ref e) = result {
+            warn!("Bootstrap command failed to execute {}", e);
+        }
         ensure!(
-            !essential || status.is_ok(),
+            !essential || result.is_ok(),
             error::BootstrapCommandExecutionSnafu { name }
         )
     }
@@ -221,7 +229,7 @@ fn main() {
 mod error {
     use snafu::Snafu;
     use std::path::PathBuf;
-    use std::process::Command;
+    use std::process::{Command, Output};
 
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
@@ -246,6 +254,10 @@ mod error {
             command: Command,
             source: std::io::Error,
         },
+
+        #[snafu(display("'{}' failed - stderr: {}",
+                        bin_path, String::from_utf8_lossy(&output.stderr)))]
+        CommandFailure { bin_path: String, output: Output },
 
         #[snafu(display("Logger setup error: {}", source))]
         Logger { source: log::SetLoggerError },

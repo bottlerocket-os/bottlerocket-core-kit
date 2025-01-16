@@ -118,6 +118,12 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         _ => format!("{}{}", RAID_DEVICE_DIR, RAID_DEVICE_NAME),
     };
 
+    // Normalize input by trimming trailing "/"
+    let dirs: Vec<String> = dirs
+        .into_iter()
+        .map(|dir| dir.trim_end_matches("/").to_string())
+        .collect();
+
     let mount_point = format!("/mnt/{}", EPHEMERAL_MNT);
     let mount_point = Path::new(&mount_point);
     let allowed_dirs = allowed_bind_dirs(variant);

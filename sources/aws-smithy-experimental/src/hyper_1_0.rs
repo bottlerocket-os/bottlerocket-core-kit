@@ -256,7 +256,8 @@ mod build_connector {
         }
         let mut proxy = Proxy::new(intercept, proxy_uri);
         // Parse https_proxy as URL to extract out auth information if any
-        let proxy_url = Url::parse(https_proxy).expect("Unable to parse HTTPS proxy as URL");
+        let proxy_url =
+            Url::parse(&proxy.uri().to_string()).expect("Unable to parse HTTPS proxy as URL");
 
         if !proxy_url.username().is_empty() || proxy_url.password().is_some() {
             proxy.set_authorization(Authorization::basic(
