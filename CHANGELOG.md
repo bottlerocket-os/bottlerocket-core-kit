@@ -1,3 +1,22 @@
+# v5.4.2 (2025-01-24)
+
+## OS Changes
+
+* Update nvidia-container-toolkit and libnvidia-container to v1.17.4 ([#358])
+
+## Build Changes
+
+* Update Bottlerocket SDK to v0.50.1 ([#345])
+
+## Orchestrator Changes
+
+### Kubernetes
+* Update EKS 1.28-1.31 versions to latest ([#356])
+
+[#358]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/358
+[#345]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/345
+[#356]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/356
+
 # v5.4.1 (2025-01-16)
 
 ## OS Change

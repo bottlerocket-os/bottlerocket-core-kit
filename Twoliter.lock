@@ -3,7 +3,7 @@ kit = []
 
 [sdk]
 name = "bottlerocket-sdk"
-version = "0.50.0"
+version = "0.50.1"
 vendor = "bottlerocket"
-source = "public.ecr.aws/bottlerocket/bottlerocket-sdk:v0.50.0"
-digest = "Rjpy/gVgBhU/B696xaK1Y4/drz4pNJu+fyyZSIk9oLE="
+source = "public.ecr.aws/bottlerocket/bottlerocket-sdk:v0.50.1"
+digest = "HEh3Lx3F6P4OEPnFubF++RMpMW2vlfp/Tc/tGjnBRcM="

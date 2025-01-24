@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-udcwjbo4nlwj"
+title = "nvidia-container-toolkit CVE-2024-0135"
+cve = "CVE-2024-0135"
+severity = "high"
+description = "A flaw was found in the NVIDIA Container Toolkit where a specially crafted container image could lead to modification of a host binary."
+
+[[advisory.products]]
+package-name = "nvidia-container-toolkit"
+patched-version = "1.17.1"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "libnvidia-container"
+patched-version = "1.17.1"
+patched-epoch = "1"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2024-11-12T21:04:22Z
+arches = ["aarch64", "x86_64"]
+version = "3.3.0"
