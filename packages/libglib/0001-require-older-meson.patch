@@ -1,20 +1,43 @@
-From f4743b860496adee1dc8468c2673b87e9e3107b6 Mon Sep 17 00:00:00 2001
-From: Ben Cressey <bcressey@amazon.com>
-Date: Fri, 13 Dec 2024 21:29:52 +0000
+From d0dfcc1d5f03cd212466672cf0e8ce8c7450bb23 Mon Sep 17 00:00:00 2001
+From: Kush Upadhyay <kushupad@amazon.com>
+Date: Tue, 4 Feb 2025 06:45:49 +0000
 Subject: [PATCH] require older meson
 
 The Bottlerocket SDK currently has meson 1.3.2. This patch can be
-dropped once it moves to a newer version of Fedora.
+dropped once it moves to a newer version of Fedora >39.
 
-This reverts upstream commit 51e3e7d9ae330cd798604d0bd1ac70d0daa93681.
+This reverts upstream commits 51e3e7d9ae330cd798604d0bd1ac70d0daa93681 and 0b776bc20cfdbb529a97a7f8f8a4d88ddbef9329.
 ---
- gio/tests/meson.build                  | 2 +-
- girepository/introspection/meson.build | 8 ++++----
- meson.build                            | 5 +++--
- 3 files changed, 8 insertions(+), 7 deletions(-)
+ gio/meson.build                        | 10 ----------
+ gio/tests/meson.build                  |  2 +-
+ girepository/introspection/meson.build |  8 ++++----
+ glib/meson.build                       |  6 ------
+ meson.build                            |  9 +++------
+ 5 files changed, 8 insertions(+), 27 deletions(-)
 
+diff --git a/gio/meson.build b/gio/meson.build
+index 854b95afa..9556a64cb 100644
+--- a/gio/meson.build
++++ b/gio/meson.build
+@@ -913,16 +913,6 @@ pkg.generate(libgio,
+     'gresource=' + '${bindir}' / 'gresource',
+     'gsettings=' + '${bindir}' / 'gsettings',
+   ],
+-  uninstalled_variables : [
+-    'gio=${prefix}/gio/gio',
+-    'gio_querymodules=${prefix}/gio/gio-querymodules',
+-    'glib_compile_schemas=${prefix}/gio/glib-compile-schemas',
+-    'glib_compile_resources=${prefix}/gio/glib-compile-resources',
+-    'gdbus=${prefix}/gio/gdbus',
+-    'gdbus_codegen=${prefix}/gio/gdbus-2.0/codegen/gdbus-codegen',
+-    'gresource=${prefix}/gio/gresource',
+-    'gsettings=${prefix}/gio/gsettings',
+-  ],
+   version : glib_version,
+   install_dir : glib_pkgconfigreldir,
+   filebase : 'gio-2.0',
 diff --git a/gio/tests/meson.build b/gio/tests/meson.build
-index 273ff01a9..9fee00a36 100644
+index 43c1bfe34..2f2313861 100644
 --- a/gio/tests/meson.build
 +++ b/gio/tests/meson.build
 @@ -7,7 +7,7 @@ common_gio_tests_deps = [
@@ -27,14 +50,14 @@ index 273ff01a9..9fee00a36 100644
    '-UG_DISABLE_ASSERT',
  ]
 diff --git a/girepository/introspection/meson.build b/girepository/introspection/meson.build
-index 97fd73105..8c9e23ec3 100644
+index a846a764c..8c9e23ec3 100644
 --- a/girepository/introspection/meson.build
 +++ b/girepository/introspection/meson.build
 @@ -242,14 +242,14 @@ gio_gir_args = [
  if host_system == 'windows'
    gio_gir_sources += [ gio_win32_include_headers, win32_sources ]
    foreach h: gio_win32_include_headers
--    gio_gir_args += '--c-include=' + h.full_path()
+-    gio_gir_args += '--c-include=gio/' + fs.name(h)
 +    gio_gir_args += '--c-include=@0@'.format(h)
    endforeach
    gio_gir_packages += 'gio-windows-2.0'
@@ -42,7 +65,7 @@ index 97fd73105..8c9e23ec3 100644
  else
    gio_gir_sources += [ gio_unix_include_headers, unix_sources ]
    foreach h: gio_unix_include_headers
--    gio_gir_args += '--c-include=' + h.full_path()
+-    gio_gir_args += '--c-include=gio/' + fs.name(h)
 +    gio_gir_args += '--c-include=@0@'.format(h)
    endforeach
    gio_gir_packages += 'gio-unix-2.0'
@@ -51,7 +74,7 @@ index 97fd73105..8c9e23ec3 100644
  if host_system == 'windows'
    gio_win32_gir_c_includes = []
    foreach h: gio_win32_include_headers
--    gio_win32_gir_c_includes += '--c-include=' + h.full_path()
+-    gio_win32_gir_c_includes += '--c-include=gio/' + fs.name(h)
 +    gio_win32_gir_c_includes += '--c-include=@0@'.format(h)
    endforeach
  
@@ -60,25 +83,49 @@ index 97fd73105..8c9e23ec3 100644
  else
    gio_unix_gir_c_includes = []
    foreach h: gio_unix_include_headers
--    gio_unix_gir_c_includes += '--c-include=' + h.full_path()
+-    gio_unix_gir_c_includes += '--c-include=gio/' + fs.name(h)
 +    gio_unix_gir_c_includes += '--c-include=@0@'.format(h)
    endforeach
  
    gio_unix_gir = gnome.generate_gir(libgio,
+diff --git a/glib/meson.build b/glib/meson.build
+index 2522356ee..5fd77590a 100644
+--- a/glib/meson.build
++++ b/glib/meson.build
+@@ -450,12 +450,6 @@ pkg.generate(libglib,
+       valgrind_suppression_file_install_subdir /
+       fs.name(valgrind_suppression_file),
+   ],
+-  uninstalled_variables : [
+-    'glib_genmarshal=${prefix}/gobject/glib-genmarshal',
+-    'gobject_query=${prefix}/gobject/gobject-query',
+-    'glib_mkenums=${prefix}/gobject/glib-mkenums',
+-    'glib_valgrind_suppressions=' + valgrind_suppression_file.full_path(),
+-  ],
+   version : glib_version,
+   install_dir : glib_pkgconfigreldir,
+   filebase : 'glib-2.0',
 diff --git a/meson.build b/meson.build
-index 7da293881..d0d5362c8 100644
+index f453d748c..8a9f14472 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -1,7 +1,7 @@
+@@ -1,14 +1,10 @@
  project('glib', 'c',
-   version : '2.83.0',
+   version : '2.83.3',
    # NOTE: See the policy in docs/meson-version.md before changing the Meson dependency
 -  meson_version : '>= 1.4.0',
 +  meson_version : '>= 1.2.0',
    default_options : [
      'buildtype=debugoptimized',
      'warning_level=3',
-@@ -226,7 +226,8 @@ if valgrind.found()
+-    # FIXME: After https://github.com/mesonbuild/meson/issues/13639 is
+-    # fixed, change this to
+-    # meson.version().version_compare('>=FIXED_MESON_VERSION') ? 'c_std=gnu99,c99' : 'c_std=gnu99'
+-    # to avoid a warning on MSVC.
+     'c_std=gnu99'
+   ]
+ )
+@@ -226,7 +222,8 @@ if valgrind.found()
        '--num-callers=50',
        '--show-leak-kinds=definite,possible',
        '--show-error-list=yes',
@@ -89,5 +136,5 @@ index 7da293881..d0d5362c8 100644
      env: common_test_env,
      timeout_multiplier: 20,
 -- 
-2.47.0
+2.47.1
 
