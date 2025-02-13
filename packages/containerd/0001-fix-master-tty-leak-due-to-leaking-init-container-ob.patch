@@ -1,0 +1,28 @@
+From 78cf83a583a097e43cf45c5341dfd8e635133fdd Mon Sep 17 00:00:00 2001
+From: Henry Wang <henwang@amazon.com>
+Date: Sat, 14 Dec 2024 03:57:38 +0000
+Subject: [PATCH] fix master tty leak due to leaking init container object
+
+Signed-off-by: Henry Wang <henwang@amazon.com>
+(cherry picked from commit aedb079bf18f1f913b705d9b791beebcf1962cdd)
+---
+ runtime/v2/runc/task/service.go | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/runtime/v2/runc/task/service.go b/runtime/v2/runc/task/service.go
+index 5d9f3df59..e270168c5 100644
+--- a/runtime/v2/runc/task/service.go
++++ b/runtime/v2/runc/task/service.go
+@@ -366,6 +366,9 @@ func (s *service) Delete(ctx context.Context, r *taskAPI.DeleteRequest) (*taskAP
+ 			ExitStatus:  uint32(p.ExitStatus()),
+ 			ExitedAt:    protobuf.ToTimestamp(p.ExitedAt()),
+ 		})
++		s.lifecycleMu.Lock()
++		delete(s.containerInitExit, container)
++		s.lifecycleMu.Unlock()
+ 	}
+ 	return &taskAPI.DeleteResponse{
+ 		ExitStatus: uint32(p.ExitStatus()),
+-- 
+2.47.1
+

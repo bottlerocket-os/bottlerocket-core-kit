@@ -2,7 +2,7 @@
 %global gorepo containerd
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.7.24
+%global gover 1.7.25
 %global rpmver %{gover}
 %global gitrev 7f7fdf5fed64eb6a7caf99b3e12efcf9d60e311c
 
@@ -30,6 +30,13 @@ Source100: etc-containerd.mount
 Source110: prepare-var-lib-containerd.service
 
 Source1000: clarify.toml
+
+# Backport of upstream patch for issue: https://github.com/containerd/containerd/issues/11160
+# Bottlerocket must maintain this patch until containerd v1.7.26 update
+Patch0001: 0001-fix-master-tty-leak-due-to-leaking-init-container-ob.patch
+# Backport of upstream patch for issue: https://github.com/containerd/containerd/issues/11302
+# Bottlerocket must maintain this patch until containerd v1.7.26 update
+Patch0002: 0002-fix-fatal-error-concurrent-map-iteration-and-map-wri.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel

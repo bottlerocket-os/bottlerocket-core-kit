@@ -1,0 +1,27 @@
+From 04fe3749073edbc29afdf8e278dd27da40e03079 Mon Sep 17 00:00:00 2001
+From: ningmingxiao <ning.mingxiao@zte.com.cn>
+Date: Thu, 23 Jan 2025 17:31:57 +0800
+Subject: [PATCH] fix fatal error: concurrent map iteration and map write
+
+Signed-off-by: ningmingxiao <ning.mingxiao@zte.com.cn>
+(cherry picked from commit 0fe9f0b52f7b700689df46d13de36e67b62486e1)
+---
+ pkg/cri/streaming/portforward/httpstream.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pkg/cri/streaming/portforward/httpstream.go b/pkg/cri/streaming/portforward/httpstream.go
+index e1570380b..140a2f5ef 100644
+--- a/pkg/cri/streaming/portforward/httpstream.go
++++ b/pkg/cri/streaming/portforward/httpstream.go
+@@ -279,7 +279,7 @@ func (h *httpStreamHandler) portForward(p *httpStreamPair) {
+ 		// see: https://github.com/kubernetes/kubernetes/issues/74551 for detail
+ 		//
+ 		// In both cases, we should RESET the httpStream.
+-		klog.ErrorS(err, "forwarding port", "conn", h.conn, "request", p.requestID, "port", portString)
++		klog.Errorf("(conn=%p, request=%s) forwarding port %s failed: %v", h.conn, p.requestID, portString, err)
+ 		resetStreams = true
+ 		return
+ 	}
+-- 
+2.47.1
+
