@@ -2,7 +2,7 @@
 
 ## OS Changes
 * Update `containerd` from 1.7.24 to 1.7.25 ([#374])
-* Add patches to `containerd` 1.7.25 ([#374])
+* Patch`containerd` 1.7.25 to address issues in runc shim and CRI plugin ([#374])
 
 [#374]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/374
 
