@@ -1,3 +1,11 @@
+# v6.0.1 (2025-02-14)
+
+## OS Changes
+* Update `containerd` from 1.7.24 to 1.7.25 ([#374])
+* Add patches to `containerd` 1.7.25 ([#374])
+
+[#374]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/374
+
 # v6.0.0 (2025-02-07)
 
 ## OS Changes
