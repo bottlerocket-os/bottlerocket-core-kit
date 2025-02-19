@@ -1,0 +1,19 @@
+[package]
+name = "containerd-v2"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://github.com/containerd/containerd/releases"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/containerd/containerd/archive/v2.0.2/containerd-2.0.2.tar.gz"
+sha512 = "86eb24acfa5d4d87ae396f8888e2484693823fad897a29f1a5ada78e2318640927cfcff1e85415bfd6c66f5417e582203eb94976d52e3dd373997e6e2cbae354"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
