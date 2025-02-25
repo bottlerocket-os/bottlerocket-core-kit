@@ -1,3 +1,10 @@
+# v6.0.2 (2025-02-26)
+
+## Build Changes
+* Update `twoliter` from 0.6.0 to 0.7.3 ([#382])
+
+[#382]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/382
+
 # v6.0.1 (2025-02-14)
 
 ## OS Changes
