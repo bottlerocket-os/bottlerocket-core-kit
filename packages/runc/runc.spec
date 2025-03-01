@@ -2,7 +2,7 @@
 %global gorepo runc
 %global goimport %{goproject}/%{gorepo}
 %global commit 2c9f5602f0ba3d9da1c2596322dfc4e156844890
-%global gover 1.1.15
+%global gover 1.2.4
 
 %global _dwz_low_mem_die_limit 0
 
@@ -19,6 +19,8 @@ Source1: https://%{goimport}/releases/download/v%{gover}/%{gorepo}.tar.xz.asc#/%
 Source2: gpgkey-B64E4955B29FA3D463F2A9062897FAD2B7E9446F.asc
 # Kir Kolyshkin
 Source3: gpgkey-C2428CD75720FACDCF76B6EA17DE5ECB75A1100E.asc
+# Aleksa Sarai (2025.01.06)
+Source4: gpgkey-5F36C6C61B5460124A75F5A69E18AA267DDB8DB4.asc
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
@@ -48,7 +50,7 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 %{summary}.
 
 %prep
-%{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:3}
+%{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:3} --keyring=%{S:4}
 %autosetup -Sgit -n %{gorepo}-%{gover} -p1
 %cross_go_setup %{gorepo}-%{gover} %{goproject} %{goimport}
 
