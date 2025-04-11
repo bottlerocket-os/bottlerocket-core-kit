@@ -1,10 +1,12 @@
 [required-extensions]
 kubelet-device-plugins = "v1"
+container-runtime = "v1"
 std = { version = "v1", helpers = ["default"] }
 
 +++
 version: v1
 flags:
+  
   {{#if settings.kubelet-device-plugins.nvidia.device-partitioning-strategy}}
   {{#if (eq settings.kubelet-device-plugins.nvidia.device-partitioning-strategy "mig")}}
   migStrategy: "single"
@@ -17,7 +19,15 @@ flags:
   failOnInitError: true
   plugin:
     passDeviceSpecs: {{default true settings.kubelet-device-plugins.nvidia.pass-device-specs}}
-    deviceListStrategy: {{default "volume-mounts" settings.kubelet-device-plugins.nvidia.device-list-strategy}}
+    {{#if settings.kubelet-device-plugins.nvidia.device-list-strategy}}
+    {{#if (eq settings.kubelet-device-plugins.nvidia.device-list-strategy "cdi-cri")}}
+    deviceListStrategy: "cdi-cri"
+    {{else}}
+    deviceListStrategy: {{settings.kubelet-device-plugins.nvidia.device-list-strategy}}
+    {{/if}}
+    {{else}}
+    deviceListStrategy: "volume-mounts"
+    {{/if}}
     deviceIDStrategy: {{default "index" settings.kubelet-device-plugins.nvidia.device-id-strategy}}
 {{#if settings.kubelet-device-plugins.nvidia.device-sharing-strategy}}
 {{#if (eq settings.kubelet-device-plugins.nvidia.device-sharing-strategy "time-slicing")}}
