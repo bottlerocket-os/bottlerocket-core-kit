@@ -12,3 +12,12 @@ root = "/"
 path = "/usr/bin/nvidia-container-cli"
 environment = []
 ldconfig = "@/sbin/ldconfig"
+
+[nvidia-contaienr-runtime]
+{{#if settings.kubelet-device-plugins.nvidia.device-list-strategy}}
+{{#if (eq settings.kubelet-device-plugins.nvidia.device-list-strategy "cdi-cri")}}
+mode="cdi"
+{{else}}
+mode="legacy"
+{{/if}}
+{{/if}}
