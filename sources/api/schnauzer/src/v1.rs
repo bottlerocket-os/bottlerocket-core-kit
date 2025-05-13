@@ -141,6 +141,10 @@ pub fn build_template_registry() -> Result<handlebars::Handlebars<'static>> {
         "ecs_metadata_service_limits",
         Box::new(helpers::ecs_metadata_service_limits),
     );
+    template_registry.register_helper(
+        "get_array_first_value",
+        Box::new(helpers::get_array_first_value),
+    );
 
     template_registry.register_helper("is_ipv4", Box::new(helpers::is_ipv4));
     template_registry.register_helper("is_ipv6", Box::new(helpers::is_ipv6));

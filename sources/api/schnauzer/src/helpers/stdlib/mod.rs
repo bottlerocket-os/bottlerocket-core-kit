@@ -1257,3 +1257,100 @@ mod test_toml_encode {
         assert_eq!(result, expected);
     }
 }
+
+/// `get_array_first_value` accepts arrary input or a string and get the string value or
+/// the first value in the list
+///
+/// # Example
+///
+/// Consider an array of values: `[ "a", "b", "c" ]` stored in a setting such as
+/// `settings.somewhere.foo-list`. In our template we can write:
+/// `{{ string_or_first_value settings.somewhere.foo-list }}`
+///
+/// This will render `"a"`.
+///
+/// Similarly, for a string: `"string"`, the template {{ get_array_first_value settings.somewhere.foo-list }}
+/// will render `"string"`.
+pub fn get_array_first_value(
+    helper: &Helper<'_, '_>,
+    _: &Handlebars,
+    _: &Context,
+    renderctx: &mut RenderContext<'_, '_>,
+    out: &mut dyn Output,
+) -> Result<(), RenderError> {
+    trace!("Starting get_array_first_value helper");
+    let template_name = template_name(renderctx);
+    check_param_count(helper, template_name, 1)?;
+
+    let input_param = get_param(helper, 0)?;
+
+    let result = if let Some(s) = input_param.as_str() {
+        s.to_string()
+    } else if let Some(arr) = input_param.as_array() {
+        arr.first()
+            .and_then(|s| s.as_str())
+            // need to put a place holder for empty array which will not happen.
+            .unwrap_or_default()
+            .to_string()
+    } else {
+        format!(
+            "\"{:?}\"",
+            input_param
+                .as_str()
+                .ok_or_else(|| error::StringOrFirstValueSnafu {
+                    value: input_param.to_owned(),
+                    template: template_name.to_owned(),
+                })
+        )
+    };
+
+    // write it to the template
+    out.write(&result)
+        .with_context(|_| error::TemplateWriteSnafu {
+            template: template_name.to_owned(),
+        })?;
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod test_get_array_first_value {
+    use crate::helpers::get_array_first_value;
+    use handlebars::{Handlebars, RenderError};
+    use serde::Serialize;
+    use serde_json::json;
+
+    // A thin wrapper around the handlebars render_template method that includes
+    // setup and registration of helpers
+    fn setup_and_render_template<T>(tmpl: &str, data: &T) -> Result<String, RenderError>
+    where
+        T: Serialize,
+    {
+        let mut registry = Handlebars::new();
+        registry.register_helper("get_array_first_value", Box::new(get_array_first_value));
+
+        registry.render_template(tmpl, data)
+    }
+
+    const TEMPLATE: &str = r#"{{ get_array_first_value settings.foo-string }}"#;
+
+    #[test]
+    fn get_array_first_value_array() {
+        let result = setup_and_render_template(
+            TEMPLATE,
+            &json!({"settings": {"foo-string": ["hello", "world"]}}),
+        )
+        .unwrap();
+        let expected = "hello";
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_array_first_value_string() {
+        let result =
+            setup_and_render_template(TEMPLATE, &json!({"settings": {"foo-string": "hello"}}))
+                .unwrap();
+        let expected = "hello";
+        assert_eq!(result, expected);
+    }
+}

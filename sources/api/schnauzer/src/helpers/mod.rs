@@ -26,8 +26,9 @@ use url::Url;
 pub mod stdlib;
 
 pub use stdlib::{
-    any_enabled, base64_decode, default, goarch, join_array, join_map, negate_or_else, toml_encode,
-    IfNotNullHelper, IsArray, IsBool, IsNull, IsNumber, IsObject, IsString,
+    any_enabled, base64_decode, default, get_array_first_value, goarch, join_array, join_map,
+    negate_or_else, toml_encode, IfNotNullHelper, IsArray, IsBool, IsNull, IsNumber, IsObject,
+    IsString,
 };
 
 lazy_static! {
@@ -345,6 +346,18 @@ mod error {
             template
         ))]
         TomlEncode {
+            value: serde_json::Value,
+            source: serde_json::Error,
+            template: String,
+        },
+
+        #[snafu(display(
+            "Unable to encode input '{}' from template '{}' to get the string or first value in the list: {}",
+            value,
+            source,
+            template
+        ))]
+        StringOrFirstValue {
             value: serde_json::Value,
             source: serde_json::Error,
             template: String,
