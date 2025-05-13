@@ -49,9 +49,10 @@ SystemdCgroup = true
 bin_dir = "/opt/cni/bin"
 conf_dir = "/etc/cni/net.d"
 
+[plugins."io.containerd.cri.v1.images".registry]
 {{#if settings.container-registry.mirrors}}
 {{#each settings.container-registry.mirrors}}
-[plugins."io.containerd.cri.v1.runtime".registry.mirrors."{{registry}}"]
+[plugins."io.containerd.cri.v1.images".registry.mirrors."{{registry}}"]
 endpoint = [{{join_array ", " endpoint }}]
 {{/each}}
 {{/if}}
@@ -59,9 +60,9 @@ endpoint = [{{join_array ", " endpoint }}]
 {{#if settings.container-registry.credentials}}
 {{#each settings.container-registry.credentials}}
 {{#if (eq registry "docker.io" )}}
-[plugins."io.containerd.cri.v1.runtime".registry.configs."registry-1.docker.io".auth]
+[plugins."io.containerd.cri.v1.images".registry.configs."registry-1.docker.io".auth]
 {{else}}
-[plugins."io.containerd.cri.v1.runtime".registry.configs."{{registry}}".auth]
+[plugins."io.containerd.cri.v1.images".registry.configs."{{registry}}".auth]
 {{/if}}
 {{#if username}}
 username = "{{{username}}}"
