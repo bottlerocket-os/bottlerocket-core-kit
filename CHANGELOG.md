@@ -1,3 +1,10 @@
+# v8.1.1 (2025-05-14)
+
+## OS Changes
+* Fix `containerd-2.0` settings for `container-registry` ([#504])
+
+[#504] : https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/504
+
 # v8.1.0 (2025-05-05)
 
 ## OS Changes
