@@ -37,6 +37,7 @@ members = [
   "packages/ecr-credential-provider-1.35",
   "packages/ecs-agent",
   "packages/ecs-gpu-init",
+  "packages/erofs-utils",
   "packages/ethtool",
   "packages/filesystem",
   "packages/findutils",

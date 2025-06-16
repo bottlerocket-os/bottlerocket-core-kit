@@ -1,0 +1,23 @@
+[package]
+name = "erofs-utils"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git"
+
+[[package.metadata.build-package.external-files]]
+url = "https://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git/snapshot/erofs-utils-1.8.10.tar.gz"
+sha512 = "8c7afd3db55fd4c4f7aa9fbd7ed40fa40de0bfffcee601a3f5dce823d406a32b5e939e24cd6dc336e3033e940fb16ee93f8821f627f90b10e6137113949933dd"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
+libselinux = { path = "../libselinux" }
+libz = { path = "../libz" }
+libzstd = { path = "../libzstd" }
+util-linux = { path = "../util-linux" }

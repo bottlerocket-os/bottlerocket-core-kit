@@ -106,6 +106,7 @@ dependencies = [
  "ecr-credential-provider-1_35",
  "ecs-agent",
  "ecs-gpu-init",
+ "erofs-utils",
  "ethtool",
  "filesystem",
  "findutils",
@@ -398,6 +399,17 @@ name = "ecs-gpu-init"
 version = "0.1.0"
 dependencies = [
  "glibc",
+]
+
+[[package]]
+name = "erofs-utils"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+ "libselinux",
+ "libz",
+ "libzstd",
+ "util-linux",
 ]
 
 [[package]]

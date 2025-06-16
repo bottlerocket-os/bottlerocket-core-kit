@@ -46,6 +46,7 @@ ecr-credential-provider-1_34 = { path = "../../packages/ecr-credential-provider-
 ecr-credential-provider-1_35 = { path = "../../packages/ecr-credential-provider-1.35" }
 ecs-agent = { path = "../../packages/ecs-agent" }
 ecs-gpu-init = { path = "../../packages/ecs-gpu-init" }
+erofs-utils = { path = "../../packages/erofs-utils" }
 ethtool = { path = "../../packages/ethtool" }
 filesystem = { path = "../../packages/filesystem" }
 findutils = { path = "../../packages/findutils" }
