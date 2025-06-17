@@ -88,6 +88,7 @@ dependencies = [
  "containerd-1_7",
  "containerd-2_1",
  "coreutils",
+ "cri-tools",
  "dbus-broker",
  "docker-cli-25",
  "docker-cli-29",
@@ -265,6 +266,13 @@ dependencies = [
  "libcap",
  "libselinux",
  "libxcrypt",
+]
+
+[[package]]
+name = "cri-tools"
+version = "0.1.0"
+dependencies = [
+ "glibc",
 ]
 
 [[package]]
