@@ -56,6 +56,7 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 export GO_MAJOR="1.24"
 go build -ldflags="${GOLDFLAGS}" -o aws-iam-authenticator ./cmd/aws-iam-authenticator
 gofips build -ldflags="${GOLDFLAGS}" -o fips/aws-iam-authenticator ./cmd/aws-iam-authenticator
+%cross_generate_sbom
 
 %install
 install -d %{buildroot}%{_cross_bindir}
@@ -65,11 +66,14 @@ install -d %{buildroot}%{_cross_fips_bindir}
 install -p -m 0755 fips/aws-iam-authenticator %{buildroot}%{_cross_fips_bindir}
 
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
+%cross_install_sbom
 
 %files
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files bin
 %{_cross_bindir}/aws-iam-authenticator
