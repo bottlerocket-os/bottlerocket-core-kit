@@ -50,6 +50,7 @@ export GO_MAJOR="1.23"
 %set_cross_go_flags
 go build -ldflags="${GOLDFLAGS}" -o host-ctr ./cmd/host-ctr
 gofips build -ldflags="${GOLDFLAGS}" -o fips/host-ctr ./cmd/host-ctr
+%cross_generate_sbom
 
 %install
 install -d %{buildroot}%{_cross_bindir}
@@ -70,6 +71,7 @@ install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/host-containerd
 install -p -m 0644 %{S:12} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/host-containerd/config.toml
 
 %cross_scan_attribution go-vendor vendor
+%cross_install_sbom
 
 %files
 %{_cross_attribution_vendor_dir}
@@ -77,6 +79,8 @@ install -p -m 0644 %{S:12} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/
 %{_cross_unitdir}/*.mount
 %{_cross_tmpfilesdir}/host-containerd.conf
 %{_cross_factorydir}%{_cross_sysconfdir}/host-containerd/config.toml
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files bin
 %{_cross_bindir}/host-ctr
