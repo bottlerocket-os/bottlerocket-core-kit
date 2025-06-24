@@ -67,6 +67,8 @@ autoreconf -fi
 
 %make_build
 
+%cross_generate_sbom
+
 %install
 %make_install
 
@@ -79,9 +81,13 @@ install -p -m 0644 %{S:2} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/v
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:3} %{buildroot}%{_cross_tmpfilesdir}/open-vm-tools.conf
 
+%cross_install_sbom
+
 %files
 %license COPYING LICENSE
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/vmtoolsd
 %{_cross_bindir}/vmware-toolbox-cmd
 %{_cross_unitdir}/vmtoolsd.service
