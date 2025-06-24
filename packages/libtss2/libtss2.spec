@@ -71,15 +71,21 @@ CONFIGURE_OPTS=(
 
 %make_build
 
+%cross_generate_sbom
+
 %install
 %make_install
 
 install -d %{buildroot}%{_cross_sysusersdir}
 install -p -m 0644 %{S:10} %{buildroot}%{_cross_sysusersdir}/tss.conf
 
+%cross_install_sbom
+
 %files
 %license LICENSE
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_libdir}/libtss2-esys.so.*
 %{_cross_libdir}/libtss2-rc.so.*
 %{_cross_libdir}/libtss2-mu.so.*
