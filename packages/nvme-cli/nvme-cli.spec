@@ -29,17 +29,21 @@ CONFIGURE_OPTS=(
 
 %cross_meson "${CONFIGURE_OPTS[@]}"
 %cross_meson_build
+%cross_generate_sbom
 
 %install
 %cross_meson_install
 # This is an empty configuration file with comments with examples of how to
 # configure the systemd services
 rm %{buildroot}%{_sysconfdir}/nvme/discovery.conf
+%cross_install_sbom
 
 %files
 %license LICENSE ccan/licenses/LGPL-2.1 ccan/licenses/BSD-MIT ccan/licenses/CC0
 %{_cross_attribution_file}
 %{_cross_sbindir}/nvme
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %exclude %{_cross_udevrulesdir}
 %exclude %{_cross_unitdir}
 %exclude %{_cross_datadir}
