@@ -34,14 +34,18 @@ make -s \\\
 
 %build
 %kmake -C src
+%cross_generate_sbom
 
 %install
 %kmake -C src install
+%cross_install_sbom
 
 %files
 %license LICENSE LICENSE.BSD-2-Clause LICENSE.LGPL-2.1
 %{_cross_attribution_file}
 %{_cross_libdir}/*.so.*
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files devel
 %{_cross_libdir}/*.a
