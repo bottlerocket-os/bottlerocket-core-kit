@@ -39,9 +39,11 @@ Requires: %{_cross_os}libz-devel
   --disable-libdebuginfod \
 
 %make_build
+%cross_generate_sbom
 
 %install
 %make_install
+%cross_install_sbom
 
 %files
 %license COPYING-GPLV2 COPYING-LGPLV3
@@ -50,6 +52,8 @@ Requires: %{_cross_os}libz-devel
 %{_cross_libdir}/libelf-*.so
 %{_cross_libdir}/libdw-*.so
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %exclude %{_cross_mandir}
 %exclude %{_cross_bindir}
 
