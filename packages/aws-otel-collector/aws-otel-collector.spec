@@ -51,6 +51,8 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 go build -ldflags "${GOLDFLAGS}" -o aws-otel-collector ./cmd/awscollector
 gofips build -ldflags "${GOLDFLAGS}" -o fips/aws-otel-collector ./cmd/awscollector
 
+%cross_generate_sbom
+
 %install
 install -D -p -m 0644 %{S:1} %{buildroot}%{_cross_unitdir}/aws-otel-collector.service
 
@@ -64,11 +66,15 @@ install -d %{buildroot}{%{_cross_bindir},%{_cross_fips_bindir}}
 install -p -m 0755 aws-otel-collector %{buildroot}%{_cross_bindir}
 install -p -m 0755 fips/aws-otel-collector %{buildroot}%{_cross_fips_bindir}
 
+%cross_install_sbom
+
 %files
 %{_cross_attribution_file}
 %{_cross_unitdir}/aws-otel-collector.service
 %{_cross_tmpfilesdir}/aws-otel-collector-tmpfiles.conf
 %{_cross_factorydir}%{_cross_sysconfdir}/aws-otel-collector.yaml
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files bin
 %{_cross_bindir}/aws-otel-collector
