@@ -91,6 +91,7 @@ autoreconf -fi
 %force_disable_rpath
 
 %make_build
+%cross_generate_sbom
 
 %install
 %make_install
@@ -116,6 +117,8 @@ install -p -m 0644 %{S:99} %{buildroot}%{_cross_datadir}/wicked/schema/constants
 # install logdog configuration file
 install -d %{buildroot}%{_cross_datadir}/logdog.d
 install -p -m 0644 %{S:30} %{buildroot}%{_cross_datadir}/logdog.d
+
+%cross_install_sbom
 
 %files
 %license COPYING
@@ -155,6 +158,8 @@ install -p -m 0644 %{S:30} %{buildroot}%{_cross_datadir}/logdog.d
 %{_cross_factorydir}%{_cross_sysconfdir}/wicked/server.xml
 %{_cross_tmpfilesdir}/wicked.conf
 %{_cross_datadir}/logdog.d/logdog.wicked.conf
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files devel
 %{_cross_libdir}/libwicked.so
