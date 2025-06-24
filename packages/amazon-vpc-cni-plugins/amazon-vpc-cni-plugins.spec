@@ -87,6 +87,8 @@ for p in \
   gofips build "${VPC_CNI_BUILD_ARGS[@]}" -mod=vendor -o fips/${p} ./plugins/${p}
 done
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_libexecdir}
 install -D -p -m 0755 aws-appmesh %{buildroot}%{_cross_libexecdir}/cni/vpc/aws-appmesh
@@ -120,9 +122,13 @@ done
 
 %cross_scan_attribution go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %license LICENSE
 
 %files bin
