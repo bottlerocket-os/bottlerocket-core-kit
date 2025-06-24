@@ -35,16 +35,20 @@ export CROSS_PREFIX="%{_cross_target}-" \\\
   --without-new-strategies \
   --zlib-compat
 %make_build
+%cross_generate_sbom
 
 %install
 %set_env
 %make_install
+%cross_install_sbom
 
 %files
 %license LICENSE.md
 %{_cross_attribution_file}
 %{_cross_libdir}/*.so.*
 %exclude %{_cross_mandir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files devel
 %{_cross_libdir}/*.so
