@@ -589,6 +589,8 @@ if [ "${aws_sdk_rc}" -ne 0 ]; then
    exit "${aws_sdk_rc}"
 fi
 
+%cross_generate_sbom
+
 
 %install
 install -d %{buildroot}%{_cross_bindir}
@@ -735,11 +737,15 @@ install -p -m 0644 %{S:302} %{buildroot}%{_cross_udevrulesdir}/82-supplemental-s
 install -d %{buildroot}%{_cross_licensedir}
 install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 
+%cross_install_sbom
+
 %files
 %{_cross_attribution_vendor_dir}
 %{_cross_licensedir}/COPYRIGHT
 %{_cross_licensedir}/LICENSE-MIT
 %{_cross_licensedir}/LICENSE-APACHE
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files -n %{_cross_os}apiserver
 %{_cross_bindir}/apiserver
