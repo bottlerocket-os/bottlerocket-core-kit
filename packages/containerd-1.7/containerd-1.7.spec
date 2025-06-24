@@ -123,6 +123,8 @@ do
   gofips build "${BUILD_ARGS[@]}" -o fips/${bin} %{goimport}/cmd/${bin}
 done
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}{%{_cross_bindir},%{_cross_fips_bindir}}
 for bin in \
@@ -152,10 +154,14 @@ install -p -m 0644 %{S:201} %{buildroot}%{_cross_unitdir}/containerd.service.d/0
 
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %license LICENSE NOTICE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_unitdir}/containerd.service
 %{_cross_unitdir}/etc-containerd.mount
 %{_cross_unitdir}/prepare-var-lib-containerd.service
