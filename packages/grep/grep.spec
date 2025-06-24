@@ -22,14 +22,18 @@ Requires: %{_cross_os}libpcre
 %build
 %cross_configure --without-included-regex --disable-silent-rules
 %make_build
+%cross_generate_sbom
 
 %install
 %make_install
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_bindir}/grep
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 # Exclude fgrep and egrep because they are shell scripts
 %exclude %{_cross_bindir}/fgrep
 %exclude %{_cross_bindir}/egrep
