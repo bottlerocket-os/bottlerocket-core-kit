@@ -34,15 +34,19 @@ make\\\
 
 %build
 %pciutils_make
+%cross_generate_sbom
 
 %install
 %pciutils_make install
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_attribution_file}
 %{_cross_bindir}/lspci
 %{_cross_datadir}/pci.ids
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %exclude %{_cross_sbindir}/pcilmr
 %exclude %{_cross_sbindir}/setpci
 %exclude %{_cross_sbindir}/update-pciids
