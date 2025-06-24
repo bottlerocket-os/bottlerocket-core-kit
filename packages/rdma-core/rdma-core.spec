@@ -42,6 +42,8 @@ Requires: %{name}
 
 %make_build
 
+%cross_generate_sbom
+
 %install
 %make_install
 
@@ -54,9 +56,13 @@ install -p %{buildroot}%{_cross_sysconfdir}/libibverbs.d/efa.driver %{buildroot}
 install -d %{buildroot}%{_cross_datadir}/logdog.d
 install -p -m 0644 %{S:200} %{buildroot}%{_cross_datadir}/logdog.d
 
+%cross_install_sbom
+
 %files
 %license COPYING.md COPYING.BSD_MIT ccan/LICENSE.MIT
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_datadir}/logdog.d/logdog.rdma.conf
 %{_cross_tmpfilesdir}/rdma-core.conf
 %dir %{_cross_factorydir}%{_cross_sysconfdir}/libibverbs.d
