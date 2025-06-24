@@ -65,12 +65,14 @@ export LIB_VERSION=%{version} \\\
 %build
 %set_env
 %make_build
+%cross_generate_sbom
 
 %install
 %set_env
 %make_install
 install -d %{buildroot}%{_cross_sysctldir}
 install -p -m 0644 %{S:2} %{buildroot}%{_cross_sysctldir}/90-libnvidia-container.conf
+%cross_install_sbom
 
 %files
 %license NOTICE LICENSE
@@ -81,6 +83,8 @@ install -p -m 0644 %{S:2} %{buildroot}%{_cross_sysctldir}/90-libnvidia-container
 %{_cross_libdir}/libnvidia-container-go.so.*
 %{_cross_bindir}/nvidia-container-cli
 %{_cross_sysctldir}/90-libnvidia-container.conf
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %exclude %{_cross_docdir}
 
 %files devel
