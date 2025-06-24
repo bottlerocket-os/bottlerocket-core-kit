@@ -20,14 +20,18 @@ cp /usr/share/licenses/rust/* .
 
 %build
 install -p -m0755 %{_libexecdir}/rust/lib/rustlib/%{__cargo_target}/lib/libstd-*.so .
+%cross_generate_sbom
 
 %install
 mkdir -p %{buildroot}%{_cross_libdir}
 install -p -m0755 libstd-*.so %{buildroot}%{_cross_libdir}
+%cross_install_sbom
 
 %files
 %license COPYRIGHT LICENSE-APACHE LICENSE-MIT
 %{_cross_attribution_file}
 %{_cross_libdir}/libstd-*.so
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %changelog
