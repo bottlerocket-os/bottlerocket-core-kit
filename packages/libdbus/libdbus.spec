@@ -59,16 +59,20 @@ CONFIGURE_OPTS=(
 
 %cross_meson "${CONFIGURE_OPTS[@]}"
 %cross_meson_build
+%cross_generate_sbom
 
 %install
 %cross_meson_install
 
 rm -rf %{buildroot}%{_cross_docdir}/dbus/examples
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_attribution_file}
 %{_cross_libdir}/*.so.*
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %exclude %{_cross_datadir}/doc
 %exclude %{_cross_datadir}/xml
 
