@@ -26,14 +26,18 @@ export CC=%{_cross_target}-gcc \\\
 %build
 %set_env
 %make_build CC="${CC}" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
+%cross_generate_sbom
 
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 unpigz %{buildroot}%{_cross_bindir}
+%cross_install_sbom
 
 %files
 %license README zopfli/COPYING
 %{_cross_bindir}/unpigz
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %changelog
