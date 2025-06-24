@@ -88,6 +88,8 @@ gofips build "${ECS_CNI_BUILD_ARGS[@]}" -o fips/ecs-ipam ./plugins/ipam
 go build "${ECS_CNI_BUILD_ARGS[@]}" -o ecs-bridge ./plugins/ecs-bridge
 gofips build "${ECS_CNI_BUILD_ARGS[@]}" -o fips/ecs-bridge ./plugins/ecs-bridge
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_libexecdir}
 install -D -p -m 0755 ecs-bridge %{buildroot}%{_cross_libexecdir}/cni/ecs/ecs-bridge
@@ -112,9 +114,13 @@ done
 
 %cross_scan_attribution go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %license LICENSE
 
 %files bin
