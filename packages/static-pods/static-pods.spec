@@ -27,6 +27,8 @@ echo "** Compile static-pods agent"
 %cargo_build --manifest-path %{_builddir}/sources/Cargo.toml \
     -p static-pods
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 ${HOME}/.cache/%{__cargo_target}/release/static-pods %{buildroot}%{_cross_bindir}
@@ -34,6 +36,10 @@ install -p -m 0755 ${HOME}/.cache/%{__cargo_target}/release/static-pods %{buildr
 install -d %{buildroot}%{_cross_templatedir}
 install -p -m 0644 %{S:0} %{buildroot}%{_cross_templatedir}
 
+%cross_install_sbom
+
 %files
 %{_cross_bindir}/static-pods
 %{_cross_templatedir}/static-pods-toml
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
