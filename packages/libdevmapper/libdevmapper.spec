@@ -69,15 +69,19 @@ Requires: %{name}
   %{nil}
 
 %make_build device-mapper
+%cross_generate_sbom
 
 %install
 make install_device-mapper DESTDIR=%{buildroot} INSTALL="/usr/bin/install -p"
 find %{buildroot} -type f -executable -exec chmod u+w {} +
+%cross_install_sbom
 
 %files
 %license COPYING.LIB
 %{_cross_attribution_file}
 %{_cross_libdir}/libdevmapper.so.*
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %exclude %{_cross_mandir}
 
 %files devel
