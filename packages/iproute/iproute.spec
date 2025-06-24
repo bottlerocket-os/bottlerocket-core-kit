@@ -43,14 +43,18 @@ export PKG_CONFIG_PATH='%{_cross_pkgconfigdir}' \\\
 %set_cross_build_flags
 ./configure --libdir '%{_cross_libdir}'
 %make_build
+%cross_generate_sbom
 
 %install
 %set_env
 %make_install
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_sbindir}/bridge
 %{_cross_sbindir}/ctstat
 %{_cross_sbindir}/dcb
