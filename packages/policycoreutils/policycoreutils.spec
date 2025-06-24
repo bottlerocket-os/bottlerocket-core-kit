@@ -38,6 +38,7 @@ export LOCALEDIR='%{_cross_localedir}' \\\
 for dir in load_policy semodule sestatus setfiles ; do
   %make_build -C ${dir}
 done
+%cross_generate_sbom
 
 %install
 %set_env
@@ -46,10 +47,13 @@ for dir in load_policy semodule sestatus setfiles ; do
 done
 # remove unneeded compatibility symlink
 rm %{buildroot}%{_cross_sbindir}/sestatus
+%cross_install_sbom
 
 %files
 %license LICENSE
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_sbindir}/load_policy
 %{_cross_sbindir}/semodule
 %{_cross_bindir}/sestatus
