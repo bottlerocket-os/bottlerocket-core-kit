@@ -67,6 +67,8 @@ go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime ./cmd/nvidia-contai
 go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime.cdi ./cmd/nvidia-container-runtime.cdi
 go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime.legacy ./cmd/nvidia-container-runtime.legacy
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -d %{buildroot}%{_cross_tmpfilesdir}
@@ -90,9 +92,13 @@ install -m 0644 %{S:5} %{buildroot}%{_cross_tmpfilesdir}/nvidia-container-toolki
 install -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-container-runtime/
 install -m 0644 %{S:7} %{buildroot}%{_cross_unitdir}/
 
+%cross_install_sbom
+
 %files
 %license LICENSE
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/nvidia-container-runtime-hook
 %{_cross_bindir}/nvidia-ctk
 %{_cross_bindir}/nvidia-cdi-hook
