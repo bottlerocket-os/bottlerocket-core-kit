@@ -87,12 +87,18 @@ autoreconf -fi
 
 %make_build
 
+%cross_generate_sbom
+
 %install
 %make_install
+
+%cross_install_sbom
 
 %files
 %license COPYING COPYING.LGPL
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_libdir}/*.so.*
 %{_cross_tmpfilesdir}/cryptsetup.conf
 %exclude %{_cross_mandir}
