@@ -182,6 +182,8 @@ install -m 0644 %{S:101} image/manifest.json
 
 %tar_cf ../../../_output/local/bin/linux/%{_cross_go_arch}/kubernetes-pause.tar -C image .
 
+%cross_generate_sbom
+
 %install
 output="./_output/local/bin/linux/%{_cross_go_arch}"
 install -d %{buildroot}%{_cross_bindir}
@@ -230,10 +232,14 @@ install -d %{buildroot}%{_cross_libexecdir}/kubernetes
 install -p -m 0644 ${output}/kubernetes-pause.tar %{buildroot}%{_cross_libexecdir}/kubernetes
 install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-container-image
 
+%cross_install_sbom
+
 %files -n %{_cross_os}kubelet-1.30
 %license LICENSE LICENSE.gonum.graph LICENSE.shell2junit LICENSE.golang PATENTS.golang
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_unitdir}/kubelet.service
 %{_cross_unitdir}/prepare-var-lib-kubelet.service
 %{_cross_unitdir}/etc-kubernetes-pki-private.mount
