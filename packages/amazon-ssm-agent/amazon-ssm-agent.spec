@@ -108,6 +108,8 @@ go build -ldflags "${GOLDFLAGS}" -o static/ssm-session-worker \
 gofips build -ldflags "${GOLDFLAGS}" -o fips-static/ssm-session-worker \
   ./agent/framework/processor/executer/outofproc/sessionworker/main.go
 
+%cross_generate_sbom
+
 %install
 install -D -p -m 0644 %{S:1} %{buildroot}%{_cross_unitdir}/amazon-ssm-agent.service
 
@@ -132,10 +134,14 @@ done
 ln -sf %{version} %{buildroot}%{_cross_libexecdir}/amazon-ssm-agent/bin/latest
 ln -sf %{version} %{buildroot}%{_cross_fips_libexecdir}/amazon-ssm-agent/bin/latest
 
+%cross_install_sbom
+
 %files
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_unitdir}/amazon-ssm-agent.service
 %dir %{_cross_factorydir}%{_cross_sysconfdir}/amazon/ssm
 %{_cross_factorydir}%{_cross_sysconfdir}/amazon/ssm/amazon-ssm-agent.json
