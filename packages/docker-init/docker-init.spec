@@ -21,14 +21,18 @@ BuildRequires: %{_cross_os}glibc-devel
 %build
 %{cross_cmake} .
 %make_build tini-static
+%cross_generate_sbom
 
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 tini-static %{buildroot}%{_cross_bindir}/docker-init
+%cross_install_sbom
 
 %files
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_bindir}/docker-init
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %changelog
