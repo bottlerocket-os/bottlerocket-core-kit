@@ -94,6 +94,8 @@ go build "${BUILD_ARGS[@]}" -o docker-proxy %{goimport}/cmd/docker-proxy
 gofips build "${BUILD_ARGS[@]}" -o fips/dockerd %{goimport}/cmd/dockerd
 gofips build "${BUILD_ARGS[@]}" -o fips/docker-proxy %{goimport}/cmd/docker-proxy
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 dockerd %{buildroot}%{_cross_bindir}
@@ -116,9 +118,13 @@ install -p -m 0644 %{S:5} %{buildroot}%{_cross_templatedir}/docker-daemon-nvidia
 
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_unitdir}/docker.service
 %{_cross_unitdir}/docker.socket
 %{_cross_unitdir}/prepare-var-lib-docker.service
