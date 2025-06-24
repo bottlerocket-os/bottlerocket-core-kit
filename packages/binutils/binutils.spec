@@ -41,13 +41,17 @@ Requires: %{name}
   --disable-static \
   --disable-gprofng
 %make_build MAKEINFO=true tooldir=%{_cross_prefix}
+%cross_generate_sbom
 
 %install
 %make_install MAKEINFO=true tooldir=%{_cross_prefix}
+%cross_install_sbom
 
 %files
 %license COPYING COPYING3.LIB COPYING3
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/ld
 %{_cross_bindir}/strip
 %dir %{_cross_libdir}/bfd-plugins
