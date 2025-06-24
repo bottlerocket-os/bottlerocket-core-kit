@@ -152,6 +152,8 @@ gofips build "${ECS_AGENT_BUILD_ARGS[@]}" -o fips/amazon-ecs-agent ./agent
   %tar_cf ../../amazon-ecs-pause.tar -C image .
 )
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -D -p -m 0755 amazon-ecs-agent %{buildroot}%{_cross_bindir}/amazon-ecs-agent
@@ -198,10 +200,14 @@ ln -rs %{buildroot}%{_cross_sysconfdir}/pki/tls/certs/ca-bundle.crt %{buildroot}
 install -d %{buildroot}%{_cross_datadir}/logdog.d
 install -p -m 0644 %{S:300} %{buildroot}%{_cross_datadir}/logdog.d
 
+%cross_install_sbom
+
 %files
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
 %license LICENSE NOTICE ecs-agent/THIRD_PARTY.md
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %{_cross_libexecdir}/amazon-ecs-agent/managed-agents
 %{_cross_unitdir}/ecs.service
