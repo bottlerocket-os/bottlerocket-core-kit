@@ -138,6 +138,8 @@ cp Documentation/licenses/COPYING.* .
 
 %make_build
 
+%cross_generate_sbom
+
 %install
 %make_install
 
@@ -162,9 +164,13 @@ for lib in libuuid; do
     cp -a COPYING.BSD-3-Clause %{buildroot}%{_cross_licensedir}/${lib}
 done
 
+%cross_install_sbom
+
 %files
 %license COPYING.BSD-3-Clause COPYING.BSD-4-Clause-UC COPYING.GPL-2.0-or-later COPYING.LGPL-2.1-or-later
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/chmem
 %{_cross_bindir}/choom
 %{_cross_bindir}/chrt
