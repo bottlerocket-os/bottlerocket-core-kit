@@ -59,6 +59,8 @@ export GO_MAJOR="1.23"
 go build -ldflags="${GOLDFLAGS}" -o=ecr-credential-provider cmd/ecr-credential-provider/*.go
 gofips build -ldflags="${GOLDFLAGS}" -o=fips/ecr-credential-provider cmd/ecr-credential-provider/*.go
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_libexecdir}/kubernetes/kubelet/plugins
 install -p -m 0755 ecr-credential-provider %{buildroot}%{_cross_libexecdir}/kubernetes/kubelet/plugins
@@ -68,10 +70,14 @@ install -p -m 0755 fips/ecr-credential-provider %{buildroot}%{_cross_fips_libexe
 
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files bin
 %{_cross_libexecdir}/kubernetes/kubelet/plugins/ecr-credential-provider
