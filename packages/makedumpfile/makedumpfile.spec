@@ -36,15 +36,19 @@ export USESNAPPY="off" \\\
 %build
 %set_env
 %make_build
+%cross_generate_sbom
 
 %install
 %set_env
 make install
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_attribution_file}
 %{_cross_sbindir}/makedumpfile
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %exclude %{_cross_mandir}
 %exclude %{_cross_sbindir}/makedumpfile-R.pl
 %exclude %{_cross_prefix}/share/makedumpfile
