@@ -29,13 +29,17 @@ Requires: %{name}
 %force_disable_rpath
 
 %make_build
+%cross_generate_sbom
 
 %install
 %make_install
+%cross_install_sbom
 
 %files
 %license doc/COPYING.LGPL
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_libdir}/*.so.*
 %exclude %{_cross_sysconfdir}/xattr.conf
 %exclude %{_cross_bindir}
