@@ -180,4 +180,10 @@ impl ReportResults {
         self.results
             .insert(metadata.name.clone(), IndividualResult { metadata, result });
     }
+
+    pub fn contain_known_fail_check(&self, target_id: String) -> bool {
+        self.results.values().any(|result| {
+            result.metadata.id == target_id && result.result.status == CheckStatus::FAIL
+        })
+    }
 }

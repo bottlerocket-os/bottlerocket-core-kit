@@ -43,7 +43,13 @@ impl ReportWriter for TextReportWriter {
         writeln!(output, "{:17}{}", "Skipped:", report.skipped)?;
         writeln!(output, "{:17}{}", "Total checks:", report.total)?;
         writeln!(output)?;
-        writeln!(output, "Compliance check result: {}", report.status)
+        if report.contain_known_fail_check("3.4.1.1".to_string()) {
+            writeln!(
+                output,
+                "\x1b[93m WARNING: For Kubernetes Variants, DROP will be unconditionally overwritten. If this applies to you, work with your auditor for an exception. See https://github.com/bottlerocket-os/bottlerocket-core-kit/issues/540 for more details.\x1b[0m"
+            )?;
+        }
+        writeln!(output, "Compliance check result: {} ", report.status)
     }
 }
 
