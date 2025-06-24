@@ -32,16 +32,22 @@ Requires: %{_cross_os}iptables
 
 go build -ldflags="${GOLDFLAGS}" -o "bin/cnitool" %{goimport}/cnitool
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_libexecdir}/cni/bin
 install -p -m 0755 bin/cnitool %{buildroot}%{_cross_libexecdir}/cni/bin
 
 %cross_scan_attribution go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
 %{_cross_libexecdir}/cni/bin/cnitool
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %changelog
