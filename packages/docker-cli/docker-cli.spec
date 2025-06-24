@@ -64,6 +64,8 @@ BUILD_ARGS=(
 go build "${BUILD_ARGS[@]}" -o docker %{goimport}/cmd/docker
 gofips build "${BUILD_ARGS[@]}" -o fips/docker %{goimport}/cmd/docker
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 docker %{buildroot}%{_cross_bindir}
@@ -73,10 +75,14 @@ install -p -m 0755 fips/docker %{buildroot}%{_cross_fips_bindir}
 
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %license LICENSE NOTICE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files bin
 %{_cross_bindir}/docker
