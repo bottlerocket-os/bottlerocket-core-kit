@@ -26,6 +26,7 @@ CXFLAGS="%{_cross_cflags} -DNO_COROSYNC -DNO_DLM" \
 %build
 %set_env
 make LDFLAGS="%{_cross_ldflags}"
+%cross_generate_sbom
 
 %install
 %set_env
@@ -35,10 +36,13 @@ make install-systemd DESTDIR= SYSTEMD_DIR=%{buildroot}%{_cross_unitdir}
 
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:100} %{buildroot}%{_cross_tmpfilesdir}/mdadm.conf
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %{_cross_sbindir}/mdadm
 %{_cross_sbindir}/mdmon
