@@ -57,6 +57,8 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 go build -ldflags "-X 'main.Version=${gover}' ${GOLDFLAGS}" -o aws-signing-helper main.go
 gofips build -ldflags "-X 'main.Version=${gover}' ${GOLDFLAGS}" -o fips/aws-signing-helper main.go
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 aws-signing-helper %{buildroot}%{_cross_bindir}/aws_signing_helper
@@ -78,12 +80,16 @@ install -d %{buildroot}%{_cross_datadir}/brush
 install -p -m 0755 %{S:2} %{buildroot}%{_cross_datadir}/brush/aws_signing_helper.toml
 ln -sf aws_signing_helper.toml %{buildroot}%{_cross_datadir}/brush/aws-signing-helper.toml
 
+%cross_install_sbom
+
 %cross_scan_attribution go-vendor vendor
 
 %files
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_datadir}/brush/aws_signing_helper.toml
 %{_cross_datadir}/brush/aws-signing-helper.toml
 %{_cross_libexecdir}/brush/allowed-programs/aws_signing_helper
