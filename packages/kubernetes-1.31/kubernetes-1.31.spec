@@ -184,6 +184,8 @@ install -m 0644 %{S:101} image/manifest.json
 
 %tar_cf ../../../_output/local/bin/linux/%{_cross_go_arch}/kubernetes-pause.tar -C image .
 
+%cross_generate_sbom
+
 %install
 output="./_output/local/bin/linux/%{_cross_go_arch}"
 install -d %{buildroot}%{_cross_bindir}
@@ -232,6 +234,8 @@ install -d %{buildroot}%{_cross_libexecdir}/kubernetes
 install -p -m 0644 ${output}/kubernetes-pause.tar %{buildroot}%{_cross_libexecdir}/kubernetes
 install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-container-image
 
+%cross_install_sbom
+
 %files -n %{_cross_os}kubelet-1.31
 %license LICENSE LICENSE.gonum.graph LICENSE.shell2junit LICENSE.golang PATENTS.golang
 %{_cross_attribution_file}
@@ -260,6 +264,8 @@ install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-containe
 %{_cross_libexecdir}/kubernetes/kubernetes-pause.tar
 %{_cross_templatedir}/pod-infra-container-image
 %{_cross_datadir}/logdog.d/logdog.kubelet.conf
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files -n %{_cross_os}kubelet-1.31-bin
 %{_cross_bindir}/kubelet
