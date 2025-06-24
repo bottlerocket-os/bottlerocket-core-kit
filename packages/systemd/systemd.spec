@@ -317,6 +317,8 @@ CONFIGURE_OPTS=(
 %cross_meson "${CONFIGURE_OPTS[@]}"
 %cross_meson_build
 
+%cross_generate_sbom
+
 %install
 %cross_meson_install
 
@@ -358,9 +360,13 @@ install -p -m 0644 %{S:4} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/i
 # Remove any README files.
 find %{buildroot} -type f -name README -print -delete
 
+%cross_install_sbom
+
 %files
 %license LICENSE.GPL2 LICENSE.LGPL2.1
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/busctl
 %{_cross_bindir}/journalctl
 %{_cross_bindir}/systemctl
