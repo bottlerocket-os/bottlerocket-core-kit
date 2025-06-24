@@ -53,6 +53,7 @@ for d in $(find plugins -mindepth 2 -maxdepth 2 -type d ! -name windows) ; do
   go build -ldflags="${GOLDFLAGS}" -o "bin/${d##*/}" %{goimport}/${d}
   gofips build -ldflags="${GOLDFLAGS}" -o "fips/bin/${d##*/}" %{goimport}/${d}
 done
+%cross_generate_sbom
 
 %install
 install -d %{buildroot}%{_cross_libexecdir}/cni/bin
@@ -65,12 +66,15 @@ install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:1} %{buildroot}%{_cross_tmpfilesdir}/cni-plugins.conf
 
 %cross_scan_attribution go-vendor vendor
+%cross_install_sbom
 
 %files
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
 %{_cross_tmpfilesdir}/cni-plugins.conf
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files bin
 %{_cross_libexecdir}/cni/bin/loopback
