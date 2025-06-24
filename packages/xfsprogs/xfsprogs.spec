@@ -40,16 +40,20 @@ Requires: %{name}
   --enable-scrub=no
 
 %make_build
+%cross_generate_sbom
 
 %install
 make DIST_ROOT=%{buildroot} install install-dev \
   PKG_ROOT_SBIN_DIR=%{_cross_sbindir} PKG_ROOT_LIB_DIR=%{_cross_libdir}
 
 rm -f %{buildroot}/%{_cross_libdir}/*.{la,a}
+%cross_install_sbom
 
 %files
 %license LICENSES/GPL-2.0 LICENSES/LGPL-2.1
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_libdir}/*.so.*
 %{_cross_sbindir}/mkfs.xfs
 %{_cross_sbindir}/xfs_copy
