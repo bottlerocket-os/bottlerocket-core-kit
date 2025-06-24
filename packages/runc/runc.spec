@@ -67,6 +67,8 @@ BUILD_ARGS=(
 go build "${BUILD_ARGS[@]}" -o bin/runc .
 gofips build "${BUILD_ARGS[@]}" -o fips/bin/runc .
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 bin/runc %{buildroot}%{_cross_bindir}
@@ -76,10 +78,14 @@ install -p -m 0755 fips/bin/runc %{buildroot}%{_cross_fips_bindir}
 
 %cross_scan_attribution go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %license LICENSE NOTICE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files bin
 %{_cross_bindir}/runc
