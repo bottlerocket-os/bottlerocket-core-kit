@@ -152,6 +152,7 @@ Requires: %{_cross_os}libkcapi
 %prep
 
 %build
+%cross_generate_sbom
 
 %install
 install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}
@@ -271,6 +272,8 @@ install -p -m 0644 %{S:1500} %{buildroot}%{_cross_bootconfigdir}/10-fips.conf
 
 ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 
+%cross_install_sbom
+
 %files
 %{_cross_factorydir}%{_cross_sysconfdir}/nsswitch.conf
 %{_cross_sysctldir}/80-release.conf
@@ -342,6 +345,8 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_templatedir}/log4j-hotpatch-enabled
 %{_cross_udevrulesdir}/61-mount-cdrom.rules
 %{_cross_datadir}/logdog.d/logdog.common.conf
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files fips
 %{_cross_bootconfigdir}/10-fips.conf
