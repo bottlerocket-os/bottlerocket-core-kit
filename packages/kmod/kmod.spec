@@ -60,6 +60,8 @@ pushd dynamic-build
 
 popd
 
+%cross_generate_sbom
+
 %install
 pushd dynamic-build
 %make_install
@@ -72,9 +74,13 @@ install -d %{buildroot}%{_cross_sbindir}
 ln -s ../bin/kmod %{buildroot}%{_cross_sbindir}/modprobe
 popd
 
+%cross_install_sbom
+
 %files
 %license COPYING.LGPL COPYING.GPL
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/kmod
 %{_cross_bindir}/depmod
 %{_cross_bindir}/insmod
