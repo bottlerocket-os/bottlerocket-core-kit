@@ -58,6 +58,8 @@ export GOLDFLAGS="-compressdwarf=false -linkmode=external -extldflags '${CGO_LDF
 go build -ldflags="${GOLDFLAGS}" -o nvidia-device-plugin ./cmd/nvidia-device-plugin/
 gofips build -ldflags="${GOLDFLAGS}" -o fips/nvidia-device-plugin ./cmd/nvidia-device-plugin/
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 nvidia-device-plugin %{buildroot}%{_cross_bindir}
@@ -72,10 +74,14 @@ install -D -m 0644 %{S:2} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-pl
 install -D -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf
 install -D -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-mig-conf
 
+%cross_install_sbom
+
 
 %files
 %license LICENSE
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_unitdir}/nvidia-k8s-device-plugin.service
 %dir %{_cross_unitdir}/nvidia-k8s-device-plugin.service.d
 %{_cross_templatedir}/nvidia-k8s-device-plugin-conf
