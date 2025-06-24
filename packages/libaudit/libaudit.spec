@@ -52,6 +52,7 @@ autoreconf -fi
 %force_disable_rpath
 
 %make_build
+%cross_generate_sbom
 
 %install
 make DESTDIR=%{buildroot} -C lib install
@@ -69,11 +70,15 @@ install -p -m 0644 %{S:10} %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_datadir}/audit
 install -p -m 0644 %{S:11} %{buildroot}%{_cross_datadir}/audit
 
+%cross_install_sbom
+
 
 %files
 %license COPYING COPYING.LIB
 %{_cross_attribution_file}
 %{_cross_libdir}/*.so.*
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files devel
 %{_cross_libdir}/*.a
