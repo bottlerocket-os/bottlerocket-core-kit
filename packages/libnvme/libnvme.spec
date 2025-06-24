@@ -36,14 +36,18 @@ CONFIGURE_OPTS=(
 
 %cross_meson "${CONFIGURE_OPTS[@]}"
 %cross_meson_build
+%cross_generate_sbom
 
 %install
 %cross_meson_install
+%cross_install_sbom
 
 %files
 %license COPYING ccan/licenses/BSD-MIT ccan/licenses/CC0
 %{_cross_libdir}/*.so.*
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files devel
 %{_cross_includedir}/*.h
