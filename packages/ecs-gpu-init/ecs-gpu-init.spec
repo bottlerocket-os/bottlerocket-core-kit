@@ -28,6 +28,8 @@ export CGO_LDFLAGS="-Wl,-z,relro -Wl,--export-dynamic"
 export GOLDFLAGS="-compressdwarf=false -linkmode=external -extldflags '${CGO_LDFLAGS}'"
 go build -ldflags="${GOLDFLAGS}" -o ecs-gpu-init ./cmd/ecs-gpu-init
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 ecs-gpu-init %{buildroot}%{_cross_bindir}
@@ -39,10 +41,14 @@ install -D -p -m 0644 %{S:2} %{buildroot}%{_cross_tmpfilesdir}/ecs-gpu-init.conf
 
 %cross_scan_attribution go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %{_cross_attribution_vendor_dir}
 %{_cross_bindir}/ecs-gpu-init
 %{_cross_unitdir}/ecs-gpu-init.service
 %{_cross_tmpfilesdir}/ecs-gpu-init.conf
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %changelog
