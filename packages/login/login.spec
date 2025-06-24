@@ -20,6 +20,7 @@ Source1: getty.drop-in.conf
 %prep
 
 %build
+%cross_generate_sbom
 
 %install
 install -d %{buildroot}%{_cross_bindir}
@@ -31,9 +32,13 @@ ln -s ../bin/login %{buildroot}%{_cross_sbindir}/sulogin
 install -d %{buildroot}%{_cross_unitdir}/getty.target.d
 install -p -m 0644 %{S:1} %{buildroot}%{_cross_unitdir}/getty.target.d/001-login.conf
 
+%cross_install_sbom
+
 %files
 %{_cross_bindir}/login
 %{_cross_sbindir}/sulogin
 %{_cross_unitdir}/getty.target.d/001-login.conf
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %changelog
