@@ -62,6 +62,8 @@ Requires: %{_cross_os}e2fsprogs-libs
 
 %make_build
 
+%cross_generate_sbom
+
 %install
 %make_install install-libs \
   root_sbindir=%{_cross_sbindir} \
@@ -75,9 +77,13 @@ install -p -m 0644 %{S:10} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:11} %{buildroot}%{_cross_tmpfilesdir}/e2fsprogs.conf
 
+%cross_install_sbom
+
 %files
 %license debian/copyright
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_sbindir}/badblocks
 %{_cross_sbindir}/dumpe2fs
 %{_cross_sbindir}/e2fsck
