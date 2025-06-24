@@ -46,6 +46,7 @@ CC=%{_cross_target}-gcc \
  --enable-scfilter
 
 %make_build
+%cross_generate_sbom
 
 %install
 %make_install
@@ -59,9 +60,13 @@ install -p -m 0644 %{S:13} %{buildroot}%{_cross_sysusersdir}/chrony.conf
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:14} %{buildroot}%{_cross_tmpfilesdir}/chrony.conf
 
+%cross_install_sbom
+
 %files
 %license COPYING
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %dir %{_cross_templatedir}
 %{_cross_sbindir}/chronyd
 %{_cross_templatedir}/chrony-conf
