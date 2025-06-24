@@ -77,6 +77,8 @@ echo "** Build Netdog Binaries"
     --features wicked \
     --target-dir=${HOME}/.cache/wicked
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_libexecdir}/hostname-detectors
 install -p -m 0755 ${HOME}/.cache/dogtag/%{__cargo_target}/release/20-imds %{buildroot}%{_cross_libexecdir}/hostname-detectors/20-imds
@@ -96,6 +98,8 @@ install -d %{buildroot}%{_cross_libdir}
 install -d %{buildroot}%{_cross_libdir}/systemd/resolved.conf.d
 install -p -m 0644 %{S:20} %{buildroot}%{_cross_libdir}/systemd/resolved.conf.d
 
+%cross_install_sbom
+
 %post wicked -p <lua>
 posix.symlink("netdog-wicked", "%{_cross_bindir}/netdog")
 
@@ -107,6 +111,8 @@ posix.symlink("netdog-systemd-networkd", "%{_cross_bindir}/netdog")
 %{_cross_unitdir}/generate-network-config.service
 %{_cross_unitdir}/disable-udp-offload.service
 %{_cross_unitdir}/run-netdog.mount
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files -n %{_cross_os}hostname-reverse-dns
 %{_cross_libexecdir}/hostname-detectors/10-reverse-dns
