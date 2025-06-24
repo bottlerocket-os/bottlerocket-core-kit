@@ -51,6 +51,7 @@ cp -p \
 %build
 %{_sourcedir}/catgen.sh > category.cil
 secilc --policyvers=31 *.cil
+%cross_generate_sbom
 
 %install
 poldir="%{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/selinux"
@@ -78,6 +79,8 @@ install -p -m 0644 %{S:102} %{buildroot}%{_cross_unitdir}/selinux-policy-files.s
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:103} %{buildroot}%{_cross_tmpfilesdir}/selinux-policy.conf
 
+%cross_install_sbom
+
 %files
 %{_cross_factorydir}%{_cross_sysconfdir}/selinux/config
 %{_cross_factorydir}%{_cross_sysconfdir}/selinux/%{policytype}/contexts/files/file_contexts
@@ -87,5 +90,7 @@ install -p -m 0644 %{S:103} %{buildroot}%{_cross_tmpfilesdir}/selinux-policy.con
 %{_cross_sysconfdir}/selinux
 %{_cross_tmpfilesdir}/selinux-policy.conf
 %{_cross_unitdir}/selinux-policy-files.service
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %changelog
