@@ -65,6 +65,8 @@ Requires: %{name}
 
 make %{?_smp_mflags} libs
 
+%cross_generate_sbom
+
 %install
 make DESTDIR=%{buildroot} install.{libs,data,includes}
 chmod 755 %{buildroot}%{_cross_libdir}/lib*.so.*.*
@@ -97,9 +99,13 @@ do
 done
 rm -rf "%{buildroot}%{_cross_datadir}/terminfo.bak"
 
+%cross_install_sbom
+
 %files
 %license COPYING
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_libdir}/lib*.so.6*
 %dir %{_cross_datadir}/terminfo
 %{_cross_datadir}/terminfo/*
