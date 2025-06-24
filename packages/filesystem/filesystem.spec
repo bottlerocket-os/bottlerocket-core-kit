@@ -24,6 +24,7 @@ Conflicts: %{_cross_os}image-feature(no-fips)
 %prep
 
 %build
+%cross_generate_sbom
 
 %install
 mkdir -p %{buildroot}%{_cross_rootdir}
@@ -54,11 +55,15 @@ ln -s lib %{buildroot}%{_cross_prefix}/lib64
 ln -s .%{_bindir} %{buildroot}/bin
 ln -s .%{_sbindir} %{buildroot}/sbin
 
+%cross_install_sbom
+
 %files
 %dir %{_cross_rootdir}
 %{_cross_rootdir}/*
 %dir %{_cross_sysconfdir}
 %dir %{_cross_localstatedir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %{_prefix}
 /bin
