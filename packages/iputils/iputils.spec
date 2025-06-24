@@ -37,13 +37,17 @@ CONFIGURE_OPTS=(
 
 %cross_meson "${CONFIGURE_OPTS[@]}"
 %cross_meson_build
+%cross_generate_sbom
 
 %install
 %cross_meson_install
+%cross_install_sbom
 
 %files
 %license LICENSE Documentation/LICENSE.GPL2 Documentation/LICENSE.BSD3
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %attr(0755,root,root) %caps(cap_net_raw=p) %{_cross_bindir}/arping
 %attr(0755,root,root) %caps(cap_net_raw=p cap_net_admin=p) %{_cross_bindir}/ping
 %{_cross_bindir}/tracepath
