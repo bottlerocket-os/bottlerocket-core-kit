@@ -76,14 +76,18 @@ export \
 )
 
 make "CPPFLAGS=-D_GNU_SOURCE -DRECYCLES_PIDS -DDEFAULT_PATH_VALUE='\"/usr/local/bin:/usr/bin\"'" %{?_smp_mflags}
+%cross_generate_sbom
 
 %install
 %make_install install-headers
 ln -s bash %{buildroot}%{_cross_bindir}/sh
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/bash
 %{_cross_bindir}/sh
 %exclude %{_cross_bindir}/bashbug
