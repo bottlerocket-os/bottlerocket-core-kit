@@ -43,6 +43,7 @@ CONFIGURE_OPTS=(
 
 %cross_meson "${CONFIGURE_OPTS[@]}"
 %cross_meson_build
+%cross_generate_sbom
 
 %install
 %cross_meson_install
@@ -56,9 +57,13 @@ install -p -m 0644 %{S:12} %{buildroot}%{_cross_datadir}/dbus-1/system.conf
 install -d %{buildroot}%{_cross_sysusersdir}
 install -p -m 0644 %{S:13} %{buildroot}%{_cross_sysusersdir}/dbus.conf
 
+%cross_install_sbom
+
 %files
 %license LICENSE
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/dbus-broker
 %{_cross_bindir}/dbus-broker-launch
 %dir %{_cross_datadir}/dbus-1
