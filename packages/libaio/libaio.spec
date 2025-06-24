@@ -27,6 +27,7 @@ Requires: %{name}
 %build
 %set_cross_build_flags
 %make_build CC="%{_cross_target}-gcc"
+%cross_generate_sbom
 
 %install
 make \
@@ -36,11 +37,14 @@ make \
   usrlibdir=%{_cross_libdir} \
   includedir=%{_cross_includedir} \
   install
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_attribution_file}
 %{_cross_libdir}/libaio.so.*
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files devel
 %{_cross_libdir}/libaio.a
