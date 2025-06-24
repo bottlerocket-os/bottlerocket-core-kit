@@ -70,6 +70,8 @@ Requires: %{name}-local
 %endif
     %{nil}
 
+%cross_generate_sbom
+
 %global early_boot_config_bindir %{_cross_libexecdir}/early-boot-config/bin
 %global early_boot_config_provider_dir %{_cross_libexecdir}/early-boot-config/data-providers.d
 
@@ -128,10 +130,14 @@ ln -rs \
   %{buildroot}%{early_boot_config_provider_dir}/40-vmware-guestinfo
 %endif
 
+%cross_install_sbom
+
 %files
 %{_cross_bindir}/early-boot-config
 %{_cross_unitdir}/early-boot-config.service
 %dir %{early_boot_config_provider_dir}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files local
 %{early_boot_config_bindir}/local-defaults-user-data-provider
