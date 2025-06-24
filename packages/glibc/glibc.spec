@@ -137,6 +137,8 @@ CC="%{_cross_target}-gcc %{?_cross_arch_cflags}" CXX="%{_cross_target}-g++ %{?_c
 make %{?_smp_mflags} -O -r
 popd
 
+%cross_generate_sbom
+
 %install
 pushd build
 make -j1 install_root=%{buildroot} install
@@ -168,9 +170,13 @@ chmod 644 %{buildroot}%{_cross_datadir}/locale/locale.alias
 install -d %{buildroot}%{_cross_datadir}/zoneinfo
 base64 --decode %{S:14} > %{buildroot}%{_cross_datadir}/zoneinfo/UTC
 
+%cross_install_sbom
+
 %files
 %license COPYING COPYING.LIB LICENSES
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_tmpfilesdir}/glibc.conf
 %exclude %{_cross_sysconfdir}/rpc
 
