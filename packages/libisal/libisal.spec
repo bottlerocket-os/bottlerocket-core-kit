@@ -45,13 +45,19 @@ autoreconf -fi
 
 %make_build
 
+%cross_generate_sbom
+
 %install
 %make_install
+
+%cross_install_sbom
 
 %files
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_libdir}/*.so.*
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %exclude %{_cross_mandir}
 
 %files devel
