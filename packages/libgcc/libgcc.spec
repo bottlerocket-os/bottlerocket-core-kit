@@ -29,6 +29,7 @@ cp %{_cross_licensedir}/gcc/COPYING{3,.RUNTIME} .
 %build
 install -p -m0755 %{_cross_libdir}/libgcc_s.so.1 .
 install -p -m0755 %{_cross_libdir}/libstdc++.so.6.* .
+%cross_generate_sbom
 
 %install
 mkdir -p %{buildroot}%{_cross_libdir}
@@ -37,11 +38,14 @@ install -p -m0755 libstdc++.so.6.* %{buildroot}%{_cross_libdir}
 for lib in $(find %{buildroot}%{_cross_libdir} -name 'libstdc++.so.6.*') ; do
   ln -s "${lib##*/}" %{buildroot}%{_cross_libdir}/libstdc++.so.6
 done
+%cross_install_sbom
 
 %files
 %license COPYING3 COPYING.RUNTIME
 %{_cross_attribution_file}
 %{_cross_libdir}/libgcc_s.so.1
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files -n %{_cross_os}libstdc++
 %{_cross_libdir}/libstdc++.so.6
