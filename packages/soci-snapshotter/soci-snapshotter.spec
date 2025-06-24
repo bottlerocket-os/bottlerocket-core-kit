@@ -59,6 +59,8 @@ go build -C cmd -ldflags="${GOLDFLAGS} ${LD_VERSION} ${LD_REVISION}" -o "../out/
 gofips build -C cmd -ldflags="${GOLDFLAGS} ${LD_VERSION} ${LD_REVISION}" -o "../out/fips/soci-snapshotter-grpc" ./soci-snapshotter-grpc
 gofips build -C cmd -ldflags="${GOLDFLAGS} ${LD_VERSION} ${LD_REVISION}" -o "../out/fips/soci" ./soci
 
+%cross_generate_sbom
+
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -d %{buildroot}%{_cross_fips_bindir}
@@ -72,12 +74,16 @@ install -D -p -m 0644 %{S:102} %{buildroot}%{_cross_unitdir}
 
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
+%cross_install_sbom
+
 %files
 %license LICENSE NOTICE.md
 %{_cross_unitdir}/soci-snapshotter.service
 %{_cross_unitdir}/soci-snapshotter.socket
 %{_cross_attribution_vendor_dir}
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 
 %files bin
 %{_cross_bindir}/soci-snapshotter-grpc
