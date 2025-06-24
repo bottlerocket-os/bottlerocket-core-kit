@@ -37,13 +37,17 @@ Requires: %{_cross_os}libxcrypt
   --without-openssl \
 
 %make_build
+%cross_generate_sbom
 
 %install
 %make_install
+%cross_install_sbom
 
 %files
 %license COPYING
 %{_cross_attribution_file}
+%{_cross_sbom_package_dir}/%{name}-spdx.json
+%{_cross_sbom_package_dir}/%{name}-cyclonedx.json
 %{_cross_bindir}/[
 %{_cross_bindir}/b2sum
 %{_cross_bindir}/base32
