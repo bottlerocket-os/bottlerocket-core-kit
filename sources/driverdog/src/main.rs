@@ -15,15 +15,21 @@ modes iterate over the `kernel-modules` and load them from that path with `modpr
 #[macro_use]
 extern crate log;
 
+use std::io;
+use std::{
+    collections::HashMap,
+    ffi::OsStr,
+    fs,
+    path::{Path, PathBuf},
+    process::{self, Command},
+};
+use tempfile::NamedTempFile;
+
 use argh::FromArgs;
+use early_boot_config_provider::compression::OptionalCompressionReader;
 use serde::Deserialize;
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use snafu::{ensure, OptionExt, ResultExt};
-use std::collections::HashMap;
-use std::ffi::OsStr;
-use std::fs;
-use std::path::{Path, PathBuf};
-use std::process::{self, Command};
 
 /// Path to the drivers configuration to use
 const DEFAULT_DRIVER_CONFIG_PATH: &str = "/etc/drivers/";
@@ -80,6 +86,56 @@ struct LinkModulesArgs {}
 #[derive(FromArgs, Debug, PartialEq)]
 #[argh(subcommand, name = "load-modules")]
 struct LoadModulesArgs {}
+
+/// Checks if there is a compressed file at the path provided and if so, provides the path with the extension
+pub(crate) fn is_compressed(file_path: &Path) -> Option<PathBuf> {
+    if !file_path.exists() {
+        let compressed_path = file_path.with_extension("o.gz");
+        if compressed_path.exists() {
+            return Some(compressed_path);
+        }
+    }
+    None
+}
+
+/// Copies a file to the destination, decompressing if necessary.
+///
+/// Uses OptionalCompressionReader to automatically detect and decompress
+/// gzip-compressed files. The original file is left intact.
+fn copy_and_decompress(source_path: &Path, destination: &Path) -> Result<()> {
+    let source_file =
+        fs::File::open(source_path).context(error::OpenFileSnafu { path: source_path })?;
+
+    let mut reader = OptionalCompressionReader::new(source_file);
+
+    // Create a temporary file in the destination directory
+    let destination_dir = destination
+        .parent()
+        .ok_or_else(|| error::Error::InvalidFileName {
+            path: destination.to_path_buf(),
+        })?;
+
+    let mut temp_file = NamedTempFile::new_in(destination_dir)
+        .context(error::CreateFileSnafu { path: destination })?;
+
+    io::copy(&mut reader, &mut temp_file).context(error::DecompressSnafu {
+        from: source_path,
+        to: destination,
+    })?;
+
+    // Atomically move the temporary file to the final destination
+    temp_file
+        .persist(destination)
+        .context(error::PersistTempFileSnafu { path: destination })?;
+
+    info!(
+        "Copied and decompressed {} to {}",
+        source_path.display(),
+        destination.display()
+    );
+
+    Ok(())
+}
 
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
@@ -219,10 +275,16 @@ where
         let object_file_path = build_dir.join(object_file);
         if !object_file_path.exists() {
             let from = driver_path.join(object_file);
-            fs::copy(&from, &object_file_path).context(error::CopySnafu {
-                from: &from,
-                to: &object_file_path,
-            })?;
+            match is_compressed(&from) {
+                Some(compressed_path) => {
+                    info!("Found compressed file: {:?}", compressed_path);
+                    copy_and_decompress(&compressed_path, &object_file_path)?;
+                }
+                None => {
+                    info!("Copying {:?}", &from);
+                    copy_and_decompress(&from, &object_file_path)?;
+                }
+            }
         }
         dependencies_paths.push(object_file_path.to_string_lossy().into_owned());
     }
@@ -271,7 +333,7 @@ where
         .to_string_lossy()
         .into_owned();
     // Paths to the dependencies for this object file
-    let mut dependencies = object_file
+    let mut dependencies: Vec<String> = object_file
         .link_objects
         .iter()
         .map(|d| {
@@ -281,6 +343,20 @@ where
                 .into_owned()
         })
         .collect();
+
+    for dependency in &mut dependencies {
+        let dep_path = PathBuf::from(dependency.as_str());
+        if let Some(compressed_path) = is_compressed(&dep_path) {
+            let uncompressed = build_dir.join(
+                dep_path
+                    .file_name()
+                    .context(error::InvalidFileNameSnafu { path: &dep_path })?,
+            );
+            info!("Decompressing to {:?}", &uncompressed);
+            copy_and_decompress(&compressed_path, &uncompressed)?;
+            *dependency = uncompressed.to_string_lossy().into_owned();
+        }
+    }
 
     // Link the object file
     let mut args = vec!["-r".to_string(), "-o".to_string(), object_path.clone()];
@@ -468,10 +544,13 @@ fn main() {
 }
 
 /// ＜コ：ミ くコ:彡 ＜コ：ミ くコ:彡 ＜コ：ミ くコ:彡 ＜コ：ミ くコ:彡 ＜コ：ミ くコ:彡 ＜コ：ミ くコ:彡
+/// Error types for driverdog operations
 mod error {
     use snafu::Snafu;
-    use std::path::PathBuf;
-    use std::process::{Command, Output};
+    use std::{
+        path::PathBuf,
+        process::{Command, Output},
+    };
 
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
@@ -482,6 +561,24 @@ mod error {
 
         #[snafu(display("Failed to copy '{}' to '{}': {}", from.display(), to.display(), source))]
         Copy {
+            from: PathBuf,
+            to: PathBuf,
+            source: std::io::Error,
+        },
+
+        #[snafu(display("Failed to create file '{}': {}", path.display(), source))]
+        CreateFile {
+            path: PathBuf,
+            source: std::io::Error,
+        },
+
+        #[snafu(display(
+            "Failed to decompress '{}' to '{}': {}",
+            from.display(),
+            to.display(),
+            source
+        ))]
+        Decompress {
             from: PathBuf,
             to: PathBuf,
             source: std::io::Error,
@@ -499,6 +596,16 @@ mod error {
             source: std::io::Error,
         },
 
+        #[snafu(display("Path '{}' has no filename", path.display()))]
+        InvalidFileName { path: PathBuf },
+
+        /// Failed to move temporary file to final destination.
+        #[snafu(display("Failed to move temporary file to {}: {}", path.display(), source))]
+        PersistTempFile {
+            path: PathBuf,
+            source: tempfile::PersistError,
+        },
+
         #[snafu(display("Module path '{}' is not UTF-8", path.display()))]
         InvalidModulePath { path: PathBuf },
 
@@ -514,6 +621,12 @@ mod error {
             source: std::io::Error,
         },
 
+        #[snafu(display("Failed to open file '{}': {}", path.display(), source))]
+        OpenFile {
+            path: PathBuf,
+            source: std::io::Error,
+        },
+
         #[snafu(display("Failed to create temporary directory: {}", source))]
         TmpDir { source: std::io::Error },
     }
@@ -524,11 +637,50 @@ type Result<T> = std::result::Result<T, error::Error>;
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::fs::File;
     use std::path::PathBuf;
+    use tempfile::TempDir;
     use walkdir::WalkDir;
 
     fn test_data() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/tests")
+    }
+
+    fn setup_compression_test_files() -> TempDir {
+        let temp_dir = tempfile::tempdir().expect("Failed to create temp directory");
+
+        let regular_file_path = temp_dir.path().join("module.o");
+        File::create(&regular_file_path).expect("Failed to create regular file");
+
+        let compressed_file_path = temp_dir.path().join("compressed_module.o.gz");
+        File::create(&compressed_file_path).expect("Failed to create compressed file");
+        temp_dir
+    }
+
+    #[test]
+    fn test_is_compressed_with_existing_file() {
+        let temp_dir = setup_compression_test_files();
+        let regular_file_path = temp_dir.path().join("module.o");
+        let result = is_compressed(&regular_file_path);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_is_compressed_with_compressed_alternative() {
+        let temp_dir = setup_compression_test_files();
+        let non_existent_path = temp_dir.path().join("compressed_module.o");
+        let compressed_path = temp_dir.path().join("compressed_module.o.gz");
+        let result = is_compressed(&non_existent_path);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), compressed_path);
+    }
+
+    #[test]
+    fn test_is_compressed_with_no_alternative() {
+        let temp_dir = setup_compression_test_files();
+        let non_existent_path = temp_dir.path().join("nonexistent.o");
+        let result = is_compressed(&non_existent_path);
+        assert!(result.is_none());
     }
 
     #[test]

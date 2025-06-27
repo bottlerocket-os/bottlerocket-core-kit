@@ -2165,6 +2165,7 @@ name = "driverdog"
 version = "0.1.0"
 dependencies = [
  "argh",
+ "early-boot-config-provider",
  "generate-readme",
  "log",
  "serde",

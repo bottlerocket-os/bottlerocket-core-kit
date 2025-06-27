@@ -10,6 +10,7 @@ exclude = ["README.md"]
 
 [dependencies]
 argh.workspace = true
+early-boot-config-provider.workspace = true
 log.workspace = true
 simplelog.workspace = true
 snafu.workspace = true
