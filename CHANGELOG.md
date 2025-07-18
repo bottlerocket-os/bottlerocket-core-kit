@@ -1,3 +1,10 @@
+# v9.2.1 (2025-07-24)
+
+## OS Changes
+* Add latest instance types to `eni-max-pods` mapping ([96d45ad5])
+
+[96d45ad5]: https://github.com/bottlerocket-os/bottlerocket-core-kit/commit/96d45ad5348c593978ed08bf354c0e10fc49e8b0
+
 # v9.2.0 (2025-07-16)
 
 ## OS Changes
