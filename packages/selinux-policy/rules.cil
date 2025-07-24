@@ -200,7 +200,7 @@
 ; for files in /etc.
 (allow trusted_s etc_t (files (mutate mount)))
 
-; wicked calls netdog which writes /etc/resolv.conf.
+; systemd-networkd calls netdog which writes /etc/resolv.conf.
 (allow network_t etc_t (files (mutate)))
 
 ; Privileged subjects are allowed to write to and manage mounts for
