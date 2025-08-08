@@ -18,7 +18,6 @@ RestartSec=2
 Restart=always
 LimitNPROC=infinity
 LimitCORE=infinity
-LimitNOFILE=infinity
 TasksMax=infinity
 OOMScoreAdjust=-999
 
