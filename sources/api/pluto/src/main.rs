@@ -36,11 +36,15 @@ mod aws;
 mod ec2;
 mod eks;
 
+#[macro_use]
+extern crate log;
+
 use api::{settings_view_get, settings_view_set, SettingsViewDelta};
 use aws_smithy_experimental::hyper_1_0::CryptoMode;
 use base64::Engine;
 use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
 use imdsclient::ImdsClient;
+use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use snafu::{ensure, OptionExt, ResultExt};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
@@ -136,9 +140,6 @@ mod error {
         #[snafu(display("Failed to read line: {}", source))]
         IoReadLine { source: std::io::Error },
 
-        #[snafu(display("Failed to serialize generated settings: {}", source))]
-        Serialize { source: serde_json::Error },
-
         #[snafu(display("Failed to set generated settings: {}", source))]
         SetFailure { source: api::Error },
 
@@ -162,6 +163,9 @@ mod error {
 
         #[snafu(display("Unable to create tempdir: {}", source))]
         Tempdir { source: std::io::Error },
+
+        #[snafu(display("Logger setup error: {}", source))]
+        Logger { source: log::SetLoggerError },
     }
 }
 
@@ -488,6 +492,11 @@ fn set_aws_config(aws_k8s_info: &SettingsViewDelta, filepath: &Path) -> Result<(
 }
 
 async fn run() -> Result<()> {
+    // SimpleLogger will send errors to stderr and anything less to stdout.
+    SimpleLogger::init(LevelFilter::Info, LogConfig::default()).context(error::LoggerSnafu)?;
+    info!("Pluto started");
+
+    info!("Retrieving settings values");
     let mut client = ImdsClient::new();
     let current_settings = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
     let mut aws_k8s_info = SettingsViewDelta::from_api_response(current_settings);
@@ -498,6 +507,7 @@ async fn run() -> Result<()> {
     let aws_config_file_path = temp_dir.path().join(AWS_CONFIG_FILE);
     set_aws_config(&aws_k8s_info, Path::new(&aws_config_file_path))?;
 
+    info!("Generating kubernetes settings");
     generate_cluster_dns_ip(&mut client, &mut aws_k8s_info).await?;
     generate_node_ip(&mut client, &mut aws_k8s_info).await?;
     generate_max_pods(&mut client, &mut aws_k8s_info).await?;
@@ -505,16 +515,8 @@ async fn run() -> Result<()> {
     generate_node_name(&mut client, &mut aws_k8s_info).await?;
 
     if let Some(k8s_settings) = &aws_k8s_info.delta().kubernetes {
-        let generated_settings = serde_json::json!({
-            "kubernetes": serde_json::to_value(k8s_settings).context(error::SerializeSnafu)?
-        });
-        let json_str = generated_settings.to_string();
-        let uri = &format!(
-            "{}?tx={}",
-            constants::API_SETTINGS_URI,
-            constants::LAUNCH_TRANSACTION
-        );
-        api::client_command(&["raw", "-m", "PATCH", "-u", uri, "-d", json_str.as_str()])
+        info!("Sending settings values to the API");
+        api::set_settings(k8s_settings)
             .await
             .context(error::SetFailureSnafu)?;
     }

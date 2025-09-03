@@ -13,6 +13,7 @@ exclude = ["README.md"]
 fips = ["aws-lc-rs/fips", "aws-smithy-experimental/crypto-aws-lc-fips", "rustls/fips"]
 
 [dependencies]
+apiclient.workspace = true
 aws-config.workspace = true
 aws-lc-rs = { workspace = true, features = ["bindgen"] }
 aws-sdk-eks.workspace = true
@@ -24,10 +25,13 @@ base64.workspace = true
 bottlerocket-modeled-types.workspace = true
 bottlerocket-settings-models.workspace = true
 constants.workspace = true
+http.workspace = true
 imdsclient.workspace = true
+log.workspace = true
 rustls.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+simplelog.workspace = true
 snafu.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

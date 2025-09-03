@@ -4012,6 +4012,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 name = "pluto"
 version = "0.1.0"
 dependencies = [
+ "apiclient",
  "aws-config",
  "aws-lc-rs",
  "aws-sdk-ec2",
@@ -4024,11 +4025,14 @@ dependencies = [
  "bottlerocket-settings-models",
  "constants",
  "generate-readme",
+ "http 0.2.12",
  "httptest",
  "imdsclient",
+ "log",
  "rustls 0.23.31",
  "serde",
  "serde_json",
+ "simplelog",
  "snafu",
  "tempfile",
  "tokio",

@@ -1,8 +1,6 @@
 use bottlerocket_settings_models::{AwsSettingsV1, KubernetesSettingsV1, NetworkSettingsV1};
 use serde::Deserialize;
-use snafu::{ensure, ResultExt, Snafu};
-use std::ffi::OsStr;
-use tokio::process::Command;
+use snafu::{ResultExt, Snafu};
 
 /// The result type for the [`api`] module.
 pub(super) type Result<T> = std::result::Result<T, Error>;
@@ -128,51 +126,54 @@ struct APISettingsResponse {
 
 #[derive(Debug, Snafu)]
 pub(crate) enum Error {
-    #[snafu(display("Failed to call apiclient: {}", source))]
-    CommandFailure { source: std::io::Error },
-    #[snafu(display("apiclient execution failed: {}", reason))]
-    ExecutionFailure { reason: String },
+    #[snafu(display("Failed to call API get_prefixes: {}", source))]
+    GetPrefix { source: apiclient::get::Error },
     #[snafu(display("Deserialization of configuration file failed: {}", source))]
     Deserialize {
         #[snafu(source(from(serde_json::Error, Box::new)))]
         source: Box<serde_json::Error>,
     },
-}
+    #[snafu(display("Setting settings values in API failed: {}", source))]
+    SetSettings { source: apiclient::Error },
 
-pub(crate) async fn client_command<I, S>(args: I) -> Result<Vec<u8>>
-where
-    I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
-{
-    let result = Command::new("/usr/bin/apiclient")
-        .args(args)
-        .output()
-        .await
-        .context(CommandFailureSnafu)?;
-
-    ensure!(
-        result.status.success(),
-        ExecutionFailureSnafu {
-            reason: String::from_utf8_lossy(&result.stderr)
-        }
-    );
-
-    Ok(result.stdout)
+    #[snafu(display("Failed to serialize generated settings: {}", source))]
+    Serialize { source: serde_json::Error },
 }
 
 /// Gets the info that we need to know about the EKS cluster from the Bottlerocket API.
 pub(crate) async fn get_aws_k8s_info() -> Result<SettingsView> {
-    let view_str = client_command(&[
-        "get",
-        "settings.aws",
-        "settings.network",
-        "settings.kubernetes",
-    ])
-    .await?;
+    let prefixes = ["settings.aws", "settings.network", "settings.kubernetes"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    let response = apiclient::get::get_prefixes(constants::API_SOCKET, prefixes)
+        .await
+        .context(GetPrefixSnafu)?;
 
     let api_response: APISettingsResponse =
-        serde_json::from_slice(view_str.as_slice()).context(DeserializeSnafu)?;
+        serde_json::from_value::<APISettingsResponse>(response).context(DeserializeSnafu)?;
     Ok(api_response.settings)
+}
+
+/// Send the settings to the datastore through the API
+pub(crate) async fn set_settings(settings: &KubernetesSettingsV1) -> Result<()> {
+    let generated_settings = serde_json::json!({
+        "kubernetes": serde_json::to_value(settings).context(SerializeSnafu)?
+    });
+    let request_body = generated_settings.to_string();
+
+    let uri = &format!(
+        "{}?tx={}",
+        constants::API_SETTINGS_URI,
+        constants::LAUNCH_TRANSACTION,
+    );
+    let method = "PATCH";
+    // Ignore response code/body, raw_request already checks for success.
+    let _ = apiclient::raw_request(constants::API_SOCKET, uri, method, Some(request_body))
+        .await
+        .context(SetSettingsSnafu)?;
+
+    Ok(())
 }
 
 #[cfg(test)]
