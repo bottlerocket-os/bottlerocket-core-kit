@@ -1,0 +1,5 @@
+{
+    "reason": "IAM (external) auth is used on Bottlerocket, so certificate rotation does not apply. See EKS CIS Benchmark.",
+    "reference": "https://docs.aws.amazon.com/eks/latest/userguide/security-iam.html",
+    "status": "PASS"
+}

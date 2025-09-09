@@ -35,6 +35,7 @@ Source20: bottlerocket-fips-checks-metadata-json
 Source21: bootstrap-commands-toml
 Source22: dbus-1-system.toml
 Source23: br03040101.json
+Source24: k8s04021000.json
 
 # 1xx sources: systemd units
 Source100: apiserver.service
@@ -696,6 +697,7 @@ for p in \
     %{buildroot}%{_cross_libexecdir}/cis-checks/kubernetes/${p}
 done
 install -m 0644 %{S:13} %{buildroot}%{_cross_libexecdir}/cis-checks/kubernetes/metadata.json
+install -m 0644 %{S:24} %{buildroot}%{_cross_libexecdir}/cis-checks/kubernetes/k8s04021000.json
 
 for p in apiclient ; do
   install -p -m 0755 %{__cargo_outdir_static}/${p} %{buildroot}%{_cross_bindir}
@@ -947,6 +949,7 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 
 %files -n %{_cross_os}bloodhound-k8s-overrides
 %{_cross_libexecdir}/cis-checks/bottlerocket/br03040101.json
+%{_cross_libexecdir}/cis-checks/kubernetes/k8s04021000.json
 
 %files -n %{_cross_os}bloodhound-fips
 %{_cross_bindir}/bottlerocket-fips-checks

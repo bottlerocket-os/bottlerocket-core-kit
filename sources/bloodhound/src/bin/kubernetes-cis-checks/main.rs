@@ -60,13 +60,7 @@ fn main() {
             level: 2,
         }),
         "k8s04020900" => Box::new(K8S04020900Checker {}),
-        // IAM (external) auth is used, so certificate rotation does not apply. See EKS CIS Benchmark.
-        "k8s04021000" => Box::new(ManualChecker {
-            name: cmd_name.to_string(),
-            title: "Ensure that the --rotate-certificates argument is not set to false (not valid for Bottlerocket)".to_string(),
-            id: "4.2.10".to_string(),
-            level: 1,
-        }),
+        "k8s04021000" => Box::new(K8S04021000Checker {}),
         "k8s04021100" => Box::new(K8S04021100Checker {}),
         "k8s04021200" => Box::new(K8S04021200Checker {}),
         "k8s04021300" => Box::new(K8S04021300Checker {}),
