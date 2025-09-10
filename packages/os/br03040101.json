@@ -1,0 +1,5 @@
+{
+  "reason": "Test requires iptables FORWARD chain configuration that conflicts with Kubernetes networking architecture. Kubernetes manages its own iptables rules through kube-proxy and CNI plugins.",
+  "reference": "https://github.com/bottlerocket-os/bottlerocket-core-kit/issues/540",
+  "status": "SKIP"
+}

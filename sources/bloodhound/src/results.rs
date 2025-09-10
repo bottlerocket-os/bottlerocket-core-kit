@@ -13,7 +13,7 @@ pub struct ReportMetadata {
     pub url: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub enum CheckStatus {
     /// Successfully verified to be in the expected state.
     PASS,
@@ -22,6 +22,8 @@ pub enum CheckStatus {
     /// Unable to verify state, manual verification required.
     #[default]
     SKIP,
+    /// Test was overridden, contains the original status that would have been returned.
+    OVERRIDE(Box<CheckStatus>),
 }
 
 impl fmt::Display for CheckStatus {
@@ -67,6 +69,8 @@ impl fmt::Display for CheckerMetadata {
 pub struct CheckerResult {
     pub status: CheckStatus,
     pub error: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub override_reason: Option<String>,
 }
 
 impl fmt::Display for CheckerResult {
@@ -74,6 +78,18 @@ impl fmt::Display for CheckerResult {
         let output = serde_json::to_string(&self).unwrap_or_default();
         write!(f, "{output}")
     }
+}
+
+/// Configuration for overriding specific compliance tests.
+///
+/// This structure defines how specific tests can be skipped or modified
+/// through JSON configuration files placed alongside test executables.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OverrideConfig {
+    pub reason: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reference: Option<String>,
+    pub status: String,
 }
 
 /// The Checker trait defines the interface for a compliance check. Checkers are
@@ -102,6 +118,7 @@ impl Checker for ManualChecker {
         CheckerResult {
             error: "Manual check, see benchmark for audit details.".to_string(),
             status: CheckStatus::SKIP,
+            override_reason: None,
         }
     }
 
@@ -177,6 +194,24 @@ impl ReportResults {
             CheckStatus::SKIP => {
                 self.skipped += 1;
             }
+            CheckStatus::OVERRIDE(ref inner_status) => match **inner_status {
+                CheckStatus::FAIL => {
+                    self.failed += 1;
+                    self.status = CheckStatus::FAIL;
+                }
+                CheckStatus::PASS => {
+                    self.passed += 1;
+                    if self.status == CheckStatus::SKIP {
+                        self.status = CheckStatus::PASS;
+                    }
+                }
+                CheckStatus::SKIP => {
+                    self.skipped += 1;
+                }
+                CheckStatus::OVERRIDE(_) => {
+                    self.skipped += 1;
+                }
+            },
         }
         self.results
             .insert(metadata.name.clone(), IndividualResult { metadata, result });

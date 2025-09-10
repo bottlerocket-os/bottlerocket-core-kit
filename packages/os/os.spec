@@ -34,6 +34,7 @@ Source19: host-containers-toml
 Source20: bottlerocket-fips-checks-metadata-json
 Source21: bootstrap-commands-toml
 Source22: dbus-1-system.toml
+Source23: br03040101.json
 
 # 1xx sources: systemd units
 Source100: apiserver.service
@@ -398,6 +399,7 @@ Conflicts: %{_cross_os}image-feature(no-host-containers)
 %package -n %{_cross_os}bloodhound
 Summary: Compliance check framework
 Requires: (%{_cross_os}bloodhound-k8s if %{_cross_os}variant-runtime(k8s))
+Requires: (%{_cross_os}bloodhound-k8s-overrides if %{_cross_os}variant-runtime(k8s))
 Requires: (%{_cross_os}bloodhound-fips if %{_cross_os}image-feature(fips))
 %description -n %{_cross_os}bloodhound
 %{summary}.
@@ -406,6 +408,12 @@ Requires: (%{_cross_os}bloodhound-fips if %{_cross_os}image-feature(fips))
 Summary: Compliance checks for Kubernetes
 Requires: (%{_cross_os}bloodhound and %{_cross_os}variant-runtime(k8s))
 %description -n %{_cross_os}bloodhound-k8s
+%{summary}.
+
+%package -n %{_cross_os}bloodhound-k8s-overrides
+Summary: CIS Test overrides for Kubernetes variants
+Requires: (%{_cross_os}bloodhound and %{_cross_os}variant-runtime(k8s))
+%description -n %{_cross_os}bloodhound-k8s-overrides
 %{summary}.
 
 %package -n %{_cross_os}bloodhound-fips
@@ -663,6 +671,7 @@ for p in \
     %{buildroot}%{_cross_libexecdir}/cis-checks/bottlerocket/${p}
 done
 install -m 0644 %{S:11} %{buildroot}%{_cross_libexecdir}/cis-checks/bottlerocket/metadata.json
+install -m 0644 %{S:23} %{buildroot}%{_cross_libexecdir}/cis-checks/bottlerocket/br03040101.json
 
 mkdir -p %{buildroot}%{_cross_libexecdir}/fips-checks/bottlerocket
 for p in \
@@ -930,10 +939,14 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_bindir}/bloodhound
 %{_cross_bindir}/bottlerocket-cis-checks
 %{_cross_libexecdir}/cis-checks/bottlerocket
+%exclude %{_cross_libexecdir}/cis-checks/bottlerocket/br03040101.json
 
 %files -n %{_cross_os}bloodhound-k8s
 %{_cross_bindir}/kubernetes-cis-checks
 %{_cross_libexecdir}/cis-checks/kubernetes
+
+%files -n %{_cross_os}bloodhound-k8s-overrides
+%{_cross_libexecdir}/cis-checks/bottlerocket/br03040101.json
 
 %files -n %{_cross_os}bloodhound-fips
 %{_cross_bindir}/bottlerocket-fips-checks
