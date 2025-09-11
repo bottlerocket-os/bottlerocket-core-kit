@@ -1,3 +1,10 @@
+# v10.4.1 (2025-09-11)
+
+## Build Changes
+* Update `bottlerocket-settings-models` to 0.15.0 ([#658])
+
+[#658]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/658
+
 # v10.4.0 (2025-09-08)
 
 ## OS Changes
