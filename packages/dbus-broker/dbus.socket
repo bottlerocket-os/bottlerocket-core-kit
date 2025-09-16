@@ -1,5 +1,10 @@
 [Unit]
 Description=D-Bus System Message Bus Socket
+# Disable DefaultDependencies to allow D-Bus to be started earlier in the boot
+# so that it is available for other services
+DefaultDependencies=no
+Before=shutdown.target sockets.target
+Conflicts=shutdown.target
 
 [Socket]
 ListenStream=/run/dbus/system_bus_socket

@@ -109,6 +109,7 @@ Source1107: systemd-journald-compat.conf
 Source1108: systemd-sysusers-selinux.conf
 Source1109: modprobe-no-exit.conf
 Source1110: tmp-mount-noexec.conf
+Source1111: network-pre-target-dbus-dep.conf
 
 # network link rules
 Source1200: 80-release.link
@@ -270,6 +271,10 @@ install -d %{buildroot}%{_cross_unitdir}/tmp.mount.d
 install -p -m 0644 %{S:1110} \
   %{buildroot}%{_cross_unitdir}/tmp.mount.d/10-no-exec.conf
 
+install -d %{buildroot}%{_cross_unitdir}/network-pre.target.d
+install -p -m 0644 %{S:1111} \
+  %{buildroot}%{_cross_unitdir}/network-pre.target.d/00-dbus-dep.conf
+
 # Empty (but packaged) directory. The FIPS packages for kernels will add drop-ins to
 # this directory to arrange for the right modules to be loaded before the check runs.
 install -d %{buildroot}%{_cross_unitdir}/check-fips-modules.service.d
@@ -379,6 +384,8 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/mask-local-mnt.service
 %{_cross_unitdir}/mask-local-opt.service
 %{_cross_unitdir}/mask-local-var.service
+%dir %{_cross_unitdir}/network-pre.target.d
+%{_cross_unitdir}/network-pre.target.d/00-dbus-dep.conf
 %{_cross_unitdir}/root-.aws.mount
 %{_cross_unitdir}/repart-data-preferred.service
 %{_cross_unitdir}/repart-data-fallback.service

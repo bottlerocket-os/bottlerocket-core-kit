@@ -1,7 +1,9 @@
 [Unit]
 Description=D-Bus System Message Bus
 DefaultDependencies=false
-After=dbus.socket
+# Ensure the dbus user is created before starting dbus service
+After=dbus.socket systemd-sysusers.service
+Wants=dbus.socket systemd-sysusers.service
 Before=basic.target shutdown.target
 Requires=dbus.socket
 Conflicts=shutdown.target
@@ -12,7 +14,9 @@ Sockets=dbus.socket
 OOMScoreAdjust=-900
 LimitNOFILE=16384
 ProtectSystem=full
-PrivateTmp=true
+# Disable private /tmp to avoid dependency on systemd-tmpfiles and consequently
+# local-fs.target, allowing dbus to start earlier in the boot
+PrivateTmp=no
 PrivateDevices=true
 ExecStart=/usr/bin/whippet
 
