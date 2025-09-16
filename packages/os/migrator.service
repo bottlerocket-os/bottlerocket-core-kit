@@ -1,6 +1,8 @@
 [Unit]
 Description=Bottlerocket data store migrator
+DefaultDependencies=no
 Before=apiserver.service mark-successful-boot.service storewolf.service
+RequiresMountsFor=/var/lib/bottlerocket
 
 RefuseManualStart=true
 RefuseManualStop=true
