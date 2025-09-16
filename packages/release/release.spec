@@ -95,6 +95,7 @@ Source1082: usr-share-licenses.mount.in
 Source1083: lib-modules.mount.in
 Source1084: usr-bin.mount.in
 Source1085: usr-libexec.mount.in
+Source1086: bottlerocket.mount.in
 
 # Drop-in units to override defaults
 Source1100: systemd-tmpfiles-setup-service-debug.conf
@@ -302,6 +303,10 @@ LIBEXECDIRPATH=$(systemd-escape --path %{_cross_libexecdir})
 sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:1085} > ${LIBEXECDIRPATH}.mount
 install -p -m 0644 ${LIBEXECDIRPATH}.mount %{buildroot}%{_cross_unitdir}
 
+# Process bottlerocket mount template files with proper systemd naming
+BOTTLEROCKET_PATH=$(systemd-escape --path /.bottlerocket)
+install -p -m 0644 %{S:1086} %{buildroot}%{_cross_unitdir}/${BOTTLEROCKET_PATH}.mount
+
 install -d %{buildroot}%{_cross_templatedir}
 install -p -m 0644 %{S:200} %{buildroot}%{_cross_templatedir}/motd
 install -p -m 0644 %{S:201} %{buildroot}%{_cross_templatedir}/proxy-env
@@ -355,6 +360,7 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/prepare-opt.service
 %{_cross_unitdir}/prepare-var.service
 %{_cross_unitdir}/repart-local.service
+%{_cross_unitdir}/\x2ebottlerocket.mount
 %{_cross_unitdir}/var.mount
 %{_cross_unitdir}/opt.mount
 %{_cross_unitdir}/mnt.mount

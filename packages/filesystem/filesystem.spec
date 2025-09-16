@@ -41,7 +41,7 @@ mkdir -p %{buildroot}%{_cross_infodir}
 mkdir -p %{buildroot}%{_cross_mandir}
 mkdir -p %{buildroot}%{_cross_localstatedir}
 mkdir -p %{buildroot}/{boot,dev,proc,run,sys,tmp}
-mkdir -p %{buildroot}/{home,local,media,mnt,opt,srv}
+mkdir -p %{buildroot}/{home,local,media,mnt,opt,srv,.bottlerocket}
 mkdir -p %{buildroot}/media/cdrom
 mkdir -p %{buildroot}/root/.aws
 
@@ -74,6 +74,7 @@ ln -s .%{_sbindir} %{buildroot}/sbin
 /sys
 /tmp
 
+/.bottlerocket
 /home
 /local
 /media
