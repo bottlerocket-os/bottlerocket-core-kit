@@ -46,6 +46,7 @@ members = [
   "packages/host-ctr",
   "packages/iproute",
   "packages/iptables",
+  "packages/hwloc",
   "packages/iputils",
   "packages/kexec-tools",
   "packages/keyutils",

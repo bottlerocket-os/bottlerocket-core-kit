@@ -53,6 +53,7 @@ findutils = { path = "../../packages/findutils" }
 glibc = { path = "../../packages/glibc" }
 grep = { path = "../../packages/grep" }
 host-ctr = { path = "../../packages/host-ctr" }
+hwloc = { path = "../../packages/hwloc" }
 iproute = { path = "../../packages/iproute" }
 iptables = { path = "../../packages/iptables" }
 iputils = { path = "../../packages/iputils" }

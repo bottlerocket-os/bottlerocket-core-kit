@@ -113,6 +113,7 @@ dependencies = [
  "glibc",
  "grep",
  "host-ctr",
+ "hwloc",
  "iproute",
  "iptables",
  "iputils",
@@ -443,6 +444,14 @@ name = "host-ctr"
 version = "0.1.0"
 dependencies = [
  "glibc",
+]
+
+[[package]]
+name = "hwloc"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+ "systemd-252",
 ]
 
 [[package]]

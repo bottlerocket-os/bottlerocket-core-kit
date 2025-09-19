@@ -1,0 +1,20 @@
+[package]
+name = "hwloc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://www.open-mpi.org/software/ompi/v5.0/"
+
+[[package.metadata.build-package.external-files]]
+url = "https://download.open-mpi.org/release/hwloc/v2.12/hwloc-2.12.2.tar.bz2"
+sha512 = "949d6c9d7b858ee58e477b15e6c06f57812872142fa1c7f3ef20aae2e4ef954135f839e8604404bfd0637fde99729c7d00211c8aee860dfde9ac60bba0e78aef"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
+systemd-252 = { path = "../systemd-252" }
