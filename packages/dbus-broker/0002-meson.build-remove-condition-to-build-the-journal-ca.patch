@@ -1,0 +1,64 @@
+From 819952f36db9a27e3dff5c9db7344992263d111d Mon Sep 17 00:00:00 2001
+From: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+Date: Thu, 18 Sep 2025 01:55:32 +0000
+Subject: [PATCH] meson.build: remove condition to build the journal catalog
+
+Don't require the dbus-launcher to build the journal catalog
+
+Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+---
+ meson.build       | 6 +++++-
+ meson_options.txt | 1 +
+ src/meson.build   | 2 +-
+ 3 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index 72e2b47..625c552 100644
+--- a/meson.build
++++ b/meson.build
+@@ -67,6 +67,11 @@ if use_docs
+ endif
+ 
+ #
++# Config: catalog (needed for both broker and launcher)
++#
++
++conf.set('catalogdir', get_option('catalogdir'))
++
+ # Config: launcher
+ #
+ 
+@@ -79,7 +84,6 @@ if use_launcher
+         add_project_arguments('-DSYSTEMUIDMAX=' + dep_systemd.get_variable('systemuidmax'), language: 'c')
+         conf.set('systemunitdir', dep_systemd.get_variable('systemdsystemunitdir'))
+         conf.set('userunitdir', dep_systemd.get_variable('systemduserunitdir'))
+-        conf.set('catalogdir', dep_systemd.get_variable('catalogdir'))
+ endif
+ 
+ #
+diff --git a/meson_options.txt b/meson_options.txt
+index 5227a93..bfc898c 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -7,3 +7,4 @@ option('reference-test', type: 'boolean', value: false, description: 'Run test s
+ option('selinux', type: 'boolean', value: false, description: 'SELinux support')
+ option('system-console-users', type: 'array', value: [], description: 'Additional set of names of system-users to be considered at-console')
+ option('tests', type: 'boolean', value: false, description: 'Include tests in the distribution')
++option('catalogdir', type: 'string', description: 'The target directory of the catalogdir')
+diff --git a/src/meson.build b/src/meson.build
+index 4b9bc71..33fc7f7 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -2,8 +2,8 @@
+ # target: subdirs
+ #
+ 
++subdir('catalog')
+ if use_launcher
+-        subdir('catalog')
+         subdir('units/system')
+         subdir('units/user')
+ endif
+-- 
+2.50.1
+

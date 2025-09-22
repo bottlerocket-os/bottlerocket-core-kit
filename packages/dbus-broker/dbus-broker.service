@@ -15,8 +15,8 @@ LimitNOFILE=16384
 ProtectSystem=full
 PrivateTmp=true
 PrivateDevices=true
-ExecStart=/usr/bin/dbus-broker-launch --scope system
-ExecReload=/usr/bin/busctl call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus ReloadConfig
+# Must be overriden by a drop-in
+ExecStart=/usr/bin/false
 
 [Install]
 Alias=dbus.service
