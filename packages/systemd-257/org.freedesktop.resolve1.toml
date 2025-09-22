@@ -1,0 +1,24 @@
+# Generated programatically, serde/toml doesn't allow to force the "compact"
+# format on serialization:
+# [user.root]
+# rules = []
+
+[[user.systemd-resolve.rules]]
+own = "org.freedesktop.resolve1"
+allow = true
+
+[[user.systemd-resolve.rules]]
+send_destination = "org.freedesktop.resolve1"
+allow = true
+
+[[user.systemd-resolve.rules]]
+receive_sender = "org.freedesktop.resolve1"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.resolve1"
+allow = true
+
+[[default.rules]]
+receive_sender = "org.freedesktop.resolve1"
+allow = true

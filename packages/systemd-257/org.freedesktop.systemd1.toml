@@ -1,0 +1,579 @@
+# Generated programatically, serde/toml doesn't allow to force the "compact"
+# format on serialization:
+# [user.root]
+# rules = []
+
+[[user.root.rules]]
+own = "org.freedesktop.systemd1"
+allow = true
+
+[[user.root.rules]]
+send_destination = "org.freedesktop.systemd1"
+allow = true
+
+[[user.root.rules]]
+receive_sender = "org.freedesktop.systemd1"
+allow = true
+
+[[user.root.rules]]
+receive_interface = "org.freedesktop.systemd1.Activator"
+receive_member = "ActivationRequest"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+allow = false
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.DBus.Introspectable"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.DBus.Peer"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.DBus.Properties"
+send_member = "Get"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.DBus.Properties"
+send_member = "GetAll"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetUnitByPID"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetUnitByInvocationID"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetUnitByControlGroup"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "LoadUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetUnitProcesses"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetJob"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetJobAfter"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetJobBefore"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ListUnits"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ListUnitsFiltered"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ListUnitsByPatterns"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ListUnitsByNames"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ListJobs"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "Subscribe"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "Unsubscribe"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "Dump"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "DumpByFileDescriptor"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "DumpUnitsMatchingPatterns"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "DumpUnitsMatchingPatternsByFileDescriptor"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ListUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ListUnitFilesByPatterns"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetUnitFileState"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetDefaultTarget"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetUnitFileLinks"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "LookupDynamicUserByName"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "LookupDynamicUserByUID"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "GetDynamicUsers"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Service"
+send_member = "GetProcesses"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Slice"
+send_member = "GetProcesses"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Scope"
+send_member = "GetProcesses"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Socket"
+send_member = "GetProcesses"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Mount"
+send_member = "GetProcesses"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Swap"
+send_member = "GetProcesses"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "StartUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "StartUnitReplace"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "StopUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ReloadUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "RestartUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "TryRestartUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ReloadOrRestartUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ReloadOrTryRestartUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "BindMountUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "MountImageUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "KillUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ResetFailedUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "SetUnitProperties"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "RefUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "UnrefUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "StartTransientUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "AttachProcessesToUnit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "CancelJob"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ClearJobs"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ResetFailed"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "Reload"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "Reexecute"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "EnableUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "DisableUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "ReenableUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "LinkUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "PresetUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "PresetUnitFilesWithMode"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "MaskUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "UnmaskUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "RevertUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "SetDefaultTarget"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "PresetAllUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "AddDependencyUnitFiles"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Manager"
+send_member = "SetShowStatus"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Job"
+send_member = "Cancel"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Job"
+send_member = "GetAfter"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Job"
+send_member = "GetBefore"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "Start"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "Stop"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "Reload"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "Restart"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "TryRestart"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "ReloadOrRestart"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "ReloadOrTryRestart"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "Kill"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "ResetFailed"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "SetProperties"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "Ref"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Unit"
+send_member = "Unref"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Service"
+send_member = "AttachProcesses"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Service"
+send_member = "BindMount"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Service"
+send_member = "MountImage"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.systemd1"
+send_interface = "org.freedesktop.systemd1.Scope"
+send_member = "AttachProcesses"
+allow = true
+
+[[default.rules]]
+receive_sender = "org.freedesktop.systemd1"
+allow = true

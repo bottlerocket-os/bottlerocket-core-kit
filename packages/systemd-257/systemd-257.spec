@@ -10,6 +10,10 @@ Summary: System and Service Manager
 License: GPL-2.0-or-later AND GPL-2.0-only AND LGPL-2.1-or-later
 URL: https://www.freedesktop.org/wiki/Software/systemd
 Source0: https://github.com/systemd/systemd/archive/v%{version}/systemd-%{version}.tar.gz
+Source100: org.freedesktop.login1.toml
+Source101: org.freedesktop.network1.toml
+Source102: org.freedesktop.resolve1.toml
+Source103: org.freedesktop.systemd1.toml
 
 Source1: systemd-mount-rate-bootconfig.conf
 Source2: systemd-cgroup-legacy-force-bootconfig.conf
@@ -75,6 +79,7 @@ Requires: %{_cross_os}libseccomp
 Requires: %{_cross_os}libselinux
 Requires: %{_cross_os}libuuid
 Requires: %{_cross_os}libxcrypt
+Requires: %{name}(dbus-config)
 
 Provides: %{_cross_os}systemd = %{package_priority_epoch}:
 Conflicts: %{_cross_os}systemd
@@ -110,6 +115,7 @@ Provides: %{_cross_os}systemd-devel = %{package_priority_epoch}:
 %package networkd
 Summary: Files for networkd
 Requires: %{name}
+Requires: %{name}-networkd(dbus-config)
 Provides: %{_cross_os}systemd-networkd = %{package_priority_epoch}:
 
 %description networkd
@@ -118,9 +124,38 @@ Provides: %{_cross_os}systemd-networkd = %{package_priority_epoch}:
 %package resolved
 Summary: Files for resolved
 Requires: %{name}
+Requires: %{name}-resolved(dbus-config)
 Provides: %{_cross_os}systemd-resolved = %{package_priority_epoch}:
 
 %description resolved
+%{summary}.
+
+%package dbus-launcher-config
+Summary: Dbus launcher configuration files
+Requires: %{name}
+Provides: %{name}(dbus-config) = 1:
+Provides: %{name}-resolved(dbus-config) = 1:
+Provides: %{name}-networkd(dbus-config) = 1:
+Conflicts: (%{_cross_os}whippet or %{name}-whippet-config)
+Conflicts: %{name}(dbus-config)
+Conflicts: %{name}-resolved(dbus-config)
+Conflicts: %{name}-networkd(dbus-config)
+
+%description dbus-launcher-config
+%{summary}.
+
+%package whippet-config
+Summary: Whippet configuration files
+Requires: %{name}
+Provides: %{name}(dbus-config) = 1:
+Provides: %{name}-resolved(dbus-config) = 0:
+Provides: %{name}-networkd(dbus-config) = 0:
+Conflicts: (%{_cross_os}dbus-broker-launcher or %{name}-dbus-launcher-config)
+Conflicts: %{name}(dbus-config)
+Conflicts: %{name}-resolved(dbus-config)
+Conflicts: %{name}-networkd(dbus-config)
+
+%description whippet-config
 %{summary}.
 
 %prep
@@ -303,6 +338,9 @@ rm -f %{buildroot}%{_cross_libdir}/systemd/{system,user}/graphical.target
 # since we exclude the automount unit.
 ln -s  ../proc-sys-fs-binfmt_misc.mount \
   %{buildroot}%{_cross_unitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.mount
+
+install -d %{buildroot}%{_cross_datadir}/whippet/policies.d
+install -p -m 0644 %{S:100} %{S:101} %{S:102} %{S:103} %{buildroot}%{_cross_datadir}/whippet/policies.d
 
 # Remove any README files.
 find %{buildroot} -type f -name README -print -delete
@@ -674,11 +712,6 @@ install -p -m 0644 %{S:2} %{buildroot}%{_cross_bootconfigdir}/21-cgroup-enable-l
 %exclude %{_cross_tmpfilesdir}/legacy.conf
 %exclude %{_cross_tmpfilesdir}/x11.conf
 
-%{_cross_datadir}/dbus-1/services/org.freedesktop.systemd1.service
-%{_cross_datadir}/dbus-1/system.d/org.freedesktop.login1.conf
-%{_cross_datadir}/dbus-1/system.d/org.freedesktop.systemd1.conf
-%exclude %{_cross_datadir}/dbus-1/system-services
-
 %dir %{_cross_factorydir}
 %exclude %{_cross_factorydir}%{_cross_sysconfdir}/issue
 %{_cross_factorydir}%{_cross_sysconfdir}/locale.conf
@@ -764,7 +797,6 @@ install -p -m 0644 %{S:2} %{buildroot}%{_cross_bootconfigdir}/21-cgroup-enable-l
 %{_cross_unitdir}/systemd-networkd-wait-online.service
 %{_cross_unitdir}/systemd-networkd-wait-online@.service
 %{_cross_unitdir}/systemd-networkd.socket
-%{_cross_datadir}/dbus-1/system.d/org.freedesktop.network1.conf
 
 %files resolved
 %{_cross_bindir}/resolvectl
@@ -773,6 +805,19 @@ install -p -m 0644 %{S:2} %{buildroot}%{_cross_bootconfigdir}/21-cgroup-enable-l
 %{_cross_sysusersdir}/systemd-resolve.conf
 %{_cross_tmpfilesdir}/systemd-resolve.conf
 %{_cross_unitdir}/systemd-resolved.service
-%{_cross_datadir}/dbus-1/system.d/org.freedesktop.resolve1.conf
 %exclude %{_cross_bindir}/systemd-resolve
 %exclude %{_cross_sbindir}/resolvconf
+
+%files dbus-launcher-config
+%{_cross_datadir}/dbus-1/system.d/org.freedesktop.login1.conf
+%{_cross_datadir}/dbus-1/system.d/org.freedesktop.network1.conf
+%{_cross_datadir}/dbus-1/system.d/org.freedesktop.systemd1.conf
+%{_cross_datadir}/dbus-1/system.d/org.freedesktop.resolve1.conf
+%{_cross_datadir}/dbus-1/system-services
+%{_cross_datadir}/dbus-1/services/org.freedesktop.systemd1.service
+
+%files whippet-config
+%{_cross_datadir}/whippet/policies.d/org.freedesktop.login1.toml
+%{_cross_datadir}/whippet/policies.d/org.freedesktop.network1.toml
+%{_cross_datadir}/whippet/policies.d/org.freedesktop.systemd1.toml
+%{_cross_datadir}/whippet/policies.d/org.freedesktop.resolve1.toml

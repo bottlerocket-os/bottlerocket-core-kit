@@ -1,0 +1,515 @@
+# Generated programatically, serde/toml doesn't allow to force the "compact"
+# format on serialization:
+# [user.root]
+# rules = []
+
+[[user.root.rules]]
+own = "org.freedesktop.login1"
+allow = true
+
+[[user.root.rules]]
+send_destination = "org.freedesktop.login1"
+allow = true
+
+[[user.root.rules]]
+receive_sender = "org.freedesktop.login1"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+allow = false
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.DBus.Introspectable"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.DBus.Peer"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.DBus.Properties"
+send_member = "Get"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.DBus.Properties"
+send_member = "GetAll"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "GetSession"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "GetSessionByPID"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "GetUser"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "GetUserByPID"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "GetSeat"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "ListSessions"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "ListUsers"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "ListSeats"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "ListInhibitors"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "Inhibit"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SetUserLinger"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "ActivateSession"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "ActivateSessionOnSeat"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "LockSession"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "UnlockSession"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "LockSessions"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "UnlockSessions"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "KillSession"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "KillUser"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "TerminateSession"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "TerminateUser"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "TerminateSeat"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "PowerOff"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "PowerOffWithFlags"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "Reboot"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "RebootWithFlags"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "Halt"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "HaltWithFlags"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "Suspend"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SuspendWithFlags"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "Hibernate"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "HibernateWithFlags"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "HybridSleep"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "HybridSleepWithFlags"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SuspendThenHibernate"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SuspendThenHibernateWithFlags"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanPowerOff"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanReboot"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanHalt"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanSuspend"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanHibernate"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanHybridSleep"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanSuspendThenHibernate"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "ScheduleShutdown"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CancelScheduledShutdown"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanRebootParameter"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SetRebootParameter"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanRebootToFirmwareSetup"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SetRebootToFirmwareSetup"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanRebootToBootLoaderMenu"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SetRebootToBootLoaderMenu"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "CanRebootToBootLoaderEntry"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SetRebootToBootLoaderEntry"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "SetWallMessage"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "AttachDevice"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Manager"
+send_member = "FlushDevices"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Seat"
+send_member = "Terminate"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Seat"
+send_member = "ActivateSession"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Seat"
+send_member = "SwitchTo"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Seat"
+send_member = "SwitchToPrevious"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Seat"
+send_member = "SwitchToNext"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "Terminate"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "Activate"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "Lock"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "Unlock"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "SetIdleHint"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "SetLockedHint"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "Kill"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "TakeControl"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "ReleaseControl"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "SetType"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "TakeDevice"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "ReleaseDevice"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "PauseDeviceComplete"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "SetBrightness"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.User"
+send_member = "Terminate"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.User"
+send_member = "Kill"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.login1"
+send_interface = "org.freedesktop.login1.Session"
+send_member = "SetDisplay"
+allow = true
+
+[[default.rules]]
+receive_sender = "org.freedesktop.login1"
+allow = true
+
