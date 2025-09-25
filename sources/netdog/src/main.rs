@@ -12,7 +12,7 @@ It contains two subcommands meant for use as settings generators:
 The subcommand `set-hostname` sets the hostname for the system.
 
 The subcommand `generate-net-config` generates the network interface configuration for the host. If
-a `net.toml` file exists in `/var/lib/bottlerocket`, it is used to generate the configuration. If
+a `net.toml` file exists in `/.bottlerocket`, it is used to generate the configuration. If
 `net.toml` doesn't exist, the kernel command line `/proc/cmdline` is checked for the prefix
 `netdog.default-interface`.  If an interface is defined with that prefix, it is used to generate an
 interface configuration.  A single default interface may be defined on the kernel command line with
@@ -42,12 +42,11 @@ use argh::FromArgs;
 use std::process;
 
 static KERNEL_HOSTNAME: &str = "/proc/sys/kernel/hostname";
-static CURRENT_IP: &str = "/var/lib/netdog/current_ip";
+static CURRENT_IP: &str = "/run/netdog/current_ip";
 static KERNEL_CMDLINE: &str = "/proc/cmdline";
-static PRIMARY_INTERFACE: &str = "/var/lib/netdog/primary_interface";
-static PRIMARY_MAC_ADDRESS: &str = "/var/lib/netdog/primary_mac_address";
-static DEFAULT_NET_CONFIG_FILE: &str = "/var/lib/bottlerocket/net.toml";
-static OVERRIDE_NET_CONFIG_FILE: &str = "/var/lib/netdog/net.toml";
+static PRIMARY_INTERFACE: &str = "/run/netdog/primary_interface";
+static PRIMARY_MAC_ADDRESS: &str = "/run/netdog/primary_mac_address";
+static DEFAULT_NET_CONFIG_FILE: &str = "/.bottlerocket/net.toml";
 static USR_NET_CONFIG_FILE: &str = "/usr/share/bottlerocket/net.toml";
 static PRIMARY_SYSCTL_CONF: &str = "/etc/sysctl.d/90-primary_interface.conf";
 static SYSCTL_MARKER_FILE: &str = "/run/netdog/primary_sysctls_set";

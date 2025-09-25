@@ -15,7 +15,7 @@ It contains two subcommands meant for use as settings generators:
 The subcommand `set-hostname` sets the hostname for the system.
 
 The subcommand `generate-net-config` generates the network interface configuration for the host. If
-a `net.toml` file exists in `/var/lib/bottlerocket`, it is used to generate the configuration. If
+a `net.toml` file exists in `/.bottlerocket`, it is used to generate the configuration. If
 `net.toml` doesn't exist, the kernel command line `/proc/cmdline` is checked for the prefix
 `netdog.default-interface`.  If an interface is defined with that prefix, it is used to generate an
 interface configuration.  A single default interface may be defined on the kernel command line with

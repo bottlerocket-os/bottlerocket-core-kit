@@ -7,9 +7,8 @@ pub(crate) mod write_resolv_conf;
 
 use crate::net_config::{self, Interfaces};
 use crate::{
-    DEFAULT_NET_CONFIG_FILE, KERNEL_CMDLINE, OVERRIDE_NET_CONFIG_FILE, PRIMARY_INTERFACE,
-    PRIMARY_MAC_ADDRESS, PRIMARY_SYSCTL_CONF, SYSCTL_MARKER_FILE, SYSTEMD_SYSCTL, SYS_CLASS_NET,
-    USR_NET_CONFIG_FILE,
+    DEFAULT_NET_CONFIG_FILE, KERNEL_CMDLINE, PRIMARY_INTERFACE, PRIMARY_MAC_ADDRESS,
+    PRIMARY_SYSCTL_CONF, SYSCTL_MARKER_FILE, SYSTEMD_SYSCTL, SYS_CLASS_NET, USR_NET_CONFIG_FILE,
 };
 pub(crate) use generate_hostname::GenerateHostnameArgs;
 pub(crate) use generate_net_config::GenerateNetConfigArgs;
@@ -147,12 +146,11 @@ where
 
 // Gather net config from possible sources, returning both the config and the source
 fn fetch_net_config() -> Result<(Option<Box<dyn Interfaces>>, PathBuf)> {
-    let override_path = PathBuf::from(OVERRIDE_NET_CONFIG_FILE);
     let default_path = PathBuf::from(DEFAULT_NET_CONFIG_FILE);
     let usr_path = PathBuf::from(USR_NET_CONFIG_FILE);
     let cmdline = PathBuf::from(KERNEL_CMDLINE);
 
-    for path in [override_path, default_path, usr_path] {
+    for path in [default_path, usr_path] {
         if Path::exists(&path) {
             return Ok((
                 net_config::from_path(&path).context(error::NetConfigParseSnafu { path: &path })?,
