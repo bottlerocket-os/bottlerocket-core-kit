@@ -1,9 +1,12 @@
 [Unit]
 Description=Generate network configuration
+DefaultDependencies=no
 # Block manual interactions with this service, since it could leave the system in an
 # unexpected state
 RefuseManualStart=true
 RefuseManualStop=true
+Before=network-pre.target
+RequiresMountsFor=/.bottlerocket
 
 [Service]
 Type=oneshot

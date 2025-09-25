@@ -9,8 +9,6 @@ Summary: Bottlerocket network configuration helper
 License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket
 
-Source0: netdog-tmpfiles.conf
-
 Source10: run-netdog.mount
 Source11: write-network-status.service
 Source12: generate-network-config.service
@@ -64,9 +62,6 @@ install -p -m 0755 ${HOME}/.cache/dogtag/%{__cargo_target}/release/10-reverse-dn
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 ${HOME}/.cache/networkd/%{__cargo_target}/release/netdog %{buildroot}%{_cross_bindir}/netdog
 
-install -d %{buildroot}%{_cross_tmpfilesdir}
-install -p -m 0644 %{S:0} %{buildroot}%{_cross_tmpfilesdir}/netdog.conf
-
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:10} %{S:11} %{S:12} %{S:13} %{buildroot}%{_cross_unitdir}
 
@@ -75,7 +70,6 @@ install -d %{buildroot}%{_cross_libdir}/systemd/resolved.conf.d
 install -p -m 0644 %{S:20} %{buildroot}%{_cross_libdir}/systemd/resolved.conf.d
 
 %files
-%{_cross_tmpfilesdir}/netdog.conf
 %{_cross_unitdir}/generate-network-config.service
 %{_cross_unitdir}/disable-udp-offload.service
 %{_cross_unitdir}/run-netdog.mount
