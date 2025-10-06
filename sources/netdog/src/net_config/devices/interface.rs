@@ -15,6 +15,7 @@ pub(crate) struct NetInterfaceV2 {
     pub(crate) static6: Option<StaticConfigV1>,
     #[serde(rename = "route")]
     pub(crate) routes: Option<Vec<RouteV1>>,
+    pub(crate) mtu: Option<u32>,
 }
 
 impl Validate for NetInterfaceV2 {

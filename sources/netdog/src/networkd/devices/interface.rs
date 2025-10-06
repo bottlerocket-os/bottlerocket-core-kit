@@ -18,6 +18,7 @@ pub(crate) struct NetworkDInterface {
     pub(crate) static4: Option<StaticConfigV1>,
     pub(crate) static6: Option<StaticConfigV1>,
     pub(crate) routes: Option<Vec<RouteV1>>,
+    pub(crate) mtu: Option<u32>,
 }
 
 impl NetworkDInterface {
@@ -32,12 +33,14 @@ impl NetworkDInterface {
             static4,
             static6,
             routes,
+            mtu,
         } = self;
         dhcp4.is_none()
             && dhcp6.is_none()
             && static4.is_none()
             && static6.is_none()
             && routes.is_none()
+            && mtu.is_none()
     }
 }
 
@@ -53,6 +56,7 @@ impl NetworkFileCreator for NetworkDInterface {
             static4,
             static6,
             routes,
+            mtu,
         } = self;
 
         // Attach VLANs to this interface if configured with a name.
@@ -77,6 +81,9 @@ impl NetworkFileCreator for NetworkDInterface {
             maybe_add_some!(network, with_static_config, static4);
             maybe_add_some!(network, with_static_config, static6);
             maybe_add_some!(network, with_routes, routes);
+            if let Some(m) = mtu {
+                network.with_mtu(*m);
+            }
             if let Some(vlans) = attached_vlans {
                 network.with_vlans(vlans.to_vec())
             }

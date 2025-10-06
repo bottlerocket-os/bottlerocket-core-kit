@@ -26,6 +26,7 @@ pub(crate) struct NetBondV1 {
     #[serde(rename = "monitoring")]
     pub(crate) monitoring_config: BondMonitoringConfigV1,
     pub(crate) interfaces: Vec<InterfaceName>,
+    pub(crate) mtu: Option<u32>,
 }
 
 // Single variant enum only used to direct deserialization.  If the kind is not "Bond" or "bond",

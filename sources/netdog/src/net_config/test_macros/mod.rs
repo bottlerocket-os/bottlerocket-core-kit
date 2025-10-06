@@ -18,6 +18,8 @@ pub(super) mod bonding;
 #[cfg(test)]
 pub(super) mod dhcp;
 #[cfg(test)]
+pub(super) mod mtu;
+#[cfg(test)]
 pub(super) mod static_address;
 #[cfg(test)]
 pub(super) mod vlan;
@@ -25,6 +27,7 @@ pub(super) mod vlan;
 pub(super) use basic::basic_tests;
 pub(super) use bonding::bonding_tests;
 pub(super) use dhcp::dhcp_tests;
+pub(super) use mtu::mtu_tests;
 pub(super) use static_address::static_address_tests;
 pub(super) use vlan::vlan_tests;
 
