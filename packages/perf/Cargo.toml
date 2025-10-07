@@ -1,0 +1,24 @@
+[package]
+name = "perf"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[package.metadata.build-package]
+package-name = "perf"
+
+[lib]
+path = "../packages.rs"
+
+[[package.metadata.build-package.external-files]]
+url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.18.10.tar.xz"
+sha512 = "03502c553df678e84890261cf6f07690510bbd9c72b75397f1ea733c8cae83c406c191f502abf75273d1eb98222525fc1cbd5489440c779644c6745392566358"
+
+[[package.metadata.build-package.external-files]]
+url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.18.10.tar.sign"
+sha512 = "310b09e991ff043d4d48d982354a4662d248462cff66987b750e66106ca973a918039c0656bf7add255f430b6e999725f9e4486167becc814e366b4de804f245"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
+libelf = { path = "../libelf" }
