@@ -6,7 +6,7 @@ use snafu::{ensure, ResultExt};
 use std::collections::HashSet;
 use std::ffi::{OsStr, OsString};
 use std::fs;
-use std::path::Path;
+use std::path::PathBuf;
 use std::process::Command;
 
 static MOUNT: &str = "/usr/bin/mount";
@@ -16,11 +16,13 @@ static MKFSXFS: &str = "/usr/sbin/mkfs.xfs";
 static MKFSEXT4: &str = "/usr/sbin/mkfs.ext4";
 static FINDMNT: &str = "/usr/bin/findmnt";
 
-/// Name of the array (if created) and filesystem label. Selected to be 12 characters so it
-/// fits within both the xfs and ext4 volume label limit.
-static EPHEMERAL_MNT: &str = ".ephemeral";
+static EPHEMERAL_MNT: &str = "/mnt/.ephemeral";
+
 /// Name of the device and its path from the MD driver
 static RAID_DEVICE_DIR: &str = "/dev/md/";
+
+/// Name of the array (if created) and filesystem label. Selected to be 12 characters so it
+/// fits within both the xfs and ext4 volume label limit.
 static RAID_DEVICE_NAME: &str = "ephemeral";
 /// Intermediate symlink for consistent rottweiler mapper naming
 static EPHEMERAL_DATA_LINK: &str = "/dev/disk/EPHEMERAL-DATA";
@@ -214,12 +216,11 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         )
     }
 
-    let mount_point = format!("/mnt/{EPHEMERAL_MNT}");
-    if !is_mounted(&mount_point)? {
-        std::fs::create_dir_all(&mount_point).context(error::MkdirSnafu { dir: &mount_point })?;
-        info!("mounting {device_name} as {mount_point}");
+    if !is_mounted(EPHEMERAL_MNT)? {
+        std::fs::create_dir_all(EPHEMERAL_MNT).context(error::MkdirSnafu { dir: EPHEMERAL_MNT })?;
+        info!("mounting {device_name} as {EPHEMERAL_MNT}");
         let output = Command::new(MOUNT)
-            .args([OsString::from(device_name), OsString::from(&mount_point)])
+            .args([OsString::from(device_name), OsString::from(EPHEMERAL_MNT)])
             .output()
             .context(error::ExecutionFailureSnafu { command: MOUNT })?;
 
@@ -227,21 +228,20 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
             output.status.success(),
             error::MountArrayFailureSnafu {
                 what: device_name,
-                dest: &mount_point,
+                dest: EPHEMERAL_MNT,
                 output
             }
         );
     } else {
-        info!("device already mounted at {mount_point}, skipping mount");
+        info!("device already mounted at {EPHEMERAL_MNT}, skipping mount");
     }
 
-    let mount_point = Path::new(&mount_point);
     for dir in &dirs {
         // construct a directory name (E.g. /var/lib/kubelet => ._var_lib_kubelet) that will be
         // unique between the binding targets
         let mut directory_name = dir.replace('/', "_");
         directory_name.insert(0, '.');
-        let mount_destination = mount_point.join(&directory_name);
+        let mount_destination: PathBuf = [EPHEMERAL_MNT, &directory_name].iter().collect();
 
         // we may run before the directories we are binding exist, so create them
         std::fs::create_dir_all(dir).context(error::MkdirSnafu { dir })?;
@@ -298,10 +298,10 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-/// is_bound returns true if the specified path is already listed as a mount
-fn is_mounted(path: &String) -> Result<bool> {
+/// is_mounted returns true if the specified path is already listed as a mount
+fn is_mounted(path: impl AsRef<OsStr>) -> Result<bool> {
     let status = Command::new(FINDMNT)
-        .arg(OsString::from(path))
+        .arg(path)
         .status()
         .context(error::FindMntFailureSnafu {})?;
     Ok(status.success())
