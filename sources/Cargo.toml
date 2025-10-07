@@ -251,4 +251,4 @@ tag = "bottlerocket-settings-models-v0.21.0"
 version = "0.1.0"
 
 [profile.release]
-debug = true
+debug = "line-tables-only"
