@@ -17,6 +17,7 @@ static MKFSEXT4: &str = "/usr/sbin/mkfs.ext4";
 static FINDMNT: &str = "/usr/bin/findmnt";
 
 static EPHEMERAL_MNT: &str = "/mnt/.ephemeral";
+static SRV_DIR: &str = "/srv";
 
 /// Name of the device and its path from the MD driver
 static RAID_DEVICE_DIR: &str = "/dev/md/";
@@ -170,7 +171,7 @@ pub fn initialize(
     Ok(())
 }
 
-/// binds the specified directories to the pre-configured array, creating those directories if
+/// Binds the specified directories to the pre-configured array, creating those directories if
 /// they do not exist.
 pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
     let device_name = EPHEMERAL_STORAGE_LINK;
@@ -243,8 +244,9 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
 
     let dirs: Vec<OsString> = dirs.iter().map(OsString::from).collect();
     let mut dirs_to_bind = HashSet::new();
+    let mut dirs_to_mask = HashSet::new();
 
-    // Check which directories need binding
+    // Check which directories need binding and/or masking
     for target_dir in &dirs {
         // Transform the directory path to a unique name
         let source_subdir = transform_dir_name(target_dir);
@@ -256,9 +258,19 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         })?;
         std::fs::create_dir_all(target_dir).context(error::MkdirSnafu { dir: target_dir })?;
 
+        let is_source_masked = is_masked(&source_dir)?;
         let is_target_mounted = is_mounted(target_dir)?;
-        if !is_target_mounted {
-            dirs_to_bind.insert((source_dir.clone(), target_dir.clone()));
+
+        match (is_target_mounted, is_source_masked) {
+            (true, true) => continue,
+            (true, false) => {
+                dirs_to_mask.insert(source_dir.into());
+            }
+            (false, false) => {
+                dirs_to_bind.insert((source_dir.clone(), target_dir.clone()));
+                dirs_to_mask.insert(source_dir.into_os_string());
+            }
+            (false, true) => error::DirectoryAlreadyMaskedSnafu { dir: source_dir }.fail()?,
         }
     }
 
@@ -284,6 +296,29 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
             error::BindDirectoryFailureSnafu {
                 source_dir,
                 target_dir,
+                output,
+            }
+        );
+    }
+
+    // Mask source directories that need it
+    for source_dir in &dirs_to_mask {
+        info!("masking {}", source_dir.display());
+        let output = Command::new(MOUNT)
+            .args([
+                OsStr::new("--bind"),
+                OsStr::new("--options"),
+                OsStr::new("nosuid,nodev,noexec,private"),
+                OsStr::new(SRV_DIR),
+                source_dir,
+            ])
+            .output()
+            .context(error::ExecutionFailureSnafu { command: MOUNT })?;
+
+        ensure!(
+            output.status.success(),
+            error::MaskDirectorySnafu {
+                dir: source_dir,
                 output,
             }
         );
@@ -323,6 +358,24 @@ fn is_mounted(path: impl AsRef<OsStr>) -> Result<bool> {
         .status()
         .context(error::FindMntFailureSnafu {})?;
     Ok(status.success())
+}
+
+/// is_masked returns true if the specified path is already masked
+fn is_masked(path: impl AsRef<OsStr>) -> Result<bool> {
+    let output = Command::new(FINDMNT)
+        .args([OsStr::new("-no"), OsStr::new("SOURCE")])
+        .arg(&path)
+        .output()
+        .context(error::CheckMaskSnafu { dir: &path })?;
+
+    // Check if the command was successful and if the output contains "[/srv]"
+    if output.status.success() {
+        let source = String::from_utf8_lossy(&output.stdout);
+        Ok(source.trim().ends_with(&format!("[{SRV_DIR}]")))
+    } else {
+        // If the command failed, the path is not mounted at all
+        Ok(false)
+    }
 }
 
 /// creates the array with the given name from the specified disks
@@ -625,6 +678,20 @@ pub mod error {
             args: String,
             output: std::process::Output,
         },
+        #[snafu(display("Failed to check if directory '{}' is masked: {}", dir.display(), source))]
+        CheckMask {
+            dir: PathBuf,
+            source: std::io::Error,
+        },
+
+        #[snafu(display("Failed to mask directory '{}': {}", dir.display(), String::from_utf8_lossy(output.stderr.as_slice())))]
+        MaskDirectory {
+            dir: PathBuf,
+            output: std::process::Output,
+        },
+
+        #[snafu(display("Cannot bind directory '{}': directory is masked", dir.display()))]
+        DirectoryAlreadyMasked { dir: PathBuf },
     }
 }
 
