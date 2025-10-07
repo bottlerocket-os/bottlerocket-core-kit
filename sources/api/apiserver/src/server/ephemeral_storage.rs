@@ -220,7 +220,12 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         std::fs::create_dir_all(EPHEMERAL_MNT).context(error::MkdirSnafu { dir: EPHEMERAL_MNT })?;
         info!("mounting {device_name} as {EPHEMERAL_MNT}");
         let output = Command::new(MOUNT)
-            .args([OsString::from(device_name), OsString::from(EPHEMERAL_MNT)])
+            .args([
+                OsString::from(device_name),
+                OsString::from(EPHEMERAL_MNT),
+                OsString::from("--options"),
+                OsString::from("defaults,nosuid,nodev,noatime,private"),
+            ])
             .output()
             .context(error::ExecutionFailureSnafu { command: MOUNT })?;
 
