@@ -236,33 +236,40 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         info!("device already mounted at {EPHEMERAL_MNT}, skipping mount");
     }
 
-    for dir in &dirs {
-        // construct a directory name (E.g. /var/lib/kubelet => ._var_lib_kubelet) that will be
-        // unique between the binding targets
-        let mut directory_name = dir.replace('/', "_");
-        directory_name.insert(0, '.');
-        let mount_destination: PathBuf = [EPHEMERAL_MNT, &directory_name].iter().collect();
+    let dirs: Vec<OsString> = dirs.iter().map(OsString::from).collect();
+    let mut dirs_to_bind = HashSet::new();
+
+    // Check which directories need binding
+    for target_dir in &dirs {
+        // Transform the directory path to a unique name
+        let source_subdir = transform_dir_name(target_dir);
+        let source_dir: PathBuf = [EPHEMERAL_MNT, &source_subdir].iter().collect();
 
         // we may run before the directories we are binding exist, so create them
-        std::fs::create_dir_all(dir).context(error::MkdirSnafu { dir })?;
-        std::fs::create_dir_all(&mount_destination).context(error::MkdirSnafu {
-            dir: &mount_destination,
+        std::fs::create_dir_all(&source_dir).context(error::MkdirSnafu {
+            dir: source_dir.clone(),
         })?;
+        std::fs::create_dir_all(target_dir).context(error::MkdirSnafu { dir: target_dir })?;
 
-        if is_mounted(dir)? {
-            info!("skipping bind mount of {dir:?}, already mounted");
-            continue;
+        let is_target_mounted = is_mounted(target_dir)?;
+        if !is_target_mounted {
+            dirs_to_bind.insert((source_dir.clone(), target_dir.clone()));
         }
-        // call the equivalent of
-        // mount --rbind /mnt/.ephemeral/._var_lib_kubelet /var/lib/kubelet
-        let source_dir = OsString::from(&dir);
-        info!("binding {source_dir:?} to {mount_destination:?}");
+    }
+
+    // Perform bind mounts for directories that need it
+    for (source_dir, target_dir) in &dirs_to_bind {
+        info!(
+            "binding '{}' to '{}'",
+            source_dir.display(),
+            target_dir.display(),
+        );
 
         let output = Command::new(MOUNT)
             .args([
                 OsStr::new("--rbind"),
-                mount_destination.as_ref(),
-                &source_dir,
+                source_dir.as_ref(),
+                target_dir.as_ref(),
             ])
             .output()
             .context(error::ExecutionFailureSnafu { command: MOUNT })?;
@@ -271,31 +278,37 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
             output.status.success(),
             error::BindDirectoryFailureSnafu {
                 source_dir,
-                target_dir: mount_destination,
+                target_dir,
                 output,
             }
         );
     }
 
-    for dir in dirs {
-        let source_dir = OsString::from(&dir);
-        info!("sharing mounts for {source_dir:?}");
-        // mount --make-rshared /var/lib/kubelet
+    // Make mounts shared
+    for target_dir in &dirs {
+        info!("sharing mounts for {}", target_dir.display());
         let output = Command::new(MOUNT)
-            .args([OsStr::new("--make-rshared"), &source_dir])
+            .args([OsStr::new("--make-rshared"), target_dir])
             .output()
             .context(error::ExecutionFailureSnafu { command: MOUNT })?;
 
         ensure!(
             output.status.success(),
             error::ShareMountsFailureSnafu {
-                dir: source_dir,
+                dir: target_dir,
                 output
             }
         );
     }
 
     Ok(())
+}
+
+/// Transform a directory path into a unique name suitable for use as a mount source
+pub fn transform_dir_name(dir: impl AsRef<OsStr>) -> String {
+    let mut directory_name = dir.as_ref().to_string_lossy().replace('/', "_");
+    directory_name.insert(0, '.');
+    directory_name
 }
 
 /// is_mounted returns true if the specified path is already listed as a mount
@@ -639,5 +652,20 @@ mod tests {
         for dir in ["/var/lib/docker", "/var/lib/containerd", "/var/log/ecs"] {
             assert!(allowed_dirs.allowed_exact.contains(dir));
         }
+    }
+
+    #[test]
+    fn test_transform_dir_name() {
+        // Test basic path transformation
+        assert_eq!(transform_dir_name("/var/lib/kubelet"), "._var_lib_kubelet");
+
+        // Test path with trailing slash
+        assert_eq!(transform_dir_name("/var/lib/docker/"), "._var_lib_docker_");
+
+        // Test root path
+        assert_eq!(transform_dir_name("/"), "._");
+
+        // Test empty string
+        assert_eq!(transform_dir_name(""), ".");
     }
 }
