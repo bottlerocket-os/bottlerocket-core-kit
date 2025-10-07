@@ -216,7 +216,7 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
 
     let mount_point = format!("/mnt/{EPHEMERAL_MNT}");
     if !is_mounted(&mount_point)? {
-        std::fs::create_dir_all(&mount_point).context(error::MkdirSnafu {})?;
+        std::fs::create_dir_all(&mount_point).context(error::MkdirSnafu { dir: &mount_point })?;
         info!("mounting {device_name} as {mount_point}");
         let output = Command::new(MOUNT)
             .args([OsString::from(device_name), OsString::from(&mount_point)])
@@ -244,8 +244,10 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         let mount_destination = mount_point.join(&directory_name);
 
         // we may run before the directories we are binding exist, so create them
-        std::fs::create_dir_all(dir).context(error::MkdirSnafu {})?;
-        std::fs::create_dir_all(&mount_destination).context(error::MkdirSnafu {})?;
+        std::fs::create_dir_all(dir).context(error::MkdirSnafu { dir })?;
+        std::fs::create_dir_all(&mount_destination).context(error::MkdirSnafu {
+            dir: &mount_destination,
+        })?;
 
         if is_mounted(dir)? {
             info!("skipping bind mount of {dir:?}, already mounted");
@@ -268,7 +270,8 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         ensure!(
             output.status.success(),
             error::BindDirectoryFailureSnafu {
-                dir: String::from_utf8_lossy(source_dir.as_encoded_bytes()),
+                source_dir,
+                target_dir: mount_destination,
                 output,
             }
         );
@@ -286,7 +289,7 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         ensure!(
             output.status.success(),
             error::ShareMountsFailureSnafu {
-                dir: String::from_utf8_lossy(source_dir.as_encoded_bytes()),
+                dir: source_dir,
                 output
             }
         );
@@ -527,6 +530,7 @@ fn run_rottweiler_checked(args: &[&str], device: &str) -> Result<()> {
 
 pub mod error {
     use snafu::Snafu;
+    use std::{ffi::OsString, path::PathBuf};
 
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
@@ -556,15 +560,16 @@ pub mod error {
         #[snafu(display("Failed to create disk symlink {}", source))]
         DiskSymlinkFailure { source: std::io::Error },
 
-        #[snafu(display("Failed to bind directory {}: {}", dir, String::from_utf8_lossy(output.stderr.as_slice())))]
+        #[snafu(display("Failed to bind directory '{}' to '{}': {}", source_dir.display(), target_dir.display(), String::from_utf8_lossy(output.stderr.as_slice())))]
         BindDirectoryFailure {
-            dir: String,
+            source_dir: OsString,
+            target_dir: OsString,
             output: std::process::Output,
         },
 
-        #[snafu(display("Failed to share mounts for directory {} : {}", dir, String::from_utf8_lossy(output.stderr.as_slice())))]
+        #[snafu(display("Failed to share mounts for directory {} : {}", dir.display(), String::from_utf8_lossy(output.stderr.as_slice())))]
         ShareMountsFailure {
-            dir: String,
+            dir: PathBuf,
             output: std::process::Output,
         },
 
@@ -586,8 +591,11 @@ pub mod error {
         #[snafu(display("Invalid Parameter '{}', {}", parameter, reason))]
         InvalidParameter { parameter: String, reason: String },
 
-        #[snafu(display("Failed to create directory, {}", source))]
-        Mkdir { source: std::io::Error },
+        #[snafu(display("Failed to create directory '{}': {}", dir.display(), source))]
+        Mkdir {
+            source: std::io::Error,
+            dir: PathBuf,
+        },
 
         #[snafu(display("Unable to load image features: {}", message))]
         LoadImageFeatures { message: String },
