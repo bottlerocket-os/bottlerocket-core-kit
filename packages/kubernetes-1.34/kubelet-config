@@ -223,6 +223,9 @@ imageMinimumGCAge: {{settings.kubernetes.image-minimum-gc-age}}
 {{#if settings.kubernetes.image-maximum-gc-age}}
 imageMaximumGCAge: {{settings.kubernetes.image-maximum-gc-age}}
 {{/if}}
+{{#if settings.kubernetes.ids-per-pod}}
+idsPerPod: {{settings.kubernetes.ids-per-pod}}
+{{/if}}
 {{#if settings.kubernetes.max-parallel-image-pulls}}
 maxParallelImagePulls: {{settings.kubernetes.max-parallel-image-pulls}}
 {{/if}}
