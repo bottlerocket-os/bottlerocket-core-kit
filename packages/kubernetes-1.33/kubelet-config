@@ -220,5 +220,8 @@ enableDebuggingHandlers: false
 {{#if settings.kubernetes.image-minimum-gc-age}}
 imageMinimumGCAge: {{settings.kubernetes.image-minimum-gc-age}}
 {{/if}}
+{{#if settings.kubernetes.image-maximum-gc-age}}
+imageMaximumGCAge: {{settings.kubernetes.image-maximum-gc-age}}
+{{/if}}
 featureGates:
   DynamicResourceAllocation: true
