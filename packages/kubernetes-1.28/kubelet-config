@@ -207,3 +207,6 @@ enableDebuggingHandlers: false
 {{#if settings.kubernetes.image-minimum-gc-age}}
 imageMinimumGCAge: {{settings.kubernetes.image-minimum-gc-age}}
 {{/if}}
+{{#if settings.kubernetes.max-parallel-image-pulls}}
+maxParallelImagePulls: {{settings.kubernetes.max-parallel-image-pulls}}
+{{/if}}
