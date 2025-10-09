@@ -216,3 +216,4 @@ memorySwap:
 {{#if settings.kubernetes.single-process-oom-kill}}
 singleProcessOOMKill: {{settings.kubernetes.single-process-oom-kill}}
 {{/if}}
+enableDebuggingHandlers: false

@@ -213,3 +213,4 @@ failSwapOn: false
 memorySwap:
   swapBehavior: {{settings.kubernetes.memory-swap-behavior}}
 {{/if}}
+enableDebuggingHandlers: false
