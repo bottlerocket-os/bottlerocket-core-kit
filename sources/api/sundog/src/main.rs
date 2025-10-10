@@ -31,6 +31,7 @@ const SETTINGS_GENERATOR_TIMEOUT: Duration = Duration::from_secs(360);
 /// Potential errors during Sundog execution
 mod error {
     use http::StatusCode;
+    use settings_committer::SettingsCommitterError;
     use snafu::Snafu;
 
     use datastore::{self, deserialization, serialization, KeyType};
@@ -162,6 +163,9 @@ mod error {
 
         #[snafu(display("Logger setup error: {}", source))]
         Logger { source: log::SetLoggerError },
+
+        #[snafu(display("Unable to commit pending transaction: {}", source))]
+        Commit { source: SettingsCommitterError },
     }
 }
 
@@ -577,6 +581,9 @@ async fn run() -> Result<()> {
     SimpleLogger::init(args.log_level, LogConfig::default()).context(error::LoggerSnafu)?;
 
     info!("Sundog started");
+
+    // Commit first so we can use settings from user data.
+    settings_committer::commit(constants::API_SOCKET, constants::LAUNCH_TRANSACTION).await.context(error::CommitSnafu)?;
 
     info!("Retrieving setting generators");
     let generators = get_setting_generators(&args.socket_path).await?;

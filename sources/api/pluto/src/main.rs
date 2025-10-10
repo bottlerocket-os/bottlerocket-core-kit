@@ -30,6 +30,8 @@ Pluto returns a special exit code of 2 to inform `sundog` that a setting should 
 example, if `max-pods` cannot be generated, we want `sundog` to skip it without failing since a
 reasonable default is available.
 */
+#[macro_use]
+extern crate log;
 
 mod api;
 mod aws;
@@ -37,6 +39,7 @@ mod ec2;
 mod eks;
 
 use api::{settings_view_get, settings_view_set, SettingsViewDelta};
+use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use aws_smithy_experimental::hyper_1_0::CryptoMode;
 use base64::Engine;
 use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
@@ -72,6 +75,7 @@ const PROVIDER: CryptoMode = CryptoMode::AwsLcFips;
 
 mod error {
     use crate::{api, ec2, eks};
+    use settings_committer::SettingsCommitterError;
     use snafu::Snafu;
     use std::net::AddrParseError;
 
@@ -162,6 +166,12 @@ mod error {
 
         #[snafu(display("Unable to create tempdir: {}", source))]
         Tempdir { source: std::io::Error },
+
+        #[snafu(display("Unable to commit pending transaction: {}", source))]
+        Commit { source: SettingsCommitterError },
+
+        #[snafu(display("Logger setup error: {}", source))]
+        Logger { source: log::SetLoggerError },
     }
 }
 
@@ -488,6 +498,16 @@ fn set_aws_config(aws_k8s_info: &SettingsViewDelta, filepath: &Path) -> Result<(
 }
 
 async fn run() -> Result<()> {
+    // SimpleLogger will send errors to stderr and anything less to stdout.
+    SimpleLogger::init(LevelFilter::Info, LogConfig::default()).context(error::LoggerSnafu)?;
+    info!("Pluto started");
+
+    // pluto needs access to any Kubernetes settings supplied through user-data, along with
+    // network-related settings such as proxy servers. Commit any settings that might have
+    // been generated during the sundog phase.
+    settings_committer::commit(constants::API_SOCKET, constants::LAUNCH_TRANSACTION).await.context(error::CommitSnafu)?;
+
+    info!("Retrieving settings values");
     let mut client = ImdsClient::new();
     let current_settings = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
     let mut aws_k8s_info = SettingsViewDelta::from_api_response(current_settings);

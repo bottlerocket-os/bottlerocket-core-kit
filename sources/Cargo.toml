@@ -96,6 +96,7 @@ models = { version = "0.1", path = "models" }
 parse-datetime = { version = "0.1", path = "parse-datetime" }
 pciclient = { version = "0.1", path = "pciclient" }
 retry-read = { version = "0.1", path = "retry-read" }
+settings-committer = { version = "0.1", path = "api/settings-committer" }
 signpost = { version = "0.1", path = "updater/signpost" }
 storewolf = { version = "0.1", path = "api/storewolf" }
 simple-settings-plugin = { version = "0.1", path = "api/simple-settings-plugin" }

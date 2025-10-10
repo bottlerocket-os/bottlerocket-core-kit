@@ -14,6 +14,7 @@ use tokio::runtime::Runtime;
 use thar_be_settings::{config, get_changed_settings, service};
 
 mod error {
+    use settings_committer::SettingsCommitterError;
     use snafu::Snafu;
 
     #[derive(Debug, Snafu)]
@@ -21,6 +22,9 @@ mod error {
     pub(super) enum Error {
         #[snafu(display("Logger setup error: {}", source))]
         Logger { source: log::SetLoggerError },
+
+        #[snafu(display("Unable to commit pending transaction: {}", source))]
+        Commit { source: SettingsCommitterError },
     }
 }
 
@@ -154,6 +158,8 @@ async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     SimpleLogger::init(args.log_level, LogConfig::default()).context(error::LoggerSnafu)?;
 
     info!("thar-be-settings started");
+
+    settings_committer::commit(constants::API_SOCKET, constants::LAUNCH_TRANSACTION).await.context(error::CommitSnafu)?;
 
     match args.mode {
         RunMode::SpecificKeys => {

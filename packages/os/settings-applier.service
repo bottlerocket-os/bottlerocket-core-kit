@@ -11,7 +11,6 @@ RefuseManualStop=true
 
 [Service]
 Type=oneshot
-ExecStartPre=/usr/bin/settings-committer
 ExecStart=/usr/bin/thar-be-settings --all
 RemainAfterExit=true
 StandardError=journal+console

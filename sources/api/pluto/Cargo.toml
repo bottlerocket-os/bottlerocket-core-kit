@@ -25,9 +25,12 @@ bottlerocket-modeled-types.workspace = true
 bottlerocket-settings-models.workspace = true
 constants.workspace = true
 imdsclient.workspace = true
+log.workspace = true
 rustls.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+settings-committer.workspace = true
+simplelog.workspace = true
 snafu.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
