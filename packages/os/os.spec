@@ -558,6 +558,13 @@ exec 1>&3 2>&4
 # Run non-static builds in the foreground.
 echo "** Output from non-static builds:"
 %cargo_build --manifest-path %{_builddir}/sources/Cargo.toml \
+    -p logdog \
+    -p metricdog \
+    -p migrator \
+    -p updog \
+    %{nil}
+
+%cargo_build --manifest-path %{_builddir}/sources/Cargo.toml \
     -p apiserver \
     -p sundog \
     -p schnauzer \
@@ -568,11 +575,7 @@ echo "** Output from non-static builds:"
     -p host-containers \
     -p storewolf \
     -p settings-committer \
-    -p migrator \
     -p signpost \
-    -p updog \
-    -p logdog \
-    -p metricdog \
     -p ghostdog \
     -p corndog \
     -p bootstrap-commands \
@@ -661,8 +664,10 @@ ln -s brush %{buildroot}%{_cross_bindir}/sh
 install -d %{buildroot}%{_cross_libexecdir}/brush/allowed-programs
 
 for p in \
-  logdog migrator metricdog \
-  shibaken updog \
+  logdog \
+  migrator \
+  metricdog \
+  updog \
 ; do
   install -p -m 0755 %{__cargo_outdir_fips}/${p} %{buildroot}%{_cross_fips_bindir}
 done
