@@ -5721,12 +5721,10 @@ name = "shibaken"
 version = "0.1.0"
 dependencies = [
  "argh",
- "aws-lc-rs",
  "base64",
  "generate-readme",
  "imdsclient",
  "log",
- "rustls 0.23.31",
  "serde",
  "serde_json",
  "simplelog",
