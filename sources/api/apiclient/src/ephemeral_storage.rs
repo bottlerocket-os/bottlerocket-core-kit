@@ -1,4 +1,4 @@
-use model::ephemeral_storage::{Bind, Filesystem, Init};
+use model::ephemeral_storage::{Bind, Filesystem, Init, Preference};
 use snafu::ResultExt;
 use std::path::Path;
 
@@ -7,13 +7,20 @@ pub async fn initialize<P>(
     socket_path: P,
     filesystem: Option<Filesystem>,
     disks: Option<Vec<String>>,
+    ebs_volumes: Option<Vec<String>>,
+    prefer: Option<Vec<Preference>>,
 ) -> Result<()>
 where
     P: AsRef<Path>,
 {
     let uri = "/actions/ephemeral-storage/init";
-    let opts =
-        serde_json::to_string(&Init { filesystem, disks }).context(error::JsonSerializeSnafu {})?;
+    let opts = serde_json::to_string(&Init {
+        filesystem,
+        disks,
+        ebs_volumes,
+        prefer,
+    })
+    .context(error::JsonSerializeSnafu {})?;
     let method = "POST";
     let (_status, _body) = crate::raw_request(&socket_path, &uri, method, Some(opts))
         .await

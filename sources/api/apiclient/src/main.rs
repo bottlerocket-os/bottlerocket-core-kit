@@ -8,7 +8,7 @@
 
 use apiclient::{apply, ephemeral_storage, exec, get, reboot, report, set, update, SettingsInput};
 use log::{info, log_enabled, trace, warn};
-use model::ephemeral_storage::Filesystem;
+use model::ephemeral_storage::{Filesystem, Preference};
 use serde::{Deserialize, Serialize};
 use simplelog::{
     ColorChoice, ConfigBuilder as LogConfigBuilder, LevelFilter, TermLogger, TerminalMode,
@@ -157,6 +157,8 @@ enum EphemeralStorageSubcommand {
 #[derive(Debug)]
 struct EphemeralStorageInitArgs {
     disks: Option<Vec<String>>,
+    ebs_volumes: Option<Vec<String>>,
+    prefer: Option<Vec<Preference>>,
     filesystem: Option<Filesystem>,
 }
 
@@ -269,7 +271,13 @@ fn usage() -> ! {
                                        operation does nothing.
             --disks DISK [DISK ...]    Local disks to configure for storage. Default is all ephemeral
                                        disks.
-
+            --ebs-volumes VOLUME [VOLUME ..]
+                                       EBS volumes in the `xvdda`-`xvddx` range to configure for storage.
+            --prefer PREFERENCE [PREFERENCE ..]
+                                       Epheremeral storage type preference, in descending order. Allowed
+                                       values: `ephemeral-disk`, `ebs-volume` or a combination of these
+                                       joined by `+`. Defaults to `ephemeral-disk` only. This option is
+                                       ignored if `--disks` or `--ebs-volumes` is set.
         ephemeral-storage bind options:
             --dirs DIR [DIR ...]       Directories to bind to configured ephemeral storage
                                        (e.g. /var/lib/containerd). If not specified, uses platform (k8s vs. ECS)
@@ -777,6 +785,8 @@ fn parse_ephemeral_storage_args(args: Vec<String>) -> Subcommand {
 /// Parses arguments for the 'init' ephemeral-storage subcommand.
 fn parse_ephemeral_storage_init_args(args: Vec<String>) -> EphemeralStorageSubcommand {
     let mut disks: Option<Vec<String>> = None;
+    let mut ebs_volumes: Option<Vec<String>> = None;
+    let mut prefer: Option<Vec<Preference>> = None;
     let mut filesystem = None;
     let mut iter = args.into_iter().peekable();
     while let Some(arg) = iter.next() {
@@ -803,10 +813,45 @@ fn parse_ephemeral_storage_init_args(args: Vec<String>) -> EphemeralStorageSubco
                     disks = Some(names);
                 }
             }
+            "--ebs-volumes" => {
+                let mut names = collect_non_args(&mut iter);
+                if names.is_empty() {
+                    usage_msg("Did not give argument to --ebs-volumes")
+                }
+                if let Some(existing) = &mut ebs_volumes {
+                    existing.append(&mut names);
+                } else {
+                    ebs_volumes = Some(names);
+                }
+            }
+            "--prefer" => {
+                let prefs = collect_non_args(&mut iter);
+                if prefs.is_empty() {
+                    usage_msg("Did not give argument to --prefer")
+                }
+                if let Some(existing) = &mut prefer {
+                    for p in &prefs {
+                        if let Ok(p) = p.as_str().try_into() {
+                            existing.push(p);
+                        } else {
+                            usage_msg("Invalid ephemeral storage type preference");
+                        }
+                    }
+                } else if let Ok(p) = prefs.iter().map(|x| x.as_str().try_into()).collect() {
+                    prefer = Some(p);
+                } else {
+                    usage_msg("Invalid ephemeral storage type preference");
+                }
+            }
             x => usage_msg(format!("Unknown argument '{x}'")),
         }
     }
-    EphemeralStorageSubcommand::Init(EphemeralStorageInitArgs { disks, filesystem })
+    EphemeralStorageSubcommand::Init(EphemeralStorageInitArgs {
+        disks,
+        ebs_volumes,
+        filesystem,
+        prefer,
+    })
 }
 
 /// Parses arguments for the 'bind' ephemeral-storage subcommand.
@@ -1081,6 +1126,8 @@ async fn run() -> Result<()> {
                     &args.socket_path,
                     cfg_args.filesystem,
                     cfg_args.disks,
+                    cfg_args.ebs_volumes,
+                    cfg_args.prefer,
                 )
                 .await
                 .context(error::EphemeralStorageSnafu)?;
