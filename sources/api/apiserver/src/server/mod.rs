@@ -726,8 +726,13 @@ async fn get_fips_report(query: web::Query<HashMap<String, String>>) -> Result<H
 
 /// Configure ephemeral storage (raid & format, or just format for single disk)
 async fn initialize_ephemeral_storage(cfg: web::Json<Init>) -> Result<HttpResponse> {
-    ephemeral_storage::initialize(cfg.0.filesystem, cfg.0.disks)
-        .context(error::EphemeralInitializeSnafu {})?;
+    ephemeral_storage::initialize(
+        cfg.0.filesystem,
+        cfg.0.disks,
+        cfg.0.ebs_volumes,
+        cfg.0.prefer,
+    )
+    .context(error::EphemeralInitializeSnafu {})?;
     Ok(HttpResponse::NoContent().finish()) // 204
 }
 /// Bind directories to ephemeral storage (mount array, bind, and unmount)

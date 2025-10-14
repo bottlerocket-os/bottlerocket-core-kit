@@ -1,0 +1,12 @@
+# ephemeral storage links: /dev/disk/ephemeral-ebs
+
+ACTION=="remove", GOTO="ephemeral_ebs_storage_end"
+KERNEL!="nvme*", GOTO="ephemeral_ebs_storage_end"
+SUBSYSTEM!="block", GOTO="ephemeral_ebs_storage_end"
+ENV{DEVTYPE}!="disk", GOTO="ephemeral_ebs_storage_end"
+ATTRS{model}!="Amazon Elastic Block Store", GOTO="ephemeral_ebs_storage_end"
+
+# Create links for ephemeral EBS volumes that start with "xvdd".
+ENV{BOTTLEROCKET_DEVICE_TYPE}=="ephemeral", ENV{XVD_DEVICE_NAME}=="xvdd?", SYMLINK+="disk/ephemeral-ebs/$env{XVD_DEVICE_NAME}"
+
+LABEL="ephemeral_ebs_storage_end"
