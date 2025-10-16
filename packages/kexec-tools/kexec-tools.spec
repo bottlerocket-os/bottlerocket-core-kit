@@ -1,5 +1,5 @@
 Name: %{_cross_os}kexec-tools
-Version: 2.0.31
+Version: 2.0.32
 Release: 1%{?dist}
 Epoch: 1
 Summary: Linux tool to load kernels from the running system
@@ -10,6 +10,8 @@ Source1: https://kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-%{version}.
 Source2: gpgkey-E27CD9A1F5ACC2FF4BFE7285D7CF64696A374FBE.asc
 
 BuildRequires: %{_cross_os}glibc-devel
+BuildRequires: %{_cross_os}libzstd-devel
+Requires: %{_cross_os}libzstd
 
 %description
 %{summary}.
