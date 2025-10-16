@@ -1,8 +1,5 @@
 [Unit]
 Description=Load crash kernel
-# No kexec support yet for arm64's zstd-compressed zboot image on 6.12+
-ConditionKernelVersion=|<6.12
-ConditionArchitecture=|!arm64
 ConditionKernelCommandLine=crashkernel
 ConditionPathExists=!/proc/vmcore
 RefuseManualStart=true
