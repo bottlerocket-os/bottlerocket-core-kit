@@ -5,36 +5,26 @@ Subject: [PATCH] machine-id-setup: generate stable ID under Xen and VMware
 
 Signed-off-by: Ben Cressey <bcressey@amazon.com>
 Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
----
- src/libsystemd/sd-id128/id128-util.c | 2 ++
- src/shared/machine-id-setup.c        | 3 ++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/src/libsystemd/sd-id128/id128-util.c b/src/libsystemd/sd-id128/id128-util.c
-index 2cf8848..fd011a1 100644
---- a/src/libsystemd/sd-id128/id128-util.c
-+++ b/src/libsystemd/sd-id128/id128-util.c
-@@ -184,6 +184,8 @@ int id128_get_product(sd_id128_t *ret) {
-         r = id128_read("/sys/class/dmi/id/product_uuid", ID128_FORMAT_UUID, &uuid);
-         if (r == -ENOENT)
-                 r = id128_read("/proc/device-tree/vm,uuid", ID128_FORMAT_UUID, &uuid);
-+        if (r == -ENOENT)
-+                r = id128_read("/sys/hypervisor/uuid", ID128_FORMAT_UUID, &uuid);
-         if (r < 0)
-                 return r;
- 
-diff --git a/src/shared/machine-id-setup.c b/src/shared/machine-id-setup.c
-index 787c076..eccb332 100644
---- a/src/shared/machine-id-setup.c
-+++ b/src/shared/machine-id-setup.c
-@@ -60,7 +60,8 @@ static int generate_machine_id(const char *root, sd_id128_t *ret) {
+[vighmah:
+Ported to work with the changes introduced in subsequent updates.
+]
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
+---
+ src/shared/machine-id-setup.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git c/src/shared/machine-id-setup.c i/src/shared/machine-id-setup.c
+index f3153e9175..8d7f8a6c59 100644
+--- c/src/shared/machine-id-setup.c
++++ i/src/shared/machine-id-setup.c
+@@ -60,7 +60,7 @@ static int generate_machine_id(const char *root, sd_id128_t *ret) {
                                  return 0;
                          }
- 
--                } else if (IN_SET(detect_vm(), VIRTUALIZATION_KVM, VIRTUALIZATION_AMAZON, VIRTUALIZATION_QEMU)) {
-+                } else if (IN_SET(detect_vm(), VIRTUALIZATION_KVM, VIRTUALIZATION_AMAZON, VIRTUALIZATION_QEMU,
-+                                  VIRTUALIZATION_XEN, VIRTUALIZATION_VMWARE)) {
- 
+
+-                } else if (IN_SET(detect_vm(), VIRTUALIZATION_KVM, VIRTUALIZATION_AMAZON, VIRTUALIZATION_QEMU, VIRTUALIZATION_XEN, VIRTUALIZATION_BHYVE)) {
++                } else if (IN_SET(detect_vm(), VIRTUALIZATION_KVM, VIRTUALIZATION_AMAZON, VIRTUALIZATION_QEMU, VIRTUALIZATION_XEN, VIRTUALIZATION_BHYVE, VIRTUALIZATION_VMWARE)) {
+
                          /* If we are not running in a container, see if we are running in a VM that provides
                           * a system UUID via the SMBIOS/DMI interfaces.  Such environments include QEMU/KVM
 -- 
