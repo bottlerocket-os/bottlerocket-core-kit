@@ -24,9 +24,6 @@ Source103: org.freedesktop.systemd1.toml
 Patch1001: 1001-sd-netlink-make-calc_elapse-return-USEC_INFINITY-whe.patch
 Patch1002: 1002-sd-netlink-make-the-default-timeout-configurable-by-.patch
 
-# Backport of upstream patch to speed up `systemctl daemon-reload`.
-Patch1003: 1003-serialize-don-t-allocate-1M-on-the-stack-just-like-t.patch
-
 # Local patch to work around the fact that /var is a bind mount from
 # /local/var, and we want the /local/var/run symlink to point to /run.
 Patch9001: 9001-use-absolute-path-for-var-run-symlink.patch
