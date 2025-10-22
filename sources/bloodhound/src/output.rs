@@ -186,4 +186,75 @@ mod tests {
         assert!(output_str.contains("*  3.3.3 Override reason for fail"));
         assert!(output_str.contains("*  4.4.4 Override reason for skip"));
     }
+
+    #[test]
+    fn test_json_output_with_overrides() {
+        // GIVEN: A report with regular tests and override statuses
+        // WHEN: JsonReportWriter writes the report
+        // THEN: Status should be flattened strings and override reasons should appear in error field
+
+        let metadata = ReportMetadata {
+            name: Some("Test Benchmark".to_string()),
+            version: Some("1.0".to_string()),
+            url: Some("https://example.com".to_string()),
+        };
+        let mut report = ReportResults::new(1, metadata);
+
+        // Add regular FAIL result
+        let fail_metadata = CheckerMetadata {
+            name: "br03030100".to_string(),
+            id: "3.3.1".to_string(),
+            level: 2,
+            title: "Ensure SCTP is disabled".to_string(),
+            mode: Mode::Automatic,
+        };
+        report.add_result(
+            fail_metadata,
+            CheckerResult {
+                status: CheckStatus::FAIL,
+                error: "modprobe for sctp is not disabled".to_string(),
+                override_reason: None,
+            },
+        );
+
+        // Add OVERRIDE result with reason
+        let override_metadata = CheckerMetadata {
+            name: "br03040101".to_string(),
+            id: "3.4.1.1".to_string(),
+            level: 2,
+            title: "Ensure IPv4 default deny firewall policy".to_string(),
+            mode: Mode::Automatic,
+        };
+        report.add_result(
+            override_metadata,
+            CheckerResult {
+                status: CheckStatus::OVERRIDE(Box::new(CheckStatus::SKIP)),
+                error: "".to_string(),
+                override_reason: Some("Test requires iptables configuration".to_string()),
+            },
+        );
+
+        let writer = JsonReportWriter {};
+        let mut output = Cursor::new(Vec::new());
+        writer.write(&report, &mut output).unwrap();
+
+        let json_output = String::from_utf8(output.into_inner()).unwrap();
+        let json_value: serde_json::Value = serde_json::from_str(&json_output).unwrap();
+
+        // Verify regular FAIL result has string status and original error
+        let fail_result = &json_value["results"]["br03030100"];
+        assert_eq!(fail_result["status"], "FAIL");
+        assert_eq!(fail_result["error"], "modprobe for sctp is not disabled");
+
+        // Verify OVERRIDE result has flattened status and override reason in error field
+        let override_result = &json_value["results"]["br03040101"];
+        assert_eq!(override_result["status"], "SKIP");
+        assert_eq!(
+            override_result["error"],
+            "Test requires iptables configuration"
+        );
+
+        // Verify override_reason field is not present
+        assert!(override_result.get("override_reason").is_none());
+    }
 }

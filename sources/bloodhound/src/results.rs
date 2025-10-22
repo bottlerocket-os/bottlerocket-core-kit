@@ -134,12 +134,44 @@ impl Checker for ManualChecker {
 }
 
 /// Used to help serialize output into simpler JSON structure.
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct IndividualResult {
-    #[serde(flatten)]
     pub metadata: CheckerMetadata,
-    #[serde(flatten)]
     pub result: CheckerResult,
+}
+
+impl Serialize for IndividualResult {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("IndividualResult", 7)?;
+
+        // Serialize metadata fields
+        state.serialize_field("name", &self.metadata.name)?;
+        state.serialize_field("id", &self.metadata.id)?;
+        state.serialize_field("level", &self.metadata.level)?;
+        state.serialize_field("title", &self.metadata.title)?;
+        state.serialize_field("mode", &self.metadata.mode)?;
+
+        // Handle status - flatten OVERRIDE to just the inner status
+        let status_str = match &self.result.status {
+            CheckStatus::OVERRIDE(inner_status) => inner_status.to_string(),
+            status => status.to_string(),
+        };
+        state.serialize_field("status", &status_str)?;
+
+        // Handle error - use override_reason if available, otherwise use error
+        let error_str = match &self.result.override_reason {
+            Some(reason) => reason,
+            None => &self.result.error,
+        };
+        state.serialize_field("error", error_str)?;
+
+        state.end()
+    }
 }
 
 /// ReportResults are the overall compliance checking containing the results of
