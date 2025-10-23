@@ -30,6 +30,7 @@ libc.workspace = true
 log.workspace = true
 models.workspace = true
 nix.workspace = true
+olpc-cjson.workspace = true
 rand = { workspace = true, features = ["default"] }
 reqwest.workspace = true
 retry-read.workspace = true

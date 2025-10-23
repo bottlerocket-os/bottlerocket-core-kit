@@ -404,6 +404,7 @@ dependencies = [
  "log",
  "models",
  "nix 0.26.4",
+ "olpc-cjson",
  "rand 0.8.5",
  "reqwest",
  "retry-read",

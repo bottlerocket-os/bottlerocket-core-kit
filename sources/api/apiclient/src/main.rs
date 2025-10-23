@@ -71,8 +71,8 @@ struct ExecArgs {
 /// Stores user-supplied arguments for the 'get' subcommand.
 #[derive(Debug)]
 enum GetArgs {
-    Prefixes(Vec<String>),
-    Uri(String),
+    Prefixes(Vec<String>, bool),
+    Uri(String, bool),
 }
 
 /// Stores user-supplied arguments for the 'raw' subcommand.
@@ -226,6 +226,7 @@ fn usage() -> ! {
             [ PREFIX [PREFIX ...] ]    The settings you want to get.  Full settings names work fine,
                                        or you can specify prefixes to fetch all settings under them.
             [ /desired-uri ]           The API URI to fetch.  Cannot be specified with prefixes.
+            --canonicalize             Output as canonical JSON (no whitespace, sorted keys).
 
                                        If neither prefixes nor URI are specified, get will show
                                        settings and OS info.
@@ -494,9 +495,11 @@ fn parse_exec_args(args: Vec<String>) -> Subcommand {
 fn parse_get_args(args: Vec<String>) -> Subcommand {
     let mut prefixes = vec![];
     let mut uri = None;
+    let mut canonicalize = false;
 
     for arg in args.into_iter() {
         match &arg {
+            x if x == "--canonicalize" => canonicalize = true,
             x if x.starts_with('-') => usage_msg(format!("Unknown argument '{x}'")),
 
             x if x.starts_with('/') => {
@@ -514,18 +517,18 @@ fn parse_get_args(args: Vec<String>) -> Subcommand {
         if !prefixes.is_empty() {
             usage_msg("You can specify prefixes or a URI, but not both.");
         }
-        Subcommand::Get(GetArgs::Uri(uri))
+        Subcommand::Get(GetArgs::Uri(uri, canonicalize))
     } else if !prefixes.is_empty() {
         if uri.is_some() {
             usage_msg("You can specify prefixes or a URI, but not both.");
         }
-        Subcommand::Get(GetArgs::Prefixes(prefixes))
+        Subcommand::Get(GetArgs::Prefixes(prefixes, canonicalize))
     } else {
         // A reasonable default is showing OS info and settings.
-        Subcommand::Get(GetArgs::Prefixes(vec![
-            "os.".to_string(),
-            "settings.".to_string(),
-        ]))
+        Subcommand::Get(GetArgs::Prefixes(
+            vec!["os.".to_string(), "settings.".to_string()],
+            canonicalize,
+        ))
     }
 }
 
@@ -1010,14 +1013,32 @@ async fn run() -> Result<()> {
         }
 
         Subcommand::Get(get) => {
-            let result = match get {
-                GetArgs::Uri(uri) => get::get_uri(&args.socket_path, uri).await,
-                GetArgs::Prefixes(prefixes) => get::get_prefixes(&args.socket_path, prefixes).await,
+            let (value, canonicalize) = match get {
+                GetArgs::Uri(uri, canonicalize) => {
+                    (get::get_uri(&args.socket_path, uri).await, canonicalize)
+                }
+                GetArgs::Prefixes(prefixes, canonicalize) => (
+                    get::get_prefixes(&args.socket_path, prefixes).await,
+                    canonicalize,
+                ),
             };
-            let value = result.context(error::GetSnafu)?;
-            let pretty =
-                serde_json::to_string_pretty(&value).expect("JSON Value already validated as JSON");
-            println!("{pretty}");
+            let value = value.context(error::GetSnafu)?;
+
+            if canonicalize {
+                let mut buf = Vec::new();
+                let mut ser = serde_json::Serializer::with_formatter(
+                    &mut buf,
+                    olpc_cjson::CanonicalFormatter::new(),
+                );
+                value
+                    .serialize(&mut ser)
+                    .expect("JSON Value already validated as JSON");
+                println!("{}", String::from_utf8(buf).expect("Valid UTF-8"));
+            } else {
+                let pretty = serde_json::to_string_pretty(&value)
+                    .expect("JSON Value already validated as JSON");
+                println!("{pretty}");
+            }
         }
 
         Subcommand::Reboot(_reboot) => {
