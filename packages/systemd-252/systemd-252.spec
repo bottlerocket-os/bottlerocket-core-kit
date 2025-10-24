@@ -23,6 +23,9 @@ Source103: org.freedesktop.systemd1.toml
 # Reference issue: github.com/systemd/systemd/issues/25441
 Patch1001: 1001-sd-netlink-make-calc_elapse-return-USEC_INFINITY-whe.patch
 Patch1002: 1002-sd-netlink-make-the-default-timeout-configurable-by-.patch
+# Backport of upstream patch to change `Failed to execute <filepath> No such file 
+# or directory` error logs to debug 
+Patch1003: 1003-exec-util-make-missing-agents-a-gracefull-handled-issues.patch
 
 # Local patch to work around the fact that /var is a bind mount from
 # /local/var, and we want the /local/var/run symlink to point to /run.
