@@ -77,6 +77,7 @@ autoreconf -fi
   --enable-internal-argon2 \
   --enable-internal-sse-argon2 \
   --enable-selinux \
+  --enable-udev \
   --enable-veritysetup \
   --with-crypto_backend=openssl \
   --with-luks2-pbkdf=pbkdf2 \
