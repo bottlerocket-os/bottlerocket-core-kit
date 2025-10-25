@@ -1,0 +1,27 @@
+[package]
+name = "libudev"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://github.com/systemd/systemd-stable/releases"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/systemd/systemd-stable/archive/v252.39/systemd-stable-252.39.tar.gz"
+sha512 = "0a24faf0dd6da9d5b55dafab332bdd40bfb90f643bd6caa3b6ecfcb8feaeabe51b1cf007f033e8d9ea3f52efdb4722ed63816b31646d70b99c22eb1eb2705450"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
+kmod = { path = "../kmod" }
+libacl = { path = "../libacl" }
+libattr = { path = "../libattr" }
+libcap = { path = "../libcap" }
+libseccomp = { path = "../libseccomp" }
+libselinux = { path = "../libselinux" }
+libxcrypt = { path = "../libxcrypt" }
+util-linux = { path = "../util-linux" }

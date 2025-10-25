@@ -132,6 +132,7 @@ Requires: %{_cross_os}libuuid
 Requires: %{_cross_os}libxcrypt
 
 Provides: %{_cross_os}systemd = %{package_priority_epoch}:
+Provides: %{_cross_os}libudev = %{package_priority_epoch}:
 Conflicts: %{_cross_os}systemd
 
 %description
@@ -158,6 +159,7 @@ Provides: %{_cross_os}systemd-cryptsetup = %{package_priority_epoch}:
 Summary: Files for development using the System and Service Manager
 Requires: %{name}
 Provides: %{_cross_os}systemd-devel = %{package_priority_epoch}:
+Provides: %{_cross_os}libudev-devel = %{package_priority_epoch}:
 
 %description devel
 %{summary}.

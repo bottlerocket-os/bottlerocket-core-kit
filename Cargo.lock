@@ -807,6 +807,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "libudev"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+ "kmod",
+ "libacl",
+ "libattr",
+ "libcap",
+ "libseccomp",
+ "libselinux",
+ "libxcrypt",
+ "util-linux",
+]
+
+[[package]]
 name = "liburcu"
 version = "0.1.0"
 dependencies = [
