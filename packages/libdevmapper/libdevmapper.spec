@@ -12,9 +12,11 @@ BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libaio-devel
 BuildRequires: %{_cross_os}libblkid-devel
 BuildRequires: %{_cross_os}libselinux-devel
+BuildRequires: %{_cross_os}libudev-devel
 Requires: %{_cross_os}libaio
 Requires: %{_cross_os}libblkid
 Requires: %{_cross_os}libselinux
+Requires: %{_cross_os}libudev
 
 %description
 %{summary}.
@@ -22,6 +24,7 @@ Requires: %{_cross_os}libselinux
 %package devel
 Summary: Files for development using the library for device mapper
 Requires: %{name}
+Requires: %{_cross_os}libudev-devel
 
 %description devel
 %{summary}.
@@ -54,6 +57,7 @@ Requires: %{name}
   --enable-pkgconfig \
   --enable-selinux \
   --enable-udev_rules \
+  --enable-udev_sync \
   --with-user= \
   --with-group= \
   --with-device-uid=0 \

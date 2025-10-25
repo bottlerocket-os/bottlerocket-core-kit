@@ -23,4 +23,5 @@ sha512 = "de081006558f8ef998cbfbacc1b887d43702a39bc3dd6dd2a9e59ffd0481889921ef49
 glibc = { path = "../glibc" }
 libselinux = { path = "../libselinux" }
 libaio = { path = "../libaio" }
+libudev = { path = "../libudev" }
 util-linux = { path = "../util-linux" }
