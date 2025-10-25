@@ -1,4 +1,4 @@
-From 246df3d2d990257de06ce8b2219a7f4f198e69cc Mon Sep 17 00:00:00 2001
+From d30aec8c423c9b9d6899bfa4c99985c5562e3c42 Mon Sep 17 00:00:00 2001
 From: Ben Cressey <bcressey@amazon.com>
 Date: Fri, 28 Mar 2025 21:29:04 +0000
 Subject: [PATCH] pbkdf: check whether FIPS is enabled at runtime
@@ -19,7 +19,7 @@ Signed-off-by: Ben Cressey <bcressey@amazon.com>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/lib/utils_pbkdf.c b/lib/utils_pbkdf.c
-index b54509c8..37db5932 100644
+index 87e9419..bea4024 100644
 --- a/lib/utils_pbkdf.c
 +++ b/lib/utils_pbkdf.c
 @@ -8,6 +8,7 @@
@@ -30,7 +30,7 @@ index b54509c8..37db5932 100644
  
  #include "internal.h"
  
-@@ -185,8 +186,18 @@ int init_pbkdf_type(struct crypt_device *cd,
+@@ -192,8 +193,18 @@ int init_pbkdf_type(struct crypt_device *cd,
  	unsigned cpus;
  	uint32_t old_flags, memory_kb;
  	int r;
@@ -50,6 +50,3 @@ index b54509c8..37db5932 100644
  		if (pbkdf && strcmp(pbkdf->type, CRYPT_KDF_PBKDF2)) {
  			log_err(cd, _("Only PBKDF2 is supported in FIPS mode."));
  			return -EINVAL;
--- 
-2.48.1
-
