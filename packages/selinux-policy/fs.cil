@@ -46,6 +46,7 @@
 (filecon "/.*/usr/bin/apiserver" file api_exec)
 (filecon "/.*/usr/bin/early-boot-config" file api_exec)
 (filecon "/.*/usr(/fips)?/bin/migrator" file api_exec)
+(filecon "/.*/usr/bin/rottweiler" file api_exec)
 (filecon "/.*/usr/bin/storewolf" file api_exec)
 (filecon "/.*/usr(/fips)?/bin/cfsignal" file api_exec)
 (filecon "/.*/usr/bin/thar-be-settings" file api_exec)
