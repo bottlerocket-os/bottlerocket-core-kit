@@ -71,6 +71,8 @@ members = [
 
     "retry-read",
 
+    "rottweiler",
+
     "updater/block-party",
     "updater/signpost",
     "updater/update_metadata",
@@ -147,7 +149,9 @@ gptman = { version = "1", default-features = false }
 handlebars = "4"
 h2 = "0.4"
 headers = "0.4"
+hex = "0.4"
 hex-literal = "0.4"
+hkdf = { version = "0.12", default-features = false }
 http = "0.2"
 httparse = "1"
 httptest = "0.15"
@@ -190,6 +194,7 @@ serde_json = "1"
 serde_plain = "1"
 serde_yaml = "0.9"
 serde_repr = "0.1"
+sha2 = "0.10"
 shell-words = "1"
 shlex = "1"
 signal-hook = "0.3"
@@ -213,6 +218,7 @@ url = "2"
 walkdir = "2.5"
 which = "4"
 zbus = { version = "5.11", default-features = false }
+zeroize = { version = "1", default-features = false }
 zvariant = "5.7"
 x509-parser = "0.16"
 base64 = "0.22"

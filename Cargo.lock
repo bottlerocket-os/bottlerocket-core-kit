@@ -188,6 +188,7 @@ dependencies = [
  "rdma-core",
  "readline",
  "release",
+ "rottweiler",
  "runc",
  "selinux-policy",
  "socat",
@@ -1046,6 +1047,13 @@ dependencies = [
 [[package]]
 name = "release"
 version = "0.0.0"
+
+[[package]]
+name = "rottweiler"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+]
 
 [[package]]
 name = "runc"

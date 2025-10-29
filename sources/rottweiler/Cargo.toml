@@ -1,0 +1,22 @@
+[package]
+name = "rottweiler"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+publish = false
+
+[dependencies]
+argh.workspace = true
+bottlerocket-image-features.workspace = true
+envy.workspace = true
+hex.workspace = true
+hkdf = { workspace = true, features = ["std"] }
+nix = { workspace = true, features = ["fs", "ioctl", "mount"] }
+serde = { workspace = true, features = ["derive"] }
+sha2.workspace = true
+snafu.workspace = true
+walkdir.workspace = true
+zeroize = { workspace = true, features = ["alloc", "derive"] }
+
+[build-dependencies]
+generate-readme.workspace = true

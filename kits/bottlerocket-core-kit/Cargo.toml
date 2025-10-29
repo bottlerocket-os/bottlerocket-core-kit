@@ -128,6 +128,7 @@ procps = { path = "../../packages/procps" }
 rdma-core = { path = "../../packages/rdma-core" }
 readline = { path = "../../packages/readline" }
 release = { path = "../../packages/release" }
+rottweiler = { path = "../../packages/rottweiler" }
 runc = { path = "../../packages/runc" }
 selinux-policy = { path = "../../packages/selinux-policy" }
 socat = { path = "../../packages/socat" }
