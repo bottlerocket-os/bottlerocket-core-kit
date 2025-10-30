@@ -195,7 +195,7 @@ For example, if you want the name "FOO", you can `PATCH` to `/settings?tx=FOO` a
 
 ### Ephemeral storage
 
-This lets you manage ephemeral storage on instances that have local instance storage (like NVMe SSDs).
+This lets you manage ephemeral storage on instances that have local instance storage (like NVMe SSDs) or ephemeral EBS volumes with names in the xvdda-xvddx range.
 
 #### Initialize ephemeral storage
 
@@ -206,6 +206,23 @@ apiclient ephemeral-storage init
 ```
 
 This sets up the storage devices as a RAID array and formats them.
+
+The ephemeral storage array can be customized with these options:
+```
+-t, --filesystem            Filesystem to initialize the array as (ext4 or xfs). Default is
+                            xfs. If a single disk is provided, it is mounted directly without
+                            constructing an array. If no ephemeral disks are found, this
+                            operation does nothing.
+--disks DISK [DISK ...]     Local disks to configure for storage. Default is all ephemeral
+                            disks.
+--ebs-volumes VOLUME [VOLUME ..]
+                            EBS volumes in the `xvdda`-`xvddx` range to configure for storage.
+--prefer PREFERENCE [PREFERENCE ..]
+                            Ephemeral storage type preference, in descending order. Allowed
+                            values: `ephemeral-disk`, `ebs-volume` or a combination of these
+                            joined by `+`. Defaults to `ephemeral-disk` only. This option is
+                            ignored if `--disks` or `--ebs-volumes` is set.
+```
 
 #### Bind directories to ephemeral storage
 
@@ -220,15 +237,16 @@ This automatically binds the appropriate directories for your platform (Kubernet
 You can also specify custom directories:
 
 ```shell
-apiclient ephemeral-storage bind --dirs /var/lib/containerd /custom/path
+apiclient ephemeral-storage bind --dirs /var/lib/containerd /mnt/custom/path
 ```
 
 #### List ephemeral storage information
 
-You can list available disks and currently bound directories:
+You can list available disks, ebs volumes, and directories that can be bound to ephemeral storage:
 
 ```shell
 apiclient ephemeral-storage list-disks
+apiclient ephemeral-storage list-ebs-volumes
 apiclient ephemeral-storage list-dirs
 ```
 

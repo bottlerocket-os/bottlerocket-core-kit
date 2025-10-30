@@ -50,7 +50,15 @@ where
     list(socket_path, "list-disks", format).await
 }
 
-/// Lists the ephemeral disks available for configuration
+/// Lists the ephemeral ebs volumes available for configuration
+pub async fn list_ebs_volumes<P>(socket_path: P, format: Option<String>) -> Result<String>
+where
+    P: AsRef<Path>,
+{
+    list(socket_path, "list-ebs-volumes", format).await
+}
+
+/// Lists a variant-specific set of directories that can be bound to ephemeral storage.
 pub async fn list_dirs<P>(socket_path: P, format: Option<String>) -> Result<String>
 where
     P: AsRef<Path>,
