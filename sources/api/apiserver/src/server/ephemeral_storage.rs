@@ -24,6 +24,10 @@ static RAID_DEVICE_DIR: &str = "/dev/md/";
 static RAID_DEVICE_NAME: &str = "ephemeral";
 /// Symlink to ephemeral storage array or disk
 static EPHEMERAL_STORAGE_LINK: &str = "/dev/disk/ephemeral-storage";
+/// Path to ephemeral devices (instance storage disks)
+static EPHEMERAL_PATH: &str = "/dev/disk/ephemeral";
+/// Path to ebs volumes marked for ephemeral storage use
+static EPHEMERAL_EBS_PATH: &str = "/dev/disk/ephemeral-ebs";
 
 pub struct BindDirs {
     pub allowed_exact: HashSet<&'static str>,
@@ -316,45 +320,29 @@ fn mdadm_create<T: AsRef<str>>(name: T, disks: Vec<T>) -> Result<()> {
     Ok(())
 }
 
-/// ephemeral_devices returns the full path name to the block devices in /dev/disk/ephemeral
+/// ephemeral_devices returns the full path name to the block devices in EPHEMERAL_PATH
 pub fn ephemeral_devices() -> Result<Vec<String>> {
-    const EPHEMERAL_PATH: &str = "/dev/disk/ephemeral";
+    discover_disks(EPHEMERAL_PATH)
+}
+
+/// ephemeral_ebs_volumes returns the full path name to the ebs volumes in EPHEMERAL_EBS_PATH
+pub fn ephemeral_ebs_volumes() -> Result<Vec<String>> {
+    discover_disks(EPHEMERAL_EBS_PATH)
+}
+
+/// discover_disks returns the full path name to the entries in the specified path,
+/// or an empty vector if the specified path does not exist
+fn discover_disks(path: &str) -> Result<Vec<String>> {
     let mut filenames = Vec::new();
-    // for instances without ephemeral storage, we don't error and just return an empty vector so
-    // it can be handled gracefully
-    if fs::metadata(EPHEMERAL_PATH).is_err() {
+    if fs::metadata(path).is_err() {
         return Ok(filenames);
     }
-
-    let entries = std::fs::read_dir(EPHEMERAL_PATH).context(error::DiscoverEphemeralSnafu {
-        path: String::from(EPHEMERAL_PATH),
+    let entries = std::fs::read_dir(path).context(error::DiscoverEphemeralSnafu {
+        path: String::from(path),
     })?;
     for entry in entries {
         let entry = entry.context(error::DiscoverEphemeralSnafu {
-            path: String::from(EPHEMERAL_PATH),
-        })?;
-        filenames.push(entry.path().into_os_string().to_string_lossy().to_string());
-    }
-    Ok(filenames)
-}
-
-/// ephemeral_ebs_volumes returns the full path name to the ebs volumes in /dev/disk/ephemeral-ebs
-pub fn ephemeral_ebs_volumes() -> Result<Vec<String>> {
-    const EPHEMERAL_EBS_PATH: &str = "/dev/disk/ephemeral-ebs";
-    let mut filenames = Vec::new();
-    // for instances without ebs volumes attached, we don't error and just return an empty vector so
-    // it can be handled gracefully
-    if fs::metadata(EPHEMERAL_EBS_PATH).is_err() {
-        return Ok(filenames);
-    }
-
-    let entries =
-        std::fs::read_dir(EPHEMERAL_EBS_PATH).context(error::DiscoverEbsVolumesSnafu {
-            path: String::from(EPHEMERAL_EBS_PATH),
-        })?;
-    for entry in entries {
-        let entry = entry.context(error::DiscoverEbsVolumesSnafu {
-            path: String::from(EPHEMERAL_EBS_PATH),
+            path: String::from(path),
         })?;
         filenames.push(entry.path().into_os_string().to_string_lossy().to_string());
     }
@@ -453,12 +441,6 @@ pub mod error {
 
         #[snafu(display("Failed to discover ephemeral disks from {}: {}", path, source))]
         DiscoverEphemeral {
-            source: std::io::Error,
-            path: String,
-        },
-
-        #[snafu(display("Failed to discover ebs volumes from {}: {}", path, source))]
-        DiscoverEbsVolumes {
             source: std::io::Error,
             path: String,
         },
