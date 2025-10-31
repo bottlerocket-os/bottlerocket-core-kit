@@ -6,9 +6,8 @@ extern crate log;
 use libc::gid_t;
 use nix::unistd::Gid;
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
-use snafu::{ensure, ResultExt};
+use snafu::ResultExt;
 use std::env;
-use std::path::Path;
 use std::process;
 use std::str::FromStr;
 
@@ -28,9 +27,6 @@ mod error {
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(crate)))]
     pub(crate) enum Error {
-        #[snafu(display("Datastore does not exist, did storewolf run?"))]
-        NonexistentDatastore,
-
         #[snafu(display("{}", source))]
         Server { source: apiserver::server::Error },
 
@@ -145,12 +141,6 @@ async fn run() -> Result<()> {
 
     // SimpleLogger will send errors to stderr and anything less to stdout.
     SimpleLogger::init(args.log_level, LogConfig::default()).context(error::LoggerSnafu)?;
-
-    // Make sure the datastore exists
-    ensure!(
-        Path::new(&args.datastore_path).exists(),
-        error::NonexistentDatastoreSnafu
-    );
 
     // Access to the data store is controlled through a RwLock, allowing many readers, but a
     // writer will block all other access.  We don't expect any real load, though, as the API
