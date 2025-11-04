@@ -114,7 +114,9 @@ cpuManagerReconcilePeriod: {{settings.kubernetes.cpu-manager-reconcile-period}}
 {{#if settings.kubernetes.cpu-manager-policy-options}}
 cpuManagerPolicyOptions:
 {{#each settings.kubernetes.cpu-manager-policy-options}}
+{{#if (or (eq this "full-pcpus-only") (eq this "strict-cpu-reservation") (eq this "distribute-cpus-across-numa"))}}
     {{this}}: "true"
+{{/if}}
 {{/each}}
 {{/if}}
 {{#if settings.kubernetes.topology-manager-scope}}
