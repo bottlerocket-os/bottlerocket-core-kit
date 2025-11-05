@@ -209,7 +209,7 @@ where
 
     // Retrieve settings by querying the settings by prefix
     let prefixes: Vec<String> = to_query.into_iter().map(|s| s.to_string()).collect();
-    let response = apiclient::get::get_prefixes(socket_path, prefixes.to_owned())
+    let response = apiclient::get::get_prefixes(socket_path, prefixes.to_owned(), vec![])
         .await
         .context(error::GetPrefixSnafu { prefixes })?;
     debug!("API response model: {response}");
@@ -242,7 +242,7 @@ where
 {
     // Retrieve network proxy related settings.
     let prefixes = vec!["settings.network".to_string()];
-    let response = apiclient::get::get_prefixes(&socket_path, prefixes.to_owned())
+    let response = apiclient::get::get_prefixes(&socket_path, prefixes.to_owned(), vec![])
         .await
         .context(error::GetPrefixSnafu { prefixes })?;
 
@@ -278,7 +278,7 @@ where
     }
     // We potentially need to also no-proxy some K8s related domains for K8s variants
     let prefixes = vec!["settings.kubernetes".to_string()];
-    let response = apiclient::get::get_prefixes(&socket_path, prefixes.to_owned())
+    let response = apiclient::get::get_prefixes(&socket_path, prefixes.to_owned(), vec![])
         .await
         .context(error::GetPrefixSnafu { prefixes })?;
 
