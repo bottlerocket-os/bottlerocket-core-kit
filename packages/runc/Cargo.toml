@@ -12,18 +12,14 @@ path = "../packages.rs"
 releases-url = "https://github.com/opencontainers/runc/releases/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/opencontainers/runc/releases/download/v1.2.7/runc.tar.xz"
-path = "runc-v1.2.7.tar.xz"
-sha512 = "2049eab6c3c10aa9fabd4c929cc61834824e394dc6a2dabf50841d8c7b902a97dd0723e189f6ddfbe511b2dcb8a4b8dd378f405144fdcd66e500de7fa876dec6"
+url = "https://github.com/opencontainers/runc/releases/download/v1.2.8/runc.tar.xz"
+path = "runc-v1.2.8.tar.xz"
+sha512 = "49d85cbc1165fd1d09d2542e2159274a6c279e8250cba55dfe35035a8e45dcf7cf3b9c26810a177bab093e204c6e6deb97dae2d6410df19ceff7f912630426dc"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/opencontainers/runc/releases/download/v1.2.7/runc.tar.xz.asc"
-path = "runc-v1.2.7.tar.xz.asc"
-sha512 = "78b5fb2800906aa756d83fdfe4c8a04b558e86d4167b86c059c6375a9cb58bf0b044160608bd02f7b6cb1c767f2a0c0ab0b400b61c1ccbb7ada9af8204289a38"
-
-[[package.metadata.build-package.external-files]]
-url = "https://cache.bottlerocket.aws/v1.2.7-Additional-CVE-fixes.patch/3ab3340d3564fdbc42d33dc556ff9bc9232f00cb6ac110eec345691b85f5a192a722d739736aca5d832c3f64a543795e9bb41dc970678977752cb581de469e5c/v1.2.7-Additional-CVE-fixes.patch"
-sha512 = "3ab3340d3564fdbc42d33dc556ff9bc9232f00cb6ac110eec345691b85f5a192a722d739736aca5d832c3f64a543795e9bb41dc970678977752cb581de469e5c"
+url = "https://github.com/opencontainers/runc/releases/download/v1.2.8/runc.tar.xz.asc"
+path = "runc-v1.2.8.tar.xz.asc"
+sha512 = "bf13bfb85e4f5170551d072a87d82108633a0d954a210b2d1d9528413bbd696ccb541fd12114d87499eb49d7dfcfdc203bbddc3f90a9dae70a04399a3d0c4070"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
