@@ -3,7 +3,7 @@
 %global goimport %{goproject}/%{gorepo}
 
 Name: %{_cross_os}aws-otel-collector
-Version: 0.43.3
+Version: 0.45.1
 Release: 1%{?dist}
 Epoch: 1
 Summary: AWS Distro for OpenTelemetry Collector
@@ -47,8 +47,6 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 %build
 
 %set_cross_go_flags
-export GO_MAJOR="1.24"
-
 go build -ldflags "${GOLDFLAGS}" -o aws-otel-collector ./cmd/awscollector
 gofips build -ldflags "${GOLDFLAGS}" -o fips/aws-otel-collector ./cmd/awscollector
 
