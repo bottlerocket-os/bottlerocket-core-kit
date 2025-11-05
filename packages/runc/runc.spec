@@ -1,8 +1,8 @@
 %global goproject github.com/opencontainers
 %global gorepo runc
 %global goimport %{goproject}/%{gorepo}
-%global commit 4774df387790afbddcd2fd905d70ecb8aec9c341
-%global gover 1.2.7
+%global commit eeb7e6024f9ee43876301b1d23c353384fa6dcdd
+%global gover 1.2.8
 
 %global _dwz_low_mem_die_limit 0
 
@@ -19,10 +19,6 @@ Source1: https://%{goimport}/releases/download/v%{gover}/%{gorepo}.tar.xz.asc#/%
 Source2: gpgkey-B64E4955B29FA3D463F2A9062897FAD2B7E9446F.asc
 # Kir Kolyshkin
 Source3: gpgkey-C2428CD75720FACDCF76B6EA17DE5ECB75A1100E.asc
-
-# Patch for CVE fixes
-Source1001: v1.2.7-Additional-CVE-fixes.patch
-Source1002: 1002-openat2-increase-retry-count-to-128.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
@@ -55,10 +51,6 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 %{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:2}
 %autosetup -Sgit -n %{gorepo}-%{gover} -p1
 %cross_go_setup %{gorepo}-%{gover} %{goproject} %{goimport}
-
-# Apply additional runc patches directly
-patch -p1 < %{S:1001}
-patch -p1 < %{S:1002}
 
 %build
 %cross_go_configure %{goimport}
