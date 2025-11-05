@@ -143,6 +143,11 @@ pub fn initialize(
         info!("{device_name:?} is already formatted as {fs}, skipping format");
     }
 
+    // Clear previous link if it exists
+    if std::fs::exists(EPHEMERAL_STORAGE_LINK).is_ok_and(|x| x) {
+        std::fs::remove_file(EPHEMERAL_STORAGE_LINK).context(error::DiskUnlinkFailureSnafu {})?;
+    }
+
     // Create link to formatted device for use in `bind`
     std::os::unix::fs::symlink(&device_name, EPHEMERAL_STORAGE_LINK)
         .context(error::DiskSymlinkFailureSnafu {})?;
@@ -451,6 +456,9 @@ pub mod error {
             dest: String,
             output: std::process::Output,
         },
+
+        #[snafu(display("Failed to remove disk symlink {}", source))]
+        DiskUnlinkFailure { source: std::io::Error },
 
         #[snafu(display("Failed to create disk symlink {}", source))]
         DiskSymlinkFailure { source: std::io::Error },
