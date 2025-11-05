@@ -2,7 +2,7 @@
 %global gorepo nvidia-container-toolkit
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.17.8
+%global gover 1.18.0
 %global rpmver %{gover}
 
 Name: %{_cross_os}nvidia-container-toolkit
@@ -30,6 +30,24 @@ Requires: (%{name}-ecs if %{_cross_os}variant-family(aws-ecs))
 Requires: (%{name}-k8s if %{_cross_os}variant-family(aws-k8s))
 
 %description
+%{summary}.
+
+%package bin
+Summary: NVIDIA container toolkit binaries
+Provides: %{name}(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{name})
+Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
+
+%description bin
+%{summary}.
+
+%package fips-bin
+Summary: NVIDIA container toolkit binaries, FIPS edition
+Provides: %{name}(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{name})
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
+
+%description fips-bin
 %{summary}.
 
 %package ecs
@@ -60,15 +78,21 @@ Conflicts: %{name}-ecs
 export CGO_LDFLAGS="-Wl,-z,relro -Wl,--export-dynamic"
 export GOLDFLAGS="-compressdwarf=false -linkmode=external -extldflags '${CGO_LDFLAGS}'"
 
-go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime-hook ./cmd/nvidia-container-runtime-hook
-go build -ldflags="${GOLDFLAGS}" -o nvidia-ctk ./cmd/nvidia-ctk
-go build -ldflags="${GOLDFLAGS}" -o nvidia-cdi-hook ./cmd/nvidia-cdi-hook
-go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime ./cmd/nvidia-container-runtime
-go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime.cdi ./cmd/nvidia-container-runtime.cdi
-go build -ldflags="${GOLDFLAGS}" -o nvidia-container-runtime.legacy ./cmd/nvidia-container-runtime.legacy
+for bin in \
+  nvidia-cdi-hook \
+  nvidia-container-runtime-hook \
+  nvidia-container-runtime \
+  nvidia-container-runtime.cdi \
+  nvidia-container-runtime.legacy \
+  nvidia-ctk ;
+do
+  go build -ldflags="${GOLDFLAGS}" -o ${bin} ./cmd/${bin}
+  gofips build -ldflags="${GOLDFLAGS}" -o fips/${bin} ./cmd/${bin}
+done
 
 %install
 install -d %{buildroot}%{_cross_bindir}
+install -d %{buildroot}%{_cross_fips_bindir}
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -d %{buildroot}%{_cross_templatedir}
 install -d %{buildroot}%{_cross_udevrulesdir}
@@ -76,12 +100,19 @@ install -d %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_datadir}/nvidia-container-toolkit
 install -d %{buildroot}%{_cross_factorydir}/nvidia-container-runtime
 install -d %{buildroot}%{_cross_templatedir}/nvidia-container-runtime
-install -p -m 0755 nvidia-container-runtime-hook %{buildroot}%{_cross_bindir}/
-install -p -m 0755 nvidia-ctk %{buildroot}%{_cross_bindir}/
-install -p -m 0755 nvidia-cdi-hook %{buildroot}%{_cross_bindir}/
-install -p -m 0755 nvidia-container-runtime %{buildroot}%{_cross_bindir}/
-install -p -m 0755 nvidia-container-runtime.cdi %{buildroot}%{_cross_bindir}/
-install -p -m 0755 nvidia-container-runtime.legacy %{buildroot}%{_cross_bindir}/
+
+for bin in \
+  nvidia-cdi-hook \
+  nvidia-container-runtime-hook \
+  nvidia-container-runtime \
+  nvidia-container-runtime.cdi \
+  nvidia-container-runtime.legacy \
+  nvidia-ctk ;
+do
+  install -p -m 0755 ${bin} %{buildroot}%{_cross_bindir}
+  install -p -m 0755 fips/${bin} %{buildroot}%{_cross_fips_bindir}
+done
+
 install -m 0644 %{S:1} %{buildroot}%{_cross_factorydir}/nvidia-container-runtime/
 install -m 0644 %{S:2} %{buildroot}%{_cross_factorydir}/nvidia-container-runtime/
 install -p -m 0644 %{S:3} %{buildroot}%{_cross_udevrulesdir}/90-nvidia-gpu-devices.rules
@@ -93,14 +124,24 @@ install -m 0644 %{S:7} %{buildroot}%{_cross_unitdir}/
 %files
 %license LICENSE
 %{_cross_attribution_file}
+%{_cross_udevrulesdir}/90-nvidia-gpu-devices.rules
+%{_cross_unitdir}/generate-cdi-specs.service
+
+%files bin
 %{_cross_bindir}/nvidia-container-runtime-hook
-%{_cross_bindir}/nvidia-ctk
 %{_cross_bindir}/nvidia-cdi-hook
 %{_cross_bindir}/nvidia-container-runtime
 %{_cross_bindir}/nvidia-container-runtime.cdi
 %{_cross_bindir}/nvidia-container-runtime.legacy
-%{_cross_udevrulesdir}/90-nvidia-gpu-devices.rules
-%{_cross_unitdir}/generate-cdi-specs.service
+%{_cross_bindir}/nvidia-ctk
+
+%files fips-bin
+%{_cross_fips_bindir}/nvidia-container-runtime-hook
+%{_cross_fips_bindir}/nvidia-cdi-hook
+%{_cross_fips_bindir}/nvidia-container-runtime
+%{_cross_fips_bindir}/nvidia-container-runtime.cdi
+%{_cross_fips_bindir}/nvidia-container-runtime.legacy
+%{_cross_fips_bindir}/nvidia-ctk
 
 %files ecs
 %{_cross_factorydir}/nvidia-container-runtime/nvidia-container-toolkit-config-ecs.toml
