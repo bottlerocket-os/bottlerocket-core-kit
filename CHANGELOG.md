@@ -1,3 +1,9 @@
+# v10.9.1 (2025-11-05)
+## OS Changes
+- Update runc to v1.2.8 ([#708])
+
+[#708]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/708
+
 # v10.9.0 (2025-11-05)
 
 ## OS Changes
