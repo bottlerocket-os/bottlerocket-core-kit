@@ -2,7 +2,7 @@
 %global gorepo rolesanywhere-credential-helper
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.7.0
+%global gover 1.7.1
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
