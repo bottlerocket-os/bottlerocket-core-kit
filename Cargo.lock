@@ -83,7 +83,7 @@ dependencies = [
  "coreutils",
  "dbus-broker",
  "docker-cli-25",
- "docker-engine",
+ "docker-engine-25",
  "docker-init",
  "e2fsprogs",
  "early-boot-config",
@@ -276,7 +276,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "docker-engine"
+name = "docker-engine-25"
 version = "0.1.0"
 dependencies = [
  "glibc",

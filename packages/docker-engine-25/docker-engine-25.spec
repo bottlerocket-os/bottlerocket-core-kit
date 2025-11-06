@@ -11,7 +11,9 @@
 
 %global _dwz_low_mem_die_limit 0
 
-Name: %{_cross_os}docker-engine
+%global package_priority_epoch 1
+
+Name: %{_cross_os}docker-engine-25
 Version: %{rpmver}
 Release: 1%{?dist}
 Summary: Docker engine
@@ -42,6 +44,8 @@ Requires: %{_cross_os}iptables
 Requires: %{_cross_os}systemd
 Requires: %{_cross_os}procps
 Requires: %{name}(binaries)
+Provides: %{_cross_os}docker-engine = %{package_priority_epoch}:
+Conflicts: %{_cross_os}docker-engine
 
 %description
 %{summary}.

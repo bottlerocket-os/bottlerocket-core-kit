@@ -21,7 +21,7 @@ members = [
   "packages/libcryptsetup",
   "packages/dbus-broker",
   "packages/docker-cli-25",
-  "packages/docker-engine",
+  "packages/docker-engine-25",
   "packages/docker-init",
   "packages/e2fsprogs",
   "packages/early-boot-config",
