@@ -6700,6 +6700,7 @@ dependencies = [
  "serde_repr",
  "simplelog",
  "snafu",
+ "test-case",
  "tokio",
  "toml",
  "zbus",

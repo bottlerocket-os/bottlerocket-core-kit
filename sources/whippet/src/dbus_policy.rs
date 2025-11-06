@@ -26,6 +26,8 @@ use serde::Serialize;
 use snafu::ResultExt;
 use zvariant::{Type, Value as ZVariantValue};
 
+const DEFAULT_MAX_FDS: u64 = u64::MAX;
+
 /// Top-level policy structure that matches launcher's Dbus format. It is crucial that
 /// the order of the fields remains like it is, otherwise the broker rejects the policy.
 ///
@@ -72,7 +74,7 @@ pub struct OwnRecord {
 /// https://github.com/bus1/dbus-broker/blob/b0db0890d1254477cf832e5f9f0a798360c80fd9/src/launch/policy.c#L877
 macro_rules! impl_record {
     ($record_type:ident, $rule_variant:path, [$(($struct_field:ident, $rule_field:ident)),*]) => {
-        #[derive(Debug, Type, Serialize, Clone, ZVariantValue, Default)]
+        #[derive(Debug, Type, Serialize, Clone, ZVariantValue)]
         pub struct $record_type {
             pub verdict: bool,
             pub priority: u64,
@@ -84,6 +86,23 @@ macro_rules! impl_record {
             pub broadcast: u32,
             pub min_fds: u64,
             pub max_fds: u64,
+        }
+
+        impl Default for $record_type {
+            fn default() -> Self {
+                Self {
+                    verdict: Default::default(),
+                    priority: Default::default(),
+                    name: Default::default(),
+                    path: Default::default(),
+                    interface: Default::default(),
+                    member: Default::default(),
+                    record_type: Default::default(),
+                    broadcast: Default::default(),
+                    min_fds: Default::default(),
+                    max_fds: crate::dbus_policy::DEFAULT_MAX_FDS,
+                }
+            }
         }
 
         impl TryFrom<&Rule> for $record_type {
@@ -99,6 +118,10 @@ macro_rules! impl_record {
                     } => Ok(Self {
                         verdict: *allow,
                         priority: *priority,
+                        name: rule.name()?,
+                        interface: rule.interface()?,
+                        member: rule.member()?,
+                        path: rule.path()?,
                         $($struct_field: $rule_field.clone(),)*
                         ..Self::default()
                     }),
@@ -113,23 +136,17 @@ macro_rules! impl_record {
     };
 }
 
-impl_record!(SendRecord, Rule::Send, [
-    (broadcast, send_broadcast),
-    (name, send_destination),
-    (interface, send_interface),
-    (member, send_member),
-    (path, send_path),
-    (record_type, send_type)
-]);
+impl_record!(
+    SendRecord,
+    Rule::Send,
+    [(broadcast, send_broadcast), (record_type, send_type)]
+);
 
-impl_record!(ReceiveRecord, Rule::Receive, [
-    (broadcast, receive_broadcast),
-    (interface, receive_interface),
-    (member, receive_member),
-    (path, receive_path),
-    (name, receive_sender),
-    (record_type, receive_type)
-]);
+impl_record!(
+    ReceiveRecord,
+    Rule::Receive,
+    [(broadcast, receive_broadcast), (record_type, receive_type)]
+);
 
 impl DbusPolicy {
     /// Builds a new DbusPolicy object using "system" as the only supported bus_type
@@ -427,5 +444,43 @@ mod tests {
 
         let dbus_policy: DbusPolicy = policy.try_into().unwrap();
         assert_eq!(dbus_policy.uid_entries[1].1.send_rules.len(), 2);
+    }
+
+    #[test]
+    fn test_wildcards_replaced_with_empty_string() {
+        let config_str = r#"
+            [default]
+            rules = [
+                { allow = true, send_interface = "*", send_destination = "*", send_path = "*", send_member = "*" },
+            ]
+        "#;
+        let mut policy: Policy = toml::from_str(config_str).unwrap();
+        policy.set_rule_priorities(&mut 0u64);
+        policy.prepare().unwrap();
+
+        let dbus_policy: DbusPolicy = policy.try_into().unwrap();
+        assert_eq!(dbus_policy.uid_entries[0].1.send_rules[0].interface, "");
+        assert_eq!(dbus_policy.uid_entries[0].1.send_rules[0].name, "");
+        assert_eq!(dbus_policy.uid_entries[0].1.send_rules[0].member, "");
+        assert_eq!(dbus_policy.uid_entries[0].1.send_rules[0].path, "");
+    }
+
+    #[test]
+    fn test_max_fds_are_always_the_default() {
+        let config_str = r#"
+            [default]
+            rules = [
+                { allow = true, send_interface = "*", send_destination = "*", send_path = "*", send_member = "*" },
+            ]
+        "#;
+        let mut policy: Policy = toml::from_str(config_str).unwrap();
+        policy.set_rule_priorities(&mut 0u64);
+        policy.prepare().unwrap();
+
+        let dbus_policy: DbusPolicy = policy.try_into().unwrap();
+        assert_eq!(
+            dbus_policy.uid_entries[0].1.send_rules[0].max_fds,
+            DEFAULT_MAX_FDS
+        );
     }
 }

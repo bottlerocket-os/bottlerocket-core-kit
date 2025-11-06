@@ -465,6 +465,31 @@ fn find_priority_threshold(rules: &[Rule]) -> u64 {
         .unwrap_or_default()
 }
 
+/// Macro to generate rule methods that extract fields and replace wildcards with empty strings
+/// See: https://github.com/bus1/dbus-broker/blob/e3324b3736fd40d95e7943fca6e485013d15d643/src/launch/policy.c#L97
+macro_rules! impl_wildcard_getter {
+    ($method_name:ident, ($($rule_type:ident => $field:ident),*)) => {
+        pub(crate) fn $method_name(&self) -> Result<String> {
+            match self {
+                $(
+                    Self::$rule_type { $field, .. } => {
+                        if $field == "*" {
+                            Ok("".to_string())
+                        } else {
+                            Ok($field.to_owned())
+                        }
+                    }
+                )*
+                _ => error::InvalidPropertyForRuleSnafu {
+                    property: stringify!($method_name).to_string(),
+                    rule_type: format!("{self:?}"),
+                }
+                .fail(),
+            }
+        }
+    };
+}
+
 impl Rule {
     /// Sets the priority of the rule
     fn set_priority(&mut self, new_priority: u64) {
@@ -489,6 +514,11 @@ impl Rule {
     fn is_connect(&self) -> bool {
         matches!(self, Self::ConnectUser { .. })
     }
+
+    impl_wildcard_getter!(interface, (Send => send_interface, Receive => receive_interface));
+    impl_wildcard_getter!(name, (Send => send_destination, Receive => receive_sender));
+    impl_wildcard_getter!(member, (Send => send_member, Receive => receive_member));
+    impl_wildcard_getter!(path, (Send => send_path, Receive => receive_path));
 }
 
 impl Context {
@@ -551,6 +581,7 @@ impl UsernameResolver for PasswdUsernameResolver {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_case::test_case;
 
     const ALICE_USER: u32 = 1;
     const BOB_USER: u32 = 2;
@@ -919,5 +950,59 @@ mod tests {
 
         clean_connect_rules(4, &mut rules);
         assert!(rules.is_empty());
+    }
+
+    #[test_case(Rule::Send {
+            allow: false,
+            priority: u64::default(),
+            send_broadcast: u32::default(),
+            send_destination: "*".to_string(),
+            send_interface: "*".to_string(),
+            send_member: "*".to_string(),
+            send_path: "*".to_string(),
+            send_type: MessageType::default(),
+        }; "with a send rule wildcards are replaced with empty strings")]
+    #[test_case(Rule::Receive {
+            allow: false,
+            priority: u64::default(),
+            receive_broadcast: u32::default(),
+            receive_interface: "*".to_string(),
+            receive_member: "*".to_string(),
+            receive_path: "*".to_string(),
+            receive_sender: "*".to_string(),
+            receive_type: MessageType::default(),
+        }; "with a receive rule wildcards are replaced with empty strings")]
+    fn rules_with_wildcards(rule: Rule) {
+        assert_eq!(rule.name().unwrap(), "");
+        assert_eq!(rule.interface().unwrap(), "");
+        assert_eq!(rule.member().unwrap(), "");
+        assert_eq!(rule.path().unwrap(), "");
+    }
+
+    #[test_case(Rule::Send {
+            allow: false,
+            priority: u64::default(),
+            send_broadcast: u32::default(),
+            send_destination: "name".to_string(),
+            send_interface: "interface".to_string(),
+            send_member: "member".to_string(),
+            send_path: "path".to_string(),
+            send_type: MessageType::default(),
+        }; "with a send rule the original value is returned")]
+    #[test_case(Rule::Receive {
+            allow: false,
+            priority: u64::default(),
+            receive_broadcast: u32::default(),
+            receive_interface: "interface".to_string(),
+            receive_member: "member".to_string(),
+            receive_path: "path".to_string(),
+            receive_sender: "name".to_string(),
+            receive_type: MessageType::default(),
+        }; "with a receive rule the original value is returned")]
+    fn rules_without_wildcards(rule: Rule) {
+        assert_eq!(rule.name().unwrap(), "name");
+        assert_eq!(rule.interface().unwrap(), "interface");
+        assert_eq!(rule.member().unwrap(), "member");
+        assert_eq!(rule.path().unwrap(), "path");
     }
 }

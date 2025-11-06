@@ -24,3 +24,6 @@ zvariant = { workspace = true }
 
 [build-dependencies]
 generate-readme.workspace = true
+
+[dev-dependencies]
+test-case.workspace = true

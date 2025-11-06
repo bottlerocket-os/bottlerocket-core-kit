@@ -133,4 +133,7 @@ pub enum Error {
         uid: String,
         source: std::num::ParseIntError,
     },
+
+    #[snafu(display("Can't get property '{property}' from rule '{rule_type}'"))]
+    InvalidPropertyForRule { property: String, rule_type: String },
 }
