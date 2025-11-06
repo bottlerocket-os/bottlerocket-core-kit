@@ -10,7 +10,9 @@
 
 %global _dwz_low_mem_die_limit 0
 
-Name: %{_cross_os}docker-%{gorepo}
+%global package_priority_epoch 1
+
+Name: %{_cross_os}docker-%{gorepo}-25
 Version: %{rpmver}
 Release: 1%{?dist}
 Summary: Docker CLI
@@ -22,6 +24,9 @@ Source1000: clarify.toml
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{name}(binaries)
+
+Provides: %{_cross_os}docker-%{gorepo} = %{package_priority_epoch}:
+Conflicts: %{_cross_os}docker-%{gorepo}
 
 %description
 %{summary}.

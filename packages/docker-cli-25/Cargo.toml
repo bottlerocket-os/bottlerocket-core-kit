@@ -1,5 +1,5 @@
 [package]
-name = "docker-cli"
+name = "docker-cli-25"
 version = "0.1.0"
 edition = "2021"
 publish = false

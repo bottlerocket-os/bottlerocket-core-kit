@@ -82,7 +82,7 @@ dependencies = [
  "containerd-2_1",
  "coreutils",
  "dbus-broker",
- "docker-cli",
+ "docker-cli-25",
  "docker-engine",
  "docker-init",
  "e2fsprogs",
@@ -269,7 +269,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "docker-cli"
+name = "docker-cli-25"
 version = "0.1.0"
 dependencies = [
  "glibc",

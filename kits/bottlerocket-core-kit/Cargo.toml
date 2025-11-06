@@ -29,7 +29,7 @@ containerd-2_0 = { path = "../../packages/containerd-2.0" }
 containerd-2_1 = { path = "../../packages/containerd-2.1" }
 coreutils = { path = "../../packages/coreutils" }
 dbus-broker = { path = "../../packages/dbus-broker" }
-docker-cli = { path = "../../packages/docker-cli" }
+docker-cli-25 = { path = "../../packages/docker-cli-25" }
 docker-engine = { path = "../../packages/docker-engine" }
 docker-init = { path = "../../packages/docker-init" }
 e2fsprogs = { path = "../../packages/e2fsprogs" }

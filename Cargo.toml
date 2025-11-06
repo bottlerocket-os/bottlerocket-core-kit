@@ -20,7 +20,7 @@ members = [
   "packages/coreutils",
   "packages/libcryptsetup",
   "packages/dbus-broker",
-  "packages/docker-cli",
+  "packages/docker-cli-25",
   "packages/docker-engine",
   "packages/docker-init",
   "packages/e2fsprogs",
