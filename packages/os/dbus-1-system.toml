@@ -1,22 +1,81 @@
-[user.root]
-rules = [
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.systemd1.Activator", allow = true },
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.DBus.Monitoring", allow = true },
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.DBus.Debug.Stats", allow = true }
-]
+# All users can connect to the system bus
+[[default.rules]]
+user = "*"
+allow = true
 
-[default]
-rules = [
-    { user = "*", allow = true },
-    { own = "*", allow = false },
-    { send_type = "method-call", allow = false },
-    { send_type = "signal", allow = true },
-    { receive_type = "method-call", allow = true },
-    { receive_type = "signal", allow = true },
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.DBus", allow = true },
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.DBus.Introspectable", allow = true },
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.DBus.Properties", allow = true },
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.DBus", send_member = "UpdateActivationEnvironment", allow = false },
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.DBus.Debug.Stats", allow = false },
-    { send_destination = "org.freedesktop.DBus", send_interface = "org.freedesktop.systemd1.Activator", allow = false }
-]
+# Holes must be punched in service configuration files for name ownership
+# and sending method calls
+[[default.rules]]
+own = "*"
+allow = false
+
+[[default.rules]]
+send_type = "method-call"
+allow = false
+
+# Signals are allowed by default
+[[default.rules]]
+send_type = "signal"
+allow = true
+
+# All messages may be received by default
+[[default.rules]]
+receive_type = "method-call"
+allow = true
+
+[[default.rules]]
+receive_type = "signal"
+allow = true
+
+# Allow anyone to talk to the message bus
+[[default.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.DBus"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.DBus.Introspectable"
+allow = true
+
+[[default.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.DBus.Properties"
+allow = true
+
+# But disallow some specific bus services
+[[default.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.DBus"
+send_member = "UpdateActivationEnvironment"
+allow = false
+
+[[default.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.DBus.Debug.Stats"
+allow = false
+
+[[default.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.systemd1.Activator"
+allow = false
+
+# Only systemd, which runs as root, may report activation failures
+[[user.root.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.systemd1.Activator"
+allow = true
+
+# root may monitor the system bus
+[[user.root.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.DBus.Monitoring"
+allow = true
+
+# If the Stats interface was enabled at compile-time, root may use it.
+# Copy this rule under policies.d/*.toml if you want to enable other
+# privileged users to view statistics and debug info
+[[user.root.rules]]
+send_destination = "org.freedesktop.DBus"
+send_interface = "org.freedesktop.DBus.Debug.Stats"
+allow = true
