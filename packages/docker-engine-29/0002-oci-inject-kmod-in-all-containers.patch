@@ -1,0 +1,35 @@
+From 3d136d1cfcbf16a3ad28f6f30d25831aa4ef60a2 Mon Sep 17 00:00:00 2001
+From: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+Date: Thu, 30 May 2024 14:38:33 +0000
+Subject: [PATCH] oci: inject kmod in all containers
+
+Append a new mount to the default spec created for Linux containers
+
+Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
+[updated for docker v29]
+Signed-off-by: Kush Upadhyay <kushupad@amazon.com>
+---
+ daemon/pkg/oci/defaults.go | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/daemon/pkg/oci/defaults.go b/daemon/pkg/oci/defaults.go
+index 5ebe04a..9c1f9d3 100644
+--- a/daemon/pkg/oci/defaults.go
++++ b/daemon/pkg/oci/defaults.go
+@@ -104,6 +104,12 @@ func DefaultLinuxSpec() specs.Spec {
+ 				Source:      "shm",
+ 				Options:     []string{"nosuid", "noexec", "nodev", "mode=1777"},
+ 			},
++			{
++				Destination: "/usr/local/sbin/modprobe",
++				Type:        "bind",
++				Source:      "/usr/bin/kmod",
++				Options:     []string{"exec", "bind", "ro"},
++			},
+ 		},
+ 		Linux: &specs.Linux{
+ 			MaskedPaths: defaultLinuxMaskedPaths(),
+-- 
+2.50.1
+

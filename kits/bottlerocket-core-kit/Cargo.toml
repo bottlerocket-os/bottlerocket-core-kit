@@ -32,6 +32,7 @@ dbus-broker = { path = "../../packages/dbus-broker" }
 docker-cli-25 = { path = "../../packages/docker-cli-25" }
 docker-cli-29 = { path = "../../packages/docker-cli-29" }
 docker-engine-25 = { path = "../../packages/docker-engine-25" }
+docker-engine-29 = { path = "../../packages/docker-engine-29" }
 docker-init = { path = "../../packages/docker-init" }
 e2fsprogs = { path = "../../packages/e2fsprogs" }
 early-boot-config = { path = "../../packages/early-boot-config" }

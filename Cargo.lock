@@ -85,6 +85,7 @@ dependencies = [
  "docker-cli-25",
  "docker-cli-29",
  "docker-engine-25",
+ "docker-engine-29",
  "docker-init",
  "e2fsprogs",
  "early-boot-config",
@@ -290,6 +291,16 @@ dependencies = [
  "glibc",
  "libseccomp",
  "systemd-252",
+]
+
+[[package]]
+name = "docker-engine-29"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+ "libseccomp",
+ "nftables",
+ "systemd-257",
 ]
 
 [[package]]
