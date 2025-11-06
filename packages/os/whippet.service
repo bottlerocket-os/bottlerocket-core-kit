@@ -9,6 +9,7 @@ Requires=dbus.socket
 Conflicts=shutdown.target
 
 [Service]
+User=dbus
 Type=notify
 Sockets=dbus.socket
 OOMScoreAdjust=-900
