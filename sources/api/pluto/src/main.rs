@@ -37,6 +37,7 @@ mod ec2;
 mod eks;
 
 use api::{settings_view_get, settings_view_set, SettingsViewDelta};
+use aws_sdk_eks::types::IpFamily;
 use aws_smithy_experimental::hyper_1_0::CryptoMode;
 use base64::Engine;
 use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
@@ -44,7 +45,7 @@ use imdsclient::ImdsClient;
 use snafu::{ensure, OptionExt, ResultExt};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv6Addr};
 use std::path::Path;
 use std::str::FromStr;
 use std::string::String;
@@ -220,10 +221,10 @@ async fn get_max_pods_from_file(instance_type: &str, pods_file: &'static str) ->
 
 /// Returns the cluster's DNS address.
 ///
-/// For IPv4 clusters, first it attempts to call EKS describe-cluster to find the `serviceIpv4Cidr`.
+/// First attempts to call EKS describe-cluster to find the `ipFamily` and its corresponding CIDR.
 /// If that works, it returns the expected cluster DNS IP address which is obtained by substituting
 /// `10` for the last octet. If the EKS call is not successful, it falls back to using IMDS MAC CIDR
-/// blocks to return one of two default addresses.
+/// blocks to return one of two default IPv4 addresses.
 async fn generate_cluster_dns_ip(
     client: &mut ImdsClient,
     aws_k8s_info: &mut SettingsViewDelta,
@@ -267,15 +268,25 @@ async fn get_eks_network_config(aws_k8s_info: &SettingsViewDelta) -> Result<Opti
         .await
         .context(error::EksSnafu)
         {
-            // Derive cluster-dns-ip from the service IPv4 CIDR
-            if let Some(ipv4_cidr) = config.service_ipv4_cidr {
-                if let Ok(dns_ip) = get_dns_from_ipv4_cidr(&ipv4_cidr) {
-                    return Ok(Some(dns_ip));
-                }
-            }
+            return Ok(get_dns_from_cluster_config(&config));
         }
     }
     Ok(None)
+}
+
+/// Gets the DNS IP address based on the kubernetes network configuration for
+/// the EKS Cluster
+fn get_dns_from_cluster_config(config: &eks::ClusterNetworkConfig) -> Option<String> {
+    match config.ip_family {
+        Some(IpFamily::Ipv6) => config
+            .service_ipv6_cidr
+            .as_ref()
+            .and_then(|cidr| get_dns_from_ipv6_cidr(cidr).ok()),
+        _ => config
+            .service_ipv4_cidr
+            .as_ref()
+            .and_then(|cidr| get_dns_from_ipv4_cidr(cidr).ok()),
+    }
 }
 
 /// Replicates [this] logic from the EKS AMI:
@@ -295,6 +306,29 @@ fn get_dns_from_ipv4_cidr(cidr: &str) -> Result<String> {
     );
     split[3] = "10";
     Ok(split.join("."))
+}
+/// Replicates [this] logic from the EKS AMI:
+///
+/// ```sh
+/// DNS_CLUSTER_IP=$(awk -F/ '{print $1}' <<< $SERVICE_IPV6_CIDR)a
+/// ```
+/// [this]: https://github.com/awslabs/amazon-eks-ami/blob/0f5c129/templates/al2/runtime/bootstrap.sh#L463
+fn get_dns_from_ipv6_cidr(cidr: &str) -> Result<String> {
+    // Extract the address part before the slash
+    let addr_str = cidr.split('/').next().context(error::CidrParseSnafu {
+        cidr,
+        reason: "missing address component",
+    })?;
+
+    let base_addr: Ipv6Addr = addr_str
+        .parse()
+        .context(error::BadIpSnafu { ip: addr_str })?;
+
+    // Set the last segment to 0xa (10 in hex)
+    let mut segments = base_addr.segments();
+    segments[7] = 0xa;
+
+    Ok(Ipv6Addr::from(segments).to_string())
 }
 
 /// Gets gets the the first VPC IPV4 CIDR block from IMDS. If it starts with `10`, returns
@@ -538,9 +572,11 @@ mod test {
     use super::*;
     use crate::api::SettingsViewDelta;
     use api::SettingsView;
+    use aws_sdk_eks::types::KubernetesNetworkConfigResponse;
     use bottlerocket_modeled_types::ValidBase64;
     use bottlerocket_settings_models::AwsSettingsV1;
     use httptest::{matchers::*, responders::*, Expectation, Server};
+    use test_case::test_case;
 
     #[test]
     fn test_get_dns_from_cidr_ok() {
@@ -554,6 +590,23 @@ mod test {
     fn test_get_dns_from_cidr_err() {
         let input = "123_456_789_0/123";
         let result = get_dns_from_ipv4_cidr(input);
+        assert!(result.is_err());
+    }
+
+    #[test_case("fd00::/108", "fd00::a" ; "compressed ULA - common in EKS")]
+    #[test_case("2001:db8::/108", "2001:db8::a" ; "compressed middle")]
+    #[test_case("2001:db8:1234::/108", "2001:db8:1234::a" ; "partially expanded")]
+    #[test_case("2001:db8:1234:5678::/108", "2001:db8:1234:5678::a" ; "fully expanded")]
+    #[test_case("fe80::/108", "fe80::a" ; "link local")]
+    fn test_get_dns_from_ipv6_cidr_ok(input: &str, expected: &str) {
+        let actual = get_dns_from_ipv6_cidr(input).unwrap();
+        assert_eq!(expected, actual);
+    }
+
+    #[test_case("null" ; "no slash")]
+    #[test_case("" ; "empty string")]
+    fn test_get_dns_from_ipv6_cidr_err(input: &str) {
+        let result = get_dns_from_ipv6_cidr(input);
         assert!(result.is_err());
     }
 
@@ -607,6 +660,28 @@ mod test {
         let result = set_aws_config(&input, &temp_file_path);
         assert!(result.is_ok());
         assert!(env::var(AWS_CONFIG_FILE_ENV_VAR).is_err()); // NotPresent
+    }
+
+    #[test_case(Some(IpFamily::Ipv4), Some("10.100.0.0/16"), None, Some("10.100.0.10") ; "ipv4 with valid cidr")]
+    #[test_case(Some(IpFamily::Ipv6), None, Some("2001:db8:1234::/108"), Some("2001:db8:1234::a") ; "ipv6 with valid cidr")]
+    #[test_case(None, Some("172.20.0.0/16"), None, Some("172.20.0.10") ; "default ipv4 family with valid cidr")]
+    #[test_case(Some(IpFamily::Ipv4), None, None, None ; "missing ipv4 cidr")]
+    #[test_case(Some(IpFamily::Ipv6), None, None, None ; "missing ipv6 cidr")]
+    #[test_case(Some(IpFamily::Ipv4), Some("invalid"), None, None ; "invalid ipv4 cidr")]
+    #[test_case(Some(IpFamily::Ipv6), None, Some("invalid"), None ; "invalid ipv6 cidr")]
+    fn test_dns_from_cluster_config(
+        ip_family: Option<IpFamily>,
+        service_ipv4_cidr: Option<&str>,
+        service_ipv6_cidr: Option<&str>,
+        expected: Option<&str>,
+    ) {
+        let config = KubernetesNetworkConfigResponse::builder()
+            .set_ip_family(ip_family)
+            .set_service_ipv4_cidr(service_ipv4_cidr.map(String::from))
+            .set_service_ipv6_cidr(service_ipv6_cidr.map(String::from))
+            .build();
+        let result = get_dns_from_cluster_config(&config);
+        assert_eq!(result.as_deref(), expected);
     }
 
     #[tokio::test]

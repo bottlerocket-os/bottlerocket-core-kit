@@ -38,3 +38,4 @@ generate-readme.workspace = true
 
 [dev-dependencies]
 httptest.workspace = true
+test-case.workspace = true
