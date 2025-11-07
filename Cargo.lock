@@ -300,7 +300,7 @@ dependencies = [
  "glibc",
  "libseccomp",
  "nftables",
- "systemd-257",
+ "systemd-252",
 ]
 
 [[package]]
