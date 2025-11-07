@@ -1,0 +1,7 @@
+[required-extensions]
+image-verifier-plugins = "v1"
+std = { version = "v1", helpers = ["base64_decode"] }
++++
+{{~#if settings.image-verifier-plugins.notation.trustpolicy~}}
+{{base64_decode settings.image-verifier-plugins.notation.trustpolicy}}
+{{~/if~}}

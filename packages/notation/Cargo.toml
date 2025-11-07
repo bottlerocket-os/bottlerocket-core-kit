@@ -1,0 +1,21 @@
+[package]
+name = "notation"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+package-name = "notation"
+releases-url = "https://github.com/notaryproject/notation/releases"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/notaryproject/notation/archive/v1.3.2/notation-v1.3.2.tar.gz"
+sha512 = "833c6354b77b933d96af0060d904040a4dcf91b1e6b52c7b3e9c75fee19f30f8117c61ee0c4ba773ead585d1e65b0925185a5a7582c1ecacd8b4de064d59076a"
+bundle-modules = [ "go" ]
+
+[build-dependencies]
+glibc = { path = "../glibc" }

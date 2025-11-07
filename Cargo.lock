@@ -164,6 +164,7 @@ dependencies = [
  "mdadm",
  "netdog",
  "nftables",
+ "notation",
  "nvidia-container-toolkit",
  "nvidia-k8s-device-plugin",
  "nvme-cli",
@@ -910,6 +911,13 @@ dependencies = [
  "libmnl",
  "libnftnl",
  "readline",
+]
+
+[[package]]
+name = "notation"
+version = "0.1.0"
+dependencies = [
+ "glibc",
 ]
 
 [[package]]
