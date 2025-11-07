@@ -114,6 +114,7 @@ mdadm = { path = "../../packages/mdadm" }
 netdog = {path = "../../packages/netdog" }
 nftables = {path = "../../packages/nftables" }
 notation = { path = "../../packages/notation" }
+notation-image-verifier = { path = "../../packages/notation-image-verifier" }
 nvidia-container-toolkit = { path = "../../packages/nvidia-container-toolkit" }
 nvidia-k8s-device-plugin = { path = "../../packages/nvidia-k8s-device-plugin" }
 nvme-cli = { path = "../../packages/nvme-cli" }
