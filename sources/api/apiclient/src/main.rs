@@ -6,7 +6,9 @@
 // library calls based on the given flags, etc.)  The library modules contain the code for talking
 // to the API, which is intended to be reusable by other crates.
 
-use apiclient::{apply, ephemeral_storage, exec, get, reboot, report, set, update, SettingsInput};
+use apiclient::{
+    apply, ephemeral_storage, exec, get, lockdown, reboot, report, set, update, SettingsInput,
+};
 use log::{info, log_enabled, trace, warn};
 use model::ephemeral_storage::{Filesystem, Preference};
 use serde::{Deserialize, Serialize};
@@ -46,6 +48,7 @@ enum Subcommand {
     Apply(ApplyArgs),
     Exec(ExecArgs),
     Get(GetArgs),
+    Lockdown(LockdownArgs),
     Raw(RawArgs),
     Reboot(RebootArgs),
     Set(SetArgs),
@@ -86,6 +89,10 @@ struct RawArgs {
     uri: String,
     data: Option<String>,
 }
+
+/// Stores user-supplied arguments for the 'lockdown' subcommand.
+#[derive(Debug)]
+struct LockdownArgs {}
 
 /// Stores user-supplied arguments for the 'reboot' subcommand.
 #[derive(Debug)]
@@ -199,6 +206,7 @@ fn usage() -> ! {
             update check               Prints information about available updates.
             update apply               Applies available updates.
             update cancel              Deactivates an applied update.
+            lockdown                   Locks down the host.
             reboot                     Reboots the host.
             exec                       Execute a command in a host container.
             report cis                 Retrieve a Bottlerocket CIS benchmark compliance report.
@@ -222,6 +230,9 @@ fn usage() -> ! {
             [ URI ...]                 The list of URIs to TOML or JSON settings files that you
                                        want to apply to the system.  If no URI is specified, or
                                        if "-" is given, reads from stdin.
+
+        lockdown options:
+            None.
 
         reboot options:
             None.
@@ -365,8 +376,8 @@ fn parse_args(args: impl Iterator<Item = String>) -> (Args, Subcommand) {
             }
 
             // Subcommands
-            "raw" | "apply" | "exec" | "get" | "reboot" | "report" | "set" | "update"
-            | "ephemeral-storage"
+            "raw" | "apply" | "exec" | "get" | "lockdown" | "reboot" | "report" | "set"
+            | "update" | "ephemeral-storage"
                 if subcommand.is_none() && !arg.starts_with('-') =>
             {
                 subcommand = Some(arg)
@@ -383,6 +394,7 @@ fn parse_args(args: impl Iterator<Item = String>) -> (Args, Subcommand) {
         Some("apply") => (global_args, parse_apply_args(subcommand_args)),
         Some("exec") => (global_args, parse_exec_args(subcommand_args)),
         Some("get") => (global_args, parse_get_args(subcommand_args)),
+        Some("lockdown") => (global_args, parse_lockdown_args(subcommand_args)),
         Some("reboot") => (global_args, parse_reboot_args(subcommand_args)),
         Some("report") => (global_args, parse_report_args(subcommand_args)),
         Some("set") => (global_args, parse_set_args(subcommand_args)),
@@ -543,6 +555,14 @@ fn parse_get_args(args: Vec<String>) -> Subcommand {
             canonicalize,
         })
     }
+}
+
+/// Parses arguments for the 'lockdown' subcommand.
+fn parse_lockdown_args(args: Vec<String>) -> Subcommand {
+    if !args.is_empty() {
+        usage_msg(format!("Unknown arguments: {}", args.join(", ")));
+    }
+    Subcommand::Lockdown(LockdownArgs {})
 }
 
 /// Parses arguments for the 'reboot' subcommand.
@@ -1058,6 +1078,12 @@ async fn run() -> Result<()> {
             }
         }
 
+        Subcommand::Lockdown(_lockdown) => {
+            lockdown::lockdown(&args.socket_path)
+                .await
+                .context(error::LockdownSnafu)?;
+        }
+
         Subcommand::Reboot(_reboot) => {
             reboot::reboot(&args.socket_path)
                 .await
@@ -1226,7 +1252,7 @@ async fn main() {
 }
 
 mod error {
-    use apiclient::{apply, ephemeral_storage, exec, get, reboot, report, set, update};
+    use apiclient::{apply, ephemeral_storage, exec, get, lockdown, reboot, report, set, update};
     use snafu::Snafu;
 
     #[derive(Debug, Snafu)]
@@ -1243,6 +1269,9 @@ mod error {
 
         #[snafu(display("Logger setup error: {}", source))]
         Logger { source: log::SetLoggerError },
+
+        #[snafu(display("Failed to lockdown: {}", source))]
+        Lockdown { source: lockdown::Error },
 
         #[snafu(display("Failed to reboot: {}", source))]
         Reboot { source: reboot::Error },

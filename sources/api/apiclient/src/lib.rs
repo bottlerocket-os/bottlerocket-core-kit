@@ -23,6 +23,7 @@ pub mod apply;
 pub mod ephemeral_storage;
 pub mod exec;
 pub mod get;
+pub mod lockdown;
 pub mod reboot;
 pub mod report;
 pub mod set;
