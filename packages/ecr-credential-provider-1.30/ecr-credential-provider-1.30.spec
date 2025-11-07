@@ -19,6 +19,9 @@ Source: cloud-provider-aws-%{gover}.tar.gz
 Source1: bundled-cloud-provider-aws-%{gover}.tar.gz
 Source1000: clarify.toml
 
+Patch0001: 0001-support-new-aws-partition-in-credential-provider.patch
+Patch0002: 0002-ecr-credential-provider-hardcode-ECR-endpoint-for-eu.patch
+
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{name}(binaries)
 
@@ -48,7 +51,7 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 %{summary}.
 
 %prep
-%setup -n %{gorepo}-%{gover} -q
+%autosetup -Sgit -n %{gorepo}-%{gover} -p1
 %setup -T -D -n %{gorepo}-%{gover} -b 1 -q
 
 %build
