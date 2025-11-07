@@ -89,6 +89,7 @@ dependencies = [
  "docker-init",
  "e2fsprogs",
  "early-boot-config",
+ "ecr-credential-helper",
  "ecr-credential-provider-1_28",
  "ecr-credential-provider-1_29",
  "ecr-credential-provider-1_30",
@@ -321,6 +322,13 @@ dependencies = [
 
 [[package]]
 name = "early-boot-config"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+]
+
+[[package]]
+name = "ecr-credential-helper"
 version = "0.1.0"
 dependencies = [
  "glibc",

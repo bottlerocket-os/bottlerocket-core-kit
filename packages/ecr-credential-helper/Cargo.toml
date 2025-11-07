@@ -1,0 +1,19 @@
+[package]
+name = "ecr-credential-helper"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://github.com/awslabs/amazon-ecr-credential-helper/releases"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/awslabs/amazon-ecr-credential-helper/archive/v0.10.1/amazon-ecr-credential-helper-0.10.1.tar.gz"
+sha512 = "d4e42300e8c498284fb33a4d1765b311f69f14c0946ea6dcff706aaf8bcea1634db086d7ada28816b4201e694514b4ccf54354fbe9825319c78050d941351df3"
+
+[build-dependencies]
+glibc = { path = "../glibc" }

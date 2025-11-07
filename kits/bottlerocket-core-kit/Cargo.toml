@@ -36,6 +36,7 @@ docker-engine-29 = { path = "../../packages/docker-engine-29" }
 docker-init = { path = "../../packages/docker-init" }
 e2fsprogs = { path = "../../packages/e2fsprogs" }
 early-boot-config = { path = "../../packages/early-boot-config" }
+ecr-credential-helper = { path = "../../packages/ecr-credential-helper" }
 ecr-credential-provider-1_28 = { path = "../../packages/ecr-credential-provider-1.28" }
 ecr-credential-provider-1_29 = { path = "../../packages/ecr-credential-provider-1.29" }
 ecr-credential-provider-1_30 = { path = "../../packages/ecr-credential-provider-1.30" }
