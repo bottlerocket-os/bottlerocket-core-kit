@@ -1,13 +1,15 @@
 From 796ca04aa424a7770f79079917b7fcd18c993a57 Mon Sep 17 00:00:00 2001
 From: Kazuyoshi Kato <kaz@fly.io>
 Date: Thu, 5 Oct 2023 22:11:14 -0700
-Subject: [PATCH 1/2] Use Intel ISA-L's igzip if available
+Subject: [PATCH] Use Intel ISA-L's igzip if available
 
 Intel ISA-L is Intel's open source (BSD) library that outperforms both
 gzip and pigz. This commit checks and uses igzip if available.
 
 Signed-off-by: Kazuyoshi Kato <kaz@fly.io>
 (cherry picked from commit 34378ec9b4579c9f647dd6724fcb04b3390bc3dd)
+[kssessio: port to containerd 1.7.29]
+Signed-off-by: Kyle Sessions <kssessio@amazon.com>
 ---
  archive/compression/benchmark_test.go   | 28 +++++++++++++------
  archive/compression/compression.go      | 36 ++++++++++++++-----------
@@ -66,11 +68,11 @@ index f8340802a..845f5f9e8 100644
  		})
  	}
 diff --git a/archive/compression/compression.go b/archive/compression/compression.go
-index 23ddfab1a..5ad13eccf 100644
+index 3c152f281..8e5738cb0 100644
 --- a/archive/compression/compression.go
 +++ b/archive/compression/compression.go
-@@ -47,11 +47,14 @@ const (
- 	Zstd
+@@ -49,11 +49,14 @@ const (
+ 	Unknown
  )
  
 -const disablePigzEnv = "CONTAINERD_DISABLE_PIGZ"
@@ -87,7 +89,7 @@ index 23ddfab1a..5ad13eccf 100644
  )
  
  var (
-@@ -259,17 +262,20 @@ func (compression *Compression) Extension() string {
+@@ -263,17 +266,20 @@ func (compression *Compression) Extension() string {
  }
  
  func gzipDecompress(ctx context.Context, buf io.Reader) (io.ReadCloser, error) {
@@ -114,7 +116,7 @@ index 23ddfab1a..5ad13eccf 100644
  }
  
  func cmdStream(cmd *exec.Cmd, in io.Reader) (io.ReadCloser, error) {
-@@ -296,22 +302,22 @@ func cmdStream(cmd *exec.Cmd, in io.Reader) (io.ReadCloser, error) {
+@@ -300,22 +306,22 @@ func cmdStream(cmd *exec.Cmd, in io.Reader) (io.ReadCloser, error) {
  	return reader, nil
  }
  
@@ -178,6 +180,3 @@ index f9a535dde..64f61b4a5 100644
  		t.Fatalf("disable via %s doesn't work", disablePigzEnv)
  	}
  }
--- 
-2.47.0
-
