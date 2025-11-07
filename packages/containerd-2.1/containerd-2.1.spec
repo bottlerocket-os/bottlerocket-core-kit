@@ -2,9 +2,9 @@
 %global gorepo containerd
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 2.1.4
+%global gover 2.1.5
 %global rpmver %{gover}
-%global gitrev 75cb2b7193e4e490e9fbdc236c0e811ccaba3376
+%global gitrev fcd43222d6b07379a4be9786bda52438f0dd16a1
 
 %global package_priority_epoch 0
 %global _dwz_low_mem_die_limit 0
@@ -38,7 +38,6 @@ Source1000: clarify.toml
 
 # Patch to support moving from containerd-1.7 to 2.x
 Patch1001: 1001-Revert-Don-t-allow-io_uring-related-syscalls-in-the-.patch
-Patch1002: 1002-Ensure-errContentRangeIgnored-error-when-range-get-r.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
