@@ -179,8 +179,25 @@ pub enum Error {
     #[snafu(display("Unable to send input to config applier: {}", source))]
     ConfigApplierWrite { source: io::Error },
 
+    #[snafu(display("Unable to start lockdown helper '{}': {}", program, source))]
+    LockdownExec { source: io::Error, program: String },
+
     #[snafu(display("Unable to start shutdown: {}", source))]
     Shutdown { source: io::Error },
+
+    #[snafu(display(
+        "Failed to run lockdown helper '{:?}', exit code: {}, stdout: '{}', stderr: '{}'",
+        args,
+        exit_code,
+        stdout,
+        stderr
+    ))]
+    Lockdown {
+        exit_code: i32,
+        stdout: String,
+        stderr: String,
+        args: Vec<&'static str>,
+    },
 
     #[snafu(display("Failed to reboot, exit code: {}, stderr: {}", exit_code, stderr))]
     Reboot { exit_code: i32, stderr: String },

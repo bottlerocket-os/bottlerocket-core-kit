@@ -131,6 +131,7 @@ where
             )
             .service(
                 web::scope("/actions")
+                    .route("/lockdown", web::post().to(lockdown))
                     .route("/reboot", web::post().to(reboot))
                     .route("/refresh-updates", web::post().to(refresh_updates))
                     .route("/prepare-update", web::post().to(prepare_update))
@@ -634,6 +635,37 @@ async fn deactivate_update() -> Result<HttpResponse> {
     controller::dispatch_update_command(&["deactivate"])
 }
 
+/// Locks down the machine
+async fn lockdown() -> Result<HttpResponse> {
+    debug!("Locking down now");
+    let commands = vec![vec![
+        "rottweiler",
+        "lock",
+        "directory",
+        "/.bottlerocket/datastore",
+    ]];
+
+    for args in commands {
+        let output = Command::new(args[0])
+            .args(&args[1..])
+            .output()
+            .context(error::LockdownExecSnafu { program: args[0] })?;
+        ensure!(
+            output.status.success(),
+            error::LockdownSnafu {
+                exit_code: match output.status.code() {
+                    Some(code) => code,
+                    None => output.status.signal().unwrap_or(1),
+                },
+                stdout: String::from_utf8_lossy(&output.stdout),
+                stderr: String::from_utf8_lossy(&output.stderr),
+                args
+            }
+        );
+    }
+    Ok(HttpResponse::NoContent().finish())
+}
+
 /// Reboots the machine
 async fn reboot() -> Result<HttpResponse> {
     debug!("Rebooting now");
@@ -978,6 +1010,8 @@ impl ResponseError for error::Error {
             SettingsToJson { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             ReleaseData { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             Shutdown { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            Lockdown { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            LockdownExec { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             Reboot { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             UpdateDispatcher { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             UpdateError => StatusCode::INTERNAL_SERVER_ERROR,
