@@ -1,0 +1,20 @@
+[package]
+name = "aws-signer-notation-plugin"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://github.com/aws/aws-signer-notation-plugin/releases"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/aws/aws-signer-notation-plugin/archive/v1.0.2292/aws-signer-notation-plugin-v1.0.2292.tar.gz"
+sha512 = "9ddbdfd918f011e87e75f6372f79d33739a9c2bca1355fea85b60f5302ec22df0a23ab990985a3d531bc930c531c4718313215b2ca4cf1c71fb627b736ca4ec2"
+bundle-modules = ["go"]
+
+[build-dependencies]
+glibc = { path = "../glibc" }

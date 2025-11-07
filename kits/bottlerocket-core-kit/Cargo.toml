@@ -17,6 +17,7 @@ amazon-ssm-agent = { path = "../../packages/amazon-ssm-agent" }
 amazon-vpc-cni-plugins = { path = "../../packages/amazon-vpc-cni-plugins" }
 aws-iam-authenticator = { path = "../../packages/aws-iam-authenticator" }
 aws-otel-collector = { path = "../../packages/aws-otel-collector" }
+aws-signer-notation-plugin = { path = "../../packages/aws-signer-notation-plugin" }
 aws-signing-helper = { path = "../../packages/aws-signing-helper" }
 bash = { path = "../../packages/bash" }
 binutils = { path = "../../packages/binutils" }

@@ -38,6 +38,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-signer-notation-plugin"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+]
+
+[[package]]
 name = "aws-signing-helper"
 version = "0.1.0"
 dependencies = [
@@ -70,6 +77,7 @@ dependencies = [
  "amazon-vpc-cni-plugins",
  "aws-iam-authenticator",
  "aws-otel-collector",
+ "aws-signer-notation-plugin",
  "aws-signing-helper",
  "bash",
  "binutils",

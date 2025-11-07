@@ -7,6 +7,7 @@ members = [
   "packages/amazon-vpc-cni-plugins",
   "packages/aws-iam-authenticator",
   "packages/aws-otel-collector",
+  "packages/aws-signer-notation-plugin",
   "packages/aws-signing-helper",
   "packages/bash",
   "packages/binutils",
