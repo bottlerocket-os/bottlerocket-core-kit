@@ -1353,6 +1353,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bottlerocket-image-features"
+version = "0.1.0"
+dependencies = [
+ "envy",
+ "generate-readme",
+ "serde",
+ "snafu",
+]
+
+[[package]]
 name = "bottlerocket-model-derive"
 version = "0.1.0"
 source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.16.0#eed641b1a6ad238ef0782c7bfb8caa153dd1c5be"

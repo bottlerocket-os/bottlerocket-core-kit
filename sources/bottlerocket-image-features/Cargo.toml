@@ -1,0 +1,14 @@
+[package]
+name = "bottlerocket-image-features"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+publish = false
+
+[dependencies]
+envy.workspace = true
+serde = { workspace = true, features = ["derive"] }
+snafu.workspace = true
+
+[build-dependencies]
+generate-readme.workspace = true
