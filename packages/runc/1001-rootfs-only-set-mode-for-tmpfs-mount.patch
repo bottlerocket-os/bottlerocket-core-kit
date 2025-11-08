@@ -1,0 +1,131 @@
+From e855129df22621a08a5436a5cb6e9bfff9a9ad0f Mon Sep 17 00:00:00 2001
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Fri, 7 Nov 2025 14:52:09 +1100
+Subject: [PATCH] rootfs: only set mode= for tmpfs mount if target already
+ existed
+
+This was always the intended behaviour but commit 72fbb34f5006 ("rootfs:
+switch to fd-based handling of mountpoint targets") regressed it when
+adding a mechanism to create a file handle to the target if it didn't
+already exist (causing the later stat to always succeed).
+
+A lot of people depend on this functionality, so add some tests to make
+sure we don't break it in the future.
+
+Fixes: 72fbb34f5006 ("rootfs: switch to fd-based handling of mountpoint targets")
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+(cherry picked from commit 8d0921c4c76cdd527c86251c728e46f071c96337)
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+---
+ libcontainer/rootfs_linux.go  | 25 ++++++++--------
+ tests/integration/mounts.bats | 54 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 66 insertions(+), 13 deletions(-)
+
+diff --git a/libcontainer/rootfs_linux.go b/libcontainer/rootfs_linux.go
+index 204e6a80fc1..ab5a260dae8 100644
+--- a/libcontainer/rootfs_linux.go
++++ b/libcontainer/rootfs_linux.go
+@@ -511,6 +511,18 @@ func (m *mountEntry) createOpenMountpoint(rootfs string) (Err error) {
+ 			_ = dstFile.Close()
+ 		}
+ 	}()
++	if err == nil && m.Device == "tmpfs" {
++		// If the original target exists, copy the mode for the tmpfs mount.
++		stat, err := dstFile.Stat()
++		if err != nil {
++			return fmt.Errorf("check tmpfs source mode: %w", err)
++		}
++		dt := fmt.Sprintf("mode=%04o", syscallMode(stat.Mode()))
++		if m.Data != "" {
++			dt = dt + "," + m.Data
++		}
++		m.Data = dt
++	}
+ 	if err != nil {
+ 		if !errors.Is(err, unix.ENOENT) {
+ 			return fmt.Errorf("lookup mountpoint target: %w", err)
+@@ -551,19 +563,6 @@ func (m *mountEntry) createOpenMountpoint(rootfs string) (Err error) {
+ 		}
+ 	}
+ 
+-	if m.Device == "tmpfs" {
+-		// If the original target exists, copy the mode for the tmpfs mount.
+-		stat, err := dstFile.Stat()
+-		if err != nil {
+-			return fmt.Errorf("check tmpfs source mode: %w", err)
+-		}
+-		dt := fmt.Sprintf("mode=%04o", syscallMode(stat.Mode()))
+-		if m.Data != "" {
+-			dt = dt + "," + m.Data
+-		}
+-		m.Data = dt
+-	}
+-
+ 	dstFullPath, err := procfs.ProcSelfFdReadlink(dstFile)
+ 	if err != nil {
+ 		return fmt.Errorf("get mount destination real path: %w", err)
+diff --git a/tests/integration/mounts.bats b/tests/integration/mounts.bats
+index 11fb2cfc63e..2da17df2706 100644
+--- a/tests/integration/mounts.bats
++++ b/tests/integration/mounts.bats
+@@ -234,6 +234,60 @@ function test_mount_order() {
+ 	[[ "$(stat -c %a rootfs/setgid/a/b/c)" == 2755 ]]
+ }
+ 
++# https://github.com/opencontainers/runc/issues/4971
++@test "runc run [tmpfs mount mode= inherit]" {
++	mkdir rootfs/tmpfs
++	chmod "=0710" rootfs/tmpfs
++
++	update_config '.mounts += [{
++		type: "tmpfs",
++		source: "tmpfs",
++		destination: "/tmpfs",
++		options: ["rw", "nodev", "nosuid"]
++	}]'
++	update_config '.process.args = ["stat", "-c", "%a", "/tmpfs"]'
++
++	runc run test_busybox
++	[ "$status" -eq 0 ]
++	[[ "$output" == "710" ]]
++
++	update_config '.process.args = ["cat", "/proc/self/mounts"]'
++	runc run test_busybox
++	[ "$status" -eq 0 ]
++	grep -Ex "tmpfs /tmpfs tmpfs [^ ]*\bmode=710\b[^ ]* .*" <<<"$output"
++}
++
++# https://github.com/opencontainers/runc/issues/4971
++@test "runc run [tmpfs mount mode=1777 default]" {
++	update_config '.mounts += [{
++		type: "tmpfs",
++		source: "tmpfs",
++		destination: "/non-existent/foo/bar/baz",
++		options: ["rw", "nodev", "nosuid"]
++	}]'
++	update_config '.process.args = ["stat", "-c", "%a", "/non-existent/foo/bar/baz"]'
++
++	rm -rf rootfs/non-existent
++	runc run test_busybox
++	[ "$status" -eq 0 ]
++	[[ "$output" == "1777" ]]
++
++	update_config '.process.args = ["cat", "/proc/self/mounts"]'
++
++	rm -rf rootfs/non-existent
++	runc run test_busybox
++	[ "$status" -eq 0 ]
++	# We don't explicitly set a mode= in this case, it is just the tmpfs default.
++	grep -Ex "tmpfs /non-existent/foo/bar/baz tmpfs .*" <<<"$output"
++	run ! grep -Ex "tmpfs /non-existent/foo/bar/baz tmpfs [^ ]*\bmode=[0-7]+\b[^ ]* .*" <<<"$output"
++
++	# Verify that the actual modes are *not* 1777.
++	[[ "$(stat -c %a rootfs/non-existent)" == 755 ]]
++	[[ "$(stat -c %a rootfs/non-existent/foo)" == 755 ]]
++	[[ "$(stat -c %a rootfs/non-existent/foo/bar)" == 755 ]]
++	[[ "$(stat -c %a rootfs/non-existent/foo/bar/baz)" == 755 ]]
++}
++
+ @test "runc run [ro /sys/fs/cgroup mounts]" {
+ 	# Without cgroup namespace.
+ 	update_config '.linux.namespaces -= [{"type": "cgroup"}]'
