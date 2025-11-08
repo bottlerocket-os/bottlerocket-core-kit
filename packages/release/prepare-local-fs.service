@@ -11,8 +11,10 @@ RefuseManualStop=true
 Type=oneshot
 
 EnvironmentFile=/usr/share/bottlerocket/image-features.env
+Environment=DATA_PARTITION_BLOCK_DEVICE=/dev/disk/by-partlabel/BOTTLEROCKET-DATA
+
 # Create the filesystem on the partition, if it doesn't exist.
-ExecStart=/usr/lib/systemd/systemd-makefs ${DATA_PARTITION_FILESYSTEM} /dev/disk/by-partlabel/BOTTLEROCKET-DATA
+ExecStart=/usr/lib/systemd/systemd-makefs ${DATA_PARTITION_FILESYSTEM} ${DATA_PARTITION_BLOCK_DEVICE}
 
 # Stop and mask the repart-data-* oneshots in case they're waiting on non-existent data partitions.
 # 'BOTTLEROCKET-DATA' already exists so we can move on.
