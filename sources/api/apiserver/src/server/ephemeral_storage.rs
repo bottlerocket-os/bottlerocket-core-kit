@@ -22,12 +22,18 @@ static EPHEMERAL_MNT: &str = ".ephemeral";
 /// Name of the device and its path from the MD driver
 static RAID_DEVICE_DIR: &str = "/dev/md/";
 static RAID_DEVICE_NAME: &str = "ephemeral";
+/// Intermediate symlink for consistent rottweiler mapper naming
+static EPHEMERAL_DATA_LINK: &str = "/dev/disk/EPHEMERAL-DATA";
+/// Device mapper path for encrypted ephemeral storage
+static EPHEMERAL_MAPPER_DEVICE: &str = "/dev/mapper/EPHEMERAL-DATA";
 /// Symlink to ephemeral storage array or disk
 static EPHEMERAL_STORAGE_LINK: &str = "/dev/disk/ephemeral-storage";
 /// Path to ephemeral devices (instance storage disks)
 static EPHEMERAL_PATH: &str = "/dev/disk/ephemeral";
 /// Path to ebs volumes marked for ephemeral storage use
 static EPHEMERAL_EBS_PATH: &str = "/dev/disk/ephemeral-ebs";
+/// Key ID to use for ephemeral storage encryption
+static EPHEMERAL_STORAGE_KEY_ID: &str = "ephemeral-storage";
 
 pub struct BindDirs {
     pub allowed_exact: HashSet<&'static str>,
@@ -121,7 +127,7 @@ pub fn initialize(
 
     info!("initializing ephemeral storage disks={disks:?}");
     // with a single disk, there is no need to create the array
-    let device_name = match disks.len() {
+    let raw_device = match disks.len() {
         1 => disks.first().expect("non-empty").clone(),
         _ => {
             let scan_output = mdadm_scan()?;
@@ -133,6 +139,13 @@ pub fn initialize(
             // Once it is built, it will be available in `/dev/md/`
             format!("{RAID_DEVICE_DIR}{RAID_DEVICE_NAME}")
         }
+    };
+
+    // Encrypt the device if enabled
+    let device_name = if should_encrypt()? {
+        encrypt_ephemeral_device(&raw_device)?
+    } else {
+        raw_device
     };
 
     let fs = fs.unwrap_or(Filesystem::Xfs);
@@ -432,6 +445,86 @@ pub fn format_device<S: AsRef<OsStr>>(device: S, format: &Filesystem) -> Result<
     Ok(())
 }
 
+/// Checks if ephemeral storage encryption is enabled via image features
+fn should_encrypt() -> Result<bool> {
+    let features = bottlerocket_image_features::parse_image_features().map_err(|e| {
+        error::Error::LoadImageFeatures {
+            message: e.to_string(),
+        }
+    })?;
+    Ok(features.encrypted_storage)
+}
+
+/// Encrypt ephemeral device using rottweiler
+fn encrypt_ephemeral_device(device: &str) -> Result<String> {
+    info!("encrypting ephemeral device {device:?}");
+
+    // Create intermediate symlink for rottweiler to use
+    // This ensures consistent mapper name: /dev/mapper/EPHEMERAL-DATA
+    std::os::unix::fs::symlink(device, EPHEMERAL_DATA_LINK)
+        .context(error::DiskSymlinkFailureSnafu {})?;
+
+    let is_encrypted =
+        run_rottweiler(&["check", "block-device", EPHEMERAL_DATA_LINK, "encrypted"])?
+            .status
+            .success();
+
+    if !is_encrypted {
+        run_rottweiler_checked(
+            &["generate-key", EPHEMERAL_STORAGE_KEY_ID],
+            EPHEMERAL_DATA_LINK,
+        )?;
+        run_rottweiler_checked(
+            &[
+                "encrypt",
+                "block-device",
+                EPHEMERAL_DATA_LINK,
+                EPHEMERAL_STORAGE_KEY_ID,
+            ],
+            EPHEMERAL_DATA_LINK,
+        )?;
+    }
+
+    run_rottweiler_checked(
+        &[
+            "attach",
+            "block-device",
+            EPHEMERAL_DATA_LINK,
+            EPHEMERAL_STORAGE_KEY_ID,
+        ],
+        EPHEMERAL_DATA_LINK,
+    )?;
+
+    Ok(EPHEMERAL_MAPPER_DEVICE.to_string())
+}
+
+/// Execute a rottweiler command and return the output
+fn run_rottweiler(args: &[&str]) -> Result<std::process::Output> {
+    Command::new("/usr/bin/rottweiler")
+        .args(args)
+        .output()
+        .context(error::ExecutionFailureSnafu {
+            command: "rottweiler",
+        })
+}
+
+/// Execute a rottweiler command and ensure it succeeds
+fn run_rottweiler_checked(args: &[&str], device: &str) -> Result<()> {
+    let output = run_rottweiler(args)?;
+
+    ensure!(
+        output.status.success(),
+        error::EncryptDeviceSnafu {
+            device,
+            command: "rottweiler",
+            args: args.join(" "),
+            output
+        }
+    );
+
+    Ok(())
+}
+
 pub mod error {
     use snafu::Snafu;
 
@@ -495,6 +588,17 @@ pub mod error {
 
         #[snafu(display("Failed to create directory, {}", source))]
         Mkdir { source: std::io::Error },
+
+        #[snafu(display("Unable to load image features: {}", message))]
+        LoadImageFeatures { message: String },
+
+        #[snafu(display("Failed to run '{}' with args '{}' on device '{}': stdout: {}, stderr: {}", command, args, device, String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr)))]
+        EncryptDevice {
+            device: String,
+            command: &'static str,
+            args: String,
+            output: std::process::Output,
+        },
     }
 }
 
