@@ -14,4 +14,4 @@ Options=defaults,nosuid,nodev,noatime,private
 StandardError=journal+console
 
 [Install]
-WantedBy=preconfigured.target
+RequiredBy=local-fs.target

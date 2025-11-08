@@ -13,4 +13,4 @@ Type=none
 Options=rbind,rshared
 
 [Install]
-WantedBy=local-fs.target
+RequiredBy=local-fs.target

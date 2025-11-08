@@ -26,4 +26,4 @@ StandardError=journal+console
 SuccessExitStatus=77
 
 [Install]
-WantedBy=local-fs.target
+RequiredBy=local-fs.target

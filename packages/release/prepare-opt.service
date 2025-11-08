@@ -20,4 +20,4 @@ RemainAfterExit=true
 StandardError=journal+console
 
 [Install]
-WantedBy=local-fs.target
+RequiredBy=local-fs.target
