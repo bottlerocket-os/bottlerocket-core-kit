@@ -1,5 +1,5 @@
 //! The apiclient library provides high-level methods to interact with the Bottlerocket API.  See
-//! the documentation for submodules [`apply`], [`exec`], [`get`], [`reboot`], [`report`], [`set`],
+//! the documentation for submodules [`apply`], [`exec`], [`get`], [`network`], [`reboot`], [`report`], [`set`],
 //! and [`update`] for high-level helpers.
 //!
 //! For more control, and to handle APIs without high-level wrappers, there are also 'raw' methods
@@ -24,6 +24,7 @@ pub mod ephemeral_storage;
 pub mod exec;
 pub mod get;
 pub mod lockdown;
+pub mod network;
 pub mod reboot;
 pub mod report;
 pub mod set;

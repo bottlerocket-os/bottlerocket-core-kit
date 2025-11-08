@@ -5,7 +5,7 @@ Current version: 0.1.0
 ## apiclient binary
 
 The `apiclient` binary provides high-level methods to interact with the Bottlerocket API.
-There's a [set](#set-mode) subcommand for changing settings, an [update](#update-mode) subcommand for updating the host, and an [exec](#exec-mode) subcommand for running commands in host containers.
+There's a [set](#set-mode) subcommand for changing settings, a [network configure](#network-configure) subcommand for configuring network settings, an [update](#update-mode) subcommand for updating the host, and an [exec](#exec-mode) subcommand for running commands in host containers.
 There's also a low-level [raw](#raw-mode) subcommand for direct interaction with the HTTP API.
 
 It talks to the Bottlerocket socket by default.
@@ -73,6 +73,52 @@ You can use JSON form to set it:
 
 ```shell
 apiclient set --json '{"motd": "42"}'
+```
+
+### Network configure
+
+This allows you to configure network settings by providing a network configuration file. The configuration will be applied at the next boot.
+
+The `network configure` command accepts input from different sources using URI schemes:
+
+#### File URI input
+
+You can specify a local file path using the `file://` URI scheme:
+
+```shell
+apiclient network configure file:///path/to/net.toml
+```
+
+#### Base64 encoded input
+
+For inline configuration, you can provide base64-encoded content:
+
+```shell
+apiclient network configure base64:dmVyc2lvbiA9IDIKCltldGgwXQpkaGNwNCA9IHRydWU=
+```
+
+This is particularly useful for automation and configuration management where you want to embed the network configuration directly in scripts or user data.
+
+#### Configuration format
+
+The `net.toml` file uses the same format that netdog supports. Here's an example:
+
+```toml
+version = 2
+
+[eth0]
+dhcp4 = true
+dhcp6 = false
+
+[eth1]
+static4 = ["192.168.1.100/24"]
+route = [{to = "default", via = "192.168.1.1"}]
+```
+
+After configuring the network settings, you'll need to reboot the system for the changes to take effect:
+
+```shell
+apiclient reboot
 ```
 
 ### Update mode
@@ -347,7 +393,7 @@ The results from each item in the report will be one of:
 ## apiclient library
 
 The apiclient library provides high-level methods to interact with the Bottlerocket API.  See
-the documentation for submodules [`apply`], [`exec`], [`get`], [`reboot`], [`report`], [`set`],
+the documentation for submodules [`apply`], [`exec`], [`get`], [`network`], [`reboot`], [`report`], [`set`],
 and [`update`] for high-level helpers.
 
 For more control, and to handle APIs without high-level wrappers, there are also 'raw' methods
