@@ -33,6 +33,7 @@ Source1000: clarify.toml
 
 Patch0001: 0001-Change-default-capabilities-using-daemon-config.patch
 Patch0002: 0002-oci-inject-kmod-in-all-containers.patch
+Patch0003: 0003-Switch-containerd-image-backend-s-image-pull-to-tran.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
