@@ -1,0 +1,17 @@
+[Unit]
+Description=Measure Kernel Command Line into PCR 9
+DefaultDependencies=no
+Before=sysinit.target
+After=tpm2.target
+ConditionSecurity=tpm2
+ConditionPathExists=/proc/cmdline
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/rottweiler measure kernel-command-line
+RemainAfterExit=true
+
+[Install]
+WantedBy=sysinit.target

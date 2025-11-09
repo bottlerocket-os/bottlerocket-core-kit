@@ -1,0 +1,16 @@
+[Unit]
+Description=Measure Settings into PCR 8
+After=settings-applier.service apiserver.service tpm2.target
+Requires=settings-applier.service apiserver.service
+Before=bootstrap-commands.service
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/rottweiler measure settings
+
+[Install]
+RequiredBy=bootstrap-commands.service

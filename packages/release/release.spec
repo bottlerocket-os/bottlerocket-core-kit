@@ -132,6 +132,8 @@ Source1604: systemd-pcrphase-configured.service
 Source1605: systemd-pcrphase-multi-user.service
 Source1606: systemd-pcrphase-preconfigured.service
 Source1607: systemd-pcrphase-sysinit.service
+Source1608: measure-settings.service
+Source1609: measure-cmdline.service
 
 # TPM2-related drop-ins.
 Source1650: prepare-local-fs-encrypted.conf
@@ -260,7 +262,7 @@ install -p -m 0644 \
   %{S:1060} %{S:1061} %{S:1062} %{S:1063} %{S:1064} \
   %{S:1065} %{S:1066} %{S:1067} %{S:1068} \
   %{S:1600} %{S:1601} %{S:1602} %{S:1603} %{S:1604} \
-  %{S:1605} %{S:1606} %{S:1607} \
+  %{S:1605} %{S:1606} %{S:1607} %{S:1608} %{S:1609} \
   %{buildroot}%{_cross_unitdir}
 
 install -d %{buildroot}%{_cross_unitdir}/systemd-tmpfiles-setup.service.d
@@ -476,6 +478,8 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %files crypt
 %{_cross_unitdir}/encrypt-datastore.service
 %{_cross_unitdir}/encrypt-local-fs.service
+%{_cross_unitdir}/measure-cmdline.service
+%{_cross_unitdir}/measure-settings.service
 %{_cross_unitdir}/systemd-pcrphase-configured.service
 %{_cross_unitdir}/systemd-pcrphase-multi-user.service
 %{_cross_unitdir}/systemd-pcrphase-preconfigured.service
