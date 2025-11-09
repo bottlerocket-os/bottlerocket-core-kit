@@ -1,0 +1,20 @@
+[Unit]
+Description=Unlock Datastore (/.bottlerocket/datastore)
+DefaultDependencies=no
+Before=migrator.service storewolf.service
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+Environment=DATASTORE_DIR=/.bottlerocket/datastore
+
+ExecStart=/usr/bin/rottweiler unlock directory ${DATASTORE_DIR} datastore
+
+RemainAfterExit=yes
+StandardOutput=journal+console
+StandardError=inherit
+
+[Install]
+RequiredBy=migrator.service storewolf.service

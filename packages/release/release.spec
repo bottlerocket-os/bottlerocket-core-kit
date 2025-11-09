@@ -124,7 +124,9 @@ Source1400: logdog.common.conf
 Source1500: bootconfig-fips.conf
 
 # TPM2-related services.
+Source1600: encrypt-datastore.service
 Source1601: encrypt-local-fs.service
+Source1602: unlock-datastore.service
 Source1603: unlock-local-fs.service
 
 # TPM2-related drop-ins.
@@ -253,7 +255,7 @@ install -p -m 0644 \
   %{S:1050} \
   %{S:1060} %{S:1061} %{S:1062} %{S:1063} %{S:1064} \
   %{S:1065} %{S:1066} %{S:1067} %{S:1068} \
-  %{S:1601} %{S:1603} \
+  %{S:1600} %{S:1601} %{S:1602} %{S:1603} \
   %{buildroot}%{_cross_unitdir}
 
 install -d %{buildroot}%{_cross_unitdir}/systemd-tmpfiles-setup.service.d
@@ -467,7 +469,9 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/fips-modprobe@.service
 
 %files crypt
+%{_cross_unitdir}/encrypt-datastore.service
 %{_cross_unitdir}/encrypt-local-fs.service
+%{_cross_unitdir}/unlock-datastore.service
 %{_cross_unitdir}/unlock-local-fs.service
 %{_cross_unitdir}/local.mount.d/10-encrypted.conf
 %{_cross_unitdir}/prepare-local-fs.service.d/10-encrypted.conf

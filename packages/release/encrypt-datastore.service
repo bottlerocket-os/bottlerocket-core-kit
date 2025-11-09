@@ -1,0 +1,31 @@
+[Unit]
+Description=Encrypt Datastore (/.bottlerocket/datastore)
+DefaultDependencies=no
+RequiresMountsFor=/.bottlerocket
+Before=unlock-datastore.service
+After=tpm2.target
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+Environment=DATASTORE_DIR=/.bottlerocket/datastore
+
+# Only run if the directory is not yet encrypted.
+ExecCondition=/usr/bin/rottweiler check directory ${DATASTORE_DIR} unencrypted
+
+# Enable encrypt feature flag for the underlying filesystem.
+ExecStart=/usr/sbin/tune2fs -O encrypt /dev/disk/by-partlabel/BOTTLEROCKET-PRIVATE
+
+# Generate key and encrypt directory.
+ExecStart=/usr/bin/rottweiler generate-key datastore
+ExecStart=/usr/bin/rottweiler encrypt directory ${DATASTORE_DIR} datastore
+
+UMask=0077
+RemainAfterExit=true
+StandardOutput=journal+console
+StandardError=inherit
+
+[Install]
+RequiredBy=unlock-datastore.service
