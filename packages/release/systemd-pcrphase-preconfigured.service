@@ -1,0 +1,16 @@
+[Unit]
+Description=TPM PCR Barrier (Preconfigured)
+After=preconfigured.target tpm2.target
+Requires=preconfigured.target
+Before=activate-configured.service systemd-pcrphase-configured.service
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/rottweiler measure pcrphase preconfigured
+
+[Install]
+WantedBy=preconfigured.target

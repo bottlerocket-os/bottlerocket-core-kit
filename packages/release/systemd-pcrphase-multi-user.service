@@ -1,0 +1,15 @@
+[Unit]
+Description=TPM PCR Barrier (Multi-User)
+After=multi-user.target tpm2.target
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/rottweiler measure pcrphase ready
+ExecStop=/usr/bin/rottweiler measure pcrphase shutdown
+
+[Install]
+WantedBy=multi-user.target

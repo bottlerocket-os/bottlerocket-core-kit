@@ -1,0 +1,15 @@
+[Unit]
+Description=TPM PCR Barrier (Configured)
+After=configured.target tpm2.target
+Before=activate-multi-user.service systemd-pcrphase-multi-user.service
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/rottweiler measure pcrphase configured
+
+[Install]
+WantedBy=configured.target

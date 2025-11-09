@@ -1,0 +1,18 @@
+[Unit]
+Description=TPM PCR Barrier (Initialization)
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=sysinit.target tpm2.target
+Before=basic.target shutdown.target
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/rottweiler measure pcrphase sysinit
+ExecStop=/usr/bin/rottweiler measure pcrphase final
+
+[Install]
+WantedBy=sysinit.target
