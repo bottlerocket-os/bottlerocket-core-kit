@@ -123,6 +123,15 @@ Source1400: logdog.common.conf
 # bootconfig snippets.
 Source1500: bootconfig-fips.conf
 
+# TPM2-related services.
+Source1601: encrypt-local-fs.service
+Source1603: unlock-local-fs.service
+
+# TPM2-related drop-ins.
+Source1650: prepare-local-fs-encrypted.conf
+Source1651: local-mount-encrypted.conf
+Source1652: repart-local-encrypted.conf
+
 Requires: %{_cross_os}audit
 Requires: %{_cross_os}chrony
 Requires: %{_cross_os}conntrack-tools
@@ -157,6 +166,7 @@ Requires: %{_cross_os}systemd
 Requires: %{_cross_os}util-linux
 Requires: %{_cross_os}xfsprogs
 Requires: (%{name}-fips if %{_cross_os}image-feature(fips))
+Requires: (%{name}-crypt if %{_cross_os}image-feature(encrypted-storage))
 
 %description
 %{summary}.
@@ -168,6 +178,14 @@ Conflicts: %{_cross_os}image-feature(no-fips)
 Requires: %{_cross_os}libkcapi
 
 %description fips
+%{summary}.
+
+%package crypt
+Summary: Bottlerocket release, with encrypted storage
+Requires: (%{_cross_os}image-feature(encrypted-storage) and %{name})
+Requires: %{_cross_os}rottweiler
+
+%description crypt
 %{summary}.
 
 %package swap
@@ -235,6 +253,7 @@ install -p -m 0644 \
   %{S:1050} \
   %{S:1060} %{S:1061} %{S:1062} %{S:1063} %{S:1064} \
   %{S:1065} %{S:1066} %{S:1067} %{S:1068} \
+  %{S:1601} %{S:1603} \
   %{buildroot}%{_cross_unitdir}
 
 install -d %{buildroot}%{_cross_unitdir}/systemd-tmpfiles-setup.service.d
@@ -333,6 +352,15 @@ install -p -m 0644 %{S:1400} %{buildroot}%{_cross_datadir}/logdog.d
 
 install -d %{buildroot}%{_cross_bootconfigdir}
 install -p -m 0644 %{S:1500} %{buildroot}%{_cross_bootconfigdir}/10-fips.conf
+
+install -d %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d
+install -p -m 0644 %{S:1650} %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d/10-encrypted.conf
+
+install -d %{buildroot}%{_cross_unitdir}/local.mount.d
+install -p -m 0644 %{S:1651} %{buildroot}%{_cross_unitdir}/local.mount.d/10-encrypted.conf
+
+install -d %{buildroot}%{_cross_unitdir}/repart-local.service.d
+install -p -m 0644 %{S:1652} %{buildroot}%{_cross_unitdir}/repart-local.service.d/10-encrypted.conf
 
 ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 
@@ -437,6 +465,13 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/check-fips-modules.service
 %dir %{_cross_unitdir}/check-fips-modules.service.d
 %{_cross_unitdir}/fips-modprobe@.service
+
+%files crypt
+%{_cross_unitdir}/encrypt-local-fs.service
+%{_cross_unitdir}/unlock-local-fs.service
+%{_cross_unitdir}/local.mount.d/10-encrypted.conf
+%{_cross_unitdir}/prepare-local-fs.service.d/10-encrypted.conf
+%{_cross_unitdir}/repart-local.service.d/10-encrypted.conf
 
 %files swap
 %{_cross_sysctldir}/81-release-swap.conf

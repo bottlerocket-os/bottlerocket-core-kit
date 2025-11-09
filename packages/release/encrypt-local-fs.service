@@ -1,0 +1,29 @@
+[Unit]
+Description=Encrypt Local Filesystem (/local)
+DefaultDependencies=no
+RequiresMountsFor=/.bottlerocket
+Wants=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dDATA.device
+After=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dDATA.device tpm2.target
+Before=unlock-local-fs.service
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+Environment=BOTTLEROCKET_DATA=/dev/disk/by-partlabel/BOTTLEROCKET-DATA
+
+# Only format if not already encrypted.
+ExecCondition=/usr/bin/rottweiler check block-device ${BOTTLEROCKET_DATA} unencrypted
+
+# Generate key and encrypt block device.
+ExecStart=/usr/bin/rottweiler generate-key bottlerocket-data
+ExecStart=/usr/bin/rottweiler encrypt block-device ${BOTTLEROCKET_DATA} bottlerocket-data
+
+UMask=0077
+RemainAfterExit=true
+StandardOutput=journal+console
+StandardError=inherit
+
+[Install]
+RequiredBy=unlock-local-fs.service

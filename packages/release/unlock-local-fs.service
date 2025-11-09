@@ -1,0 +1,25 @@
+[Unit]
+Description=Unlock Local Filesystem (/local)
+DefaultDependencies=no
+Conflicts=umount.target
+IgnoreOnIsolate=true
+After=cryptsetup-pre.target systemd-udevd-kernel.socket dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dDATA.device
+Wants=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dDATA.device blockdev@dev-mapper-BOTTLEROCKET\x2dDATA.target
+Before=cryptsetup.target blockdev@dev-mapper-BOTTLEROCKET\x2dDATA.target
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+Environment=BOTTLEROCKET_DATA=/dev/disk/by-partlabel/BOTTLEROCKET-DATA
+
+ExecStart=/usr/bin/rottweiler attach block-device ${BOTTLEROCKET_DATA} bottlerocket-data
+ExecStop=/usr/bin/rottweiler detach block-device ${BOTTLEROCKET_DATA}
+
+RemainAfterExit=yes
+StandardOutput=journal+console
+StandardError=inherit
+
+[Install]
+RequiredBy=local-fs.target
