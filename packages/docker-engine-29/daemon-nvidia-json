@@ -7,7 +7,7 @@ std = { version = "v1", helpers = ["join_array"] }
   "log-driver": "journald",
   "live-restore": true,
   "max-concurrent-downloads": 10,
-  "storage-driver": "overlay2",
+  "storage-driver": "overlayfs",
   "data-root": "/var/lib/docker",
   "runtimes": { "nvidia": { "path": "nvidia-container-runtime" } },
   {{#if settings.oci-defaults.capabilities}}
