@@ -43,7 +43,7 @@ mkdir -p %{buildroot}%{_cross_localstatedir}
 mkdir -p %{buildroot}/{boot,dev,proc,run,sys,tmp}
 mkdir -p %{buildroot}/{home,local,media,mnt,opt,srv,.bottlerocket}
 mkdir -p %{buildroot}/media/cdrom
-mkdir -p %{buildroot}/root/.aws
+mkdir -p %{buildroot}/root/{.aws,.docker,.ecr}
 
 ln -s .%{_cross_prefix} %{buildroot}%{_prefix}
 ln -s .%{_cross_libdir} %{buildroot}/lib
