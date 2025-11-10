@@ -1,3 +1,79 @@
+# v11.0.0 (2025-11-12)
+
+## OS Changes
+- Add image signing verification for ECR images signed by AWS Signer ([#722])
+- Add an apiclient command to lockdown the datastore to prevent further changes ([#727])
+- Provide `rottweiler`, a unified storage encryption helper ([#717])
+- Add support for encrypted storage ([#721])
+- Fix `whippet` defaults and wildcard replacements ([#720])
+- Add apiclient support to exclude settings prefixes and canonicalize output ([#716])
+- Add `apiclient network configure` subcommand ([#714])
+- Ensure that bootconfig keys are written in a consistent order ([#735])
+- Enhance `bloodhound` CIS compliance checks ([#665], [#738])
+- Decouple the network stack initialization from the DATA partition ([#638])
+- Add EBS volumes support for ephemeral storage ([#395]) - Thanks @jesseanttila-cai
+- Build `systemd-257` with `cryptsetup` support ([#691])
+- Update `host-ctr` go dependencies ([#723])
+- Build `libcryptsetup` and `libdevmapper` with udev support ([#706])
+- Support kdump for zboot kernels on aarch64 ([#707])
+
+### Third Party Package Updates
+- Add `hwloc` package ([#672])
+- Update `systemd-252` to v252.39 ([#700])
+- Update `systemd-257` to v257.9 ([#691])
+- Drop `socat` package ([#742])
+- Update `libexpat` ([#695])
+- Add `libudev` package ([#706])
+- Update `kexec-tools` ([#707])
+- Add `docker-cli-29`, `docker-engine-29` packages ([#711], [#743], [#745])
+- Update `aws-otel-collector`, `aws-signing-helper` ([#715])
+- Update `containerd-1.7`, `containerd-2.0`, `containerd-2.1` ([#724])
+
+## Build Changes
+- Add changelog validation improvements ([#699])
+- Update `bottlerocket-settings-models` to v0.17.0 ([#689])
+- Update `twoliter` from v0.12.0 to v0.13.0 ([#736])
+
+## Orchestrator Changes
+### Kubernetes
+- Update DNS IP generation to support IPv6 ([#734])
+- Update to latest versions of `ecr-credential-provider` and `kubernetes` packages ([#715])
+- Add `enableDebuggingHandlers`, `imageMinimumGCAge`, `maxParallelImagePulls`, `ImageMaximumGCAge` and CPU manager settings ([#689])
+
+### ECS
+- Default to containerd's transfer service for `docker-engine-29` ([#730])
+
+[#395]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/395
+[#638]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/638
+[#665]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/665
+[#672]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/672
+[#689]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/689
+[#691]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/691
+[#695]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/695
+[#699]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/699
+[#700]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/700
+[#706]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/706
+[#707]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/707
+[#711]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/711
+[#714]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/714
+[#715]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/715
+[#716]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/716
+[#717]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/717
+[#720]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/720
+[#721]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/721
+[#722]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/722
+[#723]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/723
+[#724]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/724
+[#727]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/727
+[#730]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/730
+[#734]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/734
+[#735]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/735
+[#736]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/736
+[#738]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/738
+[#742]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/742
+[#743]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/743
+[#745]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/745
+
 # v10.9.3 (2025-11-11)
 
 ## Orchestrator Changes
@@ -8,14 +84,14 @@
 
 # v10.9.2 (2025-11-08)
 
-## OS Changes
+### Third Party Package Updates
 - Patch runc to set the correct mode for tmpfs mounts ([#731])
 
 [#731]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/731
 
 # v10.9.1 (2025-11-05)
 
-## OS Changes
+### Third Party Package Updates
 - Update runc to v1.2.8 ([#708])
 
 [#708]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/708
