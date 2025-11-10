@@ -64,27 +64,35 @@ fn serialize_boot_settings_to_boot_config(boot_settings: &BootSettings) -> Resul
     // Preallocate string buffer to avoid a bunch of memory allocation calls when we append to
     // the string buffer
     let mut output = String::with_capacity(128);
-    if let Some(kernel_param) = &boot_settings.kernel_parameters {
-        for (key, values) in kernel_param.iter() {
-            output.push_str(&format!("kernel.{key}"));
-            if !values.is_empty() {
-                output.push_str(" =");
-                append_boot_config_value_list(values, &mut output);
-            }
-            output.push('\n')
-        }
-    }
+    // Output init parameters first since "init." comes before "kernel." alphabetically
     if let Some(init_param) = &boot_settings.init_parameters {
-        for (key, values) in init_param.iter() {
-            output.push_str(&format!("init.{key}"));
-            if !values.is_empty() {
-                output.push_str(" =");
-                append_boot_config_value_list(values, &mut output);
-            }
-            output.push('\n')
-        }
+        write_sorted_params(&mut output, init_param, "init");
+    }
+    if let Some(kernel_param) = &boot_settings.kernel_parameters {
+        write_sorted_params(&mut output, kernel_param, "kernel");
     }
     Ok(output)
+}
+
+/// Writes parameters to output in sorted order with the given prefix
+fn write_sorted_params(
+    output: &mut String,
+    params: &HashMap<BootConfigKey, Vec<BootConfigValue>>,
+    prefix: &str,
+) {
+    // Sort keys alphabetically for consistent ordering
+    let mut sorted_keys: Vec<_> = params.keys().collect();
+    sorted_keys.sort_by_cached_key(|k| k.as_ref().to_string());
+
+    for key in sorted_keys {
+        let values = &params[key];
+        output.push_str(&format!("{prefix}.{key}"));
+        if !values.is_empty() {
+            output.push_str(" =");
+            append_boot_config_value_list(values, output);
+        }
+        output.push('\n');
+    }
 }
 
 /// Queries Bottlerocket boot settings and generates initrd image file with boot config as the only data
@@ -570,6 +578,42 @@ mod boot_settings_tests {
                 &boot_config_to_boot_settings_json(DEFAULT_BOOTCONFIG_STR).unwrap()
             )
             .unwrap()
+        );
+    }
+
+    #[test]
+    fn test_bootconfig_output_is_sorted() {
+        // Test with both kernel and init parameters to verify sorting
+        let boot_settings = BootSettings {
+            reboot_to_reconcile: None,
+            kernel_parameters: to_boot_settings_params(hashmap! {
+                "zebra" => vec!["last"],
+                "apple" => vec!["first"],
+                "middle" => vec!["middle"],
+            }),
+            init_parameters: to_boot_settings_params(hashmap! {
+                "zoo" => vec!["last"],
+                "aardvark" => vec!["first"],
+            }),
+        };
+        let output = serialize_boot_settings_to_boot_config(&boot_settings).unwrap();
+        let lines: Vec<&str> = output.lines().collect();
+
+        // Verify init parameters come first (init < kernel alphabetically)
+        assert_eq!(lines[0], "init.aardvark = \"first\"");
+        assert_eq!(lines[1], "init.zoo = \"last\"");
+
+        // Verify kernel parameters come after, also sorted
+        assert_eq!(lines[2], "kernel.apple = \"first\"");
+        assert_eq!(lines[3], "kernel.middle = \"middle\"");
+        assert_eq!(lines[4], "kernel.zebra = \"last\"");
+
+        // Verify ALL lines are in sorted order
+        let mut sorted_lines = lines.clone();
+        sorted_lines.sort();
+        assert_eq!(
+            lines, sorted_lines,
+            "All lines should be in alphabetical order"
         );
     }
 
