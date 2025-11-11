@@ -103,7 +103,7 @@ where
 
 /// Deserialize the network config, using the version key to determine which config struct to
 /// deserialize into
-fn deserialize_config(config_str: &str) -> Result<Box<dyn Interfaces>> {
+pub fn deserialize_config(config_str: &str) -> Result<Box<dyn Interfaces>> {
     #[derive(Debug, Deserialize)]
     struct ConfigToml {
         version: u8,

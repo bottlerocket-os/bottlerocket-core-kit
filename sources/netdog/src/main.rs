@@ -70,6 +70,7 @@ struct Args {
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand)]
 enum SubCommand {
+    Commit(cli::CommitArgs),
     NodeIp(cli::NodeIpArgs),
     GenerateHostname(cli::GenerateHostnameArgs),
     GenerateNetConfig(cli::GenerateNetConfigArgs),
@@ -81,6 +82,7 @@ enum SubCommand {
 async fn run() -> cli::Result<()> {
     let args: Args = argh::from_env();
     match args.subcommand {
+        SubCommand::Commit(args) => cli::commit::run(args)?,
         SubCommand::NodeIp(_) => cli::node_ip::run()?,
         SubCommand::GenerateHostname(_) => cli::generate_hostname::run().await?,
         SubCommand::GenerateNetConfig(_) => cli::generate_net_config::run()?,

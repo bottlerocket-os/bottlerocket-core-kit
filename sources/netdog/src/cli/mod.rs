@@ -1,3 +1,4 @@
+pub(crate) mod commit;
 pub(crate) mod generate_hostname;
 pub(crate) mod generate_net_config;
 pub(crate) mod node_ip;
@@ -10,6 +11,7 @@ use crate::{
     DEFAULT_NET_CONFIG_FILE, KERNEL_CMDLINE, PRIMARY_INTERFACE, PRIMARY_MAC_ADDRESS,
     PRIMARY_SYSCTL_CONF, SYSCTL_MARKER_FILE, SYSTEMD_SYSCTL, SYS_CLASS_NET, USR_NET_CONFIG_FILE,
 };
+pub(crate) use commit::CommitArgs;
 pub(crate) use generate_hostname::GenerateHostnameArgs;
 pub(crate) use generate_net_config::GenerateNetConfigArgs;
 pub(crate) use node_ip::NodeIpArgs;
@@ -318,6 +320,30 @@ mod error {
             target: PathBuf,
             link: PathBuf,
             source: io::Error,
+        },
+
+        #[snafu(display("Failed to read from stdin: {}", source))]
+        StdinRead { source: std::io::Error },
+
+        #[snafu(display("Failed to parse network config from stdin: {}", source))]
+        NetConfigStdinParse { source: net_config::Error },
+
+        #[snafu(display("Network config directory '{}' does not exist", path.display()))]
+        NetConfigDirMissing { path: PathBuf },
+
+        #[snafu(display("Failed to create temp file in '{}': {}", path.display(), source))]
+        CreateTempFile {
+            path: PathBuf,
+            source: std::io::Error,
+        },
+
+        #[snafu(display("Failed to write to temp file: {}", source))]
+        WriteTempFile { source: std::io::Error },
+
+        #[snafu(display("Failed to persist temp file to '{}': {}", path.display(), source))]
+        PersistTempFile {
+            path: PathBuf,
+            source: tempfile::PersistError,
         },
     }
 }
