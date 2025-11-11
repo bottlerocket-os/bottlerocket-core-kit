@@ -1,10 +1,20 @@
+# v10.9.3 (2025-11-11)
+
+## Orchestrator Changes
+### Kubernetes
+- Patch `ecr-credential-provider` to support AWS EUSC ([#729])
+
+[#729]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/729
+
 # v10.9.2 (2025-11-08)
+
 ## OS Changes
 - Patch runc to set the correct mode for tmpfs mounts ([#731])
 
 [#731]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/731
 
 # v10.9.1 (2025-11-05)
+
 ## OS Changes
 - Update runc to v1.2.8 ([#708])
 
