@@ -283,43 +283,6 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
-    fn test_find_directory_contents_with_valid_override() {
-        // GIVEN: A directory with a mock checker and matching override JSON file
-        // WHEN: find_directory_contents is called
-        // THEN: Override should be parsed and returned correctly
-
-        let temp_dir = TempDir::new().unwrap();
-
-        // Create mock checker executable
-        let checker_script = r#"#!/bin/bash
-if [ "$1" = "metadata" ]; then
-    echo '{"name": "test123", "id": "test123", "level": 1, "title": "Test Check", "mode": "Automatic"}'
-else
-    echo '{"status": "PASS", "error": ""}'
-fi
-"#;
-        let checker_path = temp_dir.path().join("test123");
-        fs::write(&checker_path, checker_script).unwrap();
-        fs::set_permissions(&checker_path, fs::Permissions::from_mode(0o755)).unwrap();
-
-        let override_json = r#"{
-            "reason": "Test reason",
-            "status": "SKIP"
-        }"#;
-
-        fs::write(temp_dir.path().join("test123.json"), override_json).unwrap();
-
-        let (checkers, overrides) = find_directory_contents(&temp_dir.path().to_path_buf(), 1);
-
-        assert_eq!(checkers.len(), 1);
-        assert_eq!(overrides.len(), 1);
-        assert!(overrides.contains_key("test123"));
-
-        let override_config = &overrides["test123"];
-        assert_eq!(override_config.reason, "Test reason");
-    }
-
-    #[test]
     fn test_find_directory_contents_ignores_metadata_json() {
         // GIVEN: A directory with metadata.json and other non-override JSON files
         // WHEN: find_directory_contents is called
@@ -375,6 +338,9 @@ fi
         fs::write(&checker1_path, checker1_script).unwrap();
         fs::set_permissions(&checker1_path, fs::Permissions::from_mode(0o755)).unwrap();
 
+        // Ensure filesystem sync to avoid race condition
+        fs::File::open(&checker1_path).unwrap().sync_all().unwrap();
+
         let override1_json = r#"{
             "reason": "Reason 1",
             "status": "SKIP"
@@ -391,6 +357,9 @@ fi
         let checker2_path = temp_dir.path().join("test2");
         fs::write(&checker2_path, checker2_script).unwrap();
         fs::set_permissions(&checker2_path, fs::Permissions::from_mode(0o755)).unwrap();
+
+        // Ensure filesystem sync to avoid race condition
+        fs::File::open(&checker2_path).unwrap().sync_all().unwrap();
 
         let override2_json = r#"{
             "reason": "Reason 2",
