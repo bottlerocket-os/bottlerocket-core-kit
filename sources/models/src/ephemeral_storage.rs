@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// Supported filesystems for ephemeral storage
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Filesystem {
     Xfs,
     Ext4,
@@ -19,7 +19,7 @@ impl Display for Filesystem {
 }
 
 /// Storage type preferences for ephemeral storage
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Preference {
     pub ephemeral_disk: bool,
     pub ebs_volume: bool,

@@ -44,7 +44,7 @@ impl Default for Args {
 }
 
 /// Stores the usage mode specified by the user as a subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Subcommand {
     Apply(ApplyArgs),
     Exec(ExecArgs),
@@ -60,13 +60,13 @@ enum Subcommand {
 }
 
 /// Stores user-supplied arguments for the 'apply' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct ApplyArgs {
     input_sources: Vec<String>,
 }
 
 /// Stores user-supplied arguments for the 'exec' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct ExecArgs {
     command: Vec<OsString>,
     target: String,
@@ -74,7 +74,7 @@ struct ExecArgs {
 }
 
 /// Stores user-supplied arguments for the 'get' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum GetArgs {
     Prefixes {
         include: Vec<String>,
@@ -85,7 +85,7 @@ enum GetArgs {
 }
 
 /// Stores user-supplied arguments for the 'raw' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct RawArgs {
     method: String,
     uri: String,
@@ -93,11 +93,11 @@ struct RawArgs {
 }
 
 /// Stores user-supplied arguments for the 'lockdown' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct LockdownArgs {}
 
 /// Stores user-supplied arguments for the 'reboot' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct RebootArgs {}
 
 /// Stores a vector of user-supplied key-value pairs for the 'set' subcommand.
@@ -107,14 +107,14 @@ pub struct SetKeyPairSettings {
 }
 
 /// Stores user-supplied arguments for the 'set' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum SetArgs {
     Simple(Vec<String>),
     Json(serde_json::Value),
 }
 
 /// Stores the 'update' subcommand specified by the user.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum UpdateSubcommand {
     Check(UpdateCheckArgs),
     Apply(UpdateApplyArgs),
@@ -122,7 +122,7 @@ enum UpdateSubcommand {
 }
 
 /// The available 'report' subcommands.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum ReportSubcommand {
     Cis(CisReportArgs),
     CisK8s(CisReportArgs),
@@ -130,35 +130,35 @@ enum ReportSubcommand {
 }
 
 /// Stores common user-supplied arguments for the cis report subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct CisReportArgs {
     level: Option<i32>,
     format: Option<String>,
 }
 
 /// Stores common user-supplied arguments for the fips report subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct FipsReportArgs {
     format: Option<String>,
 }
 
 /// Stores user-supplied arguments for the 'update check' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct UpdateCheckArgs {}
 
 /// Stores user-supplied arguments for the 'update apply' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct UpdateApplyArgs {
     check: bool,
     reboot: bool,
 }
 
 /// Stores user-supplied arguments for the 'update cancel' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct UpdateCancelArgs {}
 
 /// Stores the 'ephemeral-storage' subcommand specified by the user.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum EphemeralStorageSubcommand {
     Init(EphemeralStorageInitArgs),
     Bind(EphemeralStorageBindArgs),
@@ -168,7 +168,7 @@ enum EphemeralStorageSubcommand {
 }
 
 /// Stores user-supplied arguments for the 'ephemeral-storage init' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct EphemeralStorageInitArgs {
     disks: Option<Vec<String>>,
     ebs_volumes: Option<Vec<String>>,
@@ -177,24 +177,24 @@ struct EphemeralStorageInitArgs {
 }
 
 /// Stores user-supplied arguments for the 'ephemeral-storage bind' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct EphemeralStorageBindArgs {
     targets: Vec<String>,
 }
 /// Stores user-supplied arguments for the 'ephemeral-storage list-disks/list-ebs-volumes/list-dirs' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct EphemeralStorageFormatArgs {
     format: Option<String>,
 }
 
 /// Stores the 'network' subcommand specified by the user.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum NetworkSubcommand {
     Configure(NetworkConfigureArgs),
 }
 
 /// Stores user-supplied arguments for the 'network configure' subcommand.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct NetworkConfigureArgs {
     input_source: Option<String>,
 }
@@ -1604,12 +1604,10 @@ mod tests {
         assert_eq!(global_args.socket_path, "/run/api.sock");
 
         // Test network configure subcommand with no input source (stdin)
-        match subcommand {
-            Subcommand::Network(NetworkSubcommand::Configure(configure_args)) => {
-                assert_eq!(configure_args.input_source, None);
-            }
-            _ => panic!("Expected Network::Configure subcommand, got: {subcommand:?}"),
-        }
+        let expected = Subcommand::Network(NetworkSubcommand::Configure(NetworkConfigureArgs {
+            input_source: None,
+        }));
+        assert_eq!(subcommand, expected);
     }
 
     #[test_case("apiclient network configure file:///tmp/net.toml",
@@ -1644,15 +1642,10 @@ mod tests {
         assert_eq!(global_args.log_level, expected_args.log_level);
         assert_eq!(global_args.socket_path, expected_args.socket_path);
 
-        // Test network configure subcommand and extract input source
-        match subcommand {
-            Subcommand::Network(NetworkSubcommand::Configure(configure_args)) => {
-                assert_eq!(
-                    configure_args.input_source,
-                    Some(expected_input_source.to_string())
-                );
-            }
-            _ => panic!("Expected Network::Configure subcommand, got: {subcommand:?}"),
-        }
+        // Test network configure subcommand matches expected
+        let expected = Subcommand::Network(NetworkSubcommand::Configure(NetworkConfigureArgs {
+            input_source: Some(expected_input_source.to_string()),
+        }));
+        assert_eq!(subcommand, expected);
     }
 }
