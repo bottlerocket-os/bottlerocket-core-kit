@@ -722,6 +722,30 @@ paths:
         423:
           description: "Update write lock held. Try again in a moment"
 
+  /actions/network/configure:
+    post:
+      summary: "Configure network settings from net.toml content"
+      operationId: "configure_network"
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: |
+              version = 2
+
+              [eth0]
+              dhcp4 = true
+              primary = true
+      responses:
+        204:
+          description: "Network configuration successfully written"
+        400:
+          description: "Invalid UTF-8 content or malformed configuration"
+        500:
+          description: "Server error writing configuration"
+
   /updates/status:
     get:
       summary: "Get update status"

@@ -220,6 +220,18 @@ pub enum Error {
 
     // =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
 
+    // Network configuration errors
+    #[snafu(display("Network configuration content is not valid UTF-8"))]
+    NetworkConfigContent { source: std::string::FromUtf8Error },
+
+    #[snafu(display("Failed to validate network configuration: {}", source))]
+    NetworkConfigValidation { source: std::io::Error },
+
+    #[snafu(display("Invalid network configuration: {}", stderr))]
+    NetworkConfigInvalid { stderr: String },
+
+    // =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
+
     // Update related errors
     #[snafu(display("Unable to start the update dispatcher: {} ", source))]
     UpdateDispatcher { source: io::Error },

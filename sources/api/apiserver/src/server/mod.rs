@@ -14,7 +14,7 @@ use actix_web::{
 use datastore::{serialize_scalar, Committed, FilesystemDataStore, Key, KeyType, Value};
 use error::Result;
 use http::StatusCode;
-use log::info;
+use log::{debug, info};
 use model::ephemeral_storage::{Bind, Init};
 use model::generator::{RawSettingsGenerator, Strength};
 use model::{ConfigurationFiles, Model, Report, Services, Settings};
@@ -24,6 +24,7 @@ use snafu::{ensure, OptionExt, ResultExt};
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs::{set_permissions, File, Permissions};
+use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::process::ExitStatusExt;
 use std::path::{Path, PathBuf};
@@ -36,7 +37,7 @@ use tokio::process::Command as AsyncCommand;
 const BLOODHOUND_BIN: &str = "/usr/bin/bloodhound";
 const BLOODHOUND_K8S_CHECKS: &str = "/usr/libexec/cis-checks/kubernetes";
 const BLOODHOUND_FIPS_CHECKS: &str = "/usr/libexec/fips-checks/bottlerocket";
-
+const NETDOG_BIN: &str = "/usr/bin/netdog";
 // =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
 
 // sd_notify helper
@@ -137,6 +138,7 @@ where
                     .route("/prepare-update", web::post().to(prepare_update))
                     .route("/activate-update", web::post().to(activate_update))
                     .route("/deactivate-update", web::post().to(deactivate_update))
+                    .route("/network/configure", web::post().to(configure_network))
                     .route(
                         "/ephemeral-storage/init",
                         web::post().to(initialize_ephemeral_storage),
@@ -687,6 +689,43 @@ async fn reboot() -> Result<HttpResponse> {
     Ok(HttpResponse::NoContent().finish())
 }
 
+/// Configures network settings by invoking netdog commit.
+/// The configuration will be applied at next boot - a reboot is required for changes to take effect.
+async fn configure_network(body: web::Bytes) -> Result<HttpResponse> {
+    debug!("Configuring network settings");
+
+    // Convert the body bytes to a UTF-8 string
+    let content = String::from_utf8(body.to_vec()).context(error::NetworkConfigContentSnafu)?;
+
+    info!("Invoking netdog commit to validate and write network configuration");
+
+    // Validate and write net.toml using netdog commit
+    let validation_result = std::process::Command::new(NETDOG_BIN)
+        .arg("commit")
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .and_then(|mut child| {
+            if let Some(stdin) = child.stdin.as_mut() {
+                stdin.write_all(content.as_bytes())?;
+            }
+            child.wait_with_output()
+        })
+        .context(error::NetworkConfigValidationSnafu)?;
+
+    if !validation_result.status.success() {
+        let stderr = String::from_utf8_lossy(&validation_result.stderr);
+        error!(
+            "netdog commit failed: network configuration validation failed: {}",
+            stderr
+        );
+        return error::NetworkConfigInvalidSnafu { stderr }.fail();
+    }
+
+    Ok(HttpResponse::NoContent().finish())
+}
+
 /// Gets the set of report types supported by this host.
 async fn list_reports() -> Result<ReportListResponse> {
     // Add each report to list response when adding a new handler
@@ -965,6 +1004,9 @@ impl ResponseError for error::Error {
             InvalidPrefix { .. } => StatusCode::BAD_REQUEST,
             DeserializeJson { .. } => StatusCode::BAD_REQUEST,
             InvalidKeyPair { .. } => StatusCode::BAD_REQUEST,
+            NetworkConfigContent { .. } => StatusCode::BAD_REQUEST,
+            NetworkConfigValidation { .. } => StatusCode::BAD_REQUEST,
+            NetworkConfigInvalid { .. } => StatusCode::BAD_REQUEST,
 
             // 404 Not Found
             MissingData { .. } => StatusCode::NOT_FOUND,
