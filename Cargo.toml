@@ -119,7 +119,6 @@ members = [
   "packages/release",
   "packages/runc",
   "packages/selinux-policy",
-  "packages/socat",
   "packages/soci-snapshotter",
   "packages/static-pods",
   "packages/strace",

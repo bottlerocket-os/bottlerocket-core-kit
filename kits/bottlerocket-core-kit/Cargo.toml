@@ -131,7 +131,6 @@ release = { path = "../../packages/release" }
 rottweiler = { path = "../../packages/rottweiler" }
 runc = { path = "../../packages/runc" }
 selinux-policy = { path = "../../packages/selinux-policy" }
-socat = { path = "../../packages/socat" }
 soci-snapshotter = { path = "../../packages/soci-snapshotter" }
 static-pods = { path = "../../packages/static-pods" }
 strace = { path = "../../packages/strace" }
