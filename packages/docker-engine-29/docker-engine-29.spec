@@ -3,9 +3,9 @@
 %global goorg github.com/moby
 %global goimport %{goorg}/moby
 
-%global gover 29.0.0-rc.2
-%global rpmver 29.0.0
-%global gitrev bb45a3f4a0eaaa3afe8145acc5a901fcad717417
+%global gover 29.0.0
+%global rpmver %{gover}
+%global gitrev d105562beff448ae44d6e3a2f7738b235fd197b5
 
 %global source_date_epoch 1363394400
 
@@ -15,7 +15,7 @@
 
 Name: %{_cross_os}docker-engine-29
 Version: %{rpmver}
-Release: 0.rc2%{?dist}
+Release: 1%{?dist}
 Summary: Docker engine
 License: Apache-2.0
 URL: https://%{repo}
