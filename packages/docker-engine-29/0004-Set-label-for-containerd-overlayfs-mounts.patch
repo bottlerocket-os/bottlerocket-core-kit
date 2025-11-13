@@ -1,0 +1,39 @@
+From 3c241eeee132271e665bb29f2d1cb480a308c921 Mon Sep 17 00:00:00 2001
+From: Ben Cressey <bcressey@amazon.com>
+Date: Thu, 13 Nov 2025 03:43:25 +0000
+Subject: [PATCH] Set label for containerd overlayfs mounts
+
+---
+ daemon/containerd/image_snapshot.go | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/daemon/containerd/image_snapshot.go b/daemon/containerd/image_snapshot.go
+index 3c61d98..f8154a1 100644
+--- a/daemon/containerd/image_snapshot.go
++++ b/daemon/containerd/image_snapshot.go
+@@ -151,13 +151,20 @@ func (l *rwLayer) mounts(ctx context.Context) ([]mount.Mount, error) {
+ func (l *rwLayer) Mount(mountLabel string) (string, error) {
+ 	ctx := context.TODO()
+ 
+-	// TODO: Investigate how we can handle mountLabel
+-	_ = mountLabel
+ 	mounts, err := l.mounts(ctx)
+ 	if err != nil {
+ 		return "", err
+ 	}
+ 
++	// Apply SELinux mount label to overlay mounts (rootfs) only
++	if mountLabel != "" {
++		for i := range mounts {
++			if mounts[i].Type == "overlay" {
++				mounts[i].Options = append(mounts[i].Options, "context=\""+mountLabel+"\"")
++			}
++		}
++	}
++
+ 	var root string
+ 	if root, err = l.refCountMounter.Mount(mounts, l.id); err != nil {
+ 		return "", fmt.Errorf("failed to mount %s: %w", root, err)
+-- 
+2.51.0
+
