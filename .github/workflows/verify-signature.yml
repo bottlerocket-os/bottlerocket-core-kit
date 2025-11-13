@@ -1,0 +1,30 @@
+name: Enforce Signed Commits
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  check_signed_commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get the SHA before the first commit
+        id: first_commit_parent
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.sha }}"
+          PARENT_SHA=$(git merge-base $BASE_SHA $HEAD_SHA)
+          echo "The SHA before the first commit in this branch is: $PARENT_SHA"
+          echo "parent_sha=$PARENT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Verify all commits in push are signed
+        run: |
+          git log ${{ steps.first_commit_parent.outputs.parent_sha }}..${{ github.sha }} --pretty="%H %G?" --no-merges | while read commit_hash signature_status; do
+            if [ "$signature_status" != "U" ]; then
+              echo "Error: Unsigned commit found: $commit_hash"
+              exit 1
+            fi
+          done
