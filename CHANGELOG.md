@@ -1,3 +1,11 @@
+# v11.0.1 (2025-11-12)
+
+## Orchestrator Changes
+### Kubernetes
+- Return `enableDebuggingHandlers` to default behaviour ([#747])
+
+[#747]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/747
+
 # v11.0.0 (2025-11-12)
 
 ## OS Changes
