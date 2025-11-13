@@ -215,7 +215,6 @@ failSwapOn: false
 memorySwap:
   swapBehavior: {{settings.kubernetes.memory-swap-behavior}}
 {{/if}}
-enableDebuggingHandlers: false
 {{#if settings.kubernetes.image-minimum-gc-age}}
 imageMinimumGCAge: {{settings.kubernetes.image-minimum-gc-age}}
 {{/if}}

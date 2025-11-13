@@ -205,7 +205,6 @@ reservedMemory:
 reservedSystemCPUs: {{settings.kubernetes.reserved-cpus}}
 {{/if}}
 failSwapOn: false
-enableDebuggingHandlers: false
 {{#if settings.kubernetes.image-minimum-gc-age}}
 imageMinimumGCAge: {{settings.kubernetes.image-minimum-gc-age}}
 {{/if}}
