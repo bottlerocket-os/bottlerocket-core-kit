@@ -1,0 +1,21 @@
+[package]
+name = "rocm-k8s-device-plugin"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://github.com/ROCm/k8s-device-plugin/releases"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/ROCm/k8s-device-plugin/archive/v1.31.0.8.tar.gz"
+sha512 = "23a127b46ad15cabbdd9abe18a8b75140340dcb10f41c9efdcfd30b38db7142edabaf6a97ed2c621f0414c78c0cb87fdc81a30b5e3fb016d16cbd11210143326"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
+libdrm = { path = "../libdrm" }
+hwloc = { path = "../hwloc" }

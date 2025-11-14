@@ -1,0 +1,17 @@
+[Unit]
+Description=Start ROCm kubernetes device plugin
+After=kubelet.service modprobe@amdgpu.service
+Wants=kubelet.service modprobe@amdgpu.service
+
+[Service]
+# Ensure that the kubelet device plugin socket exists before we start
+# A brief sleep is needed to avoid the `test` failing its first check
+ExecStartPre=/usr/bin/sleep 0.1
+ExecStartPre=/usr/bin/test -S /var/lib/kubelet/device-plugins/kubelet.sock
+ExecStart=/usr/bin/rocm-device-plugin -logtostderr=true -stderrthreshold=INFO -v=5
+TimeoutSec=0
+RestartSec=2
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
