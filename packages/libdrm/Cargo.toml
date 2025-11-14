@@ -1,0 +1,23 @@
+[package]
+name = "libdrm"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://dri.freedesktop.org/libdrm/"
+
+[[package.metadata.build-package.external-files]]
+url = "https://dri.freedesktop.org/libdrm/libdrm-2.4.129.tar.xz"
+sha512 = "3ee702cc4a578e9ab231caf8a84700e4dff6f3da70731610121ac2c3390f42e42ad144ea61c53582e3a8adfb1d6bf8254993c5c6eaf85a51421e26d51d341cd4"
+
+[[package.metadata.build-package.external-files]]
+url = "https://dri.freedesktop.org/libdrm/libdrm-2.4.129.tar.xz.sig"
+sha512 = "21baba37df19d0adf805e508f91e28f2bbdaa4d7fb6f99837d31c9d966833fbd8bdd93d97eab724b5a79e4d0ef4636fea176cd34db6c527da7e0b88907dd12db"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
