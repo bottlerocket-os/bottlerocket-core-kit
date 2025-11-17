@@ -533,6 +533,11 @@ fn should_encrypt() -> Result<bool> {
 fn encrypt_ephemeral_device(device: &str) -> Result<String> {
     info!("encrypting ephemeral device {device:?}");
 
+    // Clear previous link if it exists
+    if std::fs::exists(EPHEMERAL_DATA_LINK).is_ok_and(|x| x) {
+        std::fs::remove_file(EPHEMERAL_DATA_LINK).context(error::DiskUnlinkFailureSnafu {})?;
+    }
+
     // Create intermediate symlink for rottweiler to use
     // This ensures consistent mapper name: /dev/mapper/EPHEMERAL-DATA
     std::os::unix::fs::symlink(device, EPHEMERAL_DATA_LINK)
