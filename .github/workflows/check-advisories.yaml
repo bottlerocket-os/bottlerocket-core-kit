@@ -1,0 +1,29 @@
+name: RPM Advisory Build & Verify
+
+on:
+  push:
+    paths:
+      - 'advisories/**/BRSA-*.toml'
+  pull_request:
+    paths:
+      - 'advisories/**/BRSA-*.toml'
+
+jobs:
+  find-changes:
+    name: Find Changed Advisories
+    runs-on: ubuntu-latest
+    outputs:
+      changed_files: ${{ steps.files.outputs.all_changed_files }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt -y install yq build-essential openssl libssl-dev pkg-config liblz4-tool
+        shell: bash
+      - name: Get changed files
+        id: files
+        uses: tj-actions/changed-files@v44
+        with:
+          files_yaml: |
+            advisory_files:
+              - 'advisories/**/BRSA-*.toml'
+          all_changed_files: "true"

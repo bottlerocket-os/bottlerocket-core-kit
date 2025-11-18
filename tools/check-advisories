@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+version=$(yq -o tsv '.release-version' Twoliter.toml)
+readarray -t files < <(find advisories/${version} advisories/staging -name "BRSA-*.toml")
+
+errors_found=false
+for file in "${files[@]}"; do
+    while IFS=$'\t' read -r package_name package_version package_epoch; do
+        spec_file="packages/${package_name}/${package_name}.spec"
+        if [[ -f "${spec_file}" ]]; then
+            actual_epoch=$(grep -E "^Epoch:" "${spec_file}" | sed 's/Epoch:[[:space:]]*//' || echo "0")
+            [[ -z "${actual_epoch}" ]] && actual_epoch="0"
+        fi
+
+        if [ ${package_epoch} -ne ${actual_epoch} ]; then
+            echo "ERROR in ${file}: Package ${package_name} has epoch ${package_epoch}, should be ${actual_epoch}"
+            errors_found=true
+        fi
+    done < <(yq -o tsv '.advisory.products[] | [ .["package-name"], .["patched-epoch"] ]' ${file})
+done
+
+if ${errors_found}; then
+    echo "Advisory validation FAILED!"
+    exit 1
+else
+    echo "Advisory validation PASSED!"
+fi

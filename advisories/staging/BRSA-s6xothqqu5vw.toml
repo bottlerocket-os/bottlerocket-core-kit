@@ -1,0 +1,27 @@
+[advisory]
+id = "BRSA-s6xothqqu5vw"
+title = "containerd CVE-2025-64329"
+cve = "CVE-2025-64329"
+severity = "moderate"
+description = "A bug was found in containerd's CRI Attach implementation that causes goroutine leaks. Repetitive calls to CRI Attach can exhaust memory on the host."
+
+[[advisory.products]]
+package-name = "containerd-1.7"
+patched-version = "1.7.29"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "containerd-2.0"
+patched-version = "2.0.7"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "containerd-2.1"
+patched-version = "2.1.5"
+patched-epoch = "0"
+
+[updateinfo]
+author = "kssessio"
+issue-date = 2025-11-13T15:40:31Z
+arches = ["x86_64", "aarch64"]
+version = "11.0.0"

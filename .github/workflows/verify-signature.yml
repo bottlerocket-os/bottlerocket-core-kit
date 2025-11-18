@@ -1,0 +1,21 @@
+name: Enforce Signed Commits
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  check_signed_commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify all commits in push are signed
+        run: |
+          git log ${{ github.event.before }}..${{ github.sha }} --pretty="%H %G?" --no-merges | while read commit_hash signature_status; do
+            if [ "$signature_status" != "U" ]; then
+              echo "Error: Unsigned commit found: $commit_hash"
+              exit 1
+            fi
+          done

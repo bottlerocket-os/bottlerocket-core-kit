@@ -1,0 +1,17 @@
+name: Validate Epoch field in BRSA
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      # Bottlerocket Security Advisories
+      - 'advisories/**'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Install dependencies for twoliter and cargo-make.
+      - run: sudo apt -y install yq
+        shell: bash
+      - run: ./tools/check-advisories
+
