@@ -1,0 +1,95 @@
+name: RPM Advisory Build & Verify
+
+on:
+  pull_request:
+    paths:
+      - 'advisories/**/BRSA-*.toml'
+
+jobs:
+  find-changes:
+    name: Find Changed Advisories
+    runs-on: ubuntu-latest
+    outputs:
+      changed_files: ${{ steps.changed-files.outputs.all_changed_files || '[]' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v47
+        with:
+          json: true
+          escape_json: false
+          files_ignore_deleted_files: true
+          files: |
+            advisories/staging/**.toml
+      - name: List all changed advisories files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          for file in ${ALL_CHANGED_FILES}; do
+            echo "$file was changed"
+          done
+  build-and-verify:
+    name: Build & Verify
+    needs: find-changes
+    runs-on: ubuntu-latest
+    container:
+      image: public.ecr.aws/bottlerocket/bottlerocket-sdk:v0.65.1
+      options: --user 0
+
+    # Only run this job if the 'find-changes' job actually found files
+    if: needs.find-changes.outputs.changed_files != '[]'
+    strategy:
+      fail-fast: false # Don't cancel all jobs if one file fails
+      matrix:
+        arch: [aarch64]
+        advisory_file: ${{ fromJson(needs.find-changes.outputs.changed_files) }}
+    steps:
+      # This builds the current packages and kits.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install yq
+        run: |
+          echo "Installing yq..."
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+          yq --version
+      - name: Build, Find, and Verify RPMs
+        run: |
+          #!/usr/bin/env bash
+
+          echo "Processing advisory: ${{ matrix.advisory_file }}"
+          cp /usr/lib/rpm/platform/${{ matrix.arch }}-bottlerocket/macros ~/.rpmmacros
+
+          if [[ ! -f "${{ matrix.advisory_file }}" ]]; then
+            echo "::warning::File ${{ matrix.advisory_file }} does not exist. Skipping."
+            exit 0
+          fi
+
+          while IFS=$'\t' read -r package_name package_epoch package_version; do
+              rpmspec_file="packages/${package_name}/${package_name}.spec"
+              package_metadata=$(rpmspec --parse --query --qf "%{Name}:%{Epoch}:%{Version}\n" ${rpmspec_file})
+
+              while IFS=: read -r subpackage_name subpackage_epoch subpackage_version; do
+                if [ ${subpackage_epoch} == "(none)" ]; then
+                  subpackage_epoch="0"
+                fi
+
+                if [[ "${subpackage_name}" = *"${package_name}" ]]; then
+                  echo "Package metadata in ${{ matrix.advisory_file }}: ${package_name}, epoch: ${package_epoch}, version: ${package_version}"
+                  echo "Package metadata in the rpm: ${subpackage_name}, epoch: ${subpackage_epoch}, version: ${subpackage_version}"
+
+                  if [ "${subpackage_epoch}" = "${package_epoch}" ] && \
+                    [ "${subpackage_version}" = "${package_version}" ]; then
+                    echo "Package metadata in the Advisory is validated."
+                    exit 0
+                  fi
+                fi
+              done < <(echo "$package_metadata")
+          done < <(yq -o tsv '.advisory.products[] | [ .["package-name"], .["patched-epoch"], .["patched-version"] ]' ${{ matrix.advisory_file }})
+
+          exit 1
