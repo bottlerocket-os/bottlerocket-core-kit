@@ -47,7 +47,6 @@ jobs:
           branch: update-eni-max-pods
           path: bottlerocket-core-kit/
           base: develop
-          delete-branch: true
           add-paths: |
             packages/os/eni-max-pods
           commit-message: "Update eni-max-pods"
