@@ -1,3 +1,12 @@
+# v11.1.0 (2025-11-26)
+
+## OS Changes
+* Provide `libdrm` and `rocm-k8s-device-plugin` packages for AMD GPU detection ([#748])
+* Add latest instance types to `eni-max-pods` mapping ([#752])
+
+[#748]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/748
+[#752]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/752
+
 # v11.0.1 (2025-11-12)
 
 ## Orchestrator Changes
