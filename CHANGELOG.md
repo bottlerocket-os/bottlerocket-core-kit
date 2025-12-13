@@ -1,3 +1,12 @@
+# v12.0.1 (2025-12-12)
+
+## OS Changes
+
+### Third Party Package Updates
+- Revert updates to `libnvidia-container`, `nvidia-container-toolkit`, and `nvidia-k8s-device-plugin` ([#775])
+
+[#775]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/775
+
 # v12.0.0 (2025-12-10)
 
 ## OS Changes
