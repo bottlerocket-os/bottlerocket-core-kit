@@ -39,7 +39,7 @@ use std::os::unix::fs::symlink;
 use std::os::unix::io::AsRawFd;
 use std::path::{Path, PathBuf};
 use std::process;
-use tokio::fs;
+use tokio::fs::{self, DirEntry};
 use tokio::runtime::Handle;
 use tokio_util::compat::FuturesAsyncReadCompatExt;
 use tokio_util::io::SyncIoBridge;
@@ -137,7 +137,8 @@ pub(crate) async fn run(args: &Args) -> Result<()> {
     let datastore =
         remove_transient_datastore_entries(migrated_datastore, &args.migrate_to_version).await?;
 
-    flip_to_new_version(&args.migrate_to_version, datastore).await?;
+    let datastore = flip_to_new_version(&args.migrate_to_version, datastore).await?;
+    cleanup_orphaned_datastores(&datastore).await;
 
     Ok(())
 }
@@ -380,7 +381,7 @@ where
     // The most recent, "good", datastore. We keep it around for debugging purposes in case we
     // encounter an error before reaching the final one. Once we reach final we delete the last
     // intermediate_datastore.
-    let mut intermediate_datastore = Option::default();
+    let mut intermediate_datastore: Option<PathBuf> = Option::default();
 
     for migration in migrations {
         let migration = migration.as_ref();
@@ -464,7 +465,7 @@ where
 
         // If an intermediate datastore exists from a previous loop, delete it.
         if let Some(path) = &intermediate_datastore {
-            delete_intermediate_datastore(path).await;
+            delete_datastore_entry(path.as_path()).await;
         }
 
         // Remember the location of the target_datastore to delete it in the next loop iteration
@@ -476,17 +477,78 @@ where
     Ok(target_datastore)
 }
 
-// Try to delete an intermediate datastore if it exists. If it fails to delete, print an error.
-async fn delete_intermediate_datastore(path: &PathBuf) {
-    // Even if we fail to remove an intermediate data store, we don't want to fail the upgrade -
+// Try to delete a datastore if it exists. If it fails to delete, print an error.
+async fn delete_datastore_entry(path: &Path) {
+    // Even if we fail to remove a data store, we don't want to fail the upgrade -
     // just let someone know for later cleanup.
-    trace!("Removing intermediate data store at {}", path.display());
+    trace!("Removing data store at {}", path.display());
     if let Err(e) = fs::remove_dir_all(path).await {
-        error!(
-            "Failed to remove intermediate data store at '{}': {}",
-            path.display(),
-            e
-        );
+        error!("Failed to remove data store at '{}': {}", path.display(), e);
+    }
+}
+
+// Traverse all files under top_dir and return those that do not resolve to the target_datastore
+// Return an empty HashSet on failure without breaking the boot
+async fn find_orphaned_entries(top_dir: &Path, target_datastore: PathBuf) -> HashSet<PathBuf> {
+    let mut active_entries: HashSet<PathBuf> = HashSet::new();
+    let mut orphaned_entries: HashSet<PathBuf> = HashSet::new();
+    let Ok(mut dir_entries) = fs::read_dir(top_dir).await else {
+        return orphaned_entries;
+    };
+    'outer: loop {
+        let entry: DirEntry = match dir_entries.next_entry().await {
+            Ok(Some(entry)) => entry,
+            Ok(None) => break,
+            Err(e) => {
+                warn!("Failed to read directory entry: {}", e);
+                break;
+            }
+        };
+        let path = entry.path();
+        if active_entries.contains(&path) || orphaned_entries.contains(&path) {
+            continue;
+        }
+        let mut seen: HashSet<PathBuf> = HashSet::from([path.clone()]);
+        let mut current = path;
+        // Traverse all symlinks till the end to see if they point to target_datastore
+        while let Ok(next) = fs::read_link(&current).await {
+            let next = top_dir.join(&next);
+            if seen.contains(&next) {
+                // If a loop is detected, mark the files for deletion. Since the migration
+                // is complete when this code runs, the loop should not be a part of the
+                // datastore path
+                warn!("Detected a symlink loop containing {:#?}", seen);
+                orphaned_entries.extend(seen);
+                continue 'outer;
+            }
+            if active_entries.contains(&next) {
+                active_entries.extend(seen);
+                continue 'outer;
+            }
+            seen.insert(next.clone());
+            current = next;
+        }
+        if current == target_datastore {
+            active_entries.extend(seen);
+        } else {
+            orphaned_entries.extend(seen);
+        }
+    } // outer
+    orphaned_entries
+}
+
+// Clean up any datastore folders that do not point to the target_datastore
+async fn cleanup_orphaned_datastores(target_datastore: &Path) {
+    let datastore_dir = match target_datastore.parent() {
+        Some(p) => p.to_owned(),
+        None => return,
+    };
+
+    let orphaned_entries: HashSet<PathBuf> =
+        find_orphaned_entries(&datastore_dir, target_datastore.to_path_buf()).await;
+
+    for entry in orphaned_entries {
+        delete_datastore_entry(&entry).await;
     }
 }
 
@@ -498,7 +560,7 @@ async fn delete_intermediate_datastore(path: &PathBuf) {
 /// * pointing the major version to the minor version
 /// * pointing the 'current' link to the major version
 /// * fsyncing the directory to disk
-async fn flip_to_new_version<P>(version: &Version, to_datastore: P) -> Result<()>
+async fn flip_to_new_version<P>(version: &Version, to_datastore: P) -> Result<PathBuf>
 where
     P: AsRef<Path>,
 {
@@ -655,7 +717,7 @@ where
         )
     });
 
-    Ok(())
+    Ok(to_datastore.as_ref().to_path_buf())
 }
 
 async fn load_manifest(repository: tough::Repository) -> Result<Manifest> {
