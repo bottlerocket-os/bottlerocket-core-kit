@@ -1,5 +1,5 @@
-%global ncurses_ver 6.5
-%global ncurses_rev 20251129
+%global ncurses_ver 6.6
+%global ncurses_rev 20260103
 
 Name: %{_cross_os}libncurses
 Version: %{ncurses_ver}
