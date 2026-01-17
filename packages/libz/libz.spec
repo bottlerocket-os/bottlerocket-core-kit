@@ -1,5 +1,5 @@
 Name: %{_cross_os}libz
-Version: 2.2.5
+Version: 2.3.2
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for zlib compression
@@ -25,6 +25,7 @@ Requires: %{name}
 # required to `make install` libz
 %global set_env \
 %set_cross_build_flags \\\
+export CFLAGS="${CFLAGS} -fPIC" \\\
 export CROSS_PREFIX="%{_cross_target}-" \\\
 %{nil}
 
