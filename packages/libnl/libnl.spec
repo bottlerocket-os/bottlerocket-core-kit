@@ -1,5 +1,5 @@
-%global rpmver 3.11.0
-%global srcver 3_11_0
+%global rpmver 3.12.0
+%global srcver 3_12_0
 
 Name: %{_cross_os}libnl
 Version: %{rpmver}
@@ -9,7 +9,7 @@ License: LGPL-2.1-only
 URL: https://github.com/thom311/libnl
 Source0: https://github.com/thom311/libnl/releases/download/libnl%{srcver}/libnl-%{version}.tar.gz
 Source1: https://github.com/thom311/libnl/releases/download/libnl%{srcver}/libnl-%{version}.tar.gz.sig
-Source2: gpgkey-49EA7C670E0850E7419514F629C2366E4DFC5728.asc
+Source2: gpgkey-67DA3FAEBAE276BA58FC6CE314F18A98993AECD5.asc
 BuildRequires: %{_cross_os}glibc-devel
 
 %description
