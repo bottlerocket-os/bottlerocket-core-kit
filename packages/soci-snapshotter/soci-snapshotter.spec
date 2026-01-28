@@ -22,29 +22,10 @@ Source1000: clarify.toml
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libz-devel
-Requires: %{name}(binaries)
 Requires: (%{name}-k8s if %{_cross_os}variant-runtime(k8s))
 Requires: %{name}(optimized-gunzip)
 
 %description
-%{summary}.
-
-%package bin
-Summary: A remote snapshotter for containerd
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: A remote snapshotter for containerd, FIPS edition
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %package pigz
@@ -91,14 +72,10 @@ export LD_REVISION="-X github.com/awslabs/soci-snapshotter/version.Revision=%{gi
 
 go build -C cmd -ldflags="${GOLDFLAGS} ${LD_VERSION} ${LD_REVISION}" -o "../out/soci-snapshotter-grpc" ./soci-snapshotter-grpc
 
-gofips build -C cmd -ldflags="${GOLDFLAGS} ${LD_VERSION} ${LD_REVISION}" -o "../out/fips/soci-snapshotter-grpc" ./soci-snapshotter-grpc
-
 %install
 install -d %{buildroot}%{_cross_bindir}
-install -d %{buildroot}%{_cross_fips_bindir}
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0755 out/soci-snapshotter-grpc %{buildroot}%{_cross_bindir}
-install -p -m 0755 out/fips/soci-snapshotter-grpc %{buildroot}%{_cross_fips_bindir}
 
 SOCIMOUNTPATH=$(systemd-escape --path /etc/soci-snapshotter)
 install -p -m 0644 %{S:100} %{buildroot}%{_cross_unitdir}/${SOCIMOUNTPATH}.mount
@@ -126,12 +103,7 @@ posix.symlink("%{_cross_bindir}/unpigz", "%{_cross_bindir}/soci-gunzip")
 %{_cross_attribution_vendor_dir}
 %{_cross_attribution_file}
 %{_cross_templatedir}/soci-config-toml
-
-%files bin
 %{_cross_bindir}/soci-snapshotter-grpc
-
-%files fips-bin
-%{_cross_fips_bindir}/soci-snapshotter-grpc
 
 %files pigz
 # No files provided by pigz but required for packaging.
