@@ -84,53 +84,15 @@ Requires: %{_cross_os}findutils
 Requires: %{_cross_os}ecr-credential-provider-1.31
 Requires: %{_cross_os}aws-iam-authenticator
 Requires: %{_cross_os}static-pods
-Requires: %{_cross_os}kubelet-1.31(binaries)
 
 %description -n %{_cross_os}kubelet-1.31
-%{summary}.
-
-%package -n %{_cross_os}kubelet-1.31-bin
-Summary: Container cluster node agent binaries
-Provides: %{_cross_os}kubelet-1.31(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}kubelet-1.31)
-Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}kubelet-1.31-fips-bin)
-
-%description -n %{_cross_os}kubelet-1.31-bin
-%{summary}.
-
-%package -n %{_cross_os}kubelet-1.31-fips-bin
-Summary: Container cluster node agent binaries, FIPS edition
-Provides: %{_cross_os}kubelet-1.31(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}kubelet-1.31)
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}kubelet-1.31-bin)
-
-%description -n %{_cross_os}kubelet-1.31-fips-bin
 %{summary}.
 
 %package -n %{_cross_os}kube-proxy-1.31
 Summary: Container cluster node proxy
 Requires: %{_cross_os}kubelet-1.31
-Requires: %{_cross_os}kube-proxy-1.31(binaries)
 
 %description -n %{_cross_os}kube-proxy-1.31
-%{summary}.
-
-%package -n %{_cross_os}kube-proxy-1.31-bin
-Summary: Container cluster node proxy binaries
-Provides: %{_cross_os}kube-proxy-1.31(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}kube-proxy-1.31)
-Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}kube-proxy-1.31-fips-bin)
-
-%description -n %{_cross_os}kube-proxy-1.31-bin
-%{summary}.
-
-%package -n %{_cross_os}kube-proxy-1.31-fips-bin
-Summary: Container cluster node proxy binaries, FIPS edition
-Provides: %{_cross_os}kube-proxy-1.31(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}kube-proxy-1.31)
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}kube-proxy-1.31-bin)
-
-%description -n %{_cross_os}kube-proxy-1.31-fips-bin
 %{summary}.
 
 %prep
@@ -183,10 +145,6 @@ output="./_output/local/bin/linux/%{_cross_go_arch}"
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 ${output}/kubelet %{buildroot}%{_cross_bindir}
 install -p -m 0755 ${output}/kube-proxy %{buildroot}%{_cross_bindir}
-
-install -d %{buildroot}%{_cross_fips_bindir}
-install -p -m 0755 ${output}/kubelet %{buildroot}%{_cross_fips_bindir}
-install -p -m 0755 ${output}/kube-proxy %{buildroot}%{_cross_fips_bindir}
 
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:1} %{S:10} %{S:13} %{buildroot}%{_cross_unitdir}
@@ -258,19 +216,9 @@ install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-containe
 %{_cross_libexecdir}/kubernetes/kubernetes-pause.tar
 %{_cross_templatedir}/pod-infra-container-image
 %{_cross_datadir}/logdog.d/logdog.kubelet.conf
-
-%files -n %{_cross_os}kubelet-1.31-bin
 %{_cross_bindir}/kubelet
 
-%files -n %{_cross_os}kubelet-1.31-fips-bin
-%{_cross_fips_bindir}/kubelet
-
 %files -n %{_cross_os}kube-proxy-1.31
-
-%files -n %{_cross_os}kube-proxy-1.31-bin
 %{_cross_bindir}/kube-proxy
-
-%files -n %{_cross_os}kube-proxy-1.31-fips-bin
-%{_cross_fips_bindir}/kube-proxy
 
 %changelog
