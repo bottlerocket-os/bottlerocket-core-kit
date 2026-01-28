@@ -45,30 +45,11 @@ BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}runc
 Requires: %{name}(optimized-gunzip)
-Requires: %{name}(binaries)
 
 Provides: %{_cross_os}%{gorepo} = %{package_priority_epoch}:
 Conflicts: %{_cross_os}%{gorepo}
 
 %description
-%{summary}.
-
-%package bin
-Summary: An industry-standard container runtime's binaries
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: An industry-standard container runtime's binaries, FIPS edition
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %package pigz
@@ -119,18 +100,16 @@ for bin in \
   ctr ;
 do
   go build "${BUILD_ARGS[@]}" -o ${bin} ./cmd/${bin}
-  gofips build "${BUILD_ARGS[@]}" -o fips/${bin} ./cmd/${bin}
 done
 
 %install
-install -d %{buildroot}{%{_cross_bindir},%{_cross_fips_bindir}}
+install -d %{buildroot}%{_cross_bindir}
 for bin in \
   containerd \
   containerd-shim-runc-v2 \
   ctr ;
 do
   install -p -m 0755 ${bin} %{buildroot}%{_cross_bindir}
-  install -p -m 0755 fips/${bin} %{buildroot}%{_cross_fips_bindir}
 done
 
 install -d %{buildroot}%{_cross_unitdir}
@@ -161,17 +140,9 @@ install -p -m 0644 %{S:201} %{buildroot}%{_cross_unitdir}/containerd.service.d/0
 %{_cross_templatedir}/containerd-cri-base-json
 %{_cross_templatedir}/snapshotter-toml
 %{_cross_tmpfilesdir}/containerd.conf
-
-%files bin
 %{_cross_bindir}/containerd
 %{_cross_bindir}/containerd-shim-runc-v2
 %{_cross_bindir}/ctr
-
-%files fips-bin
-%{_cross_fips_bindir}/containerd
-%{_cross_fips_bindir}/containerd-shim-runc-v2
-%{_cross_fips_bindir}/ctr
-
 %files pigz
 %{_cross_unitdir}/containerd.service.d/005-disable-igzip.conf
 
