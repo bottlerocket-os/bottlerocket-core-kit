@@ -43,29 +43,10 @@ Requires: %{_cross_os}libseccomp
 Requires: %{_cross_os}iptables
 Requires: %{_cross_os}systemd
 Requires: %{_cross_os}procps
-Requires: %{name}(binaries)
 Provides: %{_cross_os}docker-engine = %{package_priority_epoch}:
 Conflicts: %{_cross_os}docker-engine
 
 %description
-%{summary}.
-
-%package bin
-Summary: Docker engine binaries
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: Docker engine binaries, FIPS edition
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %prep
@@ -95,17 +76,10 @@ BUILD_ARGS=(
 go build "${BUILD_ARGS[@]}" -o dockerd %{goimport}/cmd/dockerd
 go build "${BUILD_ARGS[@]}" -o docker-proxy %{goimport}/cmd/docker-proxy
 
-gofips build "${BUILD_ARGS[@]}" -o fips/dockerd %{goimport}/cmd/dockerd
-gofips build "${BUILD_ARGS[@]}" -o fips/docker-proxy %{goimport}/cmd/docker-proxy
-
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 dockerd %{buildroot}%{_cross_bindir}
 install -p -m 0755 docker-proxy %{buildroot}%{_cross_bindir}
-
-install -d %{buildroot}%{_cross_fips_bindir}
-install -p -m 0755 fips/dockerd %{buildroot}%{_cross_fips_bindir}
-install -p -m 0755 fips/docker-proxy %{buildroot}%{_cross_fips_bindir}
 
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:1} %{S:100} %{buildroot}%{_cross_unitdir}
@@ -129,13 +103,6 @@ install -p -m 0644 %{S:5} %{buildroot}%{_cross_templatedir}/docker-daemon-nvidia
 %{_cross_sysusersdir}/docker.conf
 %{_cross_templatedir}/docker-daemon-json
 %{_cross_templatedir}/docker-daemon-nvidia-json
-
-%files bin
 %{_cross_bindir}/dockerd
 %{_cross_bindir}/docker-proxy
-
-%files fips-bin
-%{_cross_fips_bindir}/dockerd
-%{_cross_fips_bindir}/docker-proxy
-
 %changelog
