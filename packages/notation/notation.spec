@@ -20,28 +20,9 @@ Source2: notation-trust-policy-json
 Source3: notation-tmpfiles.conf
 
 BuildRequires: %{_cross_os}glibc-devel
-Requires: %{name}(binaries)
 Requires: %{_cross_os}ecr-credential-helper
 
 %description
-%{summary}.
-
-%package bin
-Summary: A CLI tool to sign and verify artifacts' binaries.
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: A CLI tool to sign and verify artifacts' binaries, FIPS edition.
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %prep
@@ -52,13 +33,12 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 %set_cross_go_flags
 
 go build -ldflags "${GOLDFLAGS}" -o notation ./cmd/notation
-gofips build -ldflags "${GOLDFLAGS}" -o fips/notation ./cmd/notation
 
 %install
-install -d %{buildroot}{%{_cross_bindir},%{_cross_fips_bindir},%{_cross_templatedir}}
+install -d %{buildroot}%{_cross_bindir}
+install -d %{buildroot}%{_cross_templatedir}
 
 install -p -m 0755 notation %{buildroot}%{_cross_bindir}
-install -p -m 0755 fips/notation %{buildroot}%{_cross_fips_bindir}
 install -p -m 0644 %{S:2} %{buildroot}%{_cross_templatedir}/notation-trust-policy-json
 
 # Add the notation config and cache directories
@@ -79,11 +59,6 @@ install -p -m 0644 %{S:3} %{buildroot}%{_cross_tmpfilesdir}/notation.conf
 %dir %{_cross_factorydir}%{_cross_sysconfdir}/notation
 %dir %{_cross_factorydir}%{_cross_sysconfdir}/notation/plugins
 %dir %{_cross_factorydir}%{_cross_sysconfdir}/notation/truststore/x509/signingAuthority
-
-%files bin
 %{_cross_bindir}/notation
-
-%files fips-bin
-%{_cross_fips_bindir}/notation
 
 %changelog
