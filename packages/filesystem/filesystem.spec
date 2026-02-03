@@ -32,8 +32,8 @@ mkdir -p %{buildroot}%{_cross_bindir}
 mkdir -p %{buildroot}%{_cross_sbindir}
 mkdir -p %{buildroot}%{_cross_fips_bindir}
 mkdir -p %{buildroot}%{_cross_libdir}
-mkdir -p %{buildroot}%{_cross_libexecdir}/{cni,csi}/bin
-mkdir -p %{buildroot}%{_cross_fips_libexecdir}/{cni,csi}/bin
+mkdir -p %{buildroot}%{_cross_libexecdir}/{civ,cni,csi}/bin
+mkdir -p %{buildroot}%{_cross_fips_libexecdir}/{civ,cni,csi}/bin
 mkdir -p %{buildroot}%{_cross_includedir}
 mkdir -p %{buildroot}%{_cross_sysconfdir}
 mkdir -p %{buildroot}%{_cross_datadir}
