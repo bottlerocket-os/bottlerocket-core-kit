@@ -15,6 +15,7 @@ members = [
     "api/storewolf",
     "api/thar-be-settings",
     "api/thar-be-updates",
+    "api/thar-be-registries",
     "api/settings-committer",
     "api/migration/migrator",
     "api/shibaken",
