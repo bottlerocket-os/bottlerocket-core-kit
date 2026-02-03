@@ -2,7 +2,7 @@
 Description=Program Binaries
 DefaultDependencies=no
 Conflicts=umount.target
-Before=umount.target opt-cni.mount opt-csi.mount
+Before=umount.target opt-civ.mount opt-cni.mount opt-csi.mount
 
 [Mount]
 What=overlay

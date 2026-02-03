@@ -63,6 +63,7 @@ Source1026: media-cdrom.mount
 Source1027: root-.aws.mount
 Source1028: opt-cni.mount
 Source1029: opt-csi.mount
+Source1030: opt-civ.mount
 
 # Mounts that require helper programs.
 Source1040: prepare-boot.service
@@ -261,6 +262,7 @@ install -p -m 0644 \
   %{S:1006} %{S:1007} %{S:1008} %{S:1009} %{S:1010} \
   %{S:1020} %{S:1021} %{S:1022} %{S:1023} %{S:1024} \
   %{S:1025} %{S:1026} %{S:1027} %{S:1028} %{S:1029} \
+  %{S:1030} \
   %{S:1040} %{S:1041} %{S:1042} %{S:1043} %{S:1044} \
   %{S:1045} %{S:1046} %{S:1047} %{S:1048} %{S:1049} \
   %{S:1050} \
@@ -414,6 +416,7 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/etc-cni.mount
 %{_cross_unitdir}/opt-cni.mount
 %{_cross_unitdir}/opt-csi.mount
+%{_cross_unitdir}/opt-civ.mount
 %{_cross_unitdir}/media-cdrom.mount
 %{_cross_unitdir}/local.mount
 %{_cross_unitdir}/*-lower.mount
