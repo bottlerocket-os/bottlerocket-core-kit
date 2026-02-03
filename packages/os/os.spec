@@ -47,6 +47,8 @@ Source21: bootstrap-commands-toml
 Source22: dbus-1-system.toml
 Source23: br03040101.json
 Source24: k8s04021000.json
+Source25: containerd-image-verifiers-toml
+Source26: thar-be-image-verifiers-toml
 
 # 1xx sources: systemd units
 Source100: apiserver.service
@@ -453,6 +455,25 @@ Conflicts: %{_cross_os}dbus-broker(launcher)
 %description -n %{_cross_os}whippet
 %{summary}.
 
+%package -n %{_cross_os}thar-be-image-verifiers
+Summary: Configure image verifier plugins for containerd
+%description -n %{_cross_os}thar-be-image-verifiers
+%{summary}.
+
+%package -n %{_cross_os}notation-image-verifier
+Summary: Notation-based container image verification plugin
+Requires: %{_cross_os}thar-be-image-verifiers
+Requires: %{_cross_os}notation
+Requires: %{_cross_os}aws-signer-notation-plugin
+%description -n %{_cross_os}notation-image-verifier
+%{summary}.
+
+%package -n %{_cross_os}digestion-image-verifier
+Summary: Digest-based container image verification plugin
+Requires: %{_cross_os}thar-be-image-verifiers
+%description -n %{_cross_os}digestion-image-verifier
+%{summary}.
+
 %prep
 %setup -T -c
 %cargo_prep
@@ -574,6 +595,7 @@ echo "** Output from non-static builds:"
     -p driverdog \
     -p brush \
     -p whippet \
+    -p image-verifiers \
     %{nil}
 
 # Wait for fips builds from the background, if they're not already done.
@@ -636,6 +658,7 @@ for p in \
   bottlerocket-fips-checks \
   kubernetes-cis-checks \
   shibaken driverdog brush whippet \
+  thar-be-image-verifiers \
 ; do
   install -p -m 0755 %{__cargo_outdir}/${p} %{buildroot}%{_cross_bindir}
 done
@@ -735,7 +758,10 @@ if [ -s "%{_cross_repo_root_json}" ] ; then
 fi
 
 install -d %{buildroot}%{_cross_templatedir}
-install -p -m 0644 %{S:5} %{S:6} %{S:7} %{S:14} %{S:15} %{S:16} %{S:17} %{S:18} %{S:19} %{S:21} \
+install -p -m 0644 \
+  %{S:5} %{S:6} %{S:7} %{S:14} %{S:15} \
+  %{S:16} %{S:17} %{S:18} %{S:19} %{S:21} \
+  %{S:25} %{S:26} \
   %{buildroot}%{_cross_templatedir}
 
 install -d %{buildroot}%{_cross_unitdir}
@@ -768,6 +794,10 @@ install -p -m 0644 %{S:303} %{buildroot}%{_cross_udevrulesdir}/83-supplemental-s
 
 install -d %{buildroot}%{_cross_datadir}/whippet/
 install -p -m 0644 %{S:22} %{buildroot}%{_cross_datadir}/whippet/system.toml
+
+install -d %{buildroot}%{_cross_libexecdir}/civ/bin
+install -p -m 0755 %{__cargo_outdir}/notation-image-verifier %{buildroot}%{_cross_libexecdir}/civ/bin
+install -p -m 0755 %{__cargo_outdir}/digestion-image-verifier %{buildroot}%{_cross_libexecdir}/civ/bin
 
 %cross_scan_attribution --clarify %{_builddir}/sources/clarify.toml \
     cargo --offline --locked %{_builddir}/sources/Cargo.toml
@@ -980,5 +1010,16 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_bindir}/whippet
 %{_cross_datadir}/whippet/system.toml
 %{_cross_unitdir}/whippet.service
+
+%files -n %{_cross_os}thar-be-image-verifiers
+%{_cross_bindir}/thar-be-image-verifiers
+%{_cross_templatedir}/thar-be-image-verifiers-toml
+%{_cross_templatedir}/containerd-image-verifiers-toml
+
+%files -n %{_cross_os}notation-image-verifier
+%{_cross_libexecdir}/civ/bin/notation-image-verifier
+
+%files -n %{_cross_os}digestion-image-verifier
+%{_cross_libexecdir}/civ/bin/digestion-image-verifier
 
 %changelog

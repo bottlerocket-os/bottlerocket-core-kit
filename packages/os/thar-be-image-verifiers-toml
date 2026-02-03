@@ -1,0 +1,12 @@
+[required-extensions]
+image-verifier-plugins = "v1"
+std = { version = "v1" }
++++
+{{~#if settings.image-verifier-plugins.enabled~}}
+{{~#each settings.image-verifier-plugins}}
+{{~#if (ne @key "enabled")}}
+[plugins.{{@key}}]
+trustpolicy = "{{{this.trustpolicy}}}"
+{{/if}}
+{{~/each}}
+{{~/if~}}
