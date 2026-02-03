@@ -8,7 +8,7 @@
 %global _dwz_low_mem_die_limit 0
 
 %global plugin_name com.amazonaws.signer.notation.plugin
-%global signing_authority_path notation/truststore/x509/signingAuthority
+%global signing_authority_path containerd/image-verifiers/notation/truststore/x509/signingAuthority
 
 Name: %{_cross_os}aws-signer-notation-plugin
 Version: %{rpmver}
