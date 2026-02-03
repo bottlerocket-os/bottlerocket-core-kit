@@ -8,6 +8,8 @@
 
 %global _dwz_low_mem_die_limit 0
 
+%global notation_configdir %{_cross_sysconfdir}/containerd/image-verifiers/notation
+
 Name: %{_cross_os}%{gorepo}
 Version: %{rpmver}
 Release: 1%{?dist}
@@ -42,9 +44,9 @@ install -p -m 0755 notation %{buildroot}%{_cross_bindir}
 install -p -m 0644 %{S:2} %{buildroot}%{_cross_templatedir}/notation-trust-policy-json
 
 # Add the notation config and cache directories
-install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/notation
-install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/notation/plugins
-install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/notation/truststore/x509/signingAuthority
+install -d %{buildroot}%{_cross_factorydir}%{notation_configdir}/plugins
+install -d %{buildroot}%{_cross_factorydir}%{notation_configdir}/truststore/x509/signingAuthority
+
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:3} %{buildroot}%{_cross_tmpfilesdir}/notation.conf
 
@@ -54,11 +56,11 @@ install -p -m 0644 %{S:3} %{buildroot}%{_cross_tmpfilesdir}/notation.conf
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_bindir}/notation
 %{_cross_templatedir}/notation-trust-policy-json
 %{_cross_tmpfilesdir}/notation.conf
-%dir %{_cross_factorydir}%{_cross_sysconfdir}/notation
-%dir %{_cross_factorydir}%{_cross_sysconfdir}/notation/plugins
-%dir %{_cross_factorydir}%{_cross_sysconfdir}/notation/truststore/x509/signingAuthority
-%{_cross_bindir}/notation
+%dir %{_cross_factorydir}%{notation_configdir}
+%dir %{_cross_factorydir}%{notation_configdir}/plugins
+%dir %{_cross_factorydir}%{notation_configdir}/truststore/x509/signingAuthority
 
 %changelog
