@@ -174,7 +174,6 @@ dependencies = [
  "netdog",
  "nftables",
  "notation",
- "notation-image-verifier",
  "nvidia-container-toolkit",
  "nvidia-k8s-device-plugin",
  "nvme-cli",
@@ -934,13 +933,6 @@ dependencies = [
 
 [[package]]
 name = "notation"
-version = "0.1.0"
-dependencies = [
- "glibc",
-]
-
-[[package]]
-name = "notation-image-verifier"
 version = "0.1.0"
 dependencies = [
  "glibc",
