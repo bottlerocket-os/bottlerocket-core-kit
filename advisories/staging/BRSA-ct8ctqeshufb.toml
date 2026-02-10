@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-ct8ctqeshufb"
+title = "containerd-2.0 support ended"
+severity = "low"
+end-of-life = true
+description = "containerd-2.0 is no longer included in Bottlerocket. All users must upgrade to a version of the OS that does not include this package."
+
+[[advisory.products]]
+package-name = "containerd-2.0"
+patched-version = "2.0.7"
+patched-epoch = "2"
+
+[updateinfo]
+author = "jepiyush"
+issue-date = 2026-02-10T22:00:20Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
