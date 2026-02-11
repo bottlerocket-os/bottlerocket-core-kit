@@ -15,46 +15,16 @@ Source0: https://%{vpccni_goimport}/archive/%{vpccni_gitrev}/%{vpccni_gorepo}.ta
 
 BuildRequires: %{_cross_os}glibc-devel
 
-Requires: %{name}(binaries)
-Requires: (%{name}(ecs-agent-extras) if %{_cross_os}variant-family(aws-ecs))
+Requires: (%{name}-ecs-agent-extras if %{_cross_os}variant-family(aws-ecs))
 
 %description
 %{summary}.
 
-%package bin
-Summary: VPC networking plugins binaries
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: VPC networking plugins binaries, FIPS edition
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
-%{summary}.
-
 %package ecs-agent-extras
 Summary: Extra files necessary for the ECS agent
-Provides: %{name}(ecs-agent-extras)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name}(binaries))
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-ecs-agent-fips-extras)
+Requires: %{name}
 
 %description ecs-agent-extras
-%{summary}.
-
-%package ecs-agent-fips-extras
-Summary: Extra files necessary for the ECS agent, FIPS edition
-Provides: %{name}(ecs-agent-extras)
-Requires: (%{_cross_os}image-feature(fips) and %{name}(binaries))
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-ecs-agent-extras)
-
-%description ecs-agent-fips-extras
 %{summary}.
 
 %prep
@@ -84,7 +54,6 @@ for p in \
   vpc-tunnel \
 ; do
   go build "${VPC_CNI_BUILD_ARGS[@]}" -mod=vendor -o ${p} ./plugins/${p}
-  gofips build "${VPC_CNI_BUILD_ARGS[@]}" -mod=vendor -o fips/${p} ./plugins/${p}
 done
 
 %install
@@ -96,16 +65,8 @@ install -D -p -m 0755 vpc-bridge %{buildroot}%{_cross_libexecdir}/cni/vpc/vpc-br
 install -D -p -m 0755 vpc-eni %{buildroot}%{_cross_libexecdir}/cni/vpc/vpc-eni
 install -D -p -m 0755 vpc-tunnel %{buildroot}%{_cross_libexecdir}/cni/vpc/vpc-tunnel
 
-install -d %{buildroot}%{_cross_fips_libexecdir}
-install -D -p -m 0755 fips/aws-appmesh %{buildroot}%{_cross_fips_libexecdir}/cni/vpc/aws-appmesh
-install -D -p -m 0755 fips/ecs-serviceconnect %{buildroot}%{_cross_fips_libexecdir}/cni/vpc/ecs-serviceconnect
-install -D -p -m 0755 fips/vpc-branch-eni %{buildroot}%{_cross_fips_libexecdir}/cni/vpc/vpc-branch-eni
-install -D -p -m 0755 fips/vpc-bridge %{buildroot}%{_cross_fips_libexecdir}/cni/vpc/vpc-bridge
-install -D -p -m 0755 fips/vpc-eni %{buildroot}%{_cross_fips_libexecdir}/cni/vpc/vpc-eni
-install -D -p -m 0755 fips/vpc-tunnel %{buildroot}%{_cross_fips_libexecdir}/cni/vpc/vpc-tunnel
-
 # Create symlinks to VPC CNI plugin binaries for amazon-ecs-agent
-install -d %{buildroot}{%{_cross_libexecdir},%{_cross_fips_libexecdir}}/amazon-ecs-agent
+install -d %{buildroot}%{_cross_libexecdir}/amazon-ecs-agent
 for p in \
   aws-appmesh \
   ecs-serviceconnect \
@@ -115,7 +76,6 @@ for p in \
   vpc-tunnel \
 ; do
   ln -rs %{buildroot}%{_cross_libexecdir}/cni/vpc/${p} %{buildroot}%{_cross_libexecdir}/amazon-ecs-agent/${p}
-  ln -rs %{buildroot}%{_cross_fips_libexecdir}/cni/vpc/${p} %{buildroot}%{_cross_fips_libexecdir}/amazon-ecs-agent/${p}
 done
 
 %cross_scan_attribution go-vendor vendor
@@ -124,22 +84,12 @@ done
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
 %license LICENSE
-
-%files bin
 %{_cross_libexecdir}/cni/vpc/aws-appmesh
 %{_cross_libexecdir}/cni/vpc/ecs-serviceconnect
 %{_cross_libexecdir}/cni/vpc/vpc-branch-eni
 %{_cross_libexecdir}/cni/vpc/vpc-bridge
 %{_cross_libexecdir}/cni/vpc/vpc-eni
 %{_cross_libexecdir}/cni/vpc/vpc-tunnel
-
-%files fips-bin
-%{_cross_fips_libexecdir}/cni/vpc/aws-appmesh
-%{_cross_fips_libexecdir}/cni/vpc/ecs-serviceconnect
-%{_cross_fips_libexecdir}/cni/vpc/vpc-branch-eni
-%{_cross_fips_libexecdir}/cni/vpc/vpc-bridge
-%{_cross_fips_libexecdir}/cni/vpc/vpc-eni
-%{_cross_fips_libexecdir}/cni/vpc/vpc-tunnel
 
 %files ecs-agent-extras
 %{_cross_libexecdir}/amazon-ecs-agent/aws-appmesh
@@ -148,13 +98,5 @@ done
 %{_cross_libexecdir}/amazon-ecs-agent/vpc-bridge
 %{_cross_libexecdir}/amazon-ecs-agent/vpc-eni
 %{_cross_libexecdir}/amazon-ecs-agent/vpc-tunnel
-
-%files ecs-agent-fips-extras
-%{_cross_fips_libexecdir}/amazon-ecs-agent/aws-appmesh
-%{_cross_fips_libexecdir}/amazon-ecs-agent/ecs-serviceconnect
-%{_cross_fips_libexecdir}/amazon-ecs-agent/vpc-branch-eni
-%{_cross_fips_libexecdir}/amazon-ecs-agent/vpc-bridge
-%{_cross_fips_libexecdir}/amazon-ecs-agent/vpc-eni
-%{_cross_fips_libexecdir}/amazon-ecs-agent/vpc-tunnel
 
 %changelog

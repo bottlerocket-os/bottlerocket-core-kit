@@ -22,27 +22,8 @@ Source12: root-.ecr.mount
 Source13: docker-root-config.json
 
 BuildRequires: %{_cross_os}glibc-devel
-Requires: %{name}(binaries)
 
 %description
-%{summary}.
-
-%package bin
-Summary: Amazon ECR credential helper binaries
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: Amazon ECR credential helper binaries, FIPS edition
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %prep
@@ -54,14 +35,10 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 %cross_go_configure %{goimport}
 
 go build -ldflags="${GOLDFLAGS}" -o=docker-credential-ecr-login ./ecr-login/cli/docker-credential-ecr-login
-gofips build -ldflags="${GOLDFLAGS}" -o=fips/docker-credential-ecr-login ./ecr-login/cli/docker-credential-ecr-login
 
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 docker-credential-ecr-login %{buildroot}%{_cross_bindir}
-
-install -d %{buildroot}%{_cross_fips_bindir}
-install -p -m 0755 fips/docker-credential-ecr-login %{buildroot}%{_cross_fips_bindir}
 
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m0644 %{S:10} %{buildroot}%{_cross_tmpfilesdir}/ecr-credential-helper.conf
@@ -78,13 +55,9 @@ install -p -m0600 %{S:13} %{buildroot}%{_cross_factorydir}/root/.docker/config.j
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
+%{_cross_bindir}/docker-credential-ecr-login
 %{_cross_factorydir}/root/.docker/config.json
 %{_cross_tmpfilesdir}/ecr-credential-helper.conf
 %{_cross_unitdir}/root-.docker.mount
 %{_cross_unitdir}/root-.ecr.mount
 
-%files bin
-%{_cross_bindir}/docker-credential-ecr-login
-
-%files fips-bin
-%{_cross_fips_bindir}/docker-credential-ecr-login

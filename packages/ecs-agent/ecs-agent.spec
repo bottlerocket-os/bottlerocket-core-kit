@@ -68,27 +68,8 @@ Requires: %{_cross_os}iptables
 Requires: %{_cross_os}amazon-ssm-agent-plugin
 Requires: %{_cross_os}amazon-ecs-cni-plugins
 Requires: %{_cross_os}amazon-vpc-cni-plugins
-Requires: %{name}(binaries)
 
 %description
-%{summary}.
-
-%package bin
-Summary: Amazon Elastic Container Service agent binaries
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: Amazon Elastic Container Service agent binaries, FIPS edition
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %package config
@@ -132,7 +113,6 @@ ECS_AGENT_BUILD_ARGS=(
 )
 
 go build "${ECS_AGENT_BUILD_ARGS[@]}" -o amazon-ecs-agent ./agent
-gofips build "${ECS_AGENT_BUILD_ARGS[@]}" -o fips/amazon-ecs-agent ./agent
 
 # Build the pause container
 (
@@ -159,9 +139,6 @@ gofips build "${ECS_AGENT_BUILD_ARGS[@]}" -o fips/amazon-ecs-agent ./agent
 install -d %{buildroot}%{_cross_bindir}
 install -D -p -m 0755 amazon-ecs-agent %{buildroot}%{_cross_bindir}/amazon-ecs-agent
 install -D -p -m 0644 amazon-ecs-pause.tar %{buildroot}%{_cross_libdir}/amazon-ecs-agent/amazon-ecs-pause.tar
-
-install -d %{buildroot}%{_cross_fips_bindir}
-install -D -p -m 0755 fips/amazon-ecs-agent %{buildroot}%{_cross_fips_bindir}/amazon-ecs-agent
 
 install -d %{buildroot}%{_cross_unitdir}
 install -D -p -m 0644 %{S:101} %{S:200} %{buildroot}%{_cross_unitdir}
@@ -213,12 +190,7 @@ install -p -m 0644 %{S:300} %{buildroot}%{_cross_datadir}/logdog.d
 %{_cross_sysctldir}/90-ecs.conf
 %{_cross_libdir}/amazon-ecs-agent/amazon-ecs-pause.tar
 %{_cross_datadir}/logdog.d/logdog.ecs.conf
-
-%files bin
 %{_cross_bindir}/amazon-ecs-agent
-
-%files fips-bin
-%{_cross_fips_bindir}/amazon-ecs-agent
 
 %files config
 %{_cross_templatedir}/ecs-base-conf

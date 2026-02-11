@@ -23,30 +23,11 @@ Source1000: clarify.toml
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
-Requires: %{name}(binaries)
 
 Provides: %{_cross_os}docker-%{gorepo} = %{package_priority_epoch}:
 Conflicts: %{_cross_os}docker-%{gorepo}
 
 %description
-%{summary}.
-
-%package bin
-Summary: Docker CLI binaries
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: Docker CLI binaries, FIPS edition
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %prep
@@ -67,14 +48,10 @@ BUILD_ARGS=(
 )
 
 go build "${BUILD_ARGS[@]}" -o docker %{goimport}/cmd/docker
-gofips build "${BUILD_ARGS[@]}" -o fips/docker %{goimport}/cmd/docker
 
 %install
 install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 docker %{buildroot}%{_cross_bindir}
-
-install -d %{buildroot}%{_cross_fips_bindir}
-install -p -m 0755 fips/docker %{buildroot}%{_cross_fips_bindir}
 
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
@@ -82,11 +59,5 @@ install -p -m 0755 fips/docker %{buildroot}%{_cross_fips_bindir}
 %license LICENSE NOTICE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
-
-%files bin
 %{_cross_bindir}/docker
-
-%files fips-bin
-%{_cross_fips_bindir}/docker
-
 %changelog

@@ -22,31 +22,12 @@ Source1000: clarify.toml
 Patch0001: 0001-ecr-credential-provider-hardcode-ECR-endpoint-for-eu.patch
 
 BuildRequires: %{_cross_os}glibc-devel
-Requires: %{name}(binaries)
 
 # For IAM Roles Anywhere, the signing helper might be set as the credential
 # process.
 Requires: %{_cross_os}aws-signing-helper
 
 %description
-%{summary}.
-
-%package bin
-Summary: Amazon ECR credential provider binaries
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: Amazon ECR credential provider binaries, FIPS edition
-Provides: %{name}(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %prep
@@ -60,14 +41,10 @@ export GOTOOLCHAIN=local
 export GO_MAJOR="1.24"
 
 go build -ldflags="${GOLDFLAGS}" -o=ecr-credential-provider cmd/ecr-credential-provider/*.go
-gofips build -ldflags="${GOLDFLAGS}" -o=fips/ecr-credential-provider cmd/ecr-credential-provider/*.go
 
 %install
 install -d %{buildroot}%{_cross_libexecdir}/kubernetes/kubelet/plugins
 install -p -m 0755 ecr-credential-provider %{buildroot}%{_cross_libexecdir}/kubernetes/kubelet/plugins
-
-install -d %{buildroot}%{_cross_fips_libexecdir}/kubernetes/kubelet/plugins
-install -p -m 0755 fips/ecr-credential-provider %{buildroot}%{_cross_fips_libexecdir}/kubernetes/kubelet/plugins
 
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
@@ -75,9 +52,4 @@ install -p -m 0755 fips/ecr-credential-provider %{buildroot}%{_cross_fips_libexe
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
-
-%files bin
 %{_cross_libexecdir}/kubernetes/kubelet/plugins/ecr-credential-provider
-
-%files fips-bin
-%{_cross_fips_libexecdir}/kubernetes/kubelet/plugins/ecr-credential-provider

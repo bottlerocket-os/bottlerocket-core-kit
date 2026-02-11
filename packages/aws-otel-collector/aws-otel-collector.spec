@@ -18,27 +18,8 @@ Source3: aws-otel-collector.yaml
 Patch0001: 0001-change-logger-and-extraconfig-file-paths.patch
 
 BuildRequires: %{_cross_os}glibc-devel
-Requires: %{name}(binary)
 
 %description
-%{summary}.
-
-%package bin
-Summary: Telemetry collector binary
-Provides: %{name}(binary)
-Requires: (%{_cross_os}image-feature(no-fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(fips) or %{name}-fips-bin)
-
-%description bin
-%{summary}.
-
-%package fips-bin
-Summary: Telemetry collector binary, FIPS edition
-Provides: %{name}(binary)
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
-
-%description fips-bin
 %{summary}.
 
 %prep
@@ -48,7 +29,6 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{name}-bin)
 
 %set_cross_go_flags
 go build -ldflags "${GOLDFLAGS}" -o aws-otel-collector ./cmd/awscollector
-gofips build -ldflags "${GOLDFLAGS}" -o fips/aws-otel-collector ./cmd/awscollector
 
 %install
 install -D -p -m 0644 %{S:1} %{buildroot}%{_cross_unitdir}/aws-otel-collector.service
@@ -59,18 +39,13 @@ install -p -m 0644 %{S:2} %{buildroot}%{_cross_tmpfilesdir}
 install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}
 install -p -m 0644 %{S:3} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}
 
-install -d %{buildroot}{%{_cross_bindir},%{_cross_fips_bindir}}
+install -d %{buildroot}%{_cross_bindir}
 install -p -m 0755 aws-otel-collector %{buildroot}%{_cross_bindir}
-install -p -m 0755 fips/aws-otel-collector %{buildroot}%{_cross_fips_bindir}
 
 %files
 %{_cross_attribution_file}
+%{_cross_bindir}/aws-otel-collector
 %{_cross_unitdir}/aws-otel-collector.service
 %{_cross_tmpfilesdir}/aws-otel-collector-tmpfiles.conf
 %{_cross_factorydir}%{_cross_sysconfdir}/aws-otel-collector.yaml
 
-%files bin
-%{_cross_bindir}/aws-otel-collector
-
-%files fips-bin
-%{_cross_fips_bindir}/aws-otel-collector
