@@ -26,6 +26,13 @@ license-files = [
     { path = "LICENSE-MIT", hash = 0xfeb1e4a7 },
 ]
 
+[clarify.aws-sdk-s3]
+expression = "Apache-2.0"
+license-files = [
+    { path = "LICENSE", hash = 0x1b71bb24 }
+]
+skip-files = [ "tests/blns/LICENSE" ] # we do not vend this as it's just used in s3's tests
+
 [clarify.backtrace-sys]
 # backtrace-sys is MIT/Apache-2.0, libbacktrace is BSD-3-Clause
 expression = "(MIT OR Apache-2.0) AND BSD-3-Clause"
@@ -221,15 +228,11 @@ license-files = [
 ]
 
 [clarify.aws-lc-fips-sys]
-# jitterentropy is licensed under either GPL-2.0-only or BSD-3-Clause, we pick BSD-3-Clause
-expression = "ISC AND (Apache-2.0 OR ISC) AND OpenSSL AND MIT AND BSD-3-Clause"
+expression = "ISC AND (Apache-2.0 OR ISC) AND OpenSSL AND MIT"
 license-files = [
     { path = "LICENSE", hash = 0xf308ccd7 },
     { path = "aws-lc/LICENSE", hash = 0xb6d14686 },
     { path = "aws-lc/third_party/fiat/LICENSE", hash = 0x75829ee2 },
-]
-skip-files = [
-    "aws-lc/third_party/jitterentropy/LICENSE.gplv2"
 ]
 [clarify.half]
 expression = "MIT OR Apache-2.0"

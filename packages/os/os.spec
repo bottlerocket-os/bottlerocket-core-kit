@@ -8,6 +8,10 @@
     --build-dir %{_builddir}/sources \
     --spdx --cyclonedx}
 
+# Strip ThinLTO from static rustflags - crc-fast (aws-smithy-checksums dep) lacks LTO support.
+# Remove this when crc-fast v2.0+ is available.
+%global __global_rustflags_static %(echo %{__global_rustflags_static} | sed 's/-Clto=thin//g')
+
 Name: %{_cross_os}os
 Version: 0.0
 Release: 1%{?dist}

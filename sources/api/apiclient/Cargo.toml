@@ -11,15 +11,24 @@ exclude = ["README.md"]
 
 [features]
 default = ["tls"]
-tls = ["dep:rustls", "dep:aws-lc-rs", "reqwest/rustls-tls-native-roots"]
+aws-sdk = ["dep:aws-config", "dep:aws-smithy-types", "dep:aws-sdk-s3", "dep:aws-sdk-secretsmanager", "dep:aws-sdk-ssm", "dep:aws-smithy-checksums"]
+tls = ["aws-sdk", "dep:rustls", "dep:aws-lc-rs", "reqwest/rustls-tls-native-roots"]
 fips = ["tls", "aws-lc-rs/fips", "rustls/fips"]
 
 [dependencies]
+async-trait.workspace = true
+aws-smithy-types = { workspace = true, optional = true }
+aws-config = { workspace = true, optional = true }
+aws-sdk-s3 = { workspace = true, optional = true }
+aws-sdk-secretsmanager = { workspace = true, optional = true }
+aws-sdk-ssm = { workspace = true, optional = true }
+aws-smithy-checksums = { workspace = true, optional = true }
 aws-lc-rs = { workspace = true, optional = true, features = ["bindgen"] }
 base64.workspace = true
 constants.workspace = true
 datastore.workspace = true
 futures.workspace = true
+futures-util.workspace = true
 futures-channel.workspace = true
 http.workspace = true
 httparse.workspace = true
@@ -47,6 +56,7 @@ unindent.workspace = true
 url.workspace = true
 
 [dev-dependencies]
+tempfile.workspace = true
 test-case.workspace = true
 
 [build-dependencies]

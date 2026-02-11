@@ -48,6 +48,10 @@ wildcards = "deny"
 
 deny = [{ name = "structopt" }, { name = "clap", wrappers = ["cargo-readme"] }]
 
+skip = [
+    # `aws-sigv4 v1.2.6` depends on both `crypto-bigint v0.5.5` and `crypto-bigint v0.4.9`
+    { name = "crypto-bigint", version = "=0.4.9" },
+]
 skip-tree = [
     # windows-sys is not a direct dependency. mio and schannel
     # are using different versions of windows-sys. we skip the
@@ -56,8 +60,6 @@ skip-tree = [
     { name = "windows-sys" },
     # httptest uses an older version of bstr
     { name = "httptest", version = "=0.15" },
-    # schnauzer uses cached, which uses an older version of darling
-    { name = "darling", version = "=0.14" },
     # aws-smithy-experimental brings a set of new dependencies that
     # the aws-sdk doesn't support
     { name = "aws-smithy-experimental", version = "=0.1" },

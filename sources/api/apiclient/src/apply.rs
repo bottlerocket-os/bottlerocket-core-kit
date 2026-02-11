@@ -1,15 +1,13 @@
 //! This module allows application of settings from URIs or stdin.  The inputs are expected to be
 //! TOML settings files, in the same format as user data, or the JSON equivalent.  The inputs are
 //! pulled and applied to the API server in a single transaction.
-
 use crate::rando;
-use futures::future::{join, ready, TryFutureExt};
+use crate::uri_resolver::{select_resolver, SettingsInput};
+use futures::future::{join, ready};
 use futures::stream::{self, StreamExt};
-use reqwest::Url;
 use serde::de::{Deserialize, IntoDeserializer};
-use snafu::{futures::try_future::TryFutureExt as SnafuTryFutureExt, OptionExt, ResultExt};
+use snafu::{OptionExt, ResultExt};
 use std::path::Path;
-use tokio::io::AsyncReadExt;
 
 /// Reads settings in TOML or JSON format from files at the requested URIs (or from stdin, if given
 /// "-"), then commits them in a single transaction and applies them to the system.
@@ -69,44 +67,14 @@ where
 /// Retrieves the given source location and returns the result in a String.
 async fn get<S>(input_source: S) -> Result<String>
 where
-    S: Into<String>,
+    S: AsRef<str>,
 {
-    let input_source = input_source.into();
-
-    // Read from stdin if "-" was given.
-    if input_source == "-" {
-        let mut output = String::new();
-        tokio::io::stdin()
-            .read_to_string(&mut output)
-            .context(error::StdinReadSnafu)
-            .await?;
-        return Ok(output);
-    }
-
-    // Otherwise, the input should be a URI; parse it to know what kind.
-    // Until reqwest handles file:// URIs: https://github.com/seanmonstar/reqwest/issues/178
-    let uri = Url::parse(&input_source).context(error::UriSnafu {
-        input_source: &input_source,
-    })?;
-    if uri.scheme() == "file" {
-        // Turn the URI to a file path, and return a future that reads it.
-        let path = uri.to_file_path().ok().context(error::FileUriSnafu {
-            input_source: &input_source,
-        })?;
-        tokio::fs::read_to_string(path)
-            .context(error::FileReadSnafu { input_source })
-            .await
-    } else {
-        // Return a future that contains the text of the (non-file) URI.
-        reqwest::get(uri)
-            .and_then(|response| ready(response.error_for_status()))
-            .and_then(|response| response.text())
-            .context(error::ReqwestSnafu {
-                uri: input_source,
-                method: "GET",
-            })
-            .await
-    }
+    let settings = SettingsInput::new(input_source.as_ref());
+    let resolver = select_resolver(&settings).context(error::ResolverFailureSnafu)?;
+    resolver
+        .resolve()
+        .await
+        .context(error::ResolverFailureSnafu)
 }
 
 /// Takes a string of TOML or JSON settings data and reserializes
@@ -154,15 +122,6 @@ mod error {
             #[snafu(source(from(crate::Error, Box::new)))]
             source: Box<crate::Error>,
         },
-
-        #[snafu(display("Failed to read given file '{}': {}", input_source, source))]
-        FileRead {
-            input_source: String,
-            source: std::io::Error,
-        },
-
-        #[snafu(display("Given invalid file URI '{}'", input_source))]
-        FileUri { input_source: String },
 
         #[snafu(display(
             "Input '{}' is not valid TOML or JSON.  (TOML error: {})  (JSON error: {})",
@@ -218,9 +177,6 @@ mod error {
             source: reqwest::Error,
         },
 
-        #[snafu(display("Failed to read standard input: {}", source))]
-        StdinRead { source: std::io::Error },
-
         #[snafu(display(
             "Failed to translate TOML from '{}' to JSON for API: {}",
             input_source,
@@ -228,7 +184,8 @@ mod error {
         ))]
         TomlToJson {
             input_source: String,
-            source: toml::de::Error,
+            #[snafu(source(from(toml::de::Error, Box::new)))]
+            source: Box<toml::de::Error>,
         },
 
         #[snafu(display("Given invalid URI '{}': {}", input_source, source))]
@@ -236,7 +193,83 @@ mod error {
             input_source: String,
             source: url::ParseError,
         },
+
+        #[snafu(display("Resolver failed: {}", source))]
+        ResolverFailure {
+            #[snafu(source(from(crate::uri_resolver::ResolverError, Box::new)))]
+            source: Box<crate::uri_resolver::ResolverError>,
+        },
     }
 }
 pub use error::Error;
 pub type Result<T> = std::result::Result<T, error::Error>;
+
+#[cfg(test)]
+mod resolver_selection_tests {
+    use crate::uri_resolver::{select_resolver, SettingsInput};
+    use std::any::{Any, TypeId};
+    use test_case::test_case;
+
+    // Non-TLS resolvers (always available)
+    #[test_case("-",                   TypeId::of::<crate::uri_resolver::StdinUri>();  "stdin")]
+    #[test_case("base64:SGVsbG8=",     TypeId::of::<crate::uri_resolver::Base64Uri>(); "base64")]
+    #[test_case("file:///tmp/folder",  TypeId::of::<crate::uri_resolver::FileUri>();   "file")]
+    #[test_case("http://amazon.com",   TypeId::of::<crate::uri_resolver::HttpUri>();   "http")]
+    fn resolver_selection(input: &str, expected: std::any::TypeId) {
+        let settings = SettingsInput::new(input);
+        let resolver = select_resolver(&settings).expect("should have a resolver for this scheme");
+        let any = resolver.as_ref() as &dyn Any;
+        assert_eq!(any.type_id(), expected);
+    }
+
+    // TLS-dependent resolvers
+    #[test_case("https://amazon.com",                                               TypeId::of::<crate::tls_resolvers::HttpsUri>();                 "https")]
+    #[test_case("s3://mybucket/path",                                               TypeId::of::<crate::uri_resolver::S3Uri>();                     "s3")]
+    #[test_case("secretsmanager://sec",                                             TypeId::of::<crate::uri_resolver::SecretsManagerUri>();         "secrets")]
+    #[test_case("ssm://param",                                                      TypeId::of::<crate::uri_resolver::SsmUri>();                    "ssmUri")]
+    #[test_case("arn:aws:ssm:<region>:<account_id>:parameter/<name>",               TypeId::of::<crate::uri_resolver::SsmArn>();                    "ssmArn")]
+    #[test_case("arn:aws:secretsmanager:<region>:<account-id>:secret:<secret-id>",  TypeId::of::<crate::uri_resolver::SecretsManagerArn>();         "secretsmanagerArn")]
+    #[cfg(feature = "tls")]
+    fn resolver_selection_tls(input: &str, expected: std::any::TypeId) {
+        let settings = SettingsInput::new(input);
+        let resolver = select_resolver(&settings).expect("should have a resolver for this scheme");
+        let any = resolver.as_ref() as &dyn Any;
+        assert_eq!(any.type_id(), expected);
+    }
+}
+
+#[cfg(test)]
+mod format_change_tests {
+    use super::format_change;
+
+    #[test]
+    fn valid_toml() {
+        let input = "[settings]\nfoo = \"bar\"";
+        let result = format_change(input, "test").unwrap();
+        assert_eq!(result, r#"{"foo":"bar"}"#);
+    }
+
+    #[test]
+    fn valid_json() {
+        let input = r#"{"settings": {"foo": "bar"}}"#;
+        let result = format_change(input, "test").unwrap();
+        assert_eq!(result, r#"{"foo":"bar"}"#);
+    }
+
+    #[test]
+    fn missing_settings_key() {
+        let input = r#"foo = "bar""#;
+        assert!(format_change(input, "test").is_err());
+    }
+}
+
+#[cfg(test)]
+mod resolver_error_tests {
+    use crate::uri_resolver::{select_resolver, SettingsInput};
+
+    #[test]
+    fn unsupported_scheme() {
+        let settings = SettingsInput::new("ftp://example.com/file");
+        assert!(select_resolver(&settings).is_err());
+    }
+}

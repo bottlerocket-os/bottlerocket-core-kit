@@ -28,7 +28,10 @@ pub mod network;
 pub mod reboot;
 pub mod report;
 pub mod set;
+#[cfg(feature = "tls")]
+pub mod tls_resolvers;
 pub mod update;
+pub mod uri_resolver;
 
 mod error {
     use snafu::Snafu;

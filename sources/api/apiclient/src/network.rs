@@ -1,11 +1,9 @@
 //! This module implements network configuration API calls.
-//! It supports sourcing `net.toml` configuration files from the filesystem or base64 encoded strings.
+//! It supports sourcing `net.toml` configuration files from any URI scheme supported by apiclient.
 
-use base64::{engine, Engine};
-use snafu::{OptionExt, ResultExt};
+use crate::uri_resolver::{select_resolver, SettingsInput};
+use snafu::ResultExt;
 use std::path::Path;
-use tokio::io::AsyncReadExt;
-use url::Url;
 
 /// Configures network settings by sending the provided content to the API server.
 ///
@@ -25,72 +23,23 @@ where
 
 /// Retrieves the network configuration content from the given source URI.
 ///
-/// Supports file:// and base64: URI schemes. If no input source is provided, reads from stdin.
+/// Supports all URI schemes: stdin ("-"), file://, base64:, http://, https://,
+/// s3://, ssm://, secretsmanager://, and ARN formats.
 pub async fn get_content<S>(input_source: Option<S>) -> Result<String>
 where
     S: Into<String>,
 {
-    match input_source {
-        Some(source) => get_content_from_source(source.into()).await,
-        None => get_content_with_stdin(tokio::io::stdin()).await,
-    }
-}
+    let input = match input_source {
+        Some(s) => s.into(),
+        None => "-".to_string(),
+    };
 
-/// Reads all content from an async reader into a string.
-///
-/// Generic reader interface allows flexible input sources and testing with mock data.
-async fn get_content_with_stdin<R>(mut reader: R) -> Result<String>
-where
-    R: tokio::io::AsyncRead + Unpin,
-{
-    let mut output = String::new();
-    reader
-        .read_to_string(&mut output)
+    let settings = SettingsInput::new(&input);
+    let resolver = select_resolver(&settings).context(error::SelectResolverSnafu)?;
+    resolver
+        .resolve()
         .await
-        .context(error::StdinReadSnafu)?;
-    Ok(output)
-}
-
-/// Retrieves network configuration content from a source URI.
-///
-/// Supports file:// and base64: URI schemes.
-async fn get_content_from_source(input_source: String) -> Result<String> {
-    if let Some(base64_data) = input_source.strip_prefix("base64:") {
-        return get_content_from_base64(base64_data, &input_source);
-    }
-
-    let uri = Url::parse(&input_source).context(error::UriSnafu {
-        input_source: &input_source,
-    })?;
-
-    match uri.scheme() {
-        "file" => get_content_from_file(uri, &input_source).await,
-        scheme => error::UnsupportedUriSchemeSnafu {
-            input_source: &input_source,
-            scheme,
-        }
-        .fail(),
-    }
-}
-
-/// Decodes and returns content from a base64-encoded string.
-fn get_content_from_base64(base64_data: &str, input_source: &str) -> Result<String> {
-    let decoded_bytes = engine::general_purpose::STANDARD
-        .decode(base64_data.as_bytes())
-        .context(error::Base64DecodeSnafu { input_source })?;
-
-    String::from_utf8(decoded_bytes).context(error::Base64Utf8Snafu { input_source })
-}
-
-/// Reads content from a file URI.
-async fn get_content_from_file(uri: Url, input_source: &str) -> Result<String> {
-    let path = uri
-        .to_file_path()
-        .ok()
-        .context(error::FileUriSnafu { input_source })?;
-    tokio::fs::read_to_string(path)
-        .await
-        .context(error::FileReadSnafu { input_source })
+        .context(error::ResolverFailureSnafu)
 }
 
 mod error {
@@ -99,22 +48,6 @@ mod error {
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
     pub enum Error {
-        #[snafu(display("Failed to decode base64 from '{}': {}", input_source, source))]
-        Base64Decode {
-            input_source: String,
-            source: base64::DecodeError,
-        },
-
-        #[snafu(display(
-            "Base64 content from '{}' is not valid UTF-8: {}",
-            input_source,
-            source
-        ))]
-        Base64Utf8 {
-            input_source: String,
-            source: std::string::FromUtf8Error,
-        },
-
         #[snafu(display("Failed to {} network configuration to '{}': {}", method, uri, source))]
         ConfigureRequest {
             uri: String,
@@ -123,32 +56,16 @@ mod error {
             source: Box<crate::Error>,
         },
 
-        #[snafu(display("Failed to read given file '{}': {}", input_source, source))]
-        FileRead {
-            input_source: String,
-            source: std::io::Error,
+        #[snafu(display("Failed to select resolver: {}", source))]
+        SelectResolver {
+            #[snafu(source(from(crate::uri_resolver::ResolverError, Box::new)))]
+            source: Box<crate::uri_resolver::ResolverError>,
         },
 
-        #[snafu(display("Invalid file URI '{}'", input_source))]
-        FileUri { input_source: String },
-
-        #[snafu(display("Failed to read from stdin: {}", source))]
-        StdinRead { source: std::io::Error },
-
-        #[snafu(display(
-            "Unsupported URI scheme '{}' in '{}'. Only file:// and base64: schemes are supported",
-            scheme,
-            input_source
-        ))]
-        UnsupportedUriScheme {
-            input_source: String,
-            scheme: String,
-        },
-
-        #[snafu(display("Invalid URI '{}': {}", input_source, source))]
-        Uri {
-            input_source: String,
-            source: url::ParseError,
+        #[snafu(display("Resolver failed: {}", source))]
+        ResolverFailure {
+            #[snafu(source(from(crate::uri_resolver::ResolverError, Box::new)))]
+            source: Box<crate::uri_resolver::ResolverError>,
         },
     }
 }
@@ -160,65 +77,52 @@ pub type Result<T> = std::result::Result<T, error::Error>;
 mod tests {
     use super::*;
     use base64::{engine, Engine};
-    use test_case::test_case;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[tokio::test]
-    async fn test_get_content_stdin() {
-        use std::io::Cursor;
+    async fn test_get_content_none_defaults_to_stdin_path() {
+        // Given None as input source
+        // When select_resolver is called internally, it should receive "-"
+        let settings = crate::uri_resolver::SettingsInput::new("-");
+        let resolver = crate::uri_resolver::select_resolver(&settings);
 
-        // Given network config content to simulate stdin input
-        let test_content = r"version = 2
+        // Then a resolver should be found (StdinUri)
+        assert!(resolver.is_ok(), "None input should map to stdin resolver");
+    }
+
+    #[tokio::test]
+    async fn test_get_content_file_uri() {
+        // Given a temporary file with network config content
+        let mut tmp = NamedTempFile::new().expect("should create temp file");
+        let test_content = "version = 2
 
 [eth0]
 dhcp4 = true
-primary = true
 ";
-        let mock_stdin = tokio::io::BufReader::new(Cursor::new(test_content.as_bytes()));
+        write!(tmp, "{}", test_content).expect("should write to temp file");
+        let file_uri = format!("file://{}", tmp.path().display());
 
-        // When reading from mock stdin
-        let result = get_content_with_stdin(mock_stdin).await;
+        // When getting content from the file URI
+        let result = get_content(Some(file_uri)).await;
 
-        // Then content should be read successfully
+        // Then the file contents should be returned
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), test_content);
     }
 
     #[tokio::test]
-    async fn test_get_content_stdin_empty() {
-        use std::io::Cursor;
+    async fn test_get_content_unsupported_scheme() {
+        // Given an unsupported URI scheme
+        // When attempting to get content
+        let result = get_content(Some("ftp://example.com/net.toml")).await;
 
-        // Given empty stdin
-        let mock_stdin = tokio::io::BufReader::new(Cursor::new(b""));
-
-        // When reading from empty mock stdin
-        let result = get_content_with_stdin(mock_stdin).await;
-
-        // Then should return empty string successfully
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "");
-    }
-
-    #[tokio::test]
-    async fn test_stdin_vs_uri_behavior() {
-        use std::io::Cursor;
-
-        let content = r"version = 2
-
-[eth0]
-dhcp4 = true";
-        let mock_stdin = tokio::io::BufReader::new(Cursor::new(content.as_bytes()));
-
-        // Test that stdin reader works
-        let stdin_result = get_content_with_stdin(mock_stdin).await;
-
-        // Test that Some input uses URI processing
-        let uri_result =
-            get_content(Some("base64:dmVyc2lvbiA9IDIKCltldGgwXQpkaGNwNCA9IHRydWU=")).await;
-
-        assert!(stdin_result.is_ok());
-        assert!(uri_result.is_ok());
-        assert_eq!(stdin_result.unwrap(), content);
-        assert_eq!(uri_result.unwrap(), content);
+        // Then the operation should fail with a resolver selection error
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("No URI resolver found"));
     }
 
     #[tokio::test]
@@ -228,7 +132,7 @@ dhcp4 = true";
         let encoded = engine::general_purpose::STANDARD.encode(test_content.as_bytes());
         let base64_uri = format!("base64:{}", encoded);
 
-        // Then get content from the base64 URI
+        // When getting content from the base64 URI
         let result = get_content(Some(base64_uri)).await;
 
         // Then the content should be successfully decoded
@@ -262,34 +166,9 @@ dhcp4 = true";
 
         // Then the operation should fail with a UTF-8 validation error
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("not valid UTF-8"));
-    }
-
-    #[tokio::test]
-    async fn test_uri_parsing() {
-        // Given an invalid URI string that cannot be parsed
-        // When attempting to get content from the malformed URI
-        let result = get_content(Some("invalid-uri")).await;
-
-        // Then the operation should fail with a URI parsing error
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Invalid URI"));
-    }
-
-    #[test_case("http://example.com/net.toml", "http"; "http uri rejected")]
-    #[test_case("https://example.com/net.toml", "https"; "https uri rejected")]
-    #[test_case("s3://bucket/net.toml", "s3"; "s3 uri rejected")]
-    #[test_case("ftp://ftp.example.com/net.toml", "ftp"; "ftp uri rejected")]
-    #[test_case("data:text/plain;charset=utf-8,version=2", "data"; "data uri rejected")]
-    #[tokio::test]
-    async fn test_unsupported_uri_schemes_rejected(uri: &str, expected_scheme: &str) {
-        // When attempting to get content from an unsupported URI scheme
-        let result = get_content(Some(uri)).await;
-
-        // Then the operation should fail with an unsupported URI scheme error
-        assert!(result.is_err());
-        let error_msg = result.unwrap_err().to_string();
-        assert!(error_msg.contains(&format!("Unsupported URI scheme '{expected_scheme}'")));
-        assert!(error_msg.contains("Only file:// and base64: schemes are supported"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Failed to decode as UTF-8"));
     }
 }
