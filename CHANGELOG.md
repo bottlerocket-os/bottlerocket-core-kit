@@ -7,6 +7,13 @@
 - Add requires to `libbpf` devel package ([#817])
 - Use macro for `systemd-257` generators ([#817])
 - Remove separate FIPS binaries from Go packages in favor of Go built-in FIPS support ([#813])
+- Add URI resolver support to `apiclient apply` and `apiclient network configure` ([#554])
+  - s3:// - S3 bucket objects
+  - secretsmanager:// - AWS Secrets Manager secrets
+  - ssm:// - AWS SSM Parameter Store parameters
+  - arn:aws:secretsmanager: and arn:aws:ssm: - cross-region access via full ARN
+  - base64: - inline encoded content
+  - Default timeouts added for HTTP/HTTPS requests
 
 ### Third Party Package Updates
 - Update `ecs-agent` to 1.101.2 with matching `amazon-vpc-cni-plugins` ([#816])
@@ -18,13 +25,15 @@
 - Update latest versions of `kubernetes` packages (1.29-1.34) ([#824])
 - Remove hugepages from `reservedMemory` in kubelet config (1.29-1.35) ([#821])
 - Update `eni-max-pods` mapping ([#810], [#825])
+- Update SELinux policy to allow container communication with MPS daemon ([#831])
 
 ### ECS
-- Update `ecs-agent` to 1.101.2 with FIPS endpoint fix ([#816])
+- Update `ecs-agent` to 1.101.2 ([#816])
 
-[#813]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/813
+[#554]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/554
 [#810]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/810
 [#811]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/811
+[#813]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/813
 [#815]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/815
 [#816]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/816
 [#817]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/817
@@ -32,6 +41,7 @@
 [#823]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/823
 [#824]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/824
 [#825]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/825
+[#831]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/831
 
 # v12.3.0 (2026-01-21)
 
