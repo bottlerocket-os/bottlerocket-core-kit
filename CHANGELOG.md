@@ -1,3 +1,38 @@
+# v13.0.0 (2026-02-11)
+
+## OS Changes
+- Downgrade `apiserver` dependencies to `Wants` ([#823])
+- Drop `containerd-2.0`, `libexpat` packages and `dbus-broker` launcher capability in favor of whippet ([#811])
+- Remove `routel` shell script from `iproute` ([#817])
+- Add requires to `libbpf` devel package ([#817])
+- Use macro for `systemd-257` generators ([#817])
+- Remove separate FIPS binaries from Go packages in favor of Go built-in FIPS support ([#813])
+
+### Third Party Package Updates
+- Update `ecs-agent` to 1.101.2 with matching `amazon-vpc-cni-plugins` ([#816])
+- Update `amazon-ecs-cni-plugins` to 2026.01.0 ([#815])
+- Update `amazon-ssm-agent`, `aws-otel-collector`, `libcryptsetup`, `libdevmapper`, `libncurses`, `libnl`, `libz`, `libglib`, `mdadm`, `strace`, `util-linux`, `xfsprogs` ([#824])
+
+## Orchestrator Changes
+### Kubernetes
+- Update latest versions of `kubernetes` packages (1.29-1.34) ([#824])
+- Remove hugepages from `reservedMemory` in kubelet config (1.29-1.35) ([#821])
+- Update `eni-max-pods` mapping ([#810], [#825])
+
+### ECS
+- Update `ecs-agent` to 1.101.2 with FIPS endpoint fix ([#816])
+
+[#813]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/813
+[#810]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/810
+[#811]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/811
+[#815]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/815
+[#816]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/816
+[#817]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/817
+[#821]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/821
+[#823]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/823
+[#824]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/824
+[#825]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/825
+
 # v12.3.0 (2026-01-21)
 
 ## OS Changes
