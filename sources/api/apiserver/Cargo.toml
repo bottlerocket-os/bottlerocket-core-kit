@@ -21,6 +21,7 @@ datastore.workspace = true
 envy.workspace = true
 fs2.workspace = true
 http.workspace = true
+indexmap.workspace = true
 libc.workspace = true
 log.workspace = true
 models.workspace = true

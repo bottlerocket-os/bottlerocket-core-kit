@@ -2,6 +2,7 @@
 
 use model::ephemeral_storage::{Filesystem, Preference};
 
+use indexmap::IndexSet;
 use snafu::{ensure, ResultExt};
 use std::collections::HashSet;
 use std::ffi::{OsStr, OsString};
@@ -243,7 +244,7 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
     }
 
     let dirs: Vec<OsString> = dirs.iter().map(OsString::from).collect();
-    let mut dirs_to_bind = HashSet::new();
+    let mut dirs_to_bind = IndexSet::new();
     let mut dirs_to_mask = HashSet::new();
 
     // Check which directories need binding and/or masking
@@ -252,11 +253,10 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         let source_subdir = transform_dir_name(target_dir);
         let source_dir: PathBuf = [EPHEMERAL_MNT, &source_subdir].iter().collect();
 
-        // we may run before the directories we are binding exist, so create them
+        // Create the source directory now, since there's no chance of mounting over it.
         std::fs::create_dir_all(&source_dir).context(error::MkdirSnafu {
             dir: source_dir.clone(),
         })?;
-        std::fs::create_dir_all(target_dir).context(error::MkdirSnafu { dir: target_dir })?;
 
         let is_source_masked = is_masked(&source_dir)?;
         let is_target_mounted = is_mounted(target_dir)?;
@@ -274,6 +274,9 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         }
     }
 
+    // Sort to ensure parent directories are mounted before children
+    dirs_to_bind.sort();
+
     // Perform bind mounts for directories that need it
     for (source_dir, target_dir) in &dirs_to_bind {
         info!(
@@ -281,6 +284,10 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
             source_dir.display(),
             target_dir.display(),
         );
+
+        // Create the target directory now, in case we mounted one of its parent directories in a
+        // previous iteration.
+        std::fs::create_dir_all(target_dir).context(error::MkdirSnafu { dir: target_dir })?;
 
         let output = Command::new(MOUNT)
             .args([
