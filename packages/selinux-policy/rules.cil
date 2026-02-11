@@ -266,6 +266,9 @@
 ; Unprivileged components are not allowed to use the API socket.
 (neverallow unprivileged_s api_socket_t (files (mutate)))
 
+; Allow containers to use MPS pipes for GPU sharing.
+(allow container_s system_t (fifo_file (write)))
+
 ; Only trusted components are allowed to relabel all files, and to
 ; override filesystem labels through "*context=" mount options.
 (allow trusted_s global (files (relabel)))
