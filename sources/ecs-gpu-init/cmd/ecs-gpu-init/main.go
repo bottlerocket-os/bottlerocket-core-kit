@@ -23,7 +23,7 @@ func main() {
 // GenerateGPUInfoConfig generates the configuration used by the ECS agent
 func generateGPUInfoConfig() error {
 	if ret := nvml.Init(); ret != nvml.SUCCESS {
-		return fmt.Errorf("Failed to initialize NVML, got ret %v", ret)
+		return fmt.Errorf("failed to initialize NVML, got ret %v", ret)
 	}
 	defer func() {
 		ret := nvml.Shutdown()
@@ -34,7 +34,7 @@ func generateGPUInfoConfig() error {
 
 	version, ret := nvml.SystemGetDriverVersion()
 	if ret != nvml.SUCCESS {
-		return fmt.Errorf("Failed to get version, got ret %v", ret)
+		return fmt.Errorf("failed to get version, got ret %v", ret)
 	}
 	gpuIDs, err := getGPUDeviceIDs()
 	if err != nil {
@@ -48,7 +48,7 @@ func generateGPUInfoConfig() error {
 func getGPUDeviceIDs() ([]string, error) {
 	count, ret := nvml.DeviceGetCount()
 	if ret != nvml.SUCCESS {
-		return nil, fmt.Errorf("Failed to get device count, got ret %v", ret)
+		return nil, fmt.Errorf("failed to get device count, got ret %v", ret)
 	}
 	var (
 		gpuIDs []string
@@ -63,7 +63,7 @@ func getGPUDeviceIDs() ([]string, error) {
 		gpuIDs = append(gpuIDs, uuid)
 	}
 	if len(errors) > 0 {
-		return nil, fmt.Errorf("Found errors while initializing devices: %s", errors)
+		return nil, fmt.Errorf("found errors while initializing devices: %s", errors)
 	}
 	return gpuIDs, nil
 }
@@ -92,11 +92,11 @@ func writeGPUInfo(version string, gpuIDs []string) error {
 func getDeviceUUID(idx int) (string, error) {
 	d, ret := nvml.DeviceGetHandleByIndex(idx)
 	if ret != nvml.SUCCESS {
-		return "", fmt.Errorf("Failed to get device at index %d, got ret %v", idx, ret)
+		return "", fmt.Errorf("failed to get device at index %d, got ret %v", idx, ret)
 	}
 	uuid, ret := d.GetUUID()
 	if ret != nvml.SUCCESS {
-		return "", fmt.Errorf("Failed to get UUID for device at index %d, got ret %v", idx, ret)
+		return "", fmt.Errorf("failed to get UUID for device at index %d, got ret %v", idx, ret)
 	}
 
 	return uuid, nil
