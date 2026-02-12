@@ -10,7 +10,6 @@ Slice=runtime.slice
 Type=notify
 EnvironmentFile=/etc/network/proxy.env
 EnvironmentFile=/etc/kubernetes/kubelet/env
-ExecStartPre=/sbin/iptables -P FORWARD ACCEPT
 # Must be overridden by a drop-in file or `kubelet` won't start
 ExecStart=/usr/bin/false
 
