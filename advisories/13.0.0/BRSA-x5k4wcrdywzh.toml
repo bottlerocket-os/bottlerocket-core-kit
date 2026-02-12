@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-x5k4wcrdywzh"
+title = "libexpat support ended"
+severity = "low"
+end-of-life = true
+description = "libexpat is no longer included in Bottlerocket. All users must upgrade to a version of the OS that does not include this package."
+
+[[advisory.products]]
+package-name = "libexpat"
+patched-version = "2.7.3"
+patched-epoch = "2"
+
+[updateinfo]
+author = "jepiyush"
+issue-date = 2026-02-10T22:49:04Z
+arches = ["x86_64", "aarch64"]
+version = "13.0.0"
