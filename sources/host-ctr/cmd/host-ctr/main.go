@@ -509,7 +509,7 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 
 	// Return error if container exists with non-zero status
 	if code != 0 {
-		return fmt.Errorf("Container %s exited with non-zero status", containerID)
+		return fmt.Errorf("container %s exited with non-zero status", containerID)
 	}
 
 	return nil
