@@ -1,18 +1,30 @@
+version: "2"
 linters:
   enable:
-    - errcheck
-    - goimports
-    - ineffassign
     - misspell
     - revive
-    - staticcheck
     - unconvert
-    - unused
-    - govet
-
-run:
-  timeout: 3m
-issues:
-  exclude-dirs:
-    - vendor
-    - .gomodcache
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - vendor
+      - .gomodcache
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - vendor
+      - .gomodcache
+      - third_party$
+      - builtin$
+      - examples$
