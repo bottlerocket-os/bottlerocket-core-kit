@@ -69,7 +69,7 @@ skip-tree = [
     { name = "rand", version = "=0.8" },
     # zbus introduces newer versions of crates that are either
     # incompatible or way ahead from the versions used in other crates
-    { name = "zbus", version = "=5.11" }
+    { name = "zbus", version = "=5.13.2" }
 ]
 
 [bans.workspace-dependencies]

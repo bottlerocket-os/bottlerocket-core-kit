@@ -240,3 +240,17 @@ license-files = [
     { path = "LICENSE-APACHE", hash = 0xd0891cfa },
     { path = "LICENSE-MIT", hash = 0xbcce9ab4 },
 ]
+
+[clarify.borsh]
+expression = "Apache-2.0 OR MIT"
+license-files = [
+    { path = "LICENSE-APACHE", hash = 0xbaee0da5 },
+    { path = "LICENSE-MIT", hash = 0x386ca1bc },
+]
+
+[clarify.borsh-derive]
+expression = "Apache-2.0 OR MIT"
+license-files = [
+    { path = "LICENSE-APACHE", hash = 0xbaee0da5 },
+    { path = "LICENSE-MIT", hash = 0x386ca1bc },
+]
