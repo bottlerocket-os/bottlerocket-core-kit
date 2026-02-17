@@ -64,6 +64,7 @@ func main() {
 	// Bottlerocket does not have a $HOME set by default and notation expect to find
 	// credentials from the ecr-credential-helper here.
 	os.Setenv("HOME", "/root")
+	os.Setenv("GODEBUG", "fips140=on")
 
 	cmd := exec.Command("notation", "verify", imageRef)
 	output, err := cmd.CombinedOutput()

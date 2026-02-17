@@ -1,0 +1,15 @@
+[package]
+name = "ecr-credential-helper-shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[package.metadata.build-package]
+source-groups = [ "ecr-credential-helper-shim" ]
+
+[lib]
+path = "../packages.rs"
+
+[build-dependencies]
+glibc = { path = "../glibc" }

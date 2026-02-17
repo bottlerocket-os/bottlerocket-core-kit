@@ -8,6 +8,7 @@
 %global _dwz_low_mem_die_limit 0
 
 Name: %{_cross_os}ecr-credential-helper
+Requires: %{_cross_os}ecr-credential-helper-shim
 Version: %{rpmver}
 Release: 1%{?dist}
 Summary: Amazon ECR credential helper
@@ -31,14 +32,12 @@ BuildRequires: %{_cross_os}glibc-devel
 %cross_go_setup %{gorepo}-%{gover} %{goproject} %{goimport}
 
 %build
-# cross_go_configure cd's to the correct GOPATH location
 %cross_go_configure %{goimport}
-
 go build -ldflags="${GOLDFLAGS}" -o=docker-credential-ecr-login ./ecr-login/cli/docker-credential-ecr-login
 
 %install
-install -d %{buildroot}%{_cross_bindir}
-install -p -m 0755 docker-credential-ecr-login %{buildroot}%{_cross_bindir}
+install -d %{buildroot}%{_cross_libexecdir}
+install -p -m 0755 docker-credential-ecr-login %{buildroot}%{_cross_libexecdir}
 
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m0644 %{S:10} %{buildroot}%{_cross_tmpfilesdir}/ecr-credential-helper.conf
@@ -55,9 +54,8 @@ install -p -m0600 %{S:13} %{buildroot}%{_cross_factorydir}/root/.docker/config.j
 %license LICENSE
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
-%{_cross_bindir}/docker-credential-ecr-login
+%{_cross_libexecdir}/docker-credential-ecr-login
 %{_cross_factorydir}/root/.docker/config.json
 %{_cross_tmpfilesdir}/ecr-credential-helper.conf
 %{_cross_unitdir}/root-.docker.mount
 %{_cross_unitdir}/root-.ecr.mount
-

@@ -28,6 +28,7 @@ members = [
   "packages/e2fsprogs",
   "packages/early-boot-config",
   "packages/ecr-credential-helper",
+  "packages/ecr-credential-helper-shim",
   "packages/ecr-credential-provider-1.29",
   "packages/ecr-credential-provider-1.30",
   "packages/ecr-credential-provider-1.31",
