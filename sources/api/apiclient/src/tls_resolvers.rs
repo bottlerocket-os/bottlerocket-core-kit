@@ -38,11 +38,12 @@ async fn aws_sdk_config() -> aws_config::SdkConfig {
 
 /// Returns AWS SDK config with standard timeouts and optional region override.
 async fn aws_sdk_config_with_region(region: Option<&str>) -> aws_config::SdkConfig {
-    let mut builder = aws_config::defaults(aws_config::BehaviorVersion::latest()).timeout_config(
-        TimeoutConfig::builder()
-            .operation_timeout(Duration::from_secs(OPERATION_TIMEOUT_SECS))
-            .build(),
-    );
+    let mut builder = aws_config::defaults(aws_config::BehaviorVersion::v2026_01_12())
+        .timeout_config(
+            TimeoutConfig::builder()
+                .operation_timeout(Duration::from_secs(OPERATION_TIMEOUT_SECS))
+                .build(),
+        );
     if let Some(r) = region {
         builder = builder.region(aws_config::Region::new(r.to_owned()));
     }
