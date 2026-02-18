@@ -23,10 +23,6 @@ imports = ["/etc/containerd/config.d/*.toml"]
 address = "/run/containerd/containerd.sock"
 
 [plugins."io.containerd.cri.v1.images"]
-{{#if settings.container-runtime.max-concurrent-downloads}}
-max_concurrent_downloads = {{settings.container-runtime.max-concurrent-downloads}}
-{{/if}}
-concurrent_layer_fetch_buffer = {{default 0 settings.container-runtime.concurrent-download-chunk-size}}
 use_local_image_pull = false
 
 # Pause container image is specified here, shares the same image as kubelet's pod-infra-container-image
