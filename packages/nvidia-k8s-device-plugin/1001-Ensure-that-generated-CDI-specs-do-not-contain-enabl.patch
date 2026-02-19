@@ -1,0 +1,28 @@
+From 97c15506f8fc387adec6ae41c3d005393bb59532 Mon Sep 17 00:00:00 2001
+From: Evan Lezar <elezar@nvidia.com>
+Date: Mon, 10 Mar 2025 14:44:45 +0200
+Subject: [PATCH] Ensure that generated CDI specs do not contain
+ enable-cuda-compat hooks
+
+Signed-off-by: Evan Lezar <elezar@nvidia.com>
+(cherry picked from commit 49dc098d513923505a66bc8380ed80c0ce9a0165)
+Signed-off-by: Piyush Jena <jepiyush@amazon.com>
+---
+ internal/cdi/cdi.go | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/internal/cdi/cdi.go b/internal/cdi/cdi.go
+index 7cad67cf4..bee83c6e4 100644
+--- a/internal/cdi/cdi.go
++++ b/internal/cdi/cdi.go
+@@ -126,6 +126,7 @@ func New(infolib info.Interface, nvmllib nvml.Interface, devicelib device.Interf
+ 		nvcdi.WithNVIDIACDIHookPath(c.nvidiaCTKPath),
+ 		nvcdi.WithNvmlLib(c.nvmllib),
+ 		nvcdi.WithVendor(c.vendor),
++		nvcdi.WithDisabledHook(nvcdi.HookEnableCudaCompat),
+ 	}
+
+ 	c.cdilibs = make(map[string]nvcdi.SpecGenerator)
+--
+2.52.0
+

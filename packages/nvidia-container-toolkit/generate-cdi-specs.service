@@ -9,6 +9,13 @@ After=load-tesla-kernel-modules.service load-open-gpu-kernel-modules.service
 # persistence mode.
 Requires=nvidia-persistenced.service
 After=nvidia-persistenced.service
+# Running this unit after nvidia migmanager ensures that the GPU
+# is partitioned according to the settings. In Ampere GPUs, the
+# device goes into transition state when MIG is enabled. In this
+# case, we skip running the service, waiting for the eventual reboot.
+Requires=nvidia-migmanager.service
+After=nvidia-migmanager.service
+ConditionPathExists=!/run/nvidia-migmanager/reboot-required
 # Block manual interactions with this service. It doesn't
 # make sense to regenerate CDI specifications as features
 # that might change the GPU (e.g. MIG) are not supported in

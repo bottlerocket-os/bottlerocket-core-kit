@@ -2,7 +2,7 @@
 %global gorepo k8s-device-plugin
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 0.17.3
+%global gover 0.18.2
 %global rpmver %{gover}
 
 Name: %{_cross_os}nvidia-k8s-device-plugin
@@ -21,6 +21,7 @@ Source5: nvidia-mps-control-daemon.service
 Source6: nvidia-mps-control-daemon-exec-start-conf
 
 Patch0001: 0001-Update-MPS-roots-for-immutable-host-OS.patch
+Patch1001: 1001-Ensure-that-generated-CDI-specs-do-not-contain-enabl.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 
@@ -33,6 +34,7 @@ BuildRequires: %{_cross_os}glibc-devel
 
 %build
 %cross_go_configure %{goimport}
+export GO_MAJOR="1.25"
 # We don't set `-Wl,-z,now`, because the binary uses lazy loading
 # to load the NVIDIA libraries in the host
 export CGO_LDFLAGS="-Wl,-z,relro -Wl,--export-dynamic"
