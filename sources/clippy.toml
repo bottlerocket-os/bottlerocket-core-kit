@@ -1,0 +1,7 @@
+[[disallowed-methods]]
+path = "aws_smithy_runtime_api::client::behavior_version::BehaviorVersion::latest"
+reason = "BehaviorVersion::latest() is banned. Pin to an explicit version like BehaviorVersion::v2026_01_12() to ensure consistent behavior across updates."
+
+[[disallowed-methods]]
+path = "aws_config::BehaviorVersion::latest"
+reason = "BehaviorVersion::latest() is banned. Pin to an explicit version like BehaviorVersion::v2026_01_12() to ensure consistent behavior across updates."
