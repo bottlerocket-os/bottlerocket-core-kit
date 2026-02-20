@@ -2,3 +2,5 @@
 Name=eno11
 [Network]
 Address=192.168.14.2/24
+IPv6AcceptRA=false
+LinkLocalAddressing=ipv4

@@ -80,6 +80,9 @@ impl NetworkFileCreator for NetworkDInterface {
             if let Some(vlans) = attached_vlans {
                 network.with_vlans(vlans.to_vec())
             }
+            if !super::has_ipv6(&self.dhcp6, &self.static6) {
+                network.disable_ipv6();
+            }
 
             vec![network.build()]
         }

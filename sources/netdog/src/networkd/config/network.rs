@@ -247,10 +247,14 @@ impl NetworkConfig {
         }
     }
 
-    /// Add config to accept IPv6 router advertisements
+    /// Enable IPv6 link-local addressing, router advertisements, and DHCPv6
+    /// solicitation.
+    ///
+    /// Acts as the inverse of [`NetworkBuilder::disable_ipv6`].
     // TODO: expose a network config option for this
-    pub(crate) fn accept_ra(&mut self) {
+    pub(crate) fn enable_ipv6(&mut self) {
         self.network_mut().ipv6_accept_ra = Some(true);
+        self.network_mut().link_local_addressing = None;
         self.dhcp6_mut().without_ra = Some(WithoutRa::Solicit);
     }
 
@@ -578,6 +582,14 @@ where
         }
     }
 
+    /// Disable IPv6 link-local addressing and router advertisements.
+    ///
+    /// Acts as the inverse of [`NetworkConfig::enable_ipv6`].
+    pub(crate) fn disable_ipv6(&mut self) {
+        self.network.network_mut().link_local_addressing = Some(DhcpBool::Ipv4);
+        self.network.network_mut().ipv6_accept_ra = Some(false);
+    }
+
     /// Add a single static route
     pub(crate) fn with_route(&mut self, route: RouteV1) {
         let destination = match route.to {
@@ -652,7 +664,7 @@ where
 mod tests {
     use super::*;
     use crate::networkd::config::tests::{test_data, TestDevices, BUILDER_DATA};
-    use crate::networkd::devices::{NetworkDBond, NetworkDInterface, NetworkDVlan};
+    use crate::networkd::devices::{self, NetworkDBond, NetworkDInterface, NetworkDVlan};
 
     const FAKE_TEST_DIR: &str = "testdir";
 
@@ -661,6 +673,8 @@ mod tests {
     }
 
     fn network_from_interface(iface: NetworkDInterface) -> NetworkConfig {
+        // Absence of IPv6 config means disable IPv6 (see devices/interface.rs)
+        let disable_v6 = !devices::has_ipv6(&iface.dhcp6, &iface.static6);
         let mut network = NetworkBuilder::new_interface(iface.name);
         network.with_dhcp(iface.dhcp4, iface.dhcp6);
         if let Some(s) = iface.static4 {
@@ -672,10 +686,15 @@ mod tests {
         if let Some(r) = iface.routes {
             network.with_routes(r)
         }
+        if disable_v6 {
+            network.disable_ipv6();
+        }
         network.build()
     }
 
     fn network_from_vlan(vlan: NetworkDVlan) -> NetworkConfig {
+        // Absence of IPv6 config means disable IPv6 (see devices/vlan.rs)
+        let disable_v6 = !devices::has_ipv6(&vlan.dhcp6, &vlan.static6);
         let mut network = NetworkBuilder::new_vlan(vlan.name);
         network.with_dhcp(vlan.dhcp4, vlan.dhcp6);
         if let Some(s) = vlan.static4 {
@@ -687,10 +706,15 @@ mod tests {
         if let Some(r) = vlan.routes {
             network.with_routes(r)
         }
+        if disable_v6 {
+            network.disable_ipv6();
+        }
         network.build()
     }
 
     fn network_from_bond(bond: NetworkDBond) -> NetworkConfig {
+        // Absence of IPv6 config means disable IPv6 (see devices/bond.rs)
+        let disable_v6 = !devices::has_ipv6(&bond.dhcp6, &bond.static6);
         let mut network = NetworkBuilder::new_bond(bond.name.clone());
         network.with_dhcp(bond.dhcp4, bond.dhcp6);
         if let Some(s) = bond.static4 {
@@ -703,6 +727,9 @@ mod tests {
             network.with_routes(r)
         }
         network.with_bind_carrier(bond.interfaces);
+        if disable_v6 {
+            network.disable_ipv6();
+        }
         network.build()
     }
 

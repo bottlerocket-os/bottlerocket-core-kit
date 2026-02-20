@@ -4,6 +4,8 @@ Name=eno1
 RequiredForOnline=true
 [Network]
 DHCP=ipv4
+IPv6AcceptRA=false
+LinkLocalAddressing=ipv4
 KeepConfiguration=dhcp
 [DHCPv4]
 UseMTU=true

@@ -3,6 +3,8 @@ Name=eno14
 [Network]
 Address=10.0.0.10/24
 Address=11.0.0.11/24
+IPv6AcceptRA=false
+LinkLocalAddressing=ipv4
 [Route]
 Destination=0.0.0.0/0
 Gateway=10.0.0.1

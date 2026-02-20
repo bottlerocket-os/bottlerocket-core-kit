@@ -70,6 +70,9 @@ impl NetworkFileCreator for NetworkDVlan {
         maybe_add_some!(network, with_static_config, static4);
         maybe_add_some!(network, with_static_config, static6);
         maybe_add_some!(network, with_routes, routes);
+        if !super::has_ipv6(&self.dhcp6, &self.static6) {
+            network.disable_ipv6();
+        }
 
         vec![network.build()]
     }

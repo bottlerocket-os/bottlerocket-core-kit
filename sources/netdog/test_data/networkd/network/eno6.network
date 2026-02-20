@@ -5,6 +5,8 @@ RequiredForOnline=true
 RequiredFamilyForOnline=ipv4
 [Network]
 DHCP=ipv4
+IPv6AcceptRA=false
+LinkLocalAddressing=ipv4
 KeepConfiguration=dhcp
 [DHCPv4]
 RouteMetric=100

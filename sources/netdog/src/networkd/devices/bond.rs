@@ -89,6 +89,9 @@ impl NetworkFileCreator for NetworkDBond {
         if let Some(vlans) = vlans.get(name) {
             network.with_vlans(vlans.to_vec())
         }
+        if !super::has_ipv6(&self.dhcp6, &self.static6) {
+            network.disable_ipv6();
+        }
 
         configs.push(network.build());
 

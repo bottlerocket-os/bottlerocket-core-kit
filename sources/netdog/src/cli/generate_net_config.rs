@@ -79,7 +79,7 @@ fn write_network_config_files(net_config: Box<dyn Interfaces>, from_cmd_line: bo
         // be added to a single interface
         if from_cmd_line {
             if let NetworkDConfigFile::Network(ref mut n) = config {
-                n.accept_ra();
+                n.enable_ipv6();
                 n.disable_dad();
             }
         }
