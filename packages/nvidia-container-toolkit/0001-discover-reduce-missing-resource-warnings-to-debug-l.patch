@@ -1,0 +1,54 @@
+From 723f7a1ceb01d246996c0b398d34f933e9d1709f Mon Sep 17 00:00:00 2001
+From: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+Date: Thu, 19 Feb 2026 22:38:13 +0000
+Subject: [PATCH] discover: reduce missing-resource warnings to debug level
+
+Libraries and binaries discovered via mount lookups may not be present
+on all hosts. Log missing resources at debug level instead of warning
+to avoid noise.
+
+Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+---
+ internal/discover/mounts-to-container-path.go | 4 ++--
+ internal/discover/mounts.go                   | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/internal/discover/mounts-to-container-path.go b/internal/discover/mounts-to-container-path.go
+index 602f153..2a2927d 100644
+--- a/internal/discover/mounts-to-container-path.go
++++ b/internal/discover/mounts-to-container-path.go
+@@ -46,11 +46,11 @@ func (d *mountsToContainerPath) Mounts() ([]Mount, error) {
+ 		}
+ 		candidates, err := d.locator.Locate(target)
+ 		if err != nil {
+-			d.logger.Warningf("Could not locate %v: %v", target, err)
++			d.logger.Debugf("Could not locate %v: %v", target, err)
+ 			continue
+ 		}
+ 		if len(candidates) == 0 {
+-			d.logger.Warningf("Missing %v", target)
++			d.logger.Debugf("Missing %v", target)
+ 			continue
+ 		}
+ 		hostPath := candidates[0]
+diff --git a/internal/discover/mounts.go b/internal/discover/mounts.go
+index cafa261..eef7b3d 100644
+--- a/internal/discover/mounts.go
++++ b/internal/discover/mounts.go
+@@ -75,11 +75,11 @@ func (d *mounts) Mounts() ([]Mount, error) {
+ 		d.logger.Debugf("Locating %v", candidate)
+ 		located, err := d.lookup.Locate(candidate)
+ 		if err != nil {
+-			d.logger.Warningf("Could not locate %v: %v", candidate, err)
++			d.logger.Debugf("Could not locate %v: %v", candidate, err)
+ 			continue
+ 		}
+ 		if len(located) == 0 {
+-			d.logger.Warningf("Missing %v", candidate)
++			d.logger.Debugf("Missing %v", candidate)
+ 			continue
+ 		}
+ 		d.logger.Debugf("Located %v as %v", candidate, located)
+-- 
+2.52.0
+
