@@ -2,11 +2,12 @@
 
 use model::ephemeral_storage::{Filesystem, Preference};
 
+use indexmap::IndexSet;
 use snafu::{ensure, ResultExt};
 use std::collections::HashSet;
 use std::ffi::{OsStr, OsString};
 use std::fs;
-use std::path::Path;
+use std::path::PathBuf;
 use std::process::Command;
 
 static MOUNT: &str = "/usr/bin/mount";
@@ -16,11 +17,14 @@ static MKFSXFS: &str = "/usr/sbin/mkfs.xfs";
 static MKFSEXT4: &str = "/usr/sbin/mkfs.ext4";
 static FINDMNT: &str = "/usr/bin/findmnt";
 
-/// Name of the array (if created) and filesystem label. Selected to be 12 characters so it
-/// fits within both the xfs and ext4 volume label limit.
-static EPHEMERAL_MNT: &str = ".ephemeral";
+static EPHEMERAL_MNT: &str = "/mnt/.ephemeral";
+static SRV_DIR: &str = "/srv";
+
 /// Name of the device and its path from the MD driver
 static RAID_DEVICE_DIR: &str = "/dev/md/";
+
+/// Name of the array (if created) and filesystem label. Selected to be 12 characters so it
+/// fits within both the xfs and ext4 volume label limit.
 static RAID_DEVICE_NAME: &str = "ephemeral";
 /// Intermediate symlink for consistent rottweiler mapper naming
 static EPHEMERAL_DATA_LINK: &str = "/dev/disk/EPHEMERAL-DATA";
@@ -168,7 +172,7 @@ pub fn initialize(
     Ok(())
 }
 
-/// binds the specified directories to the pre-configured array, creating those directories if
+/// Binds the specified directories to the pre-configured array, creating those directories if
 /// they do not exist.
 pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
     let device_name = EPHEMERAL_STORAGE_LINK;
@@ -214,12 +218,16 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         )
     }
 
-    let mount_point = format!("/mnt/{EPHEMERAL_MNT}");
-    if !is_mounted(&mount_point)? {
-        std::fs::create_dir_all(&mount_point).context(error::MkdirSnafu {})?;
-        info!("mounting {device_name} as {mount_point}");
+    if !is_mounted(EPHEMERAL_MNT)? {
+        std::fs::create_dir_all(EPHEMERAL_MNT).context(error::MkdirSnafu { dir: EPHEMERAL_MNT })?;
+        info!("mounting {device_name} as {EPHEMERAL_MNT}");
         let output = Command::new(MOUNT)
-            .args([OsString::from(device_name), OsString::from(&mount_point)])
+            .args([
+                OsString::from(device_name),
+                OsString::from(EPHEMERAL_MNT),
+                OsString::from("--options"),
+                OsString::from("defaults,nosuid,nodev,noatime,private"),
+            ])
             .output()
             .context(error::ExecutionFailureSnafu { command: MOUNT })?;
 
@@ -227,40 +235,65 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
             output.status.success(),
             error::MountArrayFailureSnafu {
                 what: device_name,
-                dest: &mount_point,
+                dest: EPHEMERAL_MNT,
                 output
             }
         );
     } else {
-        info!("device already mounted at {mount_point}, skipping mount");
+        info!("device already mounted at {EPHEMERAL_MNT}, skipping mount");
     }
 
-    let mount_point = Path::new(&mount_point);
-    for dir in &dirs {
-        // construct a directory name (E.g. /var/lib/kubelet => ._var_lib_kubelet) that will be
-        // unique between the binding targets
-        let mut directory_name = dir.replace('/', "_");
-        directory_name.insert(0, '.');
-        let mount_destination = mount_point.join(&directory_name);
+    let dirs: Vec<OsString> = dirs.iter().map(OsString::from).collect();
+    let mut dirs_to_bind = IndexSet::new();
+    let mut dirs_to_mask = HashSet::new();
 
-        // we may run before the directories we are binding exist, so create them
-        std::fs::create_dir_all(dir).context(error::MkdirSnafu {})?;
-        std::fs::create_dir_all(&mount_destination).context(error::MkdirSnafu {})?;
+    // Check which directories need binding and/or masking
+    for target_dir in &dirs {
+        // Transform the directory path to a unique name
+        let source_subdir = transform_dir_name(target_dir);
+        let source_dir: PathBuf = [EPHEMERAL_MNT, &source_subdir].iter().collect();
 
-        if is_mounted(dir)? {
-            info!("skipping bind mount of {dir:?}, already mounted");
-            continue;
+        // Create the source directory now, since there's no chance of mounting over it.
+        std::fs::create_dir_all(&source_dir).context(error::MkdirSnafu {
+            dir: source_dir.clone(),
+        })?;
+
+        let is_source_masked = is_masked(&source_dir)?;
+        let is_target_mounted = is_mounted(target_dir)?;
+
+        match (is_target_mounted, is_source_masked) {
+            (true, true) => continue,
+            (true, false) => {
+                dirs_to_mask.insert(source_dir.into());
+            }
+            (false, false) => {
+                dirs_to_bind.insert((source_dir.clone(), target_dir.clone()));
+                dirs_to_mask.insert(source_dir.into_os_string());
+            }
+            (false, true) => error::DirectoryAlreadyMaskedSnafu { dir: source_dir }.fail()?,
         }
-        // call the equivalent of
-        // mount --rbind /mnt/.ephemeral/._var_lib_kubelet /var/lib/kubelet
-        let source_dir = OsString::from(&dir);
-        info!("binding {source_dir:?} to {mount_destination:?}");
+    }
+
+    // Sort to ensure parent directories are mounted before children
+    dirs_to_bind.sort();
+
+    // Perform bind mounts for directories that need it
+    for (source_dir, target_dir) in &dirs_to_bind {
+        info!(
+            "binding '{}' to '{}'",
+            source_dir.display(),
+            target_dir.display(),
+        );
+
+        // Create the target directory now, in case we mounted one of its parent directories in a
+        // previous iteration.
+        std::fs::create_dir_all(target_dir).context(error::MkdirSnafu { dir: target_dir })?;
 
         let output = Command::new(MOUNT)
             .args([
                 OsStr::new("--rbind"),
-                mount_destination.as_ref(),
-                &source_dir,
+                source_dir.as_ref(),
+                target_dir.as_ref(),
             ])
             .output()
             .context(error::ExecutionFailureSnafu { command: MOUNT })?;
@@ -268,25 +301,48 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         ensure!(
             output.status.success(),
             error::BindDirectoryFailureSnafu {
-                dir: String::from_utf8_lossy(source_dir.as_encoded_bytes()),
+                source_dir,
+                target_dir,
                 output,
             }
         );
     }
 
-    for dir in dirs {
-        let source_dir = OsString::from(&dir);
-        info!("sharing mounts for {source_dir:?}");
-        // mount --make-rshared /var/lib/kubelet
+    // Mask source directories that need it
+    for source_dir in &dirs_to_mask {
+        info!("masking {}", source_dir.display());
         let output = Command::new(MOUNT)
-            .args([OsStr::new("--make-rshared"), &source_dir])
+            .args([
+                OsStr::new("--bind"),
+                OsStr::new("--options"),
+                OsStr::new("nosuid,nodev,noexec,private"),
+                OsStr::new(SRV_DIR),
+                source_dir,
+            ])
+            .output()
+            .context(error::ExecutionFailureSnafu { command: MOUNT })?;
+
+        ensure!(
+            output.status.success(),
+            error::MaskDirectorySnafu {
+                dir: source_dir,
+                output,
+            }
+        );
+    }
+
+    // Make mounts shared
+    for target_dir in &dirs {
+        info!("sharing mounts for {}", target_dir.display());
+        let output = Command::new(MOUNT)
+            .args([OsStr::new("--make-rshared"), target_dir])
             .output()
             .context(error::ExecutionFailureSnafu { command: MOUNT })?;
 
         ensure!(
             output.status.success(),
             error::ShareMountsFailureSnafu {
-                dir: String::from_utf8_lossy(source_dir.as_encoded_bytes()),
+                dir: target_dir,
                 output
             }
         );
@@ -295,13 +351,38 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-/// is_bound returns true if the specified path is already listed as a mount
-fn is_mounted(path: &String) -> Result<bool> {
+/// Transform a directory path into a unique name suitable for use as a mount source
+pub fn transform_dir_name(dir: impl AsRef<OsStr>) -> String {
+    let mut directory_name = dir.as_ref().to_string_lossy().replace('/', "_");
+    directory_name.insert(0, '.');
+    directory_name
+}
+
+/// is_mounted returns true if the specified path is already listed as a mount
+fn is_mounted(path: impl AsRef<OsStr>) -> Result<bool> {
     let status = Command::new(FINDMNT)
-        .arg(OsString::from(path))
+        .arg(path)
         .status()
         .context(error::FindMntFailureSnafu {})?;
     Ok(status.success())
+}
+
+/// is_masked returns true if the specified path is already masked
+fn is_masked(path: impl AsRef<OsStr>) -> Result<bool> {
+    let output = Command::new(FINDMNT)
+        .args([OsStr::new("-no"), OsStr::new("SOURCE")])
+        .arg(&path)
+        .output()
+        .context(error::CheckMaskSnafu { dir: &path })?;
+
+    // Check if the command was successful and if the output contains "[/srv]"
+    if output.status.success() {
+        let source = String::from_utf8_lossy(&output.stdout);
+        Ok(source.trim().ends_with(&format!("[{SRV_DIR}]")))
+    } else {
+        // If the command failed, the path is not mounted at all
+        Ok(false)
+    }
 }
 
 /// creates the array with the given name from the specified disks
@@ -459,6 +540,11 @@ fn should_encrypt() -> Result<bool> {
 fn encrypt_ephemeral_device(device: &str) -> Result<String> {
     info!("encrypting ephemeral device {device:?}");
 
+    // Clear previous link if it exists
+    if std::fs::exists(EPHEMERAL_DATA_LINK).is_ok_and(|x| x) {
+        std::fs::remove_file(EPHEMERAL_DATA_LINK).context(error::DiskUnlinkFailureSnafu {})?;
+    }
+
     // Create intermediate symlink for rottweiler to use
     // This ensures consistent mapper name: /dev/mapper/EPHEMERAL-DATA
     std::os::unix::fs::symlink(device, EPHEMERAL_DATA_LINK)
@@ -527,6 +613,7 @@ fn run_rottweiler_checked(args: &[&str], device: &str) -> Result<()> {
 
 pub mod error {
     use snafu::Snafu;
+    use std::{ffi::OsString, path::PathBuf};
 
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
@@ -556,15 +643,16 @@ pub mod error {
         #[snafu(display("Failed to create disk symlink {}", source))]
         DiskSymlinkFailure { source: std::io::Error },
 
-        #[snafu(display("Failed to bind directory {}: {}", dir, String::from_utf8_lossy(output.stderr.as_slice())))]
+        #[snafu(display("Failed to bind directory '{}' to '{}': {}", source_dir.display(), target_dir.display(), String::from_utf8_lossy(output.stderr.as_slice())))]
         BindDirectoryFailure {
-            dir: String,
+            source_dir: OsString,
+            target_dir: OsString,
             output: std::process::Output,
         },
 
-        #[snafu(display("Failed to share mounts for directory {} : {}", dir, String::from_utf8_lossy(output.stderr.as_slice())))]
+        #[snafu(display("Failed to share mounts for directory {} : {}", dir.display(), String::from_utf8_lossy(output.stderr.as_slice())))]
         ShareMountsFailure {
-            dir: String,
+            dir: PathBuf,
             output: std::process::Output,
         },
 
@@ -586,8 +674,11 @@ pub mod error {
         #[snafu(display("Invalid Parameter '{}', {}", parameter, reason))]
         InvalidParameter { parameter: String, reason: String },
 
-        #[snafu(display("Failed to create directory, {}", source))]
-        Mkdir { source: std::io::Error },
+        #[snafu(display("Failed to create directory '{}': {}", dir.display(), source))]
+        Mkdir {
+            source: std::io::Error,
+            dir: PathBuf,
+        },
 
         #[snafu(display("Unable to load image features: {}", message))]
         LoadImageFeatures { message: String },
@@ -599,6 +690,20 @@ pub mod error {
             args: String,
             output: std::process::Output,
         },
+        #[snafu(display("Failed to check if directory '{}' is masked: {}", dir.display(), source))]
+        CheckMask {
+            dir: PathBuf,
+            source: std::io::Error,
+        },
+
+        #[snafu(display("Failed to mask directory '{}': {}", dir.display(), String::from_utf8_lossy(output.stderr.as_slice())))]
+        MaskDirectory {
+            dir: PathBuf,
+            output: std::process::Output,
+        },
+
+        #[snafu(display("Cannot bind directory '{}': directory is masked", dir.display()))]
+        DirectoryAlreadyMasked { dir: PathBuf },
     }
 }
 
@@ -631,5 +736,20 @@ mod tests {
         for dir in ["/var/lib/docker", "/var/lib/containerd", "/var/log/ecs"] {
             assert!(allowed_dirs.allowed_exact.contains(dir));
         }
+    }
+
+    #[test]
+    fn test_transform_dir_name() {
+        // Test basic path transformation
+        assert_eq!(transform_dir_name("/var/lib/kubelet"), "._var_lib_kubelet");
+
+        // Test path with trailing slash
+        assert_eq!(transform_dir_name("/var/lib/docker/"), "._var_lib_docker_");
+
+        // Test root path
+        assert_eq!(transform_dir_name("/"), "._");
+
+        // Test empty string
+        assert_eq!(transform_dir_name(""), ".");
     }
 }

@@ -447,6 +447,7 @@ dependencies = [
  "fs2",
  "generate-readme",
  "http 0.2.12",
+ "indexmap",
  "libc",
  "log",
  "maplit",
