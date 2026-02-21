@@ -28,6 +28,7 @@ conntrack-tools = { path = "../../packages/conntrack-tools" }
 containerd-1_7 = { path = "../../packages/containerd-1.7" }
 containerd-2_1 = { path = "../../packages/containerd-2.1" }
 coreutils = { path = "../../packages/coreutils" }
+cri-tools = { path = "../../packages/cri-tools" }
 dbus-broker = { path = "../../packages/dbus-broker" }
 docker-cli-25 = { path = "../../packages/docker-cli-25" }
 docker-cli-29 = { path = "../../packages/docker-cli-29" }
@@ -46,6 +47,7 @@ ecr-credential-provider-1_34 = { path = "../../packages/ecr-credential-provider-
 ecr-credential-provider-1_35 = { path = "../../packages/ecr-credential-provider-1.35" }
 ecs-agent = { path = "../../packages/ecs-agent" }
 ecs-gpu-init = { path = "../../packages/ecs-gpu-init" }
+erofs-utils = { path = "../../packages/erofs-utils" }
 ethtool = { path = "../../packages/ethtool" }
 filesystem = { path = "../../packages/filesystem" }
 findutils = { path = "../../packages/findutils" }
@@ -121,6 +123,7 @@ nvme-cli = { path = "../../packages/nvme-cli" }
 open-vm-tools = { path = "../../packages/open-vm-tools" }
 os = { path = "../../packages/os" }
 pciutils = { path = "../../packages/pciutils" }
+perf = { path = "../../packages/perf" }
 pigz = { path = "../../packages/pigz" }
 policycoreutils = { path = "../../packages/policycoreutils" }
 procps = { path = "../../packages/procps" }

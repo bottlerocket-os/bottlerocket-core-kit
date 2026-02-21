@@ -1,0 +1,23 @@
+From 4bc5c0ab5c50cae89c9a3da991309d09fc39c9b2 Mon Sep 17 00:00:00 2001
+From: Ben Cressey <bcressey@amazon.com>
+Date: Mon, 16 Jun 2025 14:47:39 +0000
+Subject: [PATCH] build: disable AC_CANONICAL_TARGET
+
+Signed-off-by: Ben Cressey <bcressey@amazon.com>
+---
+ configure.ac | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 6e1e7a1..aab15b6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -12,8 +12,6 @@ AC_CONFIG_HEADERS([config.h])
+ AC_CONFIG_MACRO_DIR([m4])
+ AC_CONFIG_AUX_DIR(config)
+ 
+-AC_CANONICAL_TARGET
+-
+ build_linux=no
+ case "${target_os}" in
+   linux*)

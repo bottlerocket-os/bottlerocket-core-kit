@@ -88,6 +88,7 @@ dependencies = [
  "containerd-1_7",
  "containerd-2_1",
  "coreutils",
+ "cri-tools",
  "dbus-broker",
  "docker-cli-25",
  "docker-cli-29",
@@ -106,6 +107,7 @@ dependencies = [
  "ecr-credential-provider-1_35",
  "ecs-agent",
  "ecs-gpu-init",
+ "erofs-utils",
  "ethtool",
  "filesystem",
  "findutils",
@@ -181,6 +183,7 @@ dependencies = [
  "open-vm-tools",
  "os",
  "pciutils",
+ "perf",
  "pigz",
  "policycoreutils",
  "procps",
@@ -264,6 +267,13 @@ dependencies = [
  "libcap",
  "libselinux",
  "libxcrypt",
+]
+
+[[package]]
+name = "cri-tools"
+version = "0.1.0"
+dependencies = [
+ "glibc",
 ]
 
 [[package]]
@@ -398,6 +408,17 @@ name = "ecs-gpu-init"
 version = "0.1.0"
 dependencies = [
  "glibc",
+]
+
+[[package]]
+name = "erofs-utils"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+ "libselinux",
+ "libz",
+ "libzstd",
+ "util-linux",
 ]
 
 [[package]]
@@ -992,6 +1013,14 @@ name = "pciutils"
 version = "0.1.0"
 dependencies = [
  "glibc",
+]
+
+[[package]]
+name = "perf"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+ "libelf",
 ]
 
 [[package]]

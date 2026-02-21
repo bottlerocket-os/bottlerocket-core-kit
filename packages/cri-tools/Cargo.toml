@@ -1,0 +1,20 @@
+[package]
+name = "cri-tools"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://github.com/kubernetes-sigs/cri-tools/releases"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/kubernetes-sigs/cri-tools/archive/v1.35.0/cri-tools-1.35.0.tar.gz"
+sha512 = "ea34e736b457f851b610e8091ebbb608ac0f790c80156ad3e1a7080c76df4ea759091300b7ee6b5812a42ec93e165d71b6fa06f12424f46b4b181f5059b100bb"
+bundle-modules = [ "go" ]
+
+[build-dependencies]
+glibc = { path = "../glibc" }
