@@ -20,6 +20,7 @@ pub(crate) struct NetVlanV1 {
     _kind: VlanKind,
     pub(crate) device: InterfaceName,
     pub(crate) id: VlanId,
+    pub(crate) mtu: Option<u32>,
 }
 
 // Single variant enum only used to direct deserialization.  If the kind is not "VLAN", "Vlan", or

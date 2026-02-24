@@ -48,6 +48,8 @@ struct LinkSection {
     required: Option<bool>,
     #[systemd(entry = "RequiredFamilyForOnline")]
     required_family: Option<RequiredFamily>,
+    #[systemd(entry = "MTUBytes")]
+    mtu_bytes: Option<u32>,
 }
 
 #[derive(Debug, Default, SystemdUnitSection)]
@@ -599,6 +601,11 @@ where
         };
 
         self.network.route.push(route_section)
+    }
+
+    /// Set the MTU for the interface
+    pub(crate) fn with_mtu(&mut self, mtu: u32) {
+        self.network.link_mut().mtu_bytes = Some(mtu);
     }
 
     // =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=

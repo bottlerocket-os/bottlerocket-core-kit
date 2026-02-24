@@ -33,6 +33,7 @@ impl TryFrom<(InterfaceName, NetInterfaceV1)> for NetworkDDevice {
             static4: None,
             static6: None,
             routes: None,
+            mtu: None,  // v1 doesn't support MTU
         }))
     }
 }
@@ -49,6 +50,7 @@ impl TryFrom<(InterfaceName, NetInterfaceV2)> for NetworkDDevice {
             static4: config.static4,
             static6: config.static6,
             routes: config.routes,
+            mtu: config.mtu,
         }))
     }
 }
@@ -65,6 +67,7 @@ impl TryFrom<(InterfaceId, NetInterfaceV2)> for NetworkDDevice {
             static4: config.static4,
             static6: config.static6,
             routes: config.routes,
+            mtu: config.mtu,
         }))
     }
 }
@@ -94,6 +97,7 @@ impl TryFrom<(InterfaceId, NetBondV1)> for NetworkDDevice {
             min_links: config.min_links,
             monitoring_config: config.monitoring_config,
             interfaces: config.interfaces,
+            mtu: config.mtu,
         }))
     }
 }
@@ -121,6 +125,7 @@ impl TryFrom<(InterfaceId, NetVlanV1)> for NetworkDDevice {
             routes: config.routes,
             device: config.device,
             id: config.id,
+            mtu: config.mtu,
         }))
     }
 }

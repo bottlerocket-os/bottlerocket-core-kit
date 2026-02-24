@@ -24,6 +24,7 @@ pub(crate) struct NetworkDBond {
     pub(crate) min_links: Option<usize>,
     pub(crate) monitoring_config: BondMonitoringConfigV1,
     pub(crate) interfaces: Vec<InterfaceName>,
+    pub(crate) mtu: Option<u32>,
 }
 
 impl NetDevFileCreator for NetworkDBond {
@@ -42,6 +43,7 @@ impl NetDevFileCreator for NetworkDBond {
             min_links,
             monitoring_config,
             interfaces: _, // Used in .network files, not here
+            mtu: _, // MTU is configured in .network files, not .netdev
         } = self;
 
         let mut netdev = NetDevBuilder::new_bond(name.clone());
@@ -75,6 +77,7 @@ impl NetworkFileCreator for NetworkDBond {
             min_links: _,
             monitoring_config: _,
             interfaces,
+            mtu,
         } = self;
 
         let mut network = NetworkBuilder::new_bond(name.clone());
@@ -82,6 +85,9 @@ impl NetworkFileCreator for NetworkDBond {
         maybe_add_some!(network, with_static_config, static4);
         maybe_add_some!(network, with_static_config, static6);
         maybe_add_some!(network, with_routes, routes);
+        if let Some(m) = mtu {
+            network.with_mtu(*m);
+        }
 
         network.with_bind_carrier(interfaces.clone());
 

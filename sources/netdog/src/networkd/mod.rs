@@ -56,6 +56,7 @@ impl NetworkDConfig {
                     static4: None,
                     static6: None,
                     routes: None,
+                    mtu: None,
                 }))
             }
         }

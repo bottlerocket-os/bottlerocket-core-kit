@@ -24,6 +24,7 @@ pub(crate) struct NetworkDVlan {
     // entry for this VLAN
     pub(crate) device: InterfaceName,
     pub(crate) id: VlanId,
+    pub(crate) mtu: Option<u32>,
 }
 
 impl NetDevFileCreator for NetworkDVlan {
@@ -40,6 +41,7 @@ impl NetDevFileCreator for NetworkDVlan {
             routes: _,
             device: _, // Device isn't used in .netdev files
             id,
+            mtu: _, // MTU is configured in .network files, not .netdev
         } = self;
 
         let mut netdev = NetDevBuilder::new_vlan(name.clone());
@@ -63,6 +65,7 @@ impl NetworkFileCreator for NetworkDVlan {
             routes,
             device: _, // device and id aren't used in .network files
             id: _,
+            mtu,
         } = self;
 
         let mut network = NetworkBuilder::new_vlan(name.clone());
@@ -70,6 +73,9 @@ impl NetworkFileCreator for NetworkDVlan {
         maybe_add_some!(network, with_static_config, static4);
         maybe_add_some!(network, with_static_config, static6);
         maybe_add_some!(network, with_routes, routes);
+        if let Some(m) = mtu {
+            network.with_mtu(*m);
+        }
 
         vec![network.build()]
     }

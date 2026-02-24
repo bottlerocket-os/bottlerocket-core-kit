@@ -108,7 +108,7 @@ impl Validate for NetConfigV3 {
 #[cfg(test)]
 mod tests {
     use crate::net_config::test_macros::{
-        basic_tests, bonding_tests, dhcp_tests, static_address_tests, vlan_tests,
+        basic_tests, bonding_tests, dhcp_tests, mtu_tests, static_address_tests, vlan_tests,
     };
 
     basic_tests!(3);
@@ -116,4 +116,5 @@ mod tests {
     static_address_tests!(3);
     vlan_tests!(3);
     bonding_tests!(3);
+    mtu_tests!(3);
 }

@@ -1,0 +1,38 @@
+version = {{version}}
+
+# Interface with jumbo frames
+[eno1]
+dhcp4 = true
+mtu = 9000
+primary = true
+
+# Interface with standard MTU
+[eno2]
+dhcp6 = true
+mtu = 1500
+
+# Bond with custom MTU
+[bond0]
+kind = "bond"
+mode = "active-backup"
+mtu = 1500
+interfaces = ["eth0", "eth1"]
+dhcp4 = true
+
+[bond0.monitoring]
+miimon-frequency-ms = 100
+miimon-updelay-ms = 200
+miimon-downdelay-ms = 200
+
+# VLAN with custom MTU
+[vlan100]
+kind = "vlan"
+device = "eno1"
+id = 100
+mtu = 1500
+dhcp4 = true
+
+# Interface without MTU specified (will use default)
+[eno3]
+dhcp4 = true
+dhcp6 = true
