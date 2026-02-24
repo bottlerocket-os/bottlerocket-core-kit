@@ -16,6 +16,10 @@ ExecStart=/usr/bin/mkdir -p /opt/cni
 ExecStart=/usr/bin/rm -rf /opt/csi
 ExecStart=/usr/bin/mkdir -p /opt/csi
 
+# Create the directories for a read-write overlayfs for image verifiers.
+ExecStart=/usr/bin/rm -rf /opt/civ
+ExecStart=/usr/bin/mkdir -p /opt/civ
+
 RemainAfterExit=true
 StandardError=journal+console
 

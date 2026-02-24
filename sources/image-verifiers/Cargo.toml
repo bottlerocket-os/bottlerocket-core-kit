@@ -1,0 +1,37 @@
+[package]
+name = "image-verifiers"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+publish = false
+
+[[bin]]
+name = "notation-image-verifier"
+path = "src/bin/notation.rs"
+
+[[bin]]
+name = "digestion-image-verifier"
+path = "src/bin/digestion.rs"
+
+[[bin]]
+name = "thar-be-image-verifiers"
+path = "src/bin/thar_be_image_verifiers.rs"
+
+[dependencies]
+log.workspace = true
+typed-path = { workspace = true }
+argh.workspace = true
+base64.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+snafu.workspace = true
+tempfile.workspace = true
+toml.workspace = true
+walkdir.workspace = true
+nix = { workspace = true, features = ["fs"] }
+
+[build-dependencies]
+generate-readme.workspace = true
+
+[dev-dependencies]
+test-case.workspace = true

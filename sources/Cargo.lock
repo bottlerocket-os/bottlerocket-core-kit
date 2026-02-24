@@ -3481,6 +3481,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "image-verifiers"
+version = "0.1.0"
+dependencies = [
+ "argh",
+ "base64 0.22.1",
+ "generate-readme",
+ "log",
+ "nix 0.26.4",
+ "serde",
+ "serde_json",
+ "snafu",
+ "tempfile",
+ "test-case",
+ "toml",
+ "typed-path",
+ "walkdir",
+]
+
+[[package]]
 name = "imdsclient"
 version = "0.1.0"
 dependencies = [

@@ -11,12 +11,13 @@ RefuseManualStop=true
 Type=oneshot
 
 # Create the directories we need to set up a read-write overlayfs for kernel
-# development sources, kernel modules, and CNI plugins.
+# development sources, kernel modules, CNI plugins, CSI helpers, and image verifiers.
 ExecStart=/usr/bin/rm -rf \
     /var/lib/kernel-devel \
     /var/lib/kernel-modules \
     /var/lib/cni-plugins \
-    /var/lib/csi-helpers
+    /var/lib/csi-helpers \
+    /var/lib/civ-plugins
 
 ExecStart=/usr/bin/mkdir -p \
     /var/lib/kernel-devel/.overlay/lower \
@@ -27,7 +28,9 @@ ExecStart=/usr/bin/mkdir -p \
     /var/lib/cni-plugins/.overlay/upper \
     /var/lib/cni-plugins/.overlay/work \
     /var/lib/csi-helpers/.overlay/upper \
-    /var/lib/csi-helpers/.overlay/work
+    /var/lib/csi-helpers/.overlay/work \
+    /var/lib/civ-plugins/.overlay/upper \
+    /var/lib/civ-plugins/.overlay/work
 
 # Ensure the directories are labeled as expected.
 ExecStart=/usr/sbin/setfiles \
@@ -35,7 +38,8 @@ ExecStart=/usr/sbin/setfiles \
     /var/lib/kernel-devel \
     /var/lib/kernel-modules \
     /var/lib/cni-plugins \
-    /var/lib/csi-helpers
+    /var/lib/csi-helpers \
+    /var/lib/civ-plugins
 
 RemainAfterExit=true
 StandardError=journal+console

@@ -2,10 +2,10 @@
 image-verifier-plugins = "v1"
 std = { version = "v1" }
 +++
-{{~#if settings.image-verifier-plugins.enabled~}}
+{{#if settings.image-verifier-plugins.enabled}}
 [plugins]
   [plugins."io.containerd.image-verifier.v1.bindir"]
-    bin_dir = "/usr/libexec/image-verifiers/bin"
-    max_verifiers = 1
+    bin_dir = "/opt/civ/bin"
+    max_verifiers = -1
     per_verifier_timeout = "10s"
-{{~/if~}}
+{{/if}}
