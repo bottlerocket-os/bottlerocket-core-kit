@@ -40,6 +40,10 @@ Source1000: clarify.toml
 Patch1001: 1001-Revert-Don-t-allow-io_uring-related-syscalls-in-the-.patch
 # Patch to update grpc
 Patch1002: 1002-bump-google-golang-org-grpc.patch
+# Patch for transfer service to fall back to file for registry creds.
+Patch1003: 1003-transfer-service-fallback-to-credentials.toml-for-re.patch
+# Patch to make ctr use hosts.toml for registry mirrors by default
+Patch1004: 1004-ctr-default-hosts-dir-to-etc-containerd-certs.d.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel

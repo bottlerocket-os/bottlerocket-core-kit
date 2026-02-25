@@ -6082,6 +6082,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "thar-be-registries"
+version = "0.1.0"
+dependencies = [
+ "generate-readme",
+ "log",
+ "nix 0.26.4",
+ "serde",
+ "simplelog",
+ "snafu",
+ "tempfile",
+ "test-case",
+ "toml",
+ "url",
+ "zeroize",
+]
+
+[[package]]
 name = "thar-be-settings"
 version = "0.1.0"
 dependencies = [

@@ -49,6 +49,7 @@ Source23: br03040101.json
 Source24: k8s04021000.json
 Source25: containerd-image-verifiers-toml
 Source26: thar-be-image-verifiers-toml
+Source27: thar-be-registries-toml
 
 # 1xx sources: systemd units
 Source100: apiserver.service
@@ -107,6 +108,7 @@ Requires: %{_cross_os}signpost
 Requires: %{_cross_os}storewolf
 Requires: %{_cross_os}sundog
 Requires: %{_cross_os}xfscli
+Requires: %{_cross_os}thar-be-registries
 Requires: %{_cross_os}thar-be-settings
 
 Requires: (%{_cross_os}bootstrap-containers or %{_cross_os}image-feature(no-host-containers))
@@ -474,6 +476,11 @@ Requires: %{_cross_os}thar-be-image-verifiers
 %description -n %{_cross_os}digestion-image-verifier
 %{summary}.
 
+%package -n %{_cross_os}thar-be-registries
+Summary: Configure registry mirrors and creds for containerd
+%description -n %{_cross_os}thar-be-registries
+%{summary}.
+
 %prep
 %setup -T -c
 %cargo_prep
@@ -573,6 +580,7 @@ echo "** Output from non-static builds:"
     -p sundog \
     -p schnauzer \
     -p bork \
+    -p thar-be-registries \
     -p thar-be-settings \
     -p thar-be-updates \
     -p host-containers \
@@ -649,6 +657,7 @@ for p in \
   apiserver \
   sundog schnauzer bork \
   corndog thar-be-settings thar-be-updates host-containers \
+  thar-be-registries \
   storewolf settings-committer \
   migrator prairiedog certdog \
   signpost updog metricdog logdog \
@@ -761,7 +770,7 @@ install -d %{buildroot}%{_cross_templatedir}
 install -p -m 0644 \
   %{S:5} %{S:6} %{S:7} %{S:14} %{S:15} \
   %{S:16} %{S:17} %{S:18} %{S:19} %{S:21} \
-  %{S:25} %{S:26} \
+  %{S:25} %{S:26} %{S:27} \
   %{buildroot}%{_cross_templatedir}
 
 install -d %{buildroot}%{_cross_unitdir}
@@ -1021,5 +1030,9 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 
 %files -n %{_cross_os}digestion-image-verifier
 %{_cross_libexecdir}/civ/bin/digestion-image-verifier
+
+%files -n %{_cross_os}thar-be-registries
+%{_cross_bindir}/thar-be-registries
+%{_cross_templatedir}/thar-be-registries-toml
 
 %changelog
