@@ -1,3 +1,32 @@
+# v13.1.0 (2026-02-25)
+
+## OS Changes
+- Suppress IPv6 on interfaces with no IPv6 intent in `net.toml` ([#826])
+- Add support to render `settings.container-registry` into containerd supported `hosts.toml` ([#819])
+- Expand image verifier support with a new helper to render trust policies for all image verifier plugins ([#820])
+- Add `cri-tools`, `erofs-utils`, `perf` packages ([#818])
+- Fix ephemeral storage handling in `apiserver` ([#822])
+- Stop rendering `max_concurrent_downloads` in containerd CRI image plugin config ([#838])
+- Increase `vm.max_map_count` to 1048576 ([#835])
+- Update Rust dependencies for first-party sources ([#837])
+
+### Third Party Package Updates
+- Update `libnvidia-container`, `nvidia-container-toolkit`, `nvidia-k8s-device-plugin` ([#834])
+
+## Build Changes
+- Bump `bottlerocket-settings-models` to 0.21.0 ([#841])
+
+[#819]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/819
+[#818]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/818
+[#826]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/826
+[#820]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/820
+[#822]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/822
+[#834]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/834
+[#835]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/835
+[#837]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/837
+[#838]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/838
+[#841]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/841
+
 # v13.0.0 (2026-02-11)
 
 ## OS Changes
