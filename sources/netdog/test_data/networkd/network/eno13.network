@@ -2,6 +2,8 @@
 Name=eno13
 [Network]
 Address=192.168.14.2/24
+IPv6AcceptRA=false
+LinkLocalAddressing=ipv4
 [Route]
 Destination=9.9.0.0/16
 Gateway=192.168.1.1

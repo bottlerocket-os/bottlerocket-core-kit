@@ -191,10 +191,10 @@ mod tests {
                         path.display()
                     );
 
-                    // Add IPv6 `accept-ra` config to the interface, regenerate it, and ensure the
+                    // Add IPv6 config to the interface, regenerate it, and ensure the
                     // generated config contains the added IPv6 option
                     if let NetworkDConfigFile::Network(ref mut n) = config {
-                        n.accept_ra();
+                        n.enable_ipv6();
                     }
                     let generated = config.to_string();
                     let mut path = networkd_data()

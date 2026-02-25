@@ -11,6 +11,19 @@ pub(crate) use bond::NetworkDBond;
 pub(crate) use interface::NetworkDInterface;
 pub(crate) use vlan::NetworkDVlan;
 
+use crate::addressing::{Dhcp6ConfigV1, StaticConfigV1};
+
+/// Returns `true` if the device has any IPv6 configuration enabled
+/// (dhcp6 with enabled=true, or static6 addresses present).
+pub(crate) fn has_ipv6(dhcp6: &Option<Dhcp6ConfigV1>, static6: &Option<StaticConfigV1>) -> bool {
+    let dhcp6_enabled = match dhcp6 {
+        None => false,
+        Some(Dhcp6ConfigV1::DhcpEnabled(enabled)) => *enabled,
+        Some(Dhcp6ConfigV1::WithOptions(opts)) => opts.enabled,
+    };
+    dhcp6_enabled || static6.is_some()
+}
+
 pub(crate) enum NetworkDDevice {
     Interface(NetworkDInterface),
     Bond(NetworkDBond),

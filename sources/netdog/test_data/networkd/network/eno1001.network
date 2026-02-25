@@ -4,6 +4,8 @@ Name=eno1001
 RequiredForOnline=true
 [Network]
 DHCP=ipv4
+IPv6AcceptRA=false
+LinkLocalAddressing=ipv4
 VLAN=vlancfgdev
 KeepConfiguration=dhcp
 [DHCPv4]

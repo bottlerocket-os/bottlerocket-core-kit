@@ -153,6 +153,13 @@ to = "3001:dead:beef::2/64"
 from = "2001:dead:beef::2"
 via = "2001:beef:beef::1"
 
+[[interface]]
+name = "eno22"
+dhcp4 = true
+[interface.dhcp6]
+enabled = false
+optional = true
+
 # Bonds and vlans
 [[vlan]]
 name = "myvlan"
