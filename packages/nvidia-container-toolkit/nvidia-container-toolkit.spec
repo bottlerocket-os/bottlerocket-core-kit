@@ -23,6 +23,7 @@ Source4: nvidia-container-toolkit-tmpfiles-ecs.conf
 Source5: nvidia-container-toolkit-tmpfiles-k8s.conf
 Source6: nvidia-container-toolkit-config-k8s
 Source7: generate-cdi-specs.service
+Patch0001: 0001-discover-reduce-missing-resource-warnings-to-debug-l.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}libnvidia-container
