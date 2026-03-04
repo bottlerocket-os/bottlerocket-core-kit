@@ -71,7 +71,7 @@ Requires: %{name}
 %autosetup -Sgit -n glibc-%{version} -p1
 
 %global glibc_configure %{shrink: \
-BUILDFLAGS="-O2 -g -Wp,-D_GLIBCXX_ASSERTIONS -fstack-clash-protection -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer" \
+BUILDFLAGS="-O2 -g1 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-clash-protection -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer" \
 CFLAGS="${BUILDFLAGS}" CPPFLAGS="" CXXFLAGS="${BUILDFLAGS}" \
 ../configure \
   --prefix="%{_cross_prefix}" \

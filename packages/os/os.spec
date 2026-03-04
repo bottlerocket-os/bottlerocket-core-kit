@@ -346,24 +346,7 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}pluto-bin)
 
 %package -n %{_cross_os}shibaken
 Summary: IMDS client and settings generator
-Requires: %{_cross_os}shibaken(binaries)
 %description -n %{_cross_os}shibaken
-%{summary}.
-
-%package -n %{_cross_os}shibaken-bin
-Summary: IMDS client and settings generator binaries
-Provides: %{_cross_os}shibaken(binaries)
-Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}shibaken)
-Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}shibaken-fips-bin)
-%description -n %{_cross_os}shibaken-bin
-%{summary}.
-
-%package -n %{_cross_os}shibaken-fips-bin
-Summary: IMDS client and settings generator binaries, FIPS edition
-Provides: %{_cross_os}shibaken(binaries)
-Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}shibaken)
-Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}shibaken-bin)
-%description -n %{_cross_os}shibaken-fips-bin
 %{summary}.
 
 %package -n %{_cross_os}warm-pool-wait
@@ -567,7 +550,6 @@ exec 1>"${fips_output}" 2>&1
     -p metricdog \
     -p migrator \
     -p updog \
-    -p shibaken \
     &
 # Save the PID so we can wait for it later.
 fips_pid="$!"
@@ -575,6 +557,13 @@ exec 1>&3 2>&4
 
 # Run non-static builds in the foreground.
 echo "** Output from non-static builds:"
+%cargo_build --manifest-path %{_builddir}/sources/Cargo.toml \
+    -p logdog \
+    -p metricdog \
+    -p migrator \
+    -p updog \
+    %{nil}
+
 %cargo_build --manifest-path %{_builddir}/sources/Cargo.toml \
     -p apiserver \
     -p sundog \
@@ -586,11 +575,7 @@ echo "** Output from non-static builds:"
     -p host-containers \
     -p storewolf \
     -p settings-committer \
-    -p migrator \
     -p signpost \
-    -p updog \
-    -p logdog \
-    -p metricdog \
     -p ghostdog \
     -p corndog \
     -p bootstrap-commands \
@@ -679,8 +664,10 @@ ln -s brush %{buildroot}%{_cross_bindir}/sh
 install -d %{buildroot}%{_cross_libexecdir}/brush/allowed-programs
 
 for p in \
-  logdog migrator metricdog \
-  shibaken updog \
+  logdog \
+  migrator \
+  metricdog \
+  updog \
 ; do
   install -p -m 0755 %{__cargo_outdir_fips}/${p} %{buildroot}%{_cross_fips_bindir}
 done
@@ -929,13 +916,8 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_fips_bindir}/logdog
 
 %files -n %{_cross_os}shibaken
-%dir %{_cross_templatedir}
-
-%files -n %{_cross_os}shibaken-bin
 %{_cross_bindir}/shibaken
-
-%files -n %{_cross_os}shibaken-fips-bin
-%{_cross_fips_bindir}/shibaken
+%dir %{_cross_templatedir}
 
 %files -n %{_cross_os}warm-pool-wait
 %{_cross_templatedir}/warm-pool-wait-toml
