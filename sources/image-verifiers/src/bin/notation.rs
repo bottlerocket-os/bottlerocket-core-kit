@@ -9,6 +9,7 @@ If no trust policy is configured, all images are allowed.
 use image_verifiers::{args, logging, policy, reference};
 use log::{debug, error};
 use serde::Deserialize;
+use std::env;
 use std::path::Path;
 use std::process::{self, Command};
 
@@ -60,17 +61,26 @@ fn main() {
         }
     }
 
-    let output = match Command::new("/usr/bin/notation")
-        .args(["verify", &image_ref])
+    let mut cmd = Command::new("/usr/bin/notation");
+    cmd.args(["verify", &image_ref])
         .env(
             "NOTATION_CONFIG",
             "/etc/containerd/image-verifiers/notation",
         )
         .env("NOTATION_CACHE", "/var/cache/notation")
         .env("NOTATION_LIBEXEC", "/usr/libexec/notation-plugins")
-        .env("HOME", "/root")
-        .output()
-    {
+        .env("HOME", "/root");
+
+    // We upgrade to fips140=only for notation to enforce strict FIPS-only
+    // cryptography: all hash functions, TLS ciphers, and signature algorithms
+    // used during image verification must be FIPS-approved with no fallback.
+    if let Ok(godebug) = env::var("GODEBUG") {
+        if godebug == "fips140=on" {
+            cmd.env("GODEBUG", "fips140=only");
+        }
+    }
+
+    let output = match cmd.output() {
         Ok(o) => o,
         Err(e) => {
             error!("image verification failed: {}", e);
