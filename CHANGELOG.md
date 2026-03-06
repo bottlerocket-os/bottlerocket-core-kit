@@ -1,3 +1,11 @@
+# v13.1.2 (2026-03-06)
+
+## OS Changes
+### Third Party Package Updates
+- Update `amazon-ecs-cni-plugins` ([#855])
+
+[#855]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/855
+
 # v13.1.1 (2026-02-26)
 
 ## OS Changes
