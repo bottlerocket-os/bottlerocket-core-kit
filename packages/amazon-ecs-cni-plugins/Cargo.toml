@@ -16,8 +16,8 @@ releases-url = "https://github.com/aws/amazon-ecs-agent/commits/master/amazon-ec
 # This is locked against the version shipped in ecs-agent
 # Verify that the ecs-agent version shipped in bottlerocket tracks the same one here
 # https://github.com/aws/amazon-ecs-agent/releases
-url = "https://github.com/aws/amazon-ecs-cni-plugins/archive/319a734d9edfeeec9e7b64acf0500c45508aa8d3/amazon-ecs-cni-plugins.tar.gz"
-sha512 = "ef1457e0325a2e43c307ea962bd675cc6df8501ada055f10c8c7b51f83486c96eab6368946b0ca4fe47f9fc91d22f51218adb9c07dc5812a80389eaaf1d83df3"
+url = "https://github.com/aws/amazon-ecs-cni-plugins/archive/f26629faf64028796b76154d55c1bc7e3bff13c8/amazon-ecs-cni-plugins.tar.gz"
+sha512 = "9d5eb384e4bed620b2ed40d6afdd4c08167ac489cd6cc1c8edb1bde4b46aa492b35bf98d8b707375ee68deabbc6d0fdf1f1c600bd487933ac75cc0778bafff5f"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
