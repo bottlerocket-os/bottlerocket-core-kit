@@ -123,6 +123,21 @@ topologyManagerScope: {{settings.kubernetes.topology-manager-scope}}
 {{#if settings.kubernetes.topology-manager-policy}}
 topologyManagerPolicy: {{settings.kubernetes.topology-manager-policy}}
 {{/if}}
+{{#if settings.kubernetes.topology-manager-policy-options.prefer-closest-numa-nodes}}
+{{#if settings.kubernetes.topology-manager-policy-options.max-allowable-numa-nodes}}
+topologyManagerPolicyOptions:
+  prefer-closest-numa-nodes: "{{settings.kubernetes.topology-manager-policy-options.prefer-closest-numa-nodes}}"
+  max-allowable-numa-nodes: "{{settings.kubernetes.topology-manager-policy-options.max-allowable-numa-nodes}}"
+{{else}}
+topologyManagerPolicyOptions:
+  prefer-closest-numa-nodes: "{{settings.kubernetes.topology-manager-policy-options.prefer-closest-numa-nodes}}"
+{{/if}}
+{{else}}
+{{#if settings.kubernetes.topology-manager-policy-options.max-allowable-numa-nodes}}
+topologyManagerPolicyOptions:
+  max-allowable-numa-nodes: "{{settings.kubernetes.topology-manager-policy-options.max-allowable-numa-nodes}}"
+{{/if}}
+{{/if}}
 podPidsLimit: {{default 1048576 settings.kubernetes.pod-pids-limit}}
 {{#if settings.kubernetes.image-gc-high-threshold-percent includeZero=true}}
 imageGCHighThresholdPercent: {{settings.kubernetes.image-gc-high-threshold-percent}}
