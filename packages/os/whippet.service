@@ -20,6 +20,7 @@ ProtectSystem=full
 PrivateTmp=no
 PrivateDevices=true
 ExecStart=/usr/bin/whippet
+StandardError=journal+console
 
 [Install]
 Alias=dbus.service
