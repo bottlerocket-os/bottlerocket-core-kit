@@ -118,8 +118,16 @@
 ; is mounted from the root filesystem and used as the init process.
 (allow container_s runtime_exec_t (file (entrypoint)))
 
+; Pipes created by runtimes should receive a special label and range
+; so that other processes can mutate them.
+(typetransition runtime_t pipe_fs_t fifo_file runtime_fifo_t)
+(rangetransition runtime_t pipe_fs_t fifo_file s0)
+
+; Allow runtimes to mutate their own pipes.
+(allow runtime_s runtime_fifo_t (files (mutate)))
+
 ; Allow containers to communicate with runtimes via pipes.
-(allow container_s runtime_t (files (mutate)))
+(allow container_s runtime_fifo_t (files (mutate)))
 
 ; If a runtime process creates a directory for cached container archives
 ; or snapshot layers on local storage, it receives the "cache_t" label.
