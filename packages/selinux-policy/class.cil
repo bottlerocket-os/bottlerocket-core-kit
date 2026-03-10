@@ -42,7 +42,7 @@
   ioctl read write create getattr setattr lock relabelfrom
   relabelto append map unlink link rename execute quotaon
   mounton audit_access open execmod watch watch_mount watch_sb
-  watch_with_perm watch_reads))
+  watch_with_perm watch_reads watch_mountns))
 (classcommon file file)
 (classcommon dir file)
 (classcommon lnk_file file)
