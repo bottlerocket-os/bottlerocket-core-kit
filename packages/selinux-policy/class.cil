@@ -223,8 +223,9 @@
 ; the kernel, but are checked by systemd for DBUS requests.
 (class system (
   ipc_info syslog_read syslog_mod syslog_console module_request
-  module_load halt reboot status start stop enable disable
-  reload))
+  module_load firmware_load kexec_image_load kexec_initramfs_load
+  policy_load x509_certificate_load halt reboot status start stop
+  enable disable reload))
 
 ; Add permissions for other classes.
 (class security (

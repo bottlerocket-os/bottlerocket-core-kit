@@ -9,7 +9,10 @@
 (classmapping systems manage (security (all)))
 (classmapping systems manage (service (all)))
 (classmapping systems manage (
-  system (halt reboot status start stop enable disable reload)))
+  system (
+    halt reboot status start stop enable disable reload
+    firmware_load kexec_image_load kexec_initramfs_load
+    policy_load x509_certificate_load)))
 
 ; Permission group for other OS functions.
 (classmapping systems use (binder (all)))
@@ -22,5 +25,8 @@
 (classmapping systems use (lockdown (all)))
 (classmapping systems use (perf_event (all)))
 (classmapping systems use (
-  system (not (halt reboot status start stop enable disable reload))))
+  system (not (
+    halt reboot status start stop enable disable reload
+    firmware_load kexec_image_load kexec_initramfs_load
+    policy_load x509_certificate_load))))
 (classmapping systems use (user_namespace (all)))
