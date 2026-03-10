@@ -6,9 +6,13 @@
 (typeattribute global)
 (typeattributeset global ((all_s) (all_o)))
 
-; Define a subset of these types which are considered public.
+; Define a subset of these types which are not considered public.
+(typeattribute non_public)
+(typeattributeset non_public (runtime_s read_restricted_o))
+
+; Define everything else as public types.
 (typeattribute public)
-(typeattributeset public (xor (global) (read_restricted_o)))
+(typeattributeset public (xor (global) (non_public)))
 
 ; All subjects are allowed to describe all processes.
 (allow all_s all_s (processes (describe)))
@@ -158,7 +162,7 @@
 (allow privileged_s global (files (load ioctl)))
 
 ; Unprivileged subjects cannot read or execute restricted objects.
-(neverallow unprivileged_s read_restricted_o (files (load execute)))
+(neverallow unprivileged_s non_public (files (load execute)))
 
 ; Container subjects can execute anything that's public.
 (allow container_s public (files (execute)))
