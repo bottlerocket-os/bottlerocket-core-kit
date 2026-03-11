@@ -32,6 +32,16 @@ Patch1013: 1013-cherry-pick-Add-back-X509_STORE_get_verify_cb-and-X5.patch
 Patch1014: 1014-Cherry-pick-TLS-transfer-serialization-changes-to-FI.patch
 Patch1015: 1015-cherry-pick-for-2024-fips-Fix-RSAZABI-test-and-enabl.patch
 Patch1016: 1016-FIPS-2024-CHERRY_PICK-Offer-P521-for-signature_algor.patch
+Patch1017: 1017-Add-CTR-DRBG-derivation-function-2863.patch
+Patch1018: 1018-Prepare-FIPS-3.1.0-release-2878.patch
+Patch1019: 1019-Cherry-pick-2024-Offer-P521-for-signature_algorithms.patch
+Patch1020: 1020-1-byte-OOB-read-in-EVP_PKEY_asn1_find_str-length-cal.patch
+Patch1021: 1021-pkcs8-cap-ciphertext-length-before-allocating-in-pkc.patch
+Patch1022: 1022-evp-disable-EVP_PKEY_derive-for-KEM-method.patch
+Patch1023: 1023-reject-zero-sized-digests-in-HKDF-EVP_PKEY.patch
+Patch1024: 1024-Reject-XOF-digests-in-DH_compute_key_hashed.patch
+Patch1025: 1025-Prepare-v3.2.0-3050.patch
+Patch1026: 1026-Use-CRYPTO_memcmp-instead-of-OPENSSL_memcmp-for-tag-.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}glibc
