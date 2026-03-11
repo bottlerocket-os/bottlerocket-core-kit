@@ -2,6 +2,7 @@
 
 %global _cross_first_party 1
 %global policytype fortified
+%global policyvers 32
 
 Name: %{_cross_os}selinux-policy
 Version: 0.0
@@ -50,7 +51,7 @@ cp -p \
 
 %build
 %{_sourcedir}/catgen.sh > category.cil
-secilc --policyvers=31 *.cil
+secilc --policyvers=%{policyvers} *.cil
 
 %install
 poldir="%{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/selinux"
@@ -58,7 +59,7 @@ install -d "${poldir}/%{policytype}/"{contexts/files,policy}
 install -p -m 0644 %{S:100} "${poldir}/config"
 install -p -m 0644 %{S:101} "${poldir}/%{policytype}/contexts"
 install -p -m 0644 file_contexts "${poldir}/%{policytype}/contexts/files"
-install -p -m 0644 policy.31 "${poldir}/%{policytype}/policy"
+install -p -m 0644 policy.%{policyvers} "${poldir}/%{policytype}/policy"
 
 moddir="%{buildroot}%{_cross_factorydir}%{_cross_sharedstatedir}/selinux/%{policytype}/active/modules/100"
 install -d "${moddir}"
@@ -82,7 +83,7 @@ install -p -m 0644 %{S:103} %{buildroot}%{_cross_tmpfilesdir}/selinux-policy.con
 %{_cross_factorydir}%{_cross_sysconfdir}/selinux/config
 %{_cross_factorydir}%{_cross_sysconfdir}/selinux/%{policytype}/contexts/files/file_contexts
 %{_cross_factorydir}%{_cross_sysconfdir}/selinux/%{policytype}/contexts/lxc_contexts
-%{_cross_factorydir}%{_cross_sysconfdir}/selinux/%{policytype}/policy/policy.31
+%{_cross_factorydir}%{_cross_sysconfdir}/selinux/%{policytype}/policy/policy.%{policyvers}
 %{_cross_factorydir}%{_cross_sharedstatedir}/selinux/%{policytype}
 %{_cross_sysconfdir}/selinux
 %{_cross_tmpfilesdir}/selinux-policy.conf
