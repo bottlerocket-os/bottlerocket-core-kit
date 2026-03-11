@@ -82,7 +82,7 @@
 ; The level range is adjusted to span all categories, since privileged
 ; containers won't get an MCS pair assigned.
 (typetransition runtime_t privileged_container_exec_o process control_t)
-(rangetransition runtime_t privileged_container_exec_o process s0-s0)
+(rangetransition runtime_t privileged_container_exec_o process s0-c0-c1023)
 
 ; Some processes should transition to unprivileged containers by default.
 (typetransition runtime_t unprivileged_container_exec_o process container_t)
@@ -91,7 +91,7 @@
 ; If PID 1 is used to invoke a CSI helper directly, it should also
 ; run as a privileged container.
 (typetransition init_t csi_exec_t process control_t)
-(rangetransition init_t csi_exec_t process s0-s0)
+(rangetransition init_t csi_exec_t process s0-c0-c1023)
 (allow init_t control_t (processes (transform)))
 
 ; Allow transitions to container labels for programs invoked by OCI

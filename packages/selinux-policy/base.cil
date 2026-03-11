@@ -9,11 +9,21 @@
 (sensitivityorder (s0))
 (sensitivitycategory s0 (range c0 c1023))
 
+; A "range" of one: one sensitivity, no categories. Used for contexts
+; where categories don't matter.
 (level s0 (s0))
 (levelrange s0 (s0 s0))
 
+; A range from one sensitivity with no categories, through one
+; sensitivity with all categories. Used for statements that need to
+; cover the entire range of possibilities.
 (level s0-s0 (s0 (range c0 c1023)))
 (levelrange s0-s0 (s0 s0-s0))
+
+; A "range" of one: one sensitivity with all categories. Used for
+; contexts where categories matter, and so the same sensitivity with
+; no categories cannot be included in the range.
+(levelrange s0-c0-c1023 (s0-s0 s0-s0))
 
 ; The system_r role is used for processes.
 (role system_r)
