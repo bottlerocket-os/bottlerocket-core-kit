@@ -1,5 +1,5 @@
 Name: %{_cross_os}glibc
-Version: 2.42
+Version: 2.43
 Release: 1%{?dist}
 Epoch: 1
 Summary: The GNU libc libraries
@@ -18,37 +18,21 @@ Source14: tz-utc.txt
 # applied and reverted during the build.
 Source99: HACK-only-build-and-install-localedef.patch
 
-# Upstream patches from 2.42 release branch:
+# Upstream patches from 2.43 release branch:
 # ```
-# git checkout origin/release/2.42/master
-# git format-patch --no-numbered --no-signature glibc-2.42..
+# git checkout origin/release/2.43/master
+# git format-patch --no-numbered --no-signature glibc-2.43..
 # ```
-Patch0001: 0001-Replace-advisories-directory-with-pointer-file.patch
-Patch0002: 0002-NEWS-add-new-section.patch
-Patch0003: 0003-inet-fortified-fix-namespace-violation-bug-33227.patch
-Patch0004: 0004-stdlib-resolve-a-double-lock-init-issue-after-fork-B.patch
-Patch0005: 0005-elf-Extract-rtld_setup_phdr-function-from-dl_main.patch
-Patch0006: 0006-elf-Handle-ld.so-with-LOAD-segment-gaps-in-_dl_find_.patch
-Patch0007: 0007-nptl-Fix-SYSCALL_CANCEL-for-return-values-larger-tha.patch
-Patch0008: 0008-Delete-temporary-files-in-support_subprocess.patch
-Patch0009: 0009-tst-fopen-threaded.c-Delete-temporary-file.patch
-Patch0010: 0010-tst-freopen4-main.c-Call-support_capture_subprocess-.patch
-Patch0011: 0011-tst-env-setuid-Delete-LD_DEBUG_OUTPUT-output.patch
-Patch0012: 0012-Revert-tst-freopen4-main.c-Call-support_capture_subp.patch
-Patch0013: 0013-hurd-support-Fix-running-SGID-tests.patch
-Patch0014: 0014-malloc-Remove-redundant-NULL-check.patch
-Patch0015: 0015-malloc-Fix-MAX_TCACHE_SMALL_SIZE.patch
-Patch0016: 0016-malloc-Make-sure-tcache_key-is-odd-enough.patch
-Patch0017: 0017-malloc-Fix-checking-for-small-negative-values-of-tca.patch
-Patch0018: 0018-Use-TLS-initial-exec-model-for-__libc_tsd_CTYPE_-thr.patch
-Patch0019: 0019-i386-Add-GLIBC_ABI_GNU_TLS-version-BZ-33221.patch
-Patch0020: 0020-x86-64-Add-GLIBC_ABI_GNU2_TLS-version-BZ-33129.patch
-Patch0021: 0021-x86-64-Add-GLIBC_ABI_DT_X86_64_PLT-BZ-33212.patch
-Patch0022: 0022-i386-Also-add-GLIBC_ABI_GNU2_TLS-version-BZ-33129.patch
-Patch0023: 0023-AArch64-Fix-SVE-powf-routine-BZ-33299.patch
-Patch0024: 0024-libio-Define-AT_RENAME_-with-the-same-tokens-as-Linu.patch
-Patch0025: 0025-nss-Group-merge-does-not-react-to-ERANGE-during-merg.patch
-Patch0026: 0026-nptl-Fix-MADV_GUARD_INSTALL-logic-for-thread-without.patch
+Patch0001: 0001-Replace-advisories-directory-with-file-ADVISORIES.patch
+Patch0002: 0002-NEWS-add-new-section-2.43.1.patch
+Patch0003: 0003-Fix-ldbl-128ibm-ceill-floorl-roundl-and-truncl-zero-.patch
+Patch0004: 0004-po-Incorporate-translatins-nl-updated-ar-new.patch
+Patch0005: 0005-Don-t-include-bits-openat2.h-directly-bug-33848.patch
+Patch0006: 0006-nss-Introduce-dedicated-struct-nss_database_for_fork.patch
+Patch0007: 0007-Linux-In-getlogin_r-use-utmp-fallback-only-for-speci.patch
+Patch0008: 0008-nss-Missing-checks-in-__nss_configure_lookup-__nss_d.patch
+Patch0009: 0009-debug-Fix-build-with-enable-fortify-source-1-BZ-3390.patch
+Patch0010: 0010-Add-BZ-33904-entry-to-NEWS.patch
 
 # Fedora patches
 Patch1001: glibc-cs-path.patch
@@ -157,7 +141,7 @@ install -d %{buildroot}%{_cross_datadir}/zoneinfo
 base64 --decode %{S:14} > %{buildroot}%{_cross_datadir}/zoneinfo/UTC
 
 %files
-%license COPYING COPYING.LIB LICENSES
+%license COPYING.LIB COPYINGv2 COPYINGv3 LICENSES
 %{_cross_attribution_file}
 %{_cross_tmpfilesdir}/glibc.conf
 %exclude %{_cross_sysconfdir}/rpc

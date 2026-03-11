@@ -1,7 +1,7 @@
-From bdea6c37197a3c9bd976911cce5f580dea1c28dd Mon Sep 17 00:00:00 2001
+From f02515d8a6963158e0e4be8034b96c658e1b9a32 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Andreas=20K=2E=20H=C3=BCttel?= <dilfridge@gentoo.org>
-Date: Mon, 28 Jul 2025 20:35:38 +0200
-Subject: [PATCH] Replace advisories directory with pointer file
+Date: Fri, 23 Jan 2026 23:59:36 +0100
+Subject: [PATCH] Replace advisories directory with file ADVISORIES
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -27,8 +27,11 @@ Signed-off-by: Andreas K. Hüttel <dilfridge@gentoo.org>
  advisories/GLIBC-SA-2025-0003 | 30 --------------
  advisories/GLIBC-SA-2025-0004 | 29 -------------
  advisories/GLIBC-SA-2025-0005 | 14 -------
+ advisories/GLIBC-SA-2026-0001 | 41 -------------------
+ advisories/GLIBC-SA-2026-0002 | 36 ----------------
+ advisories/GLIBC-SA-2026-0003 | 36 ----------------
  advisories/README             | 77 -----------------------------------
- 20 files changed, 2 insertions(+), 470 deletions(-)
+ 23 files changed, 2 insertions(+), 583 deletions(-)
  create mode 100644 ADVISORIES
  delete mode 100644 advisories/GLIBC-SA-2023-0001
  delete mode 100644 advisories/GLIBC-SA-2023-0002
@@ -48,6 +51,9 @@ Signed-off-by: Andreas K. Hüttel <dilfridge@gentoo.org>
  delete mode 100644 advisories/GLIBC-SA-2025-0003
  delete mode 100644 advisories/GLIBC-SA-2025-0004
  delete mode 100644 advisories/GLIBC-SA-2025-0005
+ delete mode 100644 advisories/GLIBC-SA-2026-0001
+ delete mode 100644 advisories/GLIBC-SA-2026-0002
+ delete mode 100644 advisories/GLIBC-SA-2026-0003
  delete mode 100644 advisories/README
 
 diff --git a/ADVISORIES b/ADVISORIES
@@ -559,6 +565,137 @@ index 8bcccc59a5..0000000000
 -Public-Date: 2025-07-22
 -Vulnerable-Commit: 963d8d782fc98fb6dc3a66f0068795f9920c269d (2.3.3-1596)
 -Fix-Commit: 7ea06e994093fa0bcca0d0ee2c1db271d8d7885d (2.42)
+diff --git a/advisories/GLIBC-SA-2026-0001 b/advisories/GLIBC-SA-2026-0001
+deleted file mode 100644
+index 3e0ee3b3f4..0000000000
+--- a/advisories/GLIBC-SA-2026-0001
++++ /dev/null
+@@ -1,41 +0,0 @@
+-Integer overflow in memalign leads to heap corruption
+-
+-Passing too large an alignment to the memalign suite of functions
+-(memalign, posix_memalign, aligned_alloc) in the GNU C Library version
+-2.30 to 2.42 may result in an integer overflow, which could consequently
+-result in a heap corruption.
+-
+-Note that the attacker must have control over both, the size as well as
+-the alignment arguments of the memalign function to be able to exploit
+-this.  The size parameter must be close enough to PTRDIFF_MAX so as to
+-overflow size_t along with the large alignment argument.  This limits
+-the malicious inputs for the alignment for memalign to the range [1<<62
+-+ 1, 1<<63] and exactly 1<<63 for posix_memalign and aligned_alloc.
+-
+-Typically the alignment argument passed to such functions is a known
+-constrained quantity (e.g. page size, block size, struct sizes) and is
+-not attacker controlled, because of which this may not be easily
+-exploitable in practice.  An application bug could potentially result in
+-the input alignment being too large, e.g. due to a different buffer
+-overflow or integer overflow in the application or its dependent
+-libraries, but that is again an uncommon usage pattern given typical
+-sources of alignments.
+-
+-CVE-Id: CVE-2026-0861
+-Public-Date: 2026-01-14
+-Vulnerable-Commit: 9bf8e29ca136094f73f69f725f15c51facc97206 (2.30)
+-Fix-Commit: c9188d333717d3ceb7e3020011651f424f749f93 (2.43)
+-Fix-Commit: 7f19ef14fbce095d4c77395e258320cad2ea2b28 (2.30-153)
+-Fix-Commit: f18446d7b4a423090ee5e328c36b3c2a0f26041c (2.31-166)
+-Fix-Commit: 8aef9e7a7af9565c0324b4ecb38b30dfa3782fd8 (2.32-151)
+-Fix-Commit: 011293b4fd748cdd6f95874ba2b6aba9a3df8bff (2.33-275)
+-Fix-Commit: 2c77e52108a58956c9f674b36e1f59a4e3fdcf4d (2.34-525)
+-Fix-Commit: 499d1ccafccfe64df1b88deea2fa84d8180e8e8f (2.35-399)
+-Fix-Commit: fb6b8822175769b5794fb6ea04f2895483a29b61 (2.36-244)
+-Fix-Commit: 7b913d41a07836def826f2164c52541a9835f324 (2.37-172)
+-Fix-Commit: 744b63026a29f7eedbbc8e3a01a7f48a6eb0a085 (2.38-212)
+-Fix-Commit: fb22fd3f5b415dd4cd6f7b5741c2f0412374e242 (2.39-286)
+-Fix-Commit: bfc4dd9e526eacf3017dd8864ba0848e9d045dd4 (2.40-216)
+-Fix-Commit: 1e2c1ea4307197ccece0cda574bcfebf9080894c (2.41-121)
+-Fix-Commit: b0ec8fb689df862171f0f78994a3bdeb51313545 (2.42-49)
+-Reported-by: Igor Morgenstern, Aisle Research
+diff --git a/advisories/GLIBC-SA-2026-0002 b/advisories/GLIBC-SA-2026-0002
+deleted file mode 100644
+index f10d8362f6..0000000000
+--- a/advisories/GLIBC-SA-2026-0002
++++ /dev/null
+@@ -1,36 +0,0 @@
+-getnetbyaddr and getnetbyaddr_r leak stack contents to DNS resovler
+-
+-Calling getnetbyaddr or getnetbyaddr_r with a configured nsswitch.conf
+-that specifies the library's DNS backend for networks and queries for a
+-zero-valued network in the GNU C Library version 2.0 to version 2.42
+-can leak stack contents to the configured DNS resolver.
+-
+-A defect in the _nss_dns_getnetbyaddr_r function which implements
+-getnetbyaddr and getnetbyaddr_r in the dns-based network database can
+-pass stack contents unmodified to the configured DNS resolver as part of
+-the network DNS query when the network queried is the default network
+-i.e. net == 0x0.  This stack contents leaking in the query is considered
+-a loss of confidentiality for the host making the query.  Typically it
+-is rare to call these APIs with a net value of zero, and if an attacker
+-can control the net value it can only leak adjacent stack, and so loss
+-of confidentiality is spatially limited.  The leak might be used to
+-accelerate an ASLR bypass by knowing pointer values, but also requires
+-network adjacent access to snoop between the application and the
+-DNS server; making the attack complexity higher.
+-
+-CVE-Id: CVE-2026-0915
+-Public-Date: 2026-01-15
+-Vulnerable-Commit: 5f0e6fc702296840d2daa39f83f6cb1e40073d58 (1.92-1)
+-Fix-Commit: e56ff82d5034ec66c6a78f517af6faa427f65b0b (2.43)
+-Fix-Commit: 453e6b8dbab935257eb0802b0c97bca6b67ba30e (2.42-50)
+-Fix-Commit: 15c9839a0b853f552b4ed9047841b6223f3c104d (2.41-122)
+-Fix-Commit: 329c775788b2c9ff3da774ccf59fba7b6b8ff08e (2.40-217)
+-Fix-Commit: 831f63b94ceb92fb14c0d1a7ddad35a0d1404c71 (2.39-287)
+-Fix-Commit: 49125ffc8e1674dc2a100dfdc5b78796f22e16f2 (2.38-213)
+-Fix-Commit: ddcaed5dfb05b2c1a6ea842fd6b643501365450a (2.37-173)
+-Fix-Commit: a6bf47887f24b2b394acb301a3189fda04bd4d4d (2.36-245)
+-Fix-Commit: 66f0cb057c9b4fb1249a5fec6ef4a63511a37899 (2.35-400)
+-Fix-Commit: 96863dee262225cfb79f9fe45e06fd188319c7b8 (2.34-526)
+-Fix-Commit: d210011f1536c8322157cbb4fe4229b35c834c08 (2.33-276)
+-Fix-Commit: 1bc1832cfc74c2a601220969f36e789a5e9f0ebe (2.32-152)
+-Reported-by: Igor Morgenstern, Aisle Research
+diff --git a/advisories/GLIBC-SA-2026-0003 b/advisories/GLIBC-SA-2026-0003
+deleted file mode 100644
+index b7a6e83a10..0000000000
+--- a/advisories/GLIBC-SA-2026-0003
++++ /dev/null
+@@ -1,36 +0,0 @@
+-wordexp with WRDE_REUSE and WRDE_APPEND may return uninitialized memory
+-
+-Calling wordexp with WRDE_REUSE in conjunction with WRDE_APPEND in the
+-GNU C Library version 2.0 to version 2.42 may cause the interface to
+-return uninitialized memory in the we_wordv member, which on subsequent
+-calls to wordfree may abort the process.
+-
+-The implementation of WRDE_REUSE in conjunction with WRDE_APPEND fails
+-to clear the we_wordc member of the structure, and as such, when new
+-words are added internally, a leading we_wordc count number of entries
+-are skipped since they are assumed initialized.  These skipped entries
+-are not initialized, but are the contents of a realloc-expanded array of
+-pointers.  If the caller inspects the we_wordv array, it will
+-dereference invalid pointers and crash. If the caller calls wordfree,
+-the malloc implementation may detect the invalid pointers and abort the
+-process.  Calls to wordexp using WRDE_REUSE and WRDE_APPEND have never
+-worked correctly and thus the existence of applications that make use of
+-this feature is unlikely.
+-
+-CVE-Id: CVE-2025-15281
+-Public-Date: 2026-01-20
+-Vulnerable-Commit: 8f2ece695d8822e9ecc63ecd157e90bf17a6fe65 (1.93-260)
+-Fix-Commit: 80cc58ea2de214f85b0a1d902a3b668ad2ecb302 (2.43)
+-Fix-Commit: cbf39c26b25801e9bc88499b4fd361ac172d4125 (2.42-51)
+-Fix-Commit: fb4db64a04ad6c96cd1fbb7e02eb59323b1f2ac2 (2.41-123)
+-Fix-Commit: 9fe8576664d43b87ca19401fb6a975e217e47623 (2.40-218)
+-Fix-Commit: ce65d944e38a20cb70af2a48a4b8aa5d8fabe1cc (2.39-288)
+-Fix-Commit: d5409a1be010699794264162c551ba60f05ee6c3 (2.38-214)
+-Fix-Commit: ff2b172803f6bbd897755d2ce83ec4323a1a15b3 (2.37-174)
+-Fix-Commit: e97cfe2293ed097eb3d0b4c18274d22855e65130 (2.36-246)
+-Fix-Commit: bb59339d02faebac534a87eea50c83c948f35b77 (2.35-401)
+-Fix-Commit: 2b656ff94d72f93c84d8da2e7c76456c1994f02e (2.34-527)
+-Fix-Commit: 1d8ed2067a8a5d162a07670d0d063429679f17a0 (2.33-277)
+-Fix-Commit: 3a56c4ee4ea49b8f2391a2d8d6220013c4160a79 (2.32-153)
+-Fix-Commit: 28eb5caf895ced5d895cb02757e109004a2d33e5 (2.31-167)
+-Reported-by: Vitaly Simonovich
 diff --git a/advisories/README b/advisories/README
 deleted file mode 100644
 index b8f8a829ca..0000000000
