@@ -1,5 +1,5 @@
 Name: %{_cross_os}libbpf
-Version: 1.6.2
+Version: 1.6.3
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for BPF
