@@ -119,7 +119,7 @@ actix-web-actors = { version = "4", default-features = false }
 argh = "0.1"
 async-trait = "0.1"
 aws-config = "1"
-aws-lc-rs = "=1.13.0"
+aws-lc-rs = "1"
 aws-sdk-cloudformation = "1"
 aws-sdk-ec2 = "1"
 aws-sdk-eks = "1"
