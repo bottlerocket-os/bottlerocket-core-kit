@@ -1,5 +1,5 @@
 ; Permission groups for files.
-(classmap files (relabel mount relax enter describe load execute mutate block))
+(classmap files (relabel mount relax enter describe load execute mutate block receive ioctl))
 
 ; Permission group for relabeling files.
 (classmapping files relabel relabel_file)
@@ -55,7 +55,6 @@
 (classmapping files load load_sock_file)
 (classmapping files load load_fifo_file)
 (classmapping files load load_filesystem)
-(classmapping files load load_fd)
 (classmapping files load load_anon_inode)
 (classmapping files load load_io_uring)
 
@@ -77,6 +76,19 @@
 (classmapping files block block_sock_file)
 (classmapping files block block_fifo_file)
 (classmapping files block block_anon_inode)
+
+; Permission group for receiving files.
+(classmapping files receive receive_fd)
+
+; Permission group for using ioctl on files.
+(classmapping files ioctl ioctl_file)
+(classmapping files ioctl ioctl_dir)
+(classmapping files ioctl ioctl_lnk_file)
+(classmapping files ioctl ioctl_chr_file)
+(classmapping files ioctl ioctl_blk_file)
+(classmapping files ioctl ioctl_sock_file)
+(classmapping files ioctl ioctl_fifo_file)
+(classmapping files ioctl ioctl_anon_inode)
 
 ; Permission group for mutating files.
 (classmapping files mutate mutate_file)
@@ -213,37 +225,34 @@
 (classpermission load_sock_file)
 (classpermission load_fifo_file)
 (classpermission load_filesystem)
-(classpermission load_fd)
 (classpermission load_anon_inode)
 (classpermission load_io_uring)
 (classpermissionset load_file (
   file (
-    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
+    map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_dir (
   dir (
-    ioctl map open read search watch watch_mount watch_mountns watch_reads watch_sb)))
+    map open read search watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_lnk_file (
   lnk_file (
-    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
+    map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_chr_file (
   chr_file (
-    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
+    map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_blk_file (
   blk_file (
-    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
+    map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_sock_file (
   sock_file (
-    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
+    map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_fifo_file (
   fifo_file (
-    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
+    map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_filesystem (
   filesystem (watch)))
-(classpermissionset load_fd (
-  fd (use)))
 (classpermissionset load_anon_inode (
   anon_inode (
-    execute ioctl map open read
+    execute map open read
     watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_io_uring (
   io_uring (cmd)))
@@ -296,6 +305,37 @@
   fifo_file (watch_with_perm)))
 (classpermissionset block_anon_inode (
   anon_inode (watch_with_perm)))
+
+; Sets of permissions for receiving file objects.
+(classpermission receive_fd)
+(classpermissionset receive_fd (
+  fd (use)))
+
+; Sets of permissions for using ioctl on file objects.
+(classpermission ioctl_file)
+(classpermission ioctl_dir)
+(classpermission ioctl_lnk_file)
+(classpermission ioctl_chr_file)
+(classpermission ioctl_blk_file)
+(classpermission ioctl_sock_file)
+(classpermission ioctl_fifo_file)
+(classpermission ioctl_anon_inode)
+(classpermissionset ioctl_file (
+  file (ioctl)))
+(classpermissionset ioctl_dir (
+  dir (ioctl)))
+(classpermissionset ioctl_lnk_file (
+  lnk_file (ioctl)))
+(classpermissionset ioctl_chr_file (
+  chr_file (ioctl)))
+(classpermissionset ioctl_blk_file (
+  blk_file (ioctl)))
+(classpermissionset ioctl_sock_file (
+  sock_file (ioctl)))
+(classpermissionset ioctl_fifo_file (
+  fifo_file (ioctl)))
+(classpermissionset ioctl_anon_inode (
+  anon_inode (ioctl)))
 
 ; Sets of permissions for mutating file objects, which includes all
 ; actions that are not covered by other policy restrictions.

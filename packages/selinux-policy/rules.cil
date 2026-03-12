@@ -140,14 +140,14 @@
 ; The socket for the API server gets the "api_socket_t" label.
 (typetransition api_t any_t sock_file "api.sock" api_socket_t)
 
-; All subjects can describe anything.
-(allow all_s global (files (describe)))
+; All subjects can describe anything and receive any file descriptors.
+(allow all_s global (files (describe receive)))
 
-; All subjects can read from anything that's public.
-(allow all_s public (files (load)))
+; All subjects can read from and use ioctls on anything that's public.
+(allow all_s public (files (load ioctl)))
 
 ; Privileged subjects can read from anything at all.
-(allow privileged_s global (files (load)))
+(allow privileged_s global (files (load ioctl)))
 
 ; Unprivileged subjects cannot read or execute restricted objects.
 (neverallow unprivileged_s read_restricted_o (files (load execute)))
