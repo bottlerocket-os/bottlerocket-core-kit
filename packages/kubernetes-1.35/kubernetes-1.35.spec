@@ -55,6 +55,7 @@ Source13: etc-kubernetes-pki-private.mount
 Source14: credential-provider-config-yaml
 Source15: logdog.kubelet.conf
 Source16: multi-user-uphold-kubelet.conf
+Source17: kubelet-env-nvidia
 
 # ExecStartPre drop-ins
 Source20: prestart-load-pause-ctr.conf
@@ -158,6 +159,7 @@ install -p -m 0644 %{S:20} %{S:21} %{S:22} %{buildroot}%{_cross_unitdir}/kubelet
 
 mkdir -p %{buildroot}%{_cross_templatedir}
 install -m 0644 %{S:2} %{buildroot}%{_cross_templatedir}/kubelet-env
+install -m 0644 %{S:17} %{buildroot}%{_cross_templatedir}/kubelet-env-nvidia
 install -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/kubelet-config
 install -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/kubelet-kubeconfig
 install -m 0644 %{S:5} %{buildroot}%{_cross_templatedir}/kubernetes-ca-crt
@@ -202,6 +204,7 @@ install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-containe
 %{_cross_unitdir}/multi-user.target.d/10-kubelet-service.conf
 %dir %{_cross_templatedir}
 %{_cross_templatedir}/kubelet-env
+%{_cross_templatedir}/kubelet-env-nvidia
 %{_cross_templatedir}/kubelet-config
 %{_cross_templatedir}/pod-infra-container-image
 %{_cross_templatedir}/kubelet-kubeconfig
