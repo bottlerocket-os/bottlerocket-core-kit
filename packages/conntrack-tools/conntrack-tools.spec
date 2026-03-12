@@ -1,5 +1,5 @@
 Name: %{_cross_os}conntrack-tools
-Version: 1.4.8
+Version: 1.4.9
 Release: 1%{?dist}
 Epoch: 1
 Summary: Tools for managing Linux kernel connection tracking
@@ -8,7 +8,7 @@ License: GPL-2.0-or-later AND GPL-2.0-only
 URL: http://conntrack-tools.netfilter.org/
 Source0: https://www.netfilter.org/projects/conntrack-tools/files/conntrack-tools-%{version}.tar.xz
 Source1: https://www.netfilter.org/projects/conntrack-tools/files/conntrack-tools-%{version}.tar.xz.sig
-Source2: gpgkey-37D964ACC04981C75500FB9BD55D978A8A1420E4.asc
+Source2: gpgkey-8C5F7146A1757A65E2422A94D70D1A666ACF2B21.asc
 Patch1: 0001-disable-RPC-helper.patch
 
 BuildRequires: %{_cross_os}glibc-devel
