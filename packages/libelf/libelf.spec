@@ -8,6 +8,7 @@ URL: https://sourceware.org/elfutils/
 Source0: https://sourceware.org/elfutils/ftp/%{version}/elfutils-%{version}.tar.bz2
 Source1: https://sourceware.org/elfutils/ftp/%{version}/elfutils-%{version}.tar.bz2.sig
 Source2: gpgkey-6C2B631563B8D330578D3CB474FD3FA2779E7073.asc
+Patch0001: 0001-fix-const-correctness-for-C23-compatibility-as-implemented-in-glibc-2.43.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libz-devel
