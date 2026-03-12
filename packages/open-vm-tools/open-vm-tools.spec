@@ -1,7 +1,7 @@
-%global buildver 24915695
+%global buildver 25056151
 
 Name: %{_cross_os}open-vm-tools
-Version: 13.0.5
+Version: 13.0.10
 Release: 1%{?dist}
 Summary: Tools for VMware
 License: LGPL-2.1-or-later
@@ -13,6 +13,8 @@ Source3: open-vm-tools-tmpfiles.conf
 Patch0001: 0001-no_cflags_werror.patch
 Patch0002: 0002-dont-force-cppflags.patch
 Patch0003: 0003-Update-shutdown-code-to-work-for-Bottlerocket.patch
+Patch0004: 0004-fix-initialization-discards-const-qualifier-from-poi.patch
+Patch0005: 0005-glib_stubs-avoid-GLib-g_free-macro-redefinition-erro.patch
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libglib-devel
 BuildRequires: %{_cross_os}libtirpc-devel
