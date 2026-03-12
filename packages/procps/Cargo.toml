@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://gitlab.com/procps-ng/procps/-/tags"
 
 [[package.metadata.build-package.external-files]]
-url = "https://gitlab.com/procps-ng/procps/-/archive/v4.0.5/procps-v4.0.5.tar.gz"
-sha512 = "7c2ebb62d1babb74a7c5a69c5955ab596c491a9505b83df0cf7efa451953dc614658da490df14e2a8e813b8302b24254d2f8f6f6750c937fade7cbe2eef72b6d"
+url = "https://gitlab.com/procps-ng/procps/-/archive/v4.0.6/procps-v4.0.6.tar.gz"
+sha512 = "7fcb6c20a01c511255dfa2d5ad80a365a47cfdc6823487afe39a04b05dc49506b2c297e3feffccd52bd630734c6b433c59495477dd6c973235a58e280f0cda54"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
