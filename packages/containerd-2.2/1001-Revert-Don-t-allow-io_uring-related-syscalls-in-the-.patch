@@ -1,0 +1,72 @@
+From f6f4f959862cad73cc44d07b088f449ae6c69066 Mon Sep 17 00:00:00 2001
+From: Henry Wang <henwang@amazon.com>
+Date: Thu, 10 Apr 2025 20:50:50 +0000
+Subject: [PATCH] Revert "Don't allow io_uring related syscalls in the
+ RuntimeDefault seccomp profile."
+
+This reverts commit a48ddf4a208b24eadea82f0eac62e236f2acf004.
+---
+ contrib/seccomp/seccomp_default.go      |  3 +++
+ contrib/seccomp/seccomp_default_test.go | 36 -------------------------
+ 2 files changed, 3 insertions(+), 36 deletions(-)
+ delete mode 100644 contrib/seccomp/seccomp_default_test.go
+
+diff --git a/contrib/seccomp/seccomp_default.go b/contrib/seccomp/seccomp_default.go
+index 55d673fcb..1135f2391 100644
+--- a/contrib/seccomp/seccomp_default.go
++++ b/contrib/seccomp/seccomp_default.go
+@@ -188,6 +188,9 @@ func DefaultProfile(sp *specs.Spec) *specs.LinuxSeccomp {
+ 				"ioprio_set",
+ 				"io_setup",
+ 				"io_submit",
++				"io_uring_enter",
++				"io_uring_register",
++				"io_uring_setup",
+ 				"ipc",
+ 				"kill",
+ 				"landlock_add_rule",
+diff --git a/contrib/seccomp/seccomp_default_test.go b/contrib/seccomp/seccomp_default_test.go
+deleted file mode 100644
+index 53e386809..000000000
+--- a/contrib/seccomp/seccomp_default_test.go
++++ /dev/null
+@@ -1,36 +0,0 @@
+-package seccomp
+-
+-import (
+-	"testing"
+-
+-	"github.com/opencontainers/runtime-spec/specs-go"
+-)
+-
+-func TestIOUringIsNotAllowed(t *testing.T) {
+-
+-	disallowed := map[string]bool{
+-		"io_uring_enter":    true,
+-		"io_uring_register": true,
+-		"io_uring_setup":    true,
+-	}
+-
+-	got := DefaultProfile(&specs.Spec{
+-		Process: &specs.Process{
+-			Capabilities: &specs.LinuxCapabilities{
+-				Bounding: []string{},
+-			},
+-		},
+-	})
+-
+-	for _, config := range got.Syscalls {
+-		if config.Action != specs.ActAllow {
+-			continue
+-		}
+-
+-		for _, name := range config.Names {
+-			if disallowed[name] {
+-				t.Errorf("found disallowed io_uring related syscalls")
+-			}
+-		}
+-	}
+-}
+-- 
+2.45.0
+

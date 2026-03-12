@@ -1,0 +1,34 @@
++++
+version = 3
+root = "/var/lib/containerd"
+state = "/run/containerd"
+disabled_plugins = [
+    "io.containerd.internal.v1.opt",
+    "io.containerd.internal.v1.tracing",
+    "io.containerd.snapshotter.v1.blockfile",
+    "io.containerd.snapshotter.v1.devmapper",
+    "io.containerd.snapshotter.v1.native",
+    "io.containerd.snapshotter.v1.zfs",
+    "io.containerd.grpc.v1.cri",
+    "io.containerd.tracing.processor.v1.otlp",
+]
+
+imports = ["/etc/containerd/config.d/*.toml"]
+
+[grpc]
+address = "/run/containerd/containerd.sock"
+
+[plugins."io.containerd.transfer.v1.local"]
+max_concurrent_downloads = 10
+concurrent_layer_fetch_buffer = 0
+
+[[plugins."io.containerd.transfer.v1.local".unpack_config]]
+snapshotter = "overlayfs"
+differ = "walking"
+{{#if (eq os.arch "aarch64")}}
+platform = "linux/arm64"
+{{else}}
+{{#if (eq os.arch "x86_64")}}
+platform = "linux/amd64"
+{{/if}}
+{{/if}}
