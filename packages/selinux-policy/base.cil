@@ -59,6 +59,12 @@
 ; the target, then the result may not have the expected categories.
 (defaultrange files glblub)
 
+; For pipes, take the context from the source instead, to match the
+; common case where pipes to child processes should have the same
+; level as the parent process.
+(defaultrole fifo_file source)
+(defaulttype fifo_file source)
+
 ; Enable policy to use consolidated network peer controls. This
 ; avoids a function call to the compatibility mode helper, and
 ; will be faster when no network labeling rules are defined.

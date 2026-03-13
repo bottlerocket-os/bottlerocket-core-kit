@@ -26,6 +26,20 @@
 ; Unprivileged components cannot interact with privileged processes.
 (neverallow unprivileged_s privileged_s (processes (interact)))
 
+; If a process creates a FIFO in a directory, rather than a pipe in
+; pipefs, it should use the role and type from that target.
+(roletransition system_r all_o fifo_file object_r)
+; ... most ephemeral directories
+(typetransition all_s any_t fifo_file any_t)
+; ... persistent, shared host directories
+(typetransition all_s local_t fifo_file local_t)
+; ... persistent, read-restricted host directories
+(typetransition all_s secret_t fifo_file secret_t)
+; ... persistent, write-restricted host directories
+(typetransition all_s state_t fifo_file state_t)
+; ... container root filesystems
+(typetransition all_s data_t fifo_file data_t)
+
 ; PID 1 starts as "kernel_t" and becomes "init_t".
 (typetransition kernel_t init_exec_t process init_t)
 (allow kernel_t init_t (processes (transform)))
