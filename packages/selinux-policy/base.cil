@@ -38,12 +38,26 @@
 (userlevel system_u s0-s0)
 (userrange system_u s0-s0)
 
-; Take the context from the target file rather than the source
-; process when computing the level for new file objects. We can
-; expect the directory where files are created to have the right
-; range of categories applied, but the process creating the file
-; may be privileged and have the full range or no range at all.
-(defaultrange files target low-high)
+; Take the intersection of the source and target ranges when
+; computing the level for new file objects, using the "glblub"
+; algorithm.
+;
+; Most directories have s0 as the level, except for those used
+; for container root filesystems, which have s0:cX,cY - a pair
+; of categories unique to that container.
+;
+; Most system processes have s0 as the level, while container
+; processes have either s0:cX,cY or s0:c0.c1023 - either a pair
+; of categories for unprivileged containers, or all categories
+; for privileged containers.
+;
+; The advantage of "glblub" is that it produces the correct result
+; if the target has more categories, where "target low_high" would
+; simply take the target's range.
+;
+; The disadvantage is that if the source has fewer categories than
+; the target, then the result may not have the expected categories.
+(defaultrange files glblub)
 
 ; Enable policy to use consolidated network peer controls. This
 ; avoids a function call to the compatibility mode helper, and
