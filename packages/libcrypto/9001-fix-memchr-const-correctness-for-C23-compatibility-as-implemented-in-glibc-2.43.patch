@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: KCSesh <kssessio@amazon.com>
+Date: Mon, 9 Mar 2026 18:30:00 +0000
+Subject: [PATCH] fix memchr const-correctness for C23 compatibility as
+ implemented in glibc 2.43
+
+glibc 2.43 implements C23 type-generic memchr, which returns
+const void * when given const void * input. This exposes a
+type mismatch in the C version of OPENSSL_memchr, which takes
+const void * but is declared to return void *.
+
+Signed-off-by: KCSesh <kssessio@amazon.com>
+---
+ crypto/internal.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/crypto/internal.h b/crypto/internal.h
+index 891da29..1f4c3b9 100644
+--- a/crypto/internal.h
++++ b/crypto/internal.h
+@@ -918,7 +918,7 @@ static inline void *OPENSSL_memchr(const void *s, int c, size_t n) {
+     return NULL;
+   }
+
+-  return memchr(s, c, n);
++  return (void *)memchr(s, c, n);
+ }
+
+ #endif  // __cplusplus
+

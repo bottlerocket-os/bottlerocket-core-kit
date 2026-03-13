@@ -42,6 +42,7 @@ Patch1023: 1023-reject-zero-sized-digests-in-HKDF-EVP_PKEY.patch
 Patch1024: 1024-Reject-XOF-digests-in-DH_compute_key_hashed.patch
 Patch1025: 1025-Prepare-v3.2.0-3050.patch
 Patch1026: 1026-Use-CRYPTO_memcmp-instead-of-OPENSSL_memcmp-for-tag-.patch
+Patch9001: 9001-fix-memchr-const-correctness-for-C23-compatibility-as-implemented-in-glibc-2.43.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}glibc
