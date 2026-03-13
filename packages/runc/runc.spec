@@ -1,8 +1,8 @@
 %global goproject github.com/opencontainers
 %global gorepo runc
 %global goimport %{goproject}/%{gorepo}
-%global commit eeb7e6024f9ee43876301b1d23c353384fa6dcdd
-%global gover 1.2.8
+%global commit d6d73eb8c60246978da649ffe75ce5c8bca8f856
+%global gover 1.3.4
 
 %global _dwz_low_mem_die_limit 0
 
@@ -20,7 +20,6 @@ Source2: gpgkey-B64E4955B29FA3D463F2A9062897FAD2B7E9446F.asc
 # Kir Kolyshkin
 Source3: gpgkey-C2428CD75720FACDCF76B6EA17DE5ECB75A1100E.asc
 
-Patch1001: 1001-rootfs-only-set-mode-for-tmpfs-mount.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
