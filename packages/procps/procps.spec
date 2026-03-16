@@ -1,16 +1,12 @@
 Name: %{_cross_os}procps
-Version: 4.0.5
+Version: 4.0.6
 Release: 1%{?dist}
 Summary: A set of process monitoring tools
 License: GPL-2.0-or-later AND LGPL-2.1-or-later
 URL: https://gitlab.com/procps-ng/procps
 Source0: https://gitlab.com/procps-ng/procps/-/archive/v%{version}/procps-v%{version}.tar.gz
 
-# Upstream patch to fix warning about format truncation.
-Patch0001: 0001-library-internal-expand-buffer-for-stat_fd.patch
-
-# Local patch to fix warning about implicit definition of pidfd_open.
-Patch1001: 1001-check-for-sys-pidfd.h.patch
+Patch1001: 1001-fix-const-correctness-for-C23-compatibility-as-implemented-in-glibc-2.43.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libselinux-devel

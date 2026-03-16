@@ -474,6 +474,11 @@ sed -i 's/-Wp,-D_FORTIFY_SOURCE=2//g' \
   %_cross_cmake_toolchain_conf \
   %_cross_cmake_toolchain_conf_static
 
+# Suppress glibc 2.43 const-qualifier errors in vendored aws-lc (must be in _RELEASE to override -Werror).
+sed -i 's/set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG")/set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -Wno-error=discarded-qualifiers")/' \
+  %_cross_cmake_toolchain_conf \
+  %_cross_cmake_toolchain_conf_static
+
 %build
 mkdir bin
 

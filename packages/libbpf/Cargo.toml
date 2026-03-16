@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/libbpf/libbpf/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/libbpf/libbpf/archive/refs/tags/v1.6.2.tar.gz"
-sha512 = "aa7511771858f2a58b283edb94595c986d1e9f25e1d8a439484e2ded85b75f87426d417aa7dd162d680f23f416abcfb195902cc13e48e444b99b6a24a179a9b6"
+url = "https://github.com/libbpf/libbpf/archive/refs/tags/v1.6.3.tar.gz"
+sha512 = "e7b1e42c21de0fc17e768e076314951bc305391985b64388bebf4c7049868cc430fb0f17dde7bb64aacd84762f6bf4d6da3bcc7ce98581e033791ace90676cc1"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

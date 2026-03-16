@@ -1,0 +1,396 @@
+From da5f97554ea6c8aaccbc682842695215ff2583f8 Mon Sep 17 00:00:00 2001
+From: KCSesh <kssessio@amazon.com>
+Date: Tue, 10 Mar 2026 05:49:10 +0000
+Subject: [PATCH] fix const-correctness for C23 compatibility as implemented
+ in glibc 2.43
+
+glibc 2.43 implements C23 type-generic functions (strchr, strstr, memchr,
+strrchr, bsearch) that return const-qualified pointers when given
+const-qualified input. Add const qualifiers to all affected call sites.
+---
+ library/devname.c  |  4 ++--
+ library/meminfo.c  |  4 ++--
+ library/readproc.c | 20 ++++++++++----------
+ library/stat.c     |  3 ++-
+ library/vmstat.c   |  4 ++--
+ src/pgrep.c        |  2 +-
+ src/pmap.c         | 12 ++++++------
+ src/ps/display.c   |  2 +-
+ src/ps/global.c    |  2 +-
+ src/ps/parser.c    |  2 +-
+ src/sysctl.c       |  4 ++--
+ src/top/top.c      | 30 +++++++++++++++++-------------
+ 12 files changed, 47 insertions(+), 42 deletions(-)
+
+diff --git a/library/devname.c b/library/devname.c
+index 6a23653..330de6f 100644
+--- a/library/devname.c
++++ b/library/devname.c
+@@ -73,7 +73,7 @@ static void load_drivers(void){
+   if(bytes == -1) goto fail;
+   buf[bytes] = '\0';
+   p = buf;
+-  while(( p = strstr(p, " /dev/") )){  // " /dev/" is the second column
++  while(( p = (char *)strstr(p, " /dev/") )){  // " /dev/" is the second column
+     tty_map_node *tmn;
+     size_t len;
+     char *end;
+@@ -315,7 +315,7 @@ static int ctty_name(char *restrict const buf, int pid) {
+       return 0;
+     }
+   fclose (fp);
+-  lf = strchr (buf, '\n');
++  lf = (char *)strchr (buf, '\n');
+   if (lf)
+     *lf = (lf == buf ? '?' : '\0');
+   return 1;
+diff --git a/library/meminfo.c b/library/meminfo.c
+index 59d0e0b..4f3ecab 100644
+--- a/library/meminfo.c
++++ b/library/meminfo.c
+@@ -707,7 +707,7 @@ static int meminfo_read_failed (
+         static __thread ENTRY e;  // keep coverity off our backs (e.data)
+         ENTRY *ep;
+
+-        if (!(tail = strchr(head, ':')))
++        if (!(tail = (char *)strchr(head, ':')))
+             break;
+         *tail = '\0';
+         valptr = NULL;
+@@ -719,7 +719,7 @@ static int meminfo_read_failed (
+         if (valptr)
+             *valptr = strtoul(head, NULL, 10);
+
+-        if (!(tail = strchr(head, '\n')))
++        if (!(tail = (char *)strchr(head, '\n')))
+             break;
+         head = tail + 1;
+     }
+diff --git a/library/readproc.c b/library/readproc.c
+index a7f7905..ffc3d20 100644
+--- a/library/readproc.c
++++ b/library/readproc.c
+@@ -277,7 +277,7 @@ ENTER(0x220);
+         status_table_struct entry;
+
+         // advance to next line
+-        S = strchr(S, '\n');
++        S = (char *)strchr(S, '\n');
+         if(!S) break;            // if no newline
+         S++;
+
+@@ -608,7 +608,7 @@ ENTER(0x160);
+     P->sched = -1;
+     P->nlwp = 0;
+
+-    S = strchr(S, '(');
++    S = (char *)strchr(S, '(');
+     if (!S) return 0;
+     S++;
+     tmp = strrchr(S, ')');
+@@ -1040,9 +1040,9 @@ char *lxc_containers (struct utlbuf_s *ub) {
+         const char *delim;
+         char *p1;
+
+-        if ((p1 = strstr(ub->buf, (delim = lxc_delm1)))
+-        || ((p1 = strstr(ub->buf, (delim = lxc_delm2)))
+-        || ((p1 = strstr(ub->buf, (delim = lxc_delm3)))))) {
++        if ((p1 = (char *)strstr(ub->buf, (delim = lxc_delm1)))
++        || ((p1 = (char *)strstr(ub->buf, (delim = lxc_delm2)))
++        || ((p1 = (char *)strstr(ub->buf, (delim = lxc_delm3)))))) {
+             int delim_len = strlen(delim);
+             char *p2;
+
+@@ -1050,9 +1050,9 @@ char *lxc_containers (struct utlbuf_s *ub) {
+                 *p2 = '\0';
+             do {                               // deal with nested containers
+                 p2 = p1 + delim_len;
+-                p1 = strstr(p2, delim);
++                p1 = (char *)strstr(p2, delim);
+             } while (p1);
+-            if ((p1 = strchr(p2, '/')))        // isolate name only substring
++            if ((p1 = (char *)strchr(p2, '/')))        // isolate name only substring
+                 *p1 = '\0';
+             while (ele) {                      // have we already seen a name
+                 if (!strcmp(ele->name, p2))
+@@ -1109,8 +1109,8 @@ struct docker_ids *docker_containers (struct utlbuf_s *ub) {
+         const char *delim;
+         char *p1;
+
+-        if ((p1 = strstr(ub->buf, (delim = docker_delm1)))
+-        || ((p1 = strstr(ub->buf, (delim = docker_delm2))))) {
++        if ((p1 = (char *)strstr(ub->buf, (delim = docker_delm1)))
++        || ((p1 = (char *)strstr(ub->buf, (delim = docker_delm2))))) {
+             int delim_len = strlen(delim);
+             char *p2;
+
+@@ -1579,7 +1579,7 @@ static int listed_nextpid (PROCTAB *PT, proc_t *p) {
+        (plus we need not parse the whole thing like status2proc)! | */
+
+     if (file2str(PT->pidfd, "status", &ub) != -1) {
+-      char *str = strstr(ub.buf, "Tgid:");
++      const char *str = strstr(ub.buf, "Tgid:");
+       if (str)
+         p->tgid = atoi(str + 5);   // this tgid is the proper one |
+     }
+diff --git a/library/stat.c b/library/stat.c
+index 1f76ef3..bf7056c 100644
+--- a/library/stat.c
++++ b/library/stat.c
+@@ -754,7 +754,8 @@ static int stat_read_failed (
+         struct stat_info *info)
+ {
+     struct hist_tic *sum_ptr, *cpu_ptr;
+-    char *bp, *b;
++    char *bp;
++    const char *b;
+     int i, rc, num, tot_read;
+     unsigned long long llnum;
+     int refresh_cores = 0;
+diff --git a/library/vmstat.c b/library/vmstat.c
+index 905bf3d..2305b0e 100644
+--- a/library/vmstat.c
++++ b/library/vmstat.c
+@@ -1208,7 +1208,7 @@ static int vmstat_read_failed (
+         static __thread ENTRY e;  // keep coverity off our backs (e.data)
+         ENTRY *ep;
+
+-        if (!(tail = strchr(head, ' ')))
++        if (!(tail = (char *)strchr(head, ' ')))
+             break;
+         *tail = '\0';
+         valptr = NULL;
+@@ -1220,7 +1220,7 @@ static int vmstat_read_failed (
+         if (valptr)
+             *valptr = strtoul(head, NULL, 10);
+
+-        if (!(tail = strchr(head, '\n')))
++        if (!(tail = (char *)strchr(head, '\n')))
+             break;
+         head = tail + 1;
+     }
+diff --git a/src/pgrep.c b/src/pgrep.c
+index a82d9c9..9a01e8b 100644
+--- a/src/pgrep.c
++++ b/src/pgrep.c
+@@ -286,7 +286,7 @@ static struct el *split_list (const char *restrict str, int (*convert)(const cha
+             /* add 1 because slot zero is a count */
+             list = xrealloc (list, (1 + size) * sizeof *list);
+         }
+-        sep_pos = strchr (ptr, ',');
++        sep_pos = (char *)strchr (ptr, ',');
+         if (sep_pos)
+             *sep_pos = 0;
+         /* Use ++i instead of i++ because slot zero is a count */
+diff --git a/src/pmap.c b/src/pmap.c
+index b824284..6cdf47f 100644
+--- a/src/pmap.c
++++ b/src/pmap.c
+@@ -191,7 +191,7 @@ static void discover_shm_minor(void)
+ 		if (sscanf(mapbuf_b, "%lx-%lx %31s %llx %x:%x %llu", &start,
+ 		       &end, perms, &file_offset, &dev_major, &dev_minor, &inode) < 6)
+             continue;
+-		tmp = strchr(mapbuf_b, '\n');
++		tmp = (char *)strchr(mapbuf_b, '\n');
+ 		if (tmp)
+ 			*tmp = '\0';
+ 		tmp = mapbuf_b;
+@@ -241,7 +241,7 @@ static const char *mapping_name(struct pids_stack *p, unsigned long addr,
+ 		return shmbuf;
+ 	}
+
+-	cp = strrchr(mapbuf_b, '/');
++	cp = (char *)strrchr(mapbuf_b, '/');
+ 	if (cp) {
+ 		if (showpath)
+ 			return strchr(mapbuf_b, '/');
+@@ -249,8 +249,8 @@ static const char *mapping_name(struct pids_stack *p, unsigned long addr,
+ 	}
+
+ 	if (use_kname
+-	    && (cp = strrchr(mapbuf_b, ']')) && cp[1] == '\0'
+-	    && (cp = strchr(mapbuf_b, '[')))
++	    && (cp = (char *)strrchr(mapbuf_b, ']')) && cp[1] == '\0'
++	    && (cp = (char *)strchr(mapbuf_b, '[')))
+ 		return cp;
+
+ 	cp = _("  [ anon ]");
+@@ -670,7 +670,7 @@ static int one_proc (struct pids_stack *p, unsigned use_kname)
+ 		if (range_high < start_To_Avoid_Warning)
+ 			break;
+
+-		tmp = strchr(mapbuf, '\n');
++		tmp = (char *)strchr(mapbuf, '\n');
+ 		if (tmp)
+ 			*tmp = '\0';
+ 		tmp = mapbuf;
+@@ -787,7 +787,7 @@ static void range_arguments(const char *optarg)
+               (optarg?optarg:"(null)"));
+     }
+ 	arg1 = buf;
+-	arg2 = strchr(arg1, ',');
++	arg2 = (char *)strchr(arg1, ',');
+ 	if (arg2)
+ 		*arg2++ = '\0';
+ 	else
+diff --git a/src/ps/display.c b/src/ps/display.c
+index 5edd73d..0219ee9 100644
+--- a/src/ps/display.c
++++ b/src/ps/display.c
+@@ -646,7 +646,7 @@ static void finalize_stacks (void)
+ /***** no comment */
+ int main(int argc, char *argv[]){
+   atexit(close_stdout);
+-  myname = strrchr(*argv, '/');
++  myname = (char *)strrchr(*argv, '/');
+   if (myname) ++myname; else myname = *argv;
+   Hertz = procps_hertz_get();
+
+diff --git a/src/ps/global.c b/src/ps/global.c
+index 0e47c49..b4734e3 100644
+--- a/src/ps/global.c
++++ b/src/ps/global.c
+@@ -312,7 +312,7 @@ static const char *set_personality(void){
+   size_t sl;
+   char buf[16];
+   personality_table_struct findme = { buf, NULL};
+-  personality_table_struct *found;
++  const personality_table_struct *found;
+   static const personality_table_struct personality_table[] = {
+   {"390",      &&case_390},
+   {"aix",      &&case_aix},
+diff --git a/src/ps/parser.c b/src/ps/parser.c
+index caa46fe..174ba67 100644
+--- a/src/ps/parser.c
++++ b/src/ps/parser.c
+@@ -813,7 +813,7 @@ static const char *parse_gnu_option(void){
+   size_t sl;
+   char buf[16];
+   gnu_table_struct findme = { buf, NULL};
+-  gnu_table_struct *found;
++  const gnu_table_struct *found;
+   static const gnu_table_struct gnu_table[] = {
+   {"Group",         &&case_Group},       /* rgid */
+   {"User",          &&case_User},        /* ruid */
+diff --git a/src/sysctl.c b/src/sysctl.c
+index d04d5e3..ecbfcd0 100644
+--- a/src/sysctl.c
++++ b/src/sysctl.c
+@@ -434,7 +434,7 @@ static int ReadSetting(const char *restrict const name)
+ 						putchar('\n');
+ 				} else {
+ 					if (!PrintNewline) {
+-						nlptr = strchr(iobuf, '\n');
++						nlptr = (char *)strchr(iobuf, '\n');
+ 						if (nlptr)
+ 							*nlptr = '\0';
+ 					}
+@@ -681,7 +681,7 @@ static SysctlSetting *parse_setting_line(
+     if (pattern && !pattern_match(key, pattern))
+         return NULL;
+
+-    value = strchr(key, '=');
++    value = (char *)strchr(key, '=');
+     if (value == NULL) {
+         if (key[0] == '-') {
+             glob_exclude = TRUE;
+diff --git a/src/top/top.c b/src/top/top.c
+index b29f7c8..e897442 100644
+--- a/src/top/top.c
++++ b/src/top/top.c
+@@ -1026,7 +1026,8 @@ static void show_special (int interact, const char *glob) {
+      ( this function is called only with a glob under top's )
+      ( control and never containing any 'raw/binary' chars! ) */
+    char tmp[LRGBUFSIZ], lin[LRGBUFSIZ], row[ROWMINSIZ];
+-   char *rp, *lin_end, *sub_beg, *sub_end;
++   char *rp, *sub_beg, *sub_end;
++   const char *lin_end;
+    int room;
+
+    // handle multiple lines passed in a bunch
+@@ -1203,11 +1204,12 @@ static int iokey (int action) {
+    };
+    static char erase[2];
+ #ifdef TERMIOS_ONLY
+-   char buf[SMLBUFSIZ], *pb;
++   char buf[SMLBUFSIZ];
++   const char *pb;
+ #else
+    static char buf[MEDBUFSIZ];
+    static int pos, len;
+-   char *pb;
++   const char *pb;
+ #endif
+    int i;
+
+@@ -3700,7 +3702,7 @@ static void before (char *me) {
+    atexit(close_stdout);
+
+    // setup our program name
+-   Myname = strrchr(me, '/');
++   Myname = (char *)strrchr(me, '/');
+    if (Myname) ++Myname; else Myname = me;
+
+    // accommodate nls/gettext potential translations
+@@ -3853,8 +3855,8 @@ static int cfg_xform (WIN_t *q, char *flds, const char *defs) {
+          of a particular qwerty key.  for the 2 additional suse out-of-memory
+          fields it makes perfect sense to do the exact opposite, doesn't it?
+          in any case, we must turn them 'off' temporarily ... */
+-      if ((p1 = strchr(flds, '[')))  *p1 = '{';
+-      if ((p2 = strchr(flds, '\\'))) *p2 = '|';
++      if ((p1 = (char *)strchr(flds, '[')))  *p1 = '{';
++      if ((p2 = (char *)strchr(flds, '\\'))) *p2 = '|';
+       for (i = 0; i < f; i++) {
+          c = flds[i];
+          x = tolower(c) - 'a';
+@@ -3872,8 +3874,8 @@ static int cfg_xform (WIN_t *q, char *flds, const char *defs) {
+       x = q->rc.sortindx;
+       c = null_flds[x];
+       q->rc.sortindx = 0;
+-      if ((p1 = memchr(flds, c, CVT_FLDMAX))
+-      || ((p1 = memchr(flds, toupper(c), CVT_FLDMAX)))) {
++      if ((p1 = (char *)memchr(flds, c, CVT_FLDMAX))
++      || ((p1 = (char *)memchr(flds, toupper(c), CVT_FLDMAX)))) {
+          x = p1 - flds;
+          q->rc.sortindx = (fields_dst[x] & 0x7f) - FLD_OFFSET;
+       }
+@@ -4011,8 +4013,8 @@ static void config_osel (FILE *fp, char *buf, size_t size) {
+       for (i = 0; i < tot; i++) {
+          if (!fgets(buf, size, fp)) return;
+          if (1 > sscanf(buf, Osel_filterI_fmt, &ch)) goto end_oops;
+-         if ((p = strchr(buf, '\n'))) *p = '\0';
+-         if (!(p = strstr(buf, OSEL_FILTER))) goto end_oops;
++         if ((p = (char *)strchr(buf, '\n'))) *p = '\0';
++         if (!(p = (char *)strstr(buf, OSEL_FILTER))) goto end_oops;
+          p += sizeof(OSEL_FILTER) - 1;
+          if (osel_add(&Winstk[wno], ch, p, 0)) goto end_oops;
+       }
+@@ -4046,7 +4048,8 @@ static int config_wins (FILE *fp, int wix) {
+       { mkITEM(headclr) },      { mkITEM(taskclr) },    { mkITEM(task_xy) },
+       { mkITEM(core_types) },   { mkITEM(cores_vs_cpus) }
+    };
+-   char buf2[MEDBUFSIZ], *p;
++   char buf2[MEDBUFSIZ];
++   const char *p;
+ #endif
+    static const char *def_flds[] = { DEF_FORMER, JOB_FORMER, MEM_FORMER, USR_FORMER };
+    char buf[MEDBUFSIZ];
+@@ -4493,7 +4496,7 @@ static void parse_args (int argc, char **argv) {
+             Curwin->rc.sortindx = i;
+             continue;
+          case 'p':
+-         {  int pid; char *p;
++         {  int pid; const char *p;
+             if (Curwin->usrseltyp) error_exit(N_txt(SELECT_clash_txt));
+             do {
+                if (Monpidsidx >= MONPIDMAX)
+@@ -5248,7 +5251,8 @@ static void bot_do (const char *str, int focus) {
+          * ( returns relative # of elements printed ) | */
+ static int bot_focus_str (const char *hdr, const char *str) {
+  #define maxRSVD ( Screen_rows - 1 )
+-   char *beg, *end;
++   char *beg;
++   const char *end;
+    char tmp[BIGBUFSIZ];
+    size_t n;
+    int x;
