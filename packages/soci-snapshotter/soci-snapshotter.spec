@@ -1,7 +1,7 @@
 %global gorepo soci-snapshotter
-%global gover 0.12.0
+%global gover 0.12.1
 %global rpmver %{gover}
-%global gitrev eef118c6072dc125f0e030089833c4230540929f
+%global gitrev c140af2f22fffade79af74ddcc1c29388d763051
 
 Name: %{_cross_os}soci-snapshotter
 Version: %{gover}
