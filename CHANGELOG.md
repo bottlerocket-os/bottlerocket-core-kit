@@ -1,3 +1,46 @@
+# v13.2.0 (2026-03-17)
+
+## OS Changes
+- Ensure system services start after `tmp.mount` ([#863])
+- Remove `aws-lc-rs` dependency from `shibaken` ([#851])
+- Send `whippet` STDERR to both the journal and the console ([#859])
+- Override GODEBUG fips140 mode for notation verifier ([#853])
+- Update Rust dependencies for first-party sources ([#865], [#866])
+
+### Third Party Package Updates
+- Update `nvidia-container-toolkit` patches ([#842])
+- Update `ecr-credential-helper` to v0.12.0 ([#846])
+- Update `runc` to v1.3.4 ([#854])
+- Update `amazon-ecs-cni-plugins` patches ([#855])
+- Update `glibc` to v2.43, `libbpf` to v1.6.3, `procps` to v4.0.6, `open-vm-tools` to v13.0.10, `libnetfilter_conntrack` to v1.1.1, `conntrack-tools` to v1.4.9, `coreutils` to v9.10, `hwloc` to v2.13.0, and update `libcrypto`, `libelf`, `libxcrypt` patches ([#865])
+- Update `aws-signing-helper` to v1.7.3, `soci-snapshotter` to v0.12.1 ([#850])
+
+## Build Changes
+- Update Twoliter to 0.17.0 ([#845])
+- Add minimal debuginfo to release builds ([#851])
+- Build glibc with minimal debuginfo so that its symbols are available in profilers ([#851])
+- Update Bottlerocket SDK to v0.71.0 ([#861])
+
+## Orchestrator Changes
+### Kubernetes
+- Add `kubelet-env-nvidia` template for `kubernetes-1.35` ([#860])
+- Update to latest versions of `kubernetes` packages (1.29-1.35) ([#850])
+
+[#842]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/842
+[#845]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/845
+[#846]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/846
+[#850]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/850
+[#851]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/851
+[#853]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/853
+[#854]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/854
+[#855]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/855
+[#859]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/859
+[#860]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/860
+[#861]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/861
+[#863]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/863
+[#865]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/865
+[#866]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/866
+
 # v13.1.2 (2026-03-06)
 
 ## OS Changes
