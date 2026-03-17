@@ -63,6 +63,7 @@
 
 ; PID 1 starts container runtimes as "runtime_t".
 (typetransition init_t runtime_exec_t process runtime_t)
+(rangetransition init_t runtime_exec_t process s0-c0-c1023)
 (allow init_t runtime_t (processes (transform)))
 (allow runtime_t runtime_exec_t (file (entrypoint)))
 
