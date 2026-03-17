@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-kdg8bd1th2gb"
+title = "glibc CVE-2025-15281"
+cve = "CVE-2025-15281"
+severity = "moderate"
+description = "In the GNU C Library, calling wordexp with WRDE_REUSE and WRDE_APPEND may cause uninitialized memory to be returned in the we_wordv member, which on subsequent calls to wordfree could result in a process abort."
+
+[[advisory.products]]
+package-name = "glibc"
+patched-version = "2.43"
+patched-epoch = "1"
+
+[updateinfo]
+author = "kssessio"
+issue-date = 2026-03-17T16:22:44Z
+arches = ["aarch64", "x86_64"]
+version = "13.2.0"
