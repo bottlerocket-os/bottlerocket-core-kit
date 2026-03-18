@@ -8,6 +8,8 @@ Source0: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-%{version}.tar.xz
 Source1: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-%{version}.tar.sign
 Source2: gpgkey-647F28654894E3BD457199BE38DBBDC86092693E.asc
 
+Patch0001: 0001-libperf-fix-parallel-build-race-with-header-install.patch
+
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libelf-devel
 Requires: %{_cross_os}libelf
