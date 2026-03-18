@@ -1,3 +1,9 @@
+# v13.3.0 (2026-03-18)
+## Build Changes
+- Update Bottlerocket SDK to v0.72.0 ([#872])
+
+[#872]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/872
+
 # v13.2.0 (2026-03-17)
 
 ## OS Changes
