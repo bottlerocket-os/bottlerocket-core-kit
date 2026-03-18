@@ -1,7 +1,11 @@
 # v13.3.0 (2026-03-18)
+## OS Changes
+- Reserve EKS add-on ports ([#864]) - Thanks @Shreyank031!
+
 ## Build Changes
 - Update Bottlerocket SDK to v0.72.0 ([#872])
 
+[#864]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/864
 [#872]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/872
 
 # v13.2.0 (2026-03-17)
