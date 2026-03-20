@@ -29,4 +29,4 @@
     getsched getsession getpgid getcap getattr getrlimit
     execheap execmem execstack))))
 (classmapping processes interact (
-  io_uring (sqpoll)))
+  io_uring (sqpoll allowed)))

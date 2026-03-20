@@ -42,7 +42,7 @@
   ioctl read write create getattr setattr lock relabelfrom
   relabelto append map unlink link rename execute quotaon
   mounton audit_access open execmod watch watch_mount watch_sb
-  watch_with_perm watch_reads))
+  watch_with_perm watch_reads watch_mountns))
 (classcommon file file)
 (classcommon dir file)
 (classcommon lnk_file file)
@@ -138,15 +138,15 @@
 (class key_socket ())
 (class unix_stream_socket (connectto))
 (class unix_dgram_socket ())
-(class netlink_route_socket (nlmsg_read nlmsg_write))
-(class netlink_tcpdiag_socket (nlmsg_read nlmsg_write))
+(class netlink_route_socket (nlmsg_read nlmsg_write nlmsg))
+(class netlink_tcpdiag_socket (nlmsg_read nlmsg_write nlmsg))
 (class netlink_nflog_socket ())
-(class netlink_xfrm_socket (nlmsg_read nlmsg_write))
+(class netlink_xfrm_socket (nlmsg_read nlmsg_write nlmsg))
 (class netlink_selinux_socket ())
 (class netlink_iscsi_socket ())
 (class netlink_audit_socket (
   nlmsg_read nlmsg_write nlmsg_relay nlmsg_readpriv
-  nlmsg_tty_audit))
+  nlmsg_tty_audit nlmsg))
 (class netlink_fib_lookup_socket ())
 (class netlink_connector_socket ())
 (class netlink_netfilter_socket ())
@@ -223,8 +223,9 @@
 ; the kernel, but are checked by systemd for DBUS requests.
 (class system (
   ipc_info syslog_read syslog_mod syslog_console module_request
-  module_load halt reboot status start stop enable disable
-  reload))
+  module_load firmware_load kexec_image_load kexec_initramfs_load
+  policy_load x509_certificate_load halt reboot status start stop
+  enable disable reload))
 
 ; Add permissions for other classes.
 (class security (
@@ -238,7 +239,7 @@
 (class bpf (map_create map_read map_write prog_load prog_run))
 (class perf_event (open cpu kernel tracepoint read write))
 (class lockdown (integrity confidentiality))
-(class io_uring (override_creds sqpoll cmd))
+(class io_uring (override_creds sqpoll cmd allowed))
 (class user_namespace (create))
 
 ; Match the kernel's class order.

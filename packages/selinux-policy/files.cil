@@ -218,25 +218,25 @@
 (classpermission load_io_uring)
 (classpermissionset load_file (
   file (
-    ioctl map open read watch watch_mount watch_reads watch_sb)))
+    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_dir (
   dir (
-    ioctl map open read search watch watch_mount watch_reads watch_sb)))
+    ioctl map open read search watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_lnk_file (
   lnk_file (
-    ioctl map open read watch watch_mount watch_reads watch_sb)))
+    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_chr_file (
   chr_file (
-    ioctl map open read watch watch_mount watch_reads watch_sb)))
+    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_blk_file (
   blk_file (
-    ioctl map open read watch watch_mount watch_reads watch_sb)))
+    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_sock_file (
   sock_file (
-    ioctl map open read watch watch_mount watch_reads watch_sb)))
+    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_fifo_file (
   fifo_file (
-    ioctl map open read watch watch_mount watch_reads watch_sb)))
+    ioctl map open read watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_filesystem (
   filesystem (watch)))
 (classpermissionset load_fd (
@@ -244,7 +244,7 @@
 (classpermissionset load_anon_inode (
   anon_inode (
     execute ioctl map open read
-    watch watch_mount watch_reads watch_sb)))
+    watch watch_mount watch_mountns watch_reads watch_sb)))
 (classpermissionset load_io_uring (
   io_uring (cmd)))
 
@@ -312,43 +312,43 @@
     entrypoint execute_no_trans
     execute ioctl getattr map open read execmod
     relabelfrom relabelto mounton quotaon
-    watch watch_mount watch_reads watch_sb watch_with_perm))))
+    watch watch_mount watch_mountns watch_reads watch_sb watch_with_perm))))
 (classpermissionset mutate_dir (
   dir (not (
     search
     execute ioctl getattr map open read execmod
     relabelfrom relabelto mounton quotaon
-    watch watch_mount watch_reads watch_sb watch_with_perm))))
+    watch watch_mount watch_mountns watch_reads watch_sb watch_with_perm))))
 (classpermissionset mutate_lnk_file (
   lnk_file (not (
     execute ioctl getattr map open read execmod
     relabelfrom relabelto mounton quotaon
-    watch watch_mount watch_reads watch_sb watch_with_perm))))
+    watch watch_mount watch_mountns watch_reads watch_sb watch_with_perm))))
 (classpermissionset mutate_chr_file (
   chr_file (not (
     execute ioctl getattr map open read execmod
     relabelfrom relabelto mounton quotaon
-    watch watch_mount watch_reads watch_sb watch_with_perm))))
+    watch watch_mount watch_mountns watch_reads watch_sb watch_with_perm))))
 (classpermissionset mutate_blk_file (
   blk_file (not (
     execute ioctl getattr map open read execmod
     relabelfrom relabelto mounton quotaon
-    watch watch_mount watch_reads watch_sb watch_with_perm))))
+    watch watch_mount watch_mountns watch_reads watch_sb watch_with_perm))))
 (classpermissionset mutate_sock_file (
   sock_file (not (
     execute ioctl getattr map open read execmod
     relabelfrom relabelto mounton quotaon
-    watch watch_mount watch_reads watch_sb watch_with_perm))))
+    watch watch_mount watch_mountns watch_reads watch_sb watch_with_perm))))
 (classpermissionset mutate_fifo_file (
   fifo_file (not (
     execute ioctl getattr map open read execmod
     relabelfrom relabelto mounton quotaon
-    watch watch_mount watch_reads watch_sb watch_with_perm))))
+    watch watch_mount watch_mountns watch_reads watch_sb watch_with_perm))))
 (classpermissionset mutate_anon_inode (
   anon_inode (not (
     execute ioctl getattr map open read execmod
     relabelfrom relabelto mounton quotaon
-    watch watch_mount watch_reads watch_sb watch_with_perm))))
+    watch watch_mount watch_mountns watch_reads watch_sb watch_with_perm))))
 
 ; Permission group for filesystems.
 (classmap filesystems (relabel))
