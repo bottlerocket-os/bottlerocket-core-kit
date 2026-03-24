@@ -1,3 +1,10 @@
+# v13.4.0 (2026-03-24)
+
+## OS Changes
+- Add SELinux permissions for kernel 6.18 ([#847])
+
+[#847]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/847
+
 # v13.3.0 (2026-03-18)
 ## OS Changes
 - Reserve EKS add-on ports ([#864]) - Thanks @Shreyank031!
