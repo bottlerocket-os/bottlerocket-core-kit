@@ -12,6 +12,7 @@ interface for encrypting and managing encrypted storage resources including:
 
 ### Key Management
 - `generate key <key-id>` - Generate an encryption key
+- `dump key <key-id>` - Dump encrypted key structure
 
 ### Block Device Operations
 - `encrypt block-device <path> <key-id>` - Encrypt a block device using LUKS
@@ -203,6 +204,7 @@ struct Args {
 #[argh(subcommand)]
 enum Command {
     Generate(GenerateCmd),
+    Dump(DumpCmd),
     Encrypt(EncryptCmd),
     Attach(AttachCmd),
     Detach(DetachCmd),
@@ -231,6 +233,28 @@ enum GenerateResource {
 #[argh(subcommand, name = "key")]
 /// Generate an encryption key
 struct GenerateKeyCmd {
+    #[argh(positional)]
+    key_id: String,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "dump")]
+/// Dump resource structure
+struct DumpCmd {
+    #[argh(subcommand)]
+    resource: DumpResource,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand)]
+enum DumpResource {
+    Key(DumpKeyCmd),
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "key")]
+/// Dump encrypted key structure
+struct DumpKeyCmd {
     #[argh(positional)]
     key_id: String,
 }
