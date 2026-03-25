@@ -11,7 +11,7 @@ interface for encrypting and managing encrypted storage resources including:
 ## Commands
 
 ### Key Management
-- `generate-key <key-id>` - Generate an encryption key
+- `generate key <key-id>` - Generate an encryption key
 
 ### Block Device Operations
 - `encrypt block-device <path> <key-id>` - Encrypt a block device using LUKS
@@ -40,6 +40,7 @@ For convenience, the following aliases are supported:
 */
 
 use argh::FromArgs;
+use serde::{Deserialize, Serialize};
 use snafu::Whatever;
 use std::path::{Path, PathBuf};
 
@@ -91,7 +92,12 @@ fn main() -> Result<()> {
     };
 
     match args.command {
-        Command::GenerateKey(cmd) => key::generate(cmd.key_id),
+        Command::Generate(cmd) => match cmd.resource {
+            GenerateResource::Key(cmd) => key::generate(cmd.key_id),
+        },
+        Command::Dump(cmd) => match cmd.resource {
+            DumpResource::Key(cmd) => key::dump(cmd.key_id),
+        },
         Command::Encrypt(cmd) => match cmd.resource {
             EncryptResource::BlockDevice(cmd) => block_device::encrypt(cmd.path, cmd.key_id),
             EncryptResource::Directory(cmd) => directory::encrypt(cmd.path, cmd.key_id),
@@ -113,42 +119,24 @@ fn main() -> Result<()> {
         },
         Command::Check(cmd) => match cmd.resource {
             CheckResource::BlockDevice(cmd) => {
-                let path = cmd.path;
-                match cmd.state {
-                    CheckBlockDeviceState::Encrypted(_) => handle_check(
-                        block_device::is_encrypted(path.clone())?,
-                        "block device",
-                        &path,
-                        true,
-                        "encrypted",
-                    ),
-                    CheckBlockDeviceState::Unencrypted(_) => handle_check(
-                        block_device::is_encrypted(path.clone())?,
-                        "block device",
-                        &path,
-                        false,
-                        "encrypted",
-                    ),
-                }
+                let expected = cmd.state == CheckState::Encrypted;
+                handle_check(
+                    block_device::is_encrypted(cmd.path.clone())?,
+                    "block device",
+                    &cmd.path,
+                    expected,
+                    "encrypted",
+                )
             }
             CheckResource::Directory(cmd) => {
-                let path = cmd.path;
-                match cmd.state {
-                    CheckDirectoryState::Encrypted(_) => handle_check(
-                        directory::is_encrypted(path.clone())?,
-                        "directory",
-                        &path,
-                        true,
-                        "encrypted",
-                    ),
-                    CheckDirectoryState::Unencrypted(_) => handle_check(
-                        directory::is_encrypted(path.clone())?,
-                        "directory",
-                        &path,
-                        false,
-                        "encrypted",
-                    ),
-                }
+                let expected = cmd.state == CheckState::Encrypted;
+                handle_check(
+                    directory::is_encrypted(cmd.path.clone())?,
+                    "directory",
+                    &cmd.path,
+                    expected,
+                    "encrypted",
+                )
             }
         },
         Command::Measure(cmd) => match cmd.resource {
@@ -192,7 +180,7 @@ struct Args {
 #[derive(FromArgs)]
 #[argh(subcommand)]
 enum Command {
-    GenerateKey(GenerateKeyCmd),
+    Generate(GenerateCmd),
     Encrypt(EncryptCmd),
     Attach(AttachCmd),
     Detach(DetachCmd),
@@ -204,7 +192,21 @@ enum Command {
 }
 
 #[derive(FromArgs)]
-#[argh(subcommand, name = "generate-key")]
+#[argh(subcommand, name = "generate")]
+/// Generate a resource
+struct GenerateCmd {
+    #[argh(subcommand)]
+    resource: GenerateResource,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand)]
+enum GenerateResource {
+    Key(GenerateKeyCmd),
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "key")]
 /// Generate an encryption key
 struct GenerateKeyCmd {
     #[argh(positional)]
@@ -389,26 +391,9 @@ struct CheckBlockDeviceCmd {
     #[argh(positional)]
     path: PathBuf,
 
-    #[argh(subcommand)]
-    state: CheckBlockDeviceState,
+    #[argh(positional)]
+    state: CheckState,
 }
-
-#[derive(FromArgs)]
-#[argh(subcommand)]
-enum CheckBlockDeviceState {
-    Encrypted(CheckBlockDeviceEncryptedCmd),
-    Unencrypted(CheckBlockDeviceUnencryptedCmd),
-}
-
-#[derive(FromArgs)]
-#[argh(subcommand, name = "encrypted")]
-/// Check if encrypted
-struct CheckBlockDeviceEncryptedCmd {}
-
-#[derive(FromArgs)]
-#[argh(subcommand, name = "unencrypted")]
-/// Check if unencrypted
-struct CheckBlockDeviceUnencryptedCmd {}
 
 #[derive(FromArgs)]
 #[argh(subcommand, name = "directory")]
@@ -417,26 +402,18 @@ struct CheckDirectoryCmd {
     #[argh(positional)]
     path: PathBuf,
 
-    #[argh(subcommand)]
-    state: CheckDirectoryState,
+    #[argh(positional)]
+    state: CheckState,
 }
 
-#[derive(FromArgs)]
-#[argh(subcommand)]
-enum CheckDirectoryState {
-    Encrypted(CheckDirectoryEncryptedCmd),
-    Unencrypted(CheckDirectoryUnencryptedCmd),
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum CheckState {
+    Encrypted,
+    Unencrypted,
 }
 
-#[derive(FromArgs)]
-#[argh(subcommand, name = "encrypted")]
-/// Check if encrypted
-struct CheckDirectoryEncryptedCmd {}
-
-#[derive(FromArgs)]
-#[argh(subcommand, name = "unencrypted")]
-/// Check if unencrypted
-struct CheckDirectoryUnencryptedCmd {}
+serde_plain::derive_fromstr_from_deserialize!(CheckState);
 
 #[derive(FromArgs)]
 #[argh(subcommand, name = "measure")]
@@ -472,7 +449,8 @@ struct MeasurePcrphaseCmd {
     phase: Phase,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 enum Phase {
     Sysinit,
     Preconfigured,
@@ -482,34 +460,5 @@ enum Phase {
     Final,
 }
 
-impl std::str::FromStr for Phase {
-    type Err = String;
-
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        match s {
-            "sysinit" => Ok(Phase::Sysinit),
-            "preconfigured" => Ok(Phase::Preconfigured),
-            "configured" => Ok(Phase::Configured),
-            "ready" => Ok(Phase::Ready),
-            "shutdown" => Ok(Phase::Shutdown),
-            "final" => Ok(Phase::Final),
-            _ => Err(format!(
-                "invalid phase '{}', must be one of: sysinit, preconfigured, configured, ready, shutdown, final",
-                s
-            )),
-        }
-    }
-}
-
-impl std::fmt::Display for Phase {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Phase::Sysinit => write!(f, "sysinit"),
-            Phase::Preconfigured => write!(f, "preconfigured"),
-            Phase::Configured => write!(f, "configured"),
-            Phase::Ready => write!(f, "ready"),
-            Phase::Shutdown => write!(f, "shutdown"),
-            Phase::Final => write!(f, "final"),
-        }
-    }
-}
+serde_plain::derive_fromstr_from_deserialize!(Phase);
+serde_plain::derive_display_from_serialize!(Phase);
