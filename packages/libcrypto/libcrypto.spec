@@ -5,7 +5,7 @@
 %global _cross_cxxflags %{_cross_cflags}
 
 Name: %{_cross_os}libcrypto
-Version: 3.0.0
+Version: 3.1.0
 Release: 1%{?dist}
 Summary: AWS-LC cryptographic library
 License: ISC AND (Apache-2.0 OR ISC) AND OpenSSL
@@ -13,27 +13,9 @@ URL: https://github.com/aws/aws-lc
 
 Source0: https://github.com/aws/aws-lc/archive/AWS-LC-FIPS-%{version}/aws-lc-AWS-LC-FIPS-%{version}.tar.gz
 
-# Upstream patches from AWS-LC-FIPS 3.0 branch can be fetched using the script
+# Upstream patches from AWS-LC-FIPS 3.1 branch can be fetched using the script
 # at generate-aws-lc-patches.sh
 
-Patch1001: 1001-Cherry-pick-BORINGSSL_bcm_text_hash-Go-utility-2221.patch
-Patch1002: 1002-Cherry-pick-Fix-out-of-bound-OOB-input-read-in-AES-X.patch
-Patch1003: 1003-Move-OCSP-ASN1-type-functions-to-public-header-2239.patch
-Patch1004: 1004-Add-test-around-OpenSSL-behavior-for-BIO_get_mem_dat.patch
-Patch1005: 1005-Cherry-pick-support-for-CMake-4.0-to-fips-2024-09-27.patch
-Patch1006: 1006-Remove-some-indirection-in-SSL_certs_clear.patch
-Patch1007: 1007-Add-SSL_CTX_use_cert_and_key-2163.patch
-Patch1008: 1008-fips-2024-09-27-cherry-pick-FIPS-Integrity-Hash-Tool.patch
-Patch1009: 1009-Adding-detection-of-out-of-bound-pre-bound-memory-re.patch
-Patch1010: 1010-Avoid-mixing-SSE-and-AVX-in-XTS-mode-AVX512-implemen.patch
-Patch1011: 1011-Update-BoringSSL-benchmark-to-use-C-17-2063.patch
-Patch1012: 1012-FIPS-Cherry-pick-Support-allowing-specific-unknown-c.patch
-Patch1013: 1013-cherry-pick-Add-back-X509_STORE_get_verify_cb-and-X5.patch
-Patch1014: 1014-Cherry-pick-TLS-transfer-serialization-changes-to-FI.patch
-Patch1015: 1015-cherry-pick-for-2024-fips-Fix-RSAZABI-test-and-enabl.patch
-Patch1016: 1016-FIPS-2024-CHERRY_PICK-Offer-P521-for-signature_algor.patch
-Patch1017: 1017-Add-CTR-DRBG-derivation-function-2863.patch
-Patch1018: 1018-Prepare-FIPS-3.1.0-release-2878.patch
 Patch1019: 1019-Cherry-pick-2024-Offer-P521-for-signature_algorithms.patch
 Patch1020: 1020-1-byte-OOB-read-in-EVP_PKEY_asn1_find_str-length-cal.patch
 Patch1021: 1021-pkcs8-cap-ciphertext-length-before-allocating-in-pkc.patch

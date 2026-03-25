@@ -12,12 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/aws/aws-lc/commits/fips-2024-09-27/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/aws/aws-lc/archive/AWS-LC-FIPS-3.0.0/aws-lc-AWS-LC-FIPS-3.0.0.tar.gz"
-sha512 = "d5d951a7aeba2986503249c02ada8fef36d0022d894ba3095bb9619155fffc66d4328028689327fefe28cfb66674123645d70153c83110e6f3c9dfe6d79c5f26"
-
-[[package.metadata.build-package.external-files]]
-url = "https://cache.bottlerocket.aws/1017-Add-CTR-DRBG-derivation-function-2863.patch/cbe2202c62329388e82e0ceb9943b013c35e4d0fa5dea2c029c7e42f61f259cd4947b5dfb33ae32348eff9b91597b89a78a945d5d3439623cea85d30bc4d4d89/1017-Add-CTR-DRBG-derivation-function-2863.patch"
-sha512 = "cbe2202c62329388e82e0ceb9943b013c35e4d0fa5dea2c029c7e42f61f259cd4947b5dfb33ae32348eff9b91597b89a78a945d5d3439623cea85d30bc4d4d89"
+url = "https://github.com/aws/aws-lc/archive/AWS-LC-FIPS-3.1.0/aws-lc-AWS-LC-FIPS-3.1.0.tar.gz"
+sha512 = "077b6302e10c9610c141e020d233c16daa278ad7babfd17c414c50bdfb9ca4792f67a1e6fcef0fd05304d8d5437c706c3911c2dc50abadb67755ecffec438b1d"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
