@@ -4,7 +4,7 @@ use std::io::Read;
 use std::path::PathBuf;
 use zeroize::Zeroizing;
 
-use crate::cred::ParsedCredential;
+use crate::cred::{self, ParsedCredential};
 use crate::system;
 
 type Result<T> = std::result::Result<T, snafu::Whatever>;
@@ -55,6 +55,10 @@ pub fn load(key_id: String) -> Result<Zeroizing<Vec<u8>>> {
 
     let encrypted = fs::read(&key_path)
         .with_whatever_context(|_| format!("failed to read key from '{}'", key_path.display()))?;
+
+    // Validate credential type and PCR binding before decrypting
+    let expected_pcrs = system::get_tpm2_pcrs()?;
+    cred::validate_tpm2_hmac(&encrypted, &expected_pcrs)?;
 
     system::systemd_creds_decrypt(&key_id, &encrypted)
 }

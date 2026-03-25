@@ -116,6 +116,33 @@ impl ParsedCredential {
     }
 }
 
+/// Validate that a credential is TPM2 HMAC encrypted with the expected PCR mask
+pub(crate) fn validate_tpm2_hmac(data: &[u8], expected_pcrs: &[u32]) -> Result<()> {
+    let parsed = ParsedCredential::from_bytes(data)?;
+
+    ensure_whatever!(
+        parsed.encryption_type == EncryptionType::Tpm2Hmac,
+        "expected Tpm2Hmac encryption, found {:?}",
+        parsed.encryption_type
+    );
+
+    let tpm2_header = parsed
+        .tpm2_header
+        .as_ref()
+        .whatever_context("missing TPM2 header")?;
+
+    let expected_mask = pcr_list_to_mask(expected_pcrs);
+    let actual_pcrs = pcr_mask_to_list(tpm2_header.pcr_mask);
+    ensure_whatever!(
+        tpm2_header.pcr_mask == expected_mask,
+        "PCR mask mismatch: expected {:?}, found {:?}",
+        expected_pcrs,
+        actual_pcrs
+    );
+
+    Ok(())
+}
+
 /// Encryption type identifier for systemd credentials
 ///
 /// Each type uses a unique 128-bit UUID to identify the encryption method.
