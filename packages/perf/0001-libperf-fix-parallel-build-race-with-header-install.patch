@@ -1,0 +1,44 @@
+From 35a24cfee56f4802be928f282c23e13fa886e5d9 Mon Sep 17 00:00:00 2001
+From: Gaurav Sharma <mgsharm@amazon.com>
+Date: Wed, 18 Mar 2026 08:28:42 +0000
+Subject: [PATCH] libperf: fix parallel build race with header install
+
+When perf is built with high parallelism (-j128), there is a race
+condition between the install_headers and libperf.a targets in the
+libperf sub-build. Both are invoked as targets of a single make
+invocation from Makefile.perf:
+
+  $(MAKE) -C $(LIBPERF_DIR) ... $@ install_headers
+
+The perf tool's exported CFLAGS includes -I$(LIBPERF_OUTPUT)/include
+which points to the header install destination. The coreutils install
+command creates the destination file (truncated) before writing content.
+If the compiler runs between file creation and content write, it
+includes an empty header, causing incomplete type and missing prototype
+errors in the libperf source files.
+
+Fix this by making the libperf compilation target depend on
+install_headers, ensuring all headers are fully installed before any
+source files are compiled.
+
+Signed-off-by: Gaurav Sharma <mgsharm@amazon.com>
+---
+ tools/lib/perf/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/lib/perf/Makefile b/tools/lib/perf/Makefile
+index 7fbb50b..69a250b 100644
+--- a/tools/lib/perf/Makefile
++++ b/tools/lib/perf/Makefile
+@@ -109,7 +109,7 @@ uapi-asm-generic:
+ 		$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.asm-headers obj=$(uapi-asm) \
+ 		generic=include/uapi/asm-generic $(syscall-y),)
+ 
+-$(LIBPERF_IN): uapi-asm-generic FORCE
++$(LIBPERF_IN): uapi-asm-generic install_headers FORCE
+ 	$(Q)$(MAKE) $(build)=libperf
+ 
+ $(LIBPERF_A): $(LIBPERF_IN)
+-- 
+2.50.1
+
