@@ -640,12 +640,21 @@ async fn deactivate_update() -> Result<HttpResponse> {
 /// Locks down the machine
 async fn lockdown() -> Result<HttpResponse> {
     debug!("Locking down now");
-    let commands = vec![vec![
-        "rottweiler",
-        "lock",
-        "directory",
-        "/.bottlerocket/datastore",
-    ]];
+    let commands = vec![
+        vec![
+            "rottweiler",
+            "protect",
+            "directory",
+            "/.bottlerocket/datastore",
+            "/etc",
+        ],
+        vec![
+            "rottweiler",
+            "lock",
+            "directory",
+            "/.bottlerocket/datastore",
+        ],
+    ];
 
     for args in commands {
         let output = Command::new(args[0])
