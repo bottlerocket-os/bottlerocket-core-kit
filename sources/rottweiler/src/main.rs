@@ -24,7 +24,10 @@ interface for encrypting and managing encrypted storage resources including:
 - `encrypt directory <path> <key-id>` - Encrypt a directory using fscrypt
 - `lock directory <path>` - Lock an encrypted directory (remove key)
 - `unlock directory <path> <key-id>` - Unlock an encrypted directory (add key)
+- `protect directory <path>` - Write-protect a directory using BPF LSM hooks (requires `bpf` feature)
+- `unprotect directory <path>` - Remove write protection from a directory (requires `bpf` feature)
 - `check directory <path> encrypted|unencrypted` - Check directory encryption state
+- `check directory <path> protected|unprotected` - Check directory protection state (requires `bpf` feature)
 
 ### TPM Measurement Operations
 - `measure settings` - Measure OS settings into PCR 8
@@ -44,6 +47,7 @@ use snafu::Whatever;
 use std::path::{Path, PathBuf};
 
 mod block_device;
+mod bpf;
 mod directory;
 mod fscrypt;
 mod key;
@@ -64,6 +68,7 @@ fn main() -> Result<()> {
             Some("encrypt" | "attach" | "detach" | "resize" | "lock" | "unlock" | "check") => {
                 Some(2)
             }
+            Some("protect" | "unprotect") => Some(2),
             _ => None,
         };
         if let Some(pos) = resource_pos
@@ -111,6 +116,12 @@ fn main() -> Result<()> {
         Command::Unlock(cmd) => match cmd.resource {
             UnlockResource::Directory(cmd) => directory::unlock(cmd.path, cmd.key_id),
         },
+        Command::Protect(cmd) => match cmd.resource {
+            ProtectResource::Directory(cmd) => directory::protect(cmd.paths),
+        },
+        Command::Unprotect(cmd) => match cmd.resource {
+            UnprotectResource::Directory(cmd) => directory::unprotect(cmd.paths),
+        },
         Command::Check(cmd) => match cmd.resource {
             CheckResource::BlockDevice(cmd) => {
                 let path = cmd.path;
@@ -147,6 +158,20 @@ fn main() -> Result<()> {
                         &path,
                         false,
                         "encrypted",
+                    ),
+                    CheckDirectoryState::Protected(_) => handle_check(
+                        directory::is_protected(path.clone())?,
+                        "directory",
+                        &path,
+                        true,
+                        "protected",
+                    ),
+                    CheckDirectoryState::Unprotected(_) => handle_check(
+                        directory::is_protected(path.clone())?,
+                        "directory",
+                        &path,
+                        false,
+                        "protected",
                     ),
                 }
             }
@@ -199,6 +224,8 @@ enum Command {
     Resize(ResizeCmd),
     Lock(LockCmd),
     Unlock(UnlockCmd),
+    Protect(ProtectCmd),
+    Unprotect(UnprotectCmd),
     Check(CheckCmd),
     Measure(MeasureCmd),
 }
@@ -368,6 +395,50 @@ struct UnlockDirectoryCmd {
 }
 
 #[derive(FromArgs)]
+#[argh(subcommand, name = "protect")]
+/// Protect a resource
+struct ProtectCmd {
+    #[argh(subcommand)]
+    resource: ProtectResource,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand)]
+enum ProtectResource {
+    Directory(ProtectDirectoryCmd),
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "directory")]
+/// Write-protect a directory using BPF LSM hooks
+struct ProtectDirectoryCmd {
+    #[argh(positional)]
+    paths: Vec<PathBuf>,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "unprotect")]
+/// Unprotect a resource
+struct UnprotectCmd {
+    #[argh(subcommand)]
+    resource: UnprotectResource,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand)]
+enum UnprotectResource {
+    Directory(UnprotectDirectoryCmd),
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "directory")]
+/// Remove write protection from a directory
+struct UnprotectDirectoryCmd {
+    #[argh(positional)]
+    paths: Vec<PathBuf>,
+}
+
+#[derive(FromArgs)]
 #[argh(subcommand, name = "check")]
 /// Check resource state
 struct CheckCmd {
@@ -426,6 +497,8 @@ struct CheckDirectoryCmd {
 enum CheckDirectoryState {
     Encrypted(CheckDirectoryEncryptedCmd),
     Unencrypted(CheckDirectoryUnencryptedCmd),
+    Protected(CheckDirectoryProtectedCmd),
+    Unprotected(CheckDirectoryUnprotectedCmd),
 }
 
 #[derive(FromArgs)]
@@ -437,6 +510,16 @@ struct CheckDirectoryEncryptedCmd {}
 #[argh(subcommand, name = "unencrypted")]
 /// Check if unencrypted
 struct CheckDirectoryUnencryptedCmd {}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "protected")]
+/// Check if protected
+struct CheckDirectoryProtectedCmd {}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "unprotected")]
+/// Check if unprotected
+struct CheckDirectoryUnprotectedCmd {}
 
 #[derive(FromArgs)]
 #[argh(subcommand, name = "measure")]

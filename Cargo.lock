@@ -1082,6 +1082,7 @@ name = "rottweiler"
 version = "0.1.0"
 dependencies = [
  "glibc",
+ "libbpf",
 ]
 
 [[package]]

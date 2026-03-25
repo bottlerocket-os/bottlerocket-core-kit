@@ -254,3 +254,37 @@ license-files = [
     { path = "LICENSE-APACHE", hash = 0xbaee0da5 },
     { path = "LICENSE-MIT", hash = 0x386ca1bc },
 ]
+
+[clarify.libbpf-cargo]
+expression = "LGPL-2.1-only OR BSD-2-Clause"
+license-files = [
+    { path = "LICENSE", hash = 0xa9d8035d },
+    { path = "LICENSE.LGPL-2.1", hash = 0x9bb7c9c7 },
+    { path = "LICENSE.BSD-2-Clause", hash = 0x783f4e3e },
+]
+
+[clarify.libbpf-rs]
+expression = "LGPL-2.1-only OR BSD-2-Clause"
+license-files = [
+    { path = "LICENSE", hash = 0xa9d8035d },
+    { path = "LICENSE.LGPL-2.1", hash = 0x9bb7c9c7 },
+    { path = "LICENSE.BSD-2-Clause", hash = 0x783f4e3e },
+]
+
+[clarify.libbpf-sys]
+expression = "BSD-2-Clause"
+license-files = [
+    { path = "LICENSE", hash = 0x35005f19 },
+]
+skip-files = [
+    "elfutils/COPYING",
+    "elfutils/COPYING-GPLV2",
+    "elfutils/COPYING-LGPLV3",
+    "elfutils/doc/COPYING-GFDL",
+    "elfutils/doc/man3/COPYING-GFDL",
+    "elfutils/doc/man7/COPYING-GFDL",
+    "libbpf/LICENSE",
+    "libbpf/LICENSE.BSD-2-Clause",
+    "libbpf/LICENSE.LGPL-2.1",
+    "zlib/LICENSE",
+]
