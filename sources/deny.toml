@@ -21,6 +21,7 @@ allow = [
 ]
 
 exceptions = [
+    { name = "rottweiler", allow = ["LGPL-2.1"], version = "*" },
 ]
 
 # https://github.com/hsivonen/encoding_rs The non-test code that isn't generated from the WHATWG data in this crate is

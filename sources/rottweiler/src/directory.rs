@@ -60,3 +60,10 @@ pub fn is_encrypted(path: PathBuf) -> Result<bool> {
         Err(_) => Ok(false),
     }
 }
+
+/// Check if an encrypted directory is unlocked (key is in kernel keyring)
+pub fn is_unlocked(path: PathBuf) -> Result<bool> {
+    let key = FscryptPublicKey::from_directory(&path)
+        .with_whatever_context(|_| format!("failed to read key id from '{}'", path.display()))?;
+    key.is_key_present(&path)
+}

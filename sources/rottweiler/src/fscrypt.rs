@@ -25,6 +25,27 @@ impl FscryptPublicKey {
         })
     }
 
+    /// Check if the encryption key is present in the kernel keyring
+    pub fn is_key_present(&self, path: &Path) -> Result<bool> {
+        let mount_point = MountPoint::from_path(path).with_whatever_context(|_| {
+            format!("Failed to find mount point for '{}'", path.display())
+        })?;
+        let mount_fd = mount_point.open()?;
+        let mut status_arg = FscryptGetKeyStatusArg::new(self.identifier);
+        // SAFETY: The ioctl requires a valid file descriptor and a pointer to fscrypt_get_key_status_arg.
+        // - `mount_fd` is a valid open file descriptor for the mount point
+        // - `status_arg` is properly initialized with repr(C) layout matching the kernel struct
+        // - The kernel copies data with copy_from_user/copy_to_user, so no lifetime issues
+        unsafe { get_encryption_key_status(mount_fd.as_raw_fd(), &mut status_arg) }
+            .with_whatever_context(|_| {
+                format!(
+                    "Failed to get encryption key status for '{}'",
+                    path.display()
+                )
+            })?;
+        Ok(status_arg.status == FSCRYPT_KEY_STATUS_PRESENT)
+    }
+
     /// Remove the encryption key from the kernel keyring, locking the directory
     pub fn lock_directory(&self, path: &Path) -> Result<()> {
         let mount_point = MountPoint::from_path(path).with_whatever_context(|_| {
@@ -112,6 +133,7 @@ const FSCRYPT_MODE_AES_256_CTS: u8 = 4;
 const FSCRYPT_POLICY_FLAGS_PAD_32: u8 = 3;
 const FSCRYPT_POLICY_V2: u8 = 2;
 const FSCRYPT_MAX_KEY_SIZE: usize = 64;
+const FSCRYPT_KEY_STATUS_PRESENT: u32 = 2;
 
 /// Ioctl struct for FS_IOC_SET_ENCRYPTION_POLICY (ioctl 19).
 /// Corresponds to kernel's fscrypt_policy_v1. Used for ioctl definition
@@ -310,6 +332,36 @@ impl FscryptAddKey {
     }
 }
 
+/// Get key status argument struct. Corresponds to kernel's fscrypt_get_key_status_arg.
+#[repr(C)]
+struct FscryptGetKeyStatusArg {
+    key_spec: FscryptKeySpecifier,
+    __reserved: [u32; 6],
+    status: u32,
+    status_flags: u32,
+    user_count: u32,
+    __out_reserved: [u32; 13],
+}
+
+impl FscryptGetKeyStatusArg {
+    fn new(key_identifier: [u8; 16]) -> Self {
+        Self {
+            key_spec: FscryptKeySpecifier {
+                type_: FSCRYPT_KEY_SPEC_TYPE_IDENTIFIER,
+                __reserved: 0,
+                u: FscryptKeySpecifierU {
+                    identifier: key_identifier,
+                },
+            },
+            __reserved: [0; 6],
+            status: 0,
+            status_flags: 0,
+            user_count: 0,
+            __out_reserved: [0; 13],
+        }
+    }
+}
+
 ioctl_readwrite!(
     get_encryption_policy_ex,
     b'f',
@@ -319,6 +371,7 @@ ioctl_readwrite!(
 ioctl_readwrite!(remove_encryption_key_all_users, b'f', 25, FscryptRemoveKey);
 ioctl_readwrite!(add_encryption_key, b'f', 23, FscryptAddKeyIoctl);
 ioctl_read!(set_encryption_policy, b'f', 19, FscryptPolicyV1Ioctl);
+ioctl_readwrite!(get_encryption_key_status, b'f', 26, FscryptGetKeyStatusArg);
 
 /// Calculate the fscrypt key identifier from raw key bytes using HKDF-SHA512
 fn calculate_key_identifier(key: &[u8]) -> Result<[u8; 16]> {
@@ -382,4 +435,14 @@ const _: () = {
     // __u8[9] for ioctl definition: 8 + 1 = 9 bytes (packed)
     const _: () = assert!(size_of::<FscryptGetPolicyExArgIoctl>() == 9);
     const _: () = assert!(align_of::<FscryptGetPolicyExArgIoctl>() == 1);
+
+    // struct fscrypt_get_key_status_arg: 40 + 24 + 4 + 4 + 4 + 52 = 128 bytes
+    const _: () = assert!(size_of::<FscryptGetKeyStatusArg>() == 128);
+    const _: () = assert!(align_of::<FscryptGetKeyStatusArg>() == 4);
+    const _: () = assert!(offset_of!(FscryptGetKeyStatusArg, key_spec) == 0);
+    const _: () = assert!(offset_of!(FscryptGetKeyStatusArg, __reserved) == 40);
+    const _: () = assert!(offset_of!(FscryptGetKeyStatusArg, status) == 64);
+    const _: () = assert!(offset_of!(FscryptGetKeyStatusArg, status_flags) == 68);
+    const _: () = assert!(offset_of!(FscryptGetKeyStatusArg, user_count) == 72);
+    const _: () = assert!(offset_of!(FscryptGetKeyStatusArg, __out_reserved) == 76);
 };

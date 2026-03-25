@@ -25,6 +25,7 @@ interface for encrypting and managing encrypted storage resources including:
 - `lock directory <path>` - Lock an encrypted directory (remove key)
 - `unlock directory <path> <key-id>` - Unlock an encrypted directory (add key)
 - `check directory <path> encrypted|unencrypted` - Check directory encryption state
+- `check directory <path> locked|unlocked` - Check directory lock state
 
 ### TPM Measurement Operations
 - `measure settings` - Measure OS settings into PCR 8
@@ -45,6 +46,7 @@ use snafu::Whatever;
 use std::path::{Path, PathBuf};
 
 mod block_device;
+mod cred;
 mod directory;
 mod fscrypt;
 mod key;
@@ -128,16 +130,36 @@ fn main() -> Result<()> {
                     "encrypted",
                 )
             }
-            CheckResource::Directory(cmd) => {
-                let expected = cmd.state == CheckState::Encrypted;
-                handle_check(
+            CheckResource::Directory(cmd) => match cmd.state {
+                CheckDirectoryState::Encrypted => handle_check(
                     directory::is_encrypted(cmd.path.clone())?,
                     "directory",
                     &cmd.path,
-                    expected,
+                    true,
                     "encrypted",
-                )
-            }
+                ),
+                CheckDirectoryState::Unencrypted => handle_check(
+                    directory::is_encrypted(cmd.path.clone())?,
+                    "directory",
+                    &cmd.path,
+                    false,
+                    "encrypted",
+                ),
+                CheckDirectoryState::Unlocked => handle_check(
+                    directory::is_unlocked(cmd.path.clone())?,
+                    "directory",
+                    &cmd.path,
+                    true,
+                    "unlocked",
+                ),
+                CheckDirectoryState::Locked => handle_check(
+                    directory::is_unlocked(cmd.path.clone())?,
+                    "directory",
+                    &cmd.path,
+                    false,
+                    "unlocked",
+                ),
+            },
         },
         Command::Measure(cmd) => match cmd.resource {
             MeasureResource::Settings(_) => measure::os_settings(),
@@ -403,7 +425,7 @@ struct CheckDirectoryCmd {
     path: PathBuf,
 
     #[argh(positional)]
-    state: CheckState,
+    state: CheckDirectoryState,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -414,6 +436,17 @@ enum CheckState {
 }
 
 serde_plain::derive_fromstr_from_deserialize!(CheckState);
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum CheckDirectoryState {
+    Encrypted,
+    Unencrypted,
+    Locked,
+    Unlocked,
+}
+
+serde_plain::derive_fromstr_from_deserialize!(CheckDirectoryState);
 
 #[derive(FromArgs)]
 #[argh(subcommand, name = "measure")]
