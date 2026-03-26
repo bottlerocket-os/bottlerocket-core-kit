@@ -21,7 +21,7 @@
 ;
 ; Privileged containers are left alone by the container runtime and
 ; inherit the default level, which covers the range of categories -
-; `s0-s0:c0.1023`. They would also pass the dominance check. However,
+; `s0:c0.1023`. They would also pass the dominance check. However,
 ; since we have privileged subjects that run outside of containers,
 ; we check for that with `(eq t1 privileged_s)`.
 ;

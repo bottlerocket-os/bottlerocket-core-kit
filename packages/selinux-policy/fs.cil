@@ -6,7 +6,6 @@
 
 ; Label inodes by using the type of the creating task.
 (fsuse task eventpollfs any)
-(fsuse task pipefs any)
 (fsuse task sockfs any)
 
 ; Label inodes by deriving a type from the creating task.
@@ -14,6 +13,7 @@
 (fsuse trans devtmpfs any)
 (fsuse trans hugetlbfs any)
 (fsuse trans mqueue any)
+(fsuse trans pipefs pipe_fs)
 (fsuse trans shm any)
 (fsuse trans tmpfs any)
 

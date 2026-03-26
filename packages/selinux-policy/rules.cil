@@ -6,9 +6,13 @@
 (typeattribute global)
 (typeattributeset global ((all_s) (all_o)))
 
-; Define a subset of these types which are considered public.
+; Define a subset of these types which are not considered public.
+(typeattribute non_public)
+(typeattributeset non_public (runtime_s read_restricted_o))
+
+; Define everything else as public types.
 (typeattribute public)
-(typeattributeset public (xor (global) (read_restricted_o)))
+(typeattributeset public (xor (global) (non_public)))
 
 ; All subjects are allowed to describe all processes.
 (allow all_s all_s (processes (describe)))
@@ -25,6 +29,20 @@
 
 ; Unprivileged components cannot interact with privileged processes.
 (neverallow unprivileged_s privileged_s (processes (interact)))
+
+; If a process creates a FIFO in a directory, rather than a pipe in
+; pipefs, it should use the role and type from that target.
+(roletransition system_r all_o fifo_file object_r)
+; ... most ephemeral directories
+(typetransition all_s any_t fifo_file any_t)
+; ... persistent, shared host directories
+(typetransition all_s local_t fifo_file local_t)
+; ... persistent, read-restricted host directories
+(typetransition all_s secret_t fifo_file secret_t)
+; ... persistent, write-restricted host directories
+(typetransition all_s state_t fifo_file state_t)
+; ... container root filesystems
+(typetransition all_s data_t fifo_file data_t)
 
 ; PID 1 starts as "kernel_t" and becomes "init_t".
 (typetransition kernel_t init_exec_t process init_t)
@@ -63,6 +81,7 @@
 
 ; PID 1 starts container runtimes as "runtime_t".
 (typetransition init_t runtime_exec_t process runtime_t)
+(rangetransition init_t runtime_exec_t process s0-c0-c1023)
 (allow init_t runtime_t (processes (transform)))
 (allow runtime_t runtime_exec_t (file (entrypoint)))
 
@@ -82,7 +101,7 @@
 ; The level range is adjusted to span all categories, since privileged
 ; containers won't get an MCS pair assigned.
 (typetransition runtime_t privileged_container_exec_o process control_t)
-(rangetransition runtime_t privileged_container_exec_o process s0-s0)
+(rangetransition runtime_t privileged_container_exec_o process s0-c0-c1023)
 
 ; Some processes should transition to unprivileged containers by default.
 (typetransition runtime_t unprivileged_container_exec_o process container_t)
@@ -91,7 +110,7 @@
 ; If PID 1 is used to invoke a CSI helper directly, it should also
 ; run as a privileged container.
 (typetransition init_t csi_exec_t process control_t)
-(rangetransition init_t csi_exec_t process s0-s0)
+(rangetransition init_t csi_exec_t process s0-c0-c1023)
 (allow init_t control_t (processes (transform)))
 
 ; Allow transitions to container labels for programs invoked by OCI
@@ -103,8 +122,16 @@
 ; is mounted from the root filesystem and used as the init process.
 (allow container_s runtime_exec_t (file (entrypoint)))
 
+; Pipes created by runtimes should receive a special label and range
+; so that other processes can mutate them.
+(typetransition runtime_t pipe_fs_t fifo_file runtime_fifo_t)
+(rangetransition runtime_t pipe_fs_t fifo_file s0)
+
+; Allow runtimes to mutate their own pipes.
+(allow runtime_s runtime_fifo_t (files (mutate)))
+
 ; Allow containers to communicate with runtimes via pipes.
-(allow container_s runtime_t (files (mutate)))
+(allow container_s runtime_fifo_t (files (mutate)))
 
 ; If a runtime process creates a directory for cached container archives
 ; or snapshot layers on local storage, it receives the "cache_t" label.
@@ -125,17 +152,17 @@
 ; The socket for the API server gets the "api_socket_t" label.
 (typetransition api_t any_t sock_file "api.sock" api_socket_t)
 
-; All subjects can describe anything.
-(allow all_s global (files (describe)))
+; All subjects can describe anything and receive any file descriptors.
+(allow all_s global (files (describe receive)))
 
-; All subjects can read from anything that's public.
-(allow all_s public (files (load)))
+; All subjects can read from and use ioctls on anything that's public.
+(allow all_s public (files (load ioctl)))
 
 ; Privileged subjects can read from anything at all.
-(allow privileged_s global (files (load)))
+(allow privileged_s global (files (load ioctl)))
 
 ; Unprivileged subjects cannot read or execute restricted objects.
-(neverallow unprivileged_s read_restricted_o (files (load execute)))
+(neverallow unprivileged_s non_public (files (load execute)))
 
 ; Container subjects can execute anything that's public.
 (allow container_s public (files (execute)))
