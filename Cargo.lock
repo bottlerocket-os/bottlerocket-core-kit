@@ -98,7 +98,6 @@ dependencies = [
  "e2fsprogs",
  "early-boot-config",
  "ecr-credential-helper",
- "ecr-credential-provider-1_29",
  "ecr-credential-provider-1_30",
  "ecr-credential-provider-1_31",
  "ecr-credential-provider-1_32",
@@ -121,7 +120,6 @@ dependencies = [
  "kexec-tools",
  "keyutils",
  "kmod",
- "kubernetes-1_29",
  "kubernetes-1_30",
  "kubernetes-1_31",
  "kubernetes-1_32",
@@ -347,13 +345,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ecr-credential-provider-1_29"
-version = "0.1.0"
-dependencies = [
- "glibc",
-]
-
-[[package]]
 name = "ecr-credential-provider-1_30"
 version = "0.1.0"
 dependencies = [
@@ -518,13 +509,6 @@ dependencies = [
  "glibc",
  "libz",
  "libzstd",
-]
-
-[[package]]
-name = "kubernetes-1_29"
-version = "0.1.0"
-dependencies = [
- "glibc",
 ]
 
 [[package]]
