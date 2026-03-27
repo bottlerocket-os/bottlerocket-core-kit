@@ -1,0 +1,12 @@
+[clarify."sigs.k8s.io/yaml"]
+expression = "MIT"
+license-files = [
+    { path = "LICENSE", hash = 0x617d80bc },
+]
+
+[clarify."github.com/grpc-ecosystem/go-grpc-middleware/v2"]
+expression = "Apache-2.0"
+license-files = [
+    { path = "COPYRIGHT", hash = 0x4bba7b1 },
+    { path = "LICENSE", hash = 0x6a39c900 }
+]

@@ -2,14 +2,14 @@
 %global gorepo containerd
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 2.1.6
+%global gover 2.2.2
 %global rpmver %{gover}
-%global gitrev c74fd8780002eb26bd5940ae339d690d891221c2
+%global gitrev 301b2dac98f15c27117da5c8af12118a041a31d9
 
-%global package_priority_epoch 1
+%global package_priority_epoch 0
 %global _dwz_low_mem_die_limit 0
 
-Name: %{_cross_os}%{gorepo}-2.1
+Name: %{_cross_os}%{gorepo}-2.2
 Version: %{rpmver}
 Release: 1%{?dist}
 Summary: An industry-standard container runtime
@@ -38,12 +38,12 @@ Source1000: clarify.toml
 
 # Patch to support moving from containerd-1.7 to 2.x
 Patch1001: 1001-Revert-Don-t-allow-io_uring-related-syscalls-in-the-.patch
-# Patch to update grpc
-Patch1002: 1002-bump-google-golang-org-grpc.patch
 # Patch for transfer service to fall back to file for registry creds.
-Patch1003: 1003-transfer-service-fallback-to-credentials.toml-for-re.patch
+Patch1002: 1002-transfer-service-fallback-to-credentials.toml-for-re.patch
 # Patch to make ctr use hosts.toml for registry mirrors by default
-Patch1004: 1004-ctr-default-hosts-dir-to-etc-containerd-certs.d.patch
+Patch1003: 1003-ctr-default-hosts-dir-to-etc-containerd-certs.d.patch
+# Patch to fix whiteouts ignored during parallel unpack with overlayfs
+Patch1004: 1004-fix-overlayfs-whiteouts-during-parallel-unpack.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
