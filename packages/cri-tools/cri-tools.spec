@@ -29,7 +29,6 @@ BuildRequires: %{_cross_os}glibc-devel
 
 %build
 %set_cross_go_flags
-export GO_MAJOR="1.25"
 go build -ldflags="${GOLDFLAGS}" -o crictl ./cmd/crictl
 
 %install

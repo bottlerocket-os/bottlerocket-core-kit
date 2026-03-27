@@ -37,7 +37,6 @@ Requires: %{_cross_os}aws-signing-helper
 %set_cross_go_flags
 
 export GOTOOLCHAIN=local
-export GO_MAJOR="1.25"
 
 go build -ldflags="${GOLDFLAGS}" -o=ecr-credential-provider cmd/ecr-credential-provider/*.go
 
