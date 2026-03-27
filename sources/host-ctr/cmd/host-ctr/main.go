@@ -26,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"tags.cncf.io/container-device-interface/pkg/cdi"
 )
 
 const (
@@ -343,6 +344,7 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 		switch {
 		case superpowered:
 			specOpts = append(specOpts, withSuperpowered())
+			specOpts = append(specOpts, withCDIDevices("nvidia.com/gpu=all"))
 		case cType == bootstrap:
 			specOpts = append(specOpts, withBootstrap())
 		default:
@@ -615,6 +617,36 @@ func withSuperpowered() oci.SpecOpts {
 		oci.WithSelinuxLabel("system_u:system_r:super_t:s0:c0.c1023"),
 		oci.WithAllDevicesAllowed,
 	)
+}
+
+// withCDIDevices injects CDI devices into the container spec.
+// Enables GPU tools like nvidia-smi in superpowered containers.
+// Fails gracefully if CDI specs don't exist (non-GPU instances).
+func withCDIDevices(devices ...string) oci.SpecOpts {
+	return func(ctx context.Context, _ oci.Client, _ *containers.Container, s *runtimespec.Spec) error {
+		if len(devices) == 0 {
+			return nil
+		}
+
+		if err := cdi.Refresh(); err != nil {
+			log.G(ctx).WithError(err).Debug("CDI cache refresh failed, skipping device injection")
+			return nil
+		}
+
+		unresolved, err := cdi.InjectDevices(s, devices...)
+		if err != nil {
+			log.G(ctx).WithError(err).Debug("CDI device injection failed, skipping")
+			return nil
+		}
+
+		if len(unresolved) > 0 {
+			log.G(ctx).WithField("devices", unresolved).Debug("some CDI devices unresolved")
+		} else {
+			log.G(ctx).WithField("devices", devices).Info("CDI devices injected")
+		}
+
+		return nil
+	}
 }
 
 // withBootstrap adds container options to grant read-write access to the underlying
