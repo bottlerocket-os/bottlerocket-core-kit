@@ -1,3 +1,26 @@
+# v14.0.0 (2026-03-27)
+
+## OS Changes
+- Drop `kubernetes-1.29` and `ecr-credential-provider-1.29` packages ([#877])
+- Add CDI support to `host-ctr` enabling NVIDIA GPU tools access in superpowered containers ([#879])
+- Add `containerd-2.2` package ([#862])
+  - Support image volume mount subpath
+  - Support parallel unpack during image pull
+- Adjust SELinux Policy to limit containers from interacting with the container runtime ([#868])
+
+## Build Changes
+- Fix build time race condition in `perf` ([#871])
+
+### Third Party Package Updates
+- Update `amazon-ssm-agent` to `3.3.4108` ([#884])
+
+[#862]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/862
+[#868]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/868
+[#871]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/871
+[#877]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/877
+[#879]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/879
+[#884]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/884
+
 # v13.4.0 (2026-03-24)
 
 ## OS Changes
