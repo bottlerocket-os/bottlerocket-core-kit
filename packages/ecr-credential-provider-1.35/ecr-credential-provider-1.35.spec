@@ -2,8 +2,8 @@
 %global gorepo cloud-provider-aws
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.35.0
-%global rpmver 1.35.0
+%global gover 1.35.1
+%global rpmver 1.35.1
 
 %global _dwz_low_mem_die_limit 0
 

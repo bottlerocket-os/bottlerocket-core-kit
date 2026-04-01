@@ -2,7 +2,7 @@
 %global gorepo cloud-provider-aws
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.33.2
+%global gover 1.33.3
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -18,8 +18,7 @@ Source: cloud-provider-aws-%{gover}.tar.gz
 Source1: bundled-cloud-provider-aws-%{gover}.tar.gz
 Source1000: clarify.toml
 
-Patch0001: 0001-support-new-aws-partition-in-credential-provider.patch
-Patch0002: 0002-ecr-credential-provider-hardcode-ECR-endpoint-for-eu.patch
+Patch0001: 0001-ecr-credential-provider-hardcode-ECR-endpoint-for-eu.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 
