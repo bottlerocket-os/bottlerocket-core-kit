@@ -8,6 +8,10 @@
     --build-dir %{_builddir}/sources \
     --spdx --cyclonedx}
 
+# Skip the FIPS check, which has a false positive because of a symbol that
+# starts with the "ring" prefix.
+%undefine cross_check_fips
+
 Name: %{_cross_os}rottweiler
 Version: 0.1.0
 Release: 1%{?dist}
@@ -16,7 +20,9 @@ License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket
 
 BuildRequires: %{_cross_os}glibc-devel
+BuildRequires: %{_cross_os}libbpf-devel
 Requires: %{_cross_os}cryptsetup
+Requires: %{_cross_os}libbpf
 Requires: %{_cross_os}systemd-cryptsetup
 Requires: %{_cross_os}tpm2-tools
 

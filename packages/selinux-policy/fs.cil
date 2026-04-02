@@ -22,6 +22,7 @@
 (genfscon bdev / any)
 (genfscon binfmt_misc / binfmt_misc_fs)
 (genfscon bpf / any)
+(genfscon bpf /rottweiler private)
 (genfscon cgroup / any)
 (genfscon cgroup2 / any)
 (genfscon debugfs / any)

@@ -27,7 +27,10 @@ interface for encrypting and managing encrypted storage resources including:
 - `encrypt directory <path> <key-id>` - Encrypt a directory using fscrypt
 - `lock directory <path>` - Lock an encrypted directory (remove key)
 - `unlock directory <path> <key-id>` - Unlock an encrypted directory (add key)
+- `protect directory <path>` - Write-protect a directory using BPF LSM hooks (requires `bpf` feature)
+- `unprotect directory <path>` - Remove write protection from a directory (requires `bpf` feature)
 - `check directory <path> encrypted|unencrypted` - Check directory encryption state
+- `check directory <path> protected|unprotected` - Check directory protection state (requires `bpf` feature)
 
 #### TPM Measurement Operations
 - `measure settings` - Measure OS settings into PCR 8

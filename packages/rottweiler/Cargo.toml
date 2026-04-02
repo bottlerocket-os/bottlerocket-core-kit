@@ -16,3 +16,4 @@ source-groups = [
 
 [build-dependencies]
 glibc = { path = "../glibc" }
+libbpf = { path = "../libbpf" }

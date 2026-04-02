@@ -11,6 +11,7 @@ bottlerocket-image-features.workspace = true
 envy.workspace = true
 hex.workspace = true
 hkdf = { workspace = true, features = ["std"] }
+libbpf-rs.workspace = true
 nix = { workspace = true, features = ["fs", "ioctl", "mount"] }
 serde = { workspace = true, features = ["derive"] }
 sha2.workspace = true
@@ -20,3 +21,4 @@ zeroize = { workspace = true, features = ["alloc", "derive"] }
 
 [build-dependencies]
 generate-readme.workspace = true
+libbpf-cargo.workspace = true
