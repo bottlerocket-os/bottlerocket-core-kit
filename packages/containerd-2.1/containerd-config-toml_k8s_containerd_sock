@@ -62,6 +62,9 @@ platform = "linux/amd64"
 [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.runc]
 runtime_type = "io.containerd.runc.v2"
 base_runtime_spec = "/etc/containerd/cri-base.json"
+{{#if settings.container-runtime.cgroup-writable}}
+cgroup_writable = {{settings.container-runtime.cgroup-writable}}
+{{/if}}
 
 [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.runc.options]
 SystemdCgroup = true
