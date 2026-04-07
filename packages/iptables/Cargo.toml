@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://www.netfilter.org/projects/iptables/files"
 
 [[package.metadata.build-package.external-files]]
-url = "https://www.netfilter.org/projects/iptables/files/iptables-1.8.11.tar.xz"
-sha512 = "4937020bf52d57a45b76e1eba125214a2f4531de52ff1d15185faeef8bea0cd90eb77f99f81baa573944aa122f350a7198cef41d70594e1b65514784addbcc40"
+url = "https://www.netfilter.org/projects/iptables/files/iptables-1.8.12.tar.xz"
+sha512 = "b25bd6f6f78a6192699bce44c2b29ca65351ef71198a84fa26d29c47cb24ed695ee0406f6581fa81ece4d30445bb0680def5dc328f7fc708b80cadcd0230fe49"
 
 [[package.metadata.build-package.external-files]]
-url = "https://www.netfilter.org/projects/iptables/files/iptables-1.8.11.tar.xz.sig"
-sha512 = "8bde9436b6c6c9d97d9b1cadc417035c209e39b49111ea08fe35b714bbf94721ad0b8b2870791d3bf98154f64912109c6bdeb0ee33f954d0d3a8c3582a97f3f2"
+url = "https://www.netfilter.org/projects/iptables/files/iptables-1.8.12.tar.xz.sig"
+sha512 = "c1a22b6c6104a0395823a8695eafca6459d82af3467e70e88dc5625aeb6d3feba485a3f2baaf0e8e6ff1b979dc1c764427a6d6614a070476078d1e2f8cd3fd34"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
