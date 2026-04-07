@@ -83,6 +83,7 @@ fn all_helpers() -> HashMap<ExtensionName, HashMap<HelperName, Box<dyn HelperDef
             "is_object" => helper!(handlebars_helpers::stdlib::reflective::IsObject),
             "is_ipv4" => helper!(handlebars_helpers::is_ipv4),
             "is_ipv6" => helper!(handlebars_helpers::is_ipv6),
+            "is_cgroup_v2" => helper!(handlebars_helpers::IsCgroupV2),
             "cidr_to_ipaddr" => helper!(handlebars_helpers::cidr_to_ipaddr),
             "replace_ipv4_octet" => helper!(handlebars_helpers::replace_ipv4_octet),
         },
