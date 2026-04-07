@@ -1,5 +1,5 @@
 Name: %{_cross_os}iproute
-Version: 6.18.0
+Version: 6.19.0
 Release: 1%{?dist}
 Summary: Tools for advanced IP routing and network device configuration
 License: GPL-2.0-or-later AND GPL-2.0-only
@@ -69,6 +69,7 @@ export PKG_CONFIG_PATH='%{_cross_pkgconfigdir}' \\\
 %{_cross_sbindir}/tipc
 %{_cross_sbindir}/vdpa
 %{_cross_sbindir}/netshaper
+%{_cross_sbindir}/dpll
 %dir %{_cross_libdir}/tc
 %{_cross_libdir}/tc/*
 %dir %{_cross_datadir}/iproute2
