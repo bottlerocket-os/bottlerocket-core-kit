@@ -2,7 +2,8 @@
 //! compiled for cfg(test) only.
 use crate::args::Args;
 use crate::{
-    copy_without_transient_entries, flip_to_new_version, perform_migrations, MigrationVersionMeta,
+    cleanup_orphaned_datastores, copy_without_transient_entries, find_orphaned_entries,
+    flip_to_new_version, perform_migrations, MigrationVersionMeta,
 };
 use chrono::{DateTime, Utc};
 use datastore::memory::MemoryDataStore;
@@ -106,6 +107,24 @@ impl TestDatastore {
         let datastore = storewolf::create_new_datastore(tmp.path(), Some(from_version)).unwrap();
         TestDatastore { tmp, datastore }
     }
+
+    /// Adds orphaned directories/symlinks that should be cleaned up.
+    fn add_orphaned_entries(&self) -> Vec<PathBuf> {
+        let base = self.tmp.path();
+        let mut orphaned = Vec::new();
+
+        // Create an orphaned directory (not linked to current)
+        let orphan_dir = base.join("v0.98.0_orphaned");
+        std::fs::create_dir_all(&orphan_dir).unwrap();
+        orphaned.push(orphan_dir.clone());
+
+        // Create a symlink pointing to the orphaned directory
+        let orphan_link = base.join("v0.98");
+        std::os::unix::fs::symlink("v0.98.0_orphaned", &orphan_link).unwrap();
+        orphaned.push(orphan_link);
+
+        orphaned
+    }
 }
 
 /// Represents a TUF repository, which is held in a tempdir.
@@ -152,6 +171,10 @@ async fn create_test_repo(test_type: TestType) -> TestRepo {
     let migration_names = test_type.migration_names();
     manifest.migrations.insert(
         (Version::new(0, 99, 0), Version::new(0, 99, 1)),
+        migration_names.clone(),
+    );
+    manifest.migrations.insert(
+        (Version::new(0, 99, 1), Version::new(0, 99, 2)),
         migration_names.clone(),
     );
     update_metadata::write_file(tuf_indir.join("manifest.json").as_path(), &manifest).unwrap();
@@ -265,17 +288,15 @@ async fn assert_directory_structure_with_failed_migration(
 
 /// Asserts that the expected directories and files are in the datastore directory after a
 /// successful migration. Returns the absolute path that the `current` symlink is pointing to.
-async fn assert_directory_structure(dir: &Path) -> PathBuf {
+async fn assert_directory_structure(dir: &Path, from: Version, to: Version) -> PathBuf {
     let paths = list_dir_entries(dir).await;
-    assert_eq!(paths.len(), 8);
+    assert_eq!(paths.len(), 6);
     assert_dir_entry_exists(&paths, "current");
     assert_dir_entry_exists(&paths, "result.txt");
-    assert_dir_entry_exists(&paths, "v0");
-    assert_dir_entry_exists(&paths, "v0.99");
-    assert_dir_entry_exists(&paths, "v0.99.0");
-    assert_dir_entry_exists(&paths, "v0.99.1");
-    assert_dir_starting_with_exists(&paths, "v0.99.0_");
-    assert_dir_starting_with_exists(&paths, "v0.99.1_");
+    assert_dir_entry_exists(&paths, format!("v{}", from.major).as_str());
+    assert_dir_entry_exists(&paths, format!("v{}.{}", from.major, from.minor).as_str());
+    assert_dir_entry_exists(&paths, format!("v{}", to).as_str());
+    assert_dir_starting_with_exists(&paths, format!("v{}_", to).as_str());
 
     let symlink = paths
         .iter()
@@ -347,7 +368,7 @@ async fn migrate_forward() {
         datastore_path: test_datastore.datastore.clone(),
         log_level: log::LevelFilter::Info,
         migration_directory: test_repo.targets_path.clone(),
-        migrate_to_version: to_version,
+        migrate_to_version: to_version.clone(),
         root_path: root(),
         metadata_directory: test_repo.metadata_path.clone(),
     };
@@ -370,12 +391,14 @@ async fn migrate_forward() {
     let got: String = third_line.chars().take(want.len()).collect();
     assert_eq!(got, want);
 
-    flip_to_new_version(&args.migrate_to_version, datastore)
+    let datastore = flip_to_new_version(&args.migrate_to_version, datastore)
         .await
         .unwrap();
+    cleanup_orphaned_datastores(&datastore).await;
 
     // Check the directory.
-    let current = assert_directory_structure(test_datastore.tmp.path()).await;
+    let current =
+        assert_directory_structure(test_datastore.tmp.path(), from_version, to_version).await;
 
     // We have successfully migrated so current should be pointing to a directory that starts with
     // v0.99.1.
@@ -400,7 +423,7 @@ async fn migrate_backward() {
         datastore_path: test_datastore.datastore.clone(),
         log_level: log::LevelFilter::Info,
         migration_directory: test_repo.targets_path.clone(),
-        migrate_to_version: to_version,
+        migrate_to_version: to_version.clone(),
         root_path: root(),
         metadata_directory: test_repo.metadata_path.clone(),
     };
@@ -422,12 +445,13 @@ async fn migrate_backward() {
     let got: String = second_line.chars().take(want.len()).collect();
     assert_eq!(got, want);
 
-    flip_to_new_version(&args.migrate_to_version, datastore)
+    let datastore = flip_to_new_version(&args.migrate_to_version, datastore)
         .await
         .unwrap();
-
+    cleanup_orphaned_datastores(&datastore).await;
     // Check the directory.
-    let current = assert_directory_structure(test_datastore.tmp.path()).await;
+    let current =
+        assert_directory_structure(test_datastore.tmp.path(), from_version, to_version).await;
 
     // We have successfully migrated so current should be pointing to a directory that starts with
     // v0.99.0.
@@ -693,4 +717,146 @@ async fn test_services_removed() {
             Key::new(datastore::KeyType::Data, "yet-another-thing.f.g").unwrap() => "\"rules\"".to_string(),
         }
     );
+}
+
+async fn do_migration(
+    from_version: &str,
+    to_version: &str,
+    test_repo: &TestRepo,
+    datastore: &TestDatastore,
+) {
+    let from = Version::parse(from_version).unwrap();
+    let to = Version::parse(to_version).unwrap();
+
+    let version_meta = MigrationVersionMeta::new(from.clone(), to.clone()).unwrap();
+    let args = Args {
+        datastore_path: datastore.datastore.clone(),
+        log_level: log::LevelFilter::Info,
+        migration_directory: test_repo.targets_path.clone(),
+        migrate_to_version: to.clone(),
+        root_path: root(),
+        metadata_directory: test_repo.metadata_path.clone(),
+    };
+    let outstore = perform_migrations(&version_meta, &args).await.unwrap();
+    let outstore = flip_to_new_version(&to, &outstore).await.unwrap();
+    cleanup_orphaned_datastores(&outstore).await;
+}
+
+#[tokio::test]
+async fn test_datastore_cleanup_across_migrations_forward() {
+    let test_repo = create_test_repo(TestType::Success).await;
+    let mut test_datastore = TestDatastore::new(Version::parse("0.99.0").unwrap());
+    // First migration: from source -> intermediate
+    do_migration("0.99.0", "0.99.1", &test_repo, &test_datastore).await;
+
+    let current = assert_directory_structure(
+        test_datastore.tmp.path(),
+        Version::parse("0.99.0").unwrap(),
+        Version::parse("0.99.1").unwrap(),
+    )
+    .await;
+    assert!(current
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .starts_with("v0.99.1"));
+
+    // We need to "flip" the datastore to point to the new current datastore
+    test_datastore.datastore = current;
+
+    // Second migration: intermediate -> target
+    do_migration("0.99.1", "0.99.2", &test_repo, &test_datastore).await;
+
+    let current = assert_directory_structure(
+        test_datastore.tmp.path(),
+        Version::parse("0.99.1").unwrap(),
+        Version::parse("0.99.2").unwrap(),
+    )
+    .await;
+    assert!(current
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .starts_with("v0.99.2"));
+}
+
+#[tokio::test]
+async fn test_datastore_cleanup_across_migrations_backward() {
+    let test_repo = create_test_repo(TestType::Success).await;
+    let mut test_datastore = TestDatastore::new(Version::parse("0.99.2").unwrap());
+    // First migration: from source -> intermediate
+    do_migration("0.99.2", "0.99.1", &test_repo, &test_datastore).await;
+
+    let current = assert_directory_structure(
+        test_datastore.tmp.path(),
+        Version::parse("0.99.2").unwrap(),
+        Version::parse("0.99.1").unwrap(),
+    )
+    .await;
+    assert!(current
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .starts_with("v0.99.1"));
+
+    // We need to "flip" the datastore to point to the new current datastore
+    test_datastore.datastore = current;
+
+    // Second migration: intermediate -> target
+    do_migration("0.99.1", "0.99.0", &test_repo, &test_datastore).await;
+
+    let current = assert_directory_structure(
+        test_datastore.tmp.path(),
+        Version::parse("0.99.1").unwrap(),
+        Version::parse("0.99.0").unwrap(),
+    )
+    .await;
+    assert!(current
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .starts_with("v0.99.0"));
+}
+
+#[tokio::test]
+async fn test_symlink_graph() {
+    let test = TestDatastore::new(Version::parse("0.99.2").unwrap());
+    let expected_orphans = test.add_orphaned_entries();
+    let orphaned = find_orphaned_entries(test.tmp.path(), test.datastore.clone()).await;
+
+    // All entries we added should be detected as orphaned
+    for expected in &expected_orphans {
+        assert!(
+            orphaned.contains(expected),
+            "Expected {:?} to be in orphaned set",
+            expected
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_symlink_loop_handled() {
+    let tmp = TempDir::new().unwrap();
+    let base = tmp.path();
+
+    // Create a symlink loop: a -> b -> c -> a
+    std::os::unix::fs::symlink("b", base.join("a")).unwrap();
+    std::os::unix::fs::symlink("c", base.join("b")).unwrap();
+    std::os::unix::fs::symlink("a", base.join("c")).unwrap();
+
+    // Create the "real" datastore that current points to
+    let real_datastore = base.join("real_datastore");
+    std::fs::create_dir_all(&real_datastore).unwrap();
+    std::os::unix::fs::symlink(&real_datastore, base.join("current")).unwrap();
+
+    let orphaned = find_orphaned_entries(base, real_datastore.clone()).await;
+
+    // The loop entries should be orphaned (cycle detection marks them unreachable)
+    assert!(orphaned.contains(&base.join("a")));
+    assert!(orphaned.contains(&base.join("b")));
+    assert!(orphaned.contains(&base.join("c")));
 }
