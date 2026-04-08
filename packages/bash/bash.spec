@@ -11,6 +11,16 @@ Source2: gpgkey-7C0135FB088AAF6C66C650B9BB5869F064EA74AB.asc
 # Disable loadable builtin examples
 Patch127: bash-4.4-no-loadable-builtins.patch
 
+Patch1001: bash53-001
+Patch1002: bash53-002
+Patch1003: bash53-003
+Patch1004: bash53-004
+Patch1005: bash53-005
+Patch1006: bash53-006
+Patch1007: bash53-007
+Patch1008: bash53-008
+Patch1009: bash53-009
+
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libncurses-devel
 BuildRequires: %{_cross_os}readline-devel
@@ -34,7 +44,9 @@ Requires: %{name}
 
 %prep
 %{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:2}
-%autosetup -n bash-%{version} -p1
+%autosetup -n bash-%{version} -N
+%autopatch -p1 -m0001 -M1000
+%autopatch -p0 -m1001
 
 echo %{version} > _distribution
 echo %{release} > _patchlevel
