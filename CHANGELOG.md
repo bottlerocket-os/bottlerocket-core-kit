@@ -1,3 +1,10 @@
+# v14.0.1 (2026-04-09)
+
+## OS Changes
+- Allow runtime processes to write fifos to content stores ([#895])
+
+[#895]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/895
+
 # v14.0.0 (2026-03-27)
 
 ## OS Changes
