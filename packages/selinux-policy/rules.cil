@@ -35,6 +35,8 @@
 (roletransition system_r all_o fifo_file object_r)
 ; ... most ephemeral directories
 (typetransition all_s any_t fifo_file any_t)
+; ... containers content store
+(typetransition all_s cache_t fifo_file cache_t)
 ; ... persistent, shared host directories
 (typetransition all_s local_t fifo_file local_t)
 ; ... persistent, read-restricted host directories
