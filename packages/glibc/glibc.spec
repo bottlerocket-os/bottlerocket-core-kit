@@ -33,6 +33,7 @@ Patch0007: 0007-Linux-In-getlogin_r-use-utmp-fallback-only-for-speci.patch
 Patch0008: 0008-nss-Missing-checks-in-__nss_configure_lookup-__nss_d.patch
 Patch0009: 0009-debug-Fix-build-with-enable-fortify-source-1-BZ-3390.patch
 Patch0010: 0010-Add-BZ-33904-entry-to-NEWS.patch
+Patch0011: 0011-Revert-malloc-auto-enable-THP-on-aarch64.patch
 
 # Fedora patches
 Patch1001: glibc-cs-path.patch
