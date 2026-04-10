@@ -2,7 +2,15 @@
 
 ## OS Changes
 - Allow runtime processes to write fifos to content stores ([#895])
+- Add logic to remove orphaned datastores during migration ([#812])
+- Update Rust dependencies for first-party sources ([#891])
 
+### Third Party Package Updates
+- Update to latest versions of `ecr-credential-provider` ([#876])
+
+[#812]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/812
+[#876]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/876
+[#891]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/891
 [#895]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/895
 
 # v14.0.0 (2026-03-27)
