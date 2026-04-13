@@ -70,6 +70,7 @@ Source122: has-boot-ever-succeeded.service
 Source123: pluto.service
 Source124: bootstrap-commands.service
 Source125: whippet.service
+Source126: corgid.service
 
 # 2xx sources: tmpfilesd configs
 Source200: migration-tmpfiles.conf
@@ -122,7 +123,7 @@ Requires: (%{_cross_os}updog or %{_cross_os}image-feature(no-in-place-updates))
 Requires: (%{_cross_os}pluto if %{_cross_os}variant-family(aws-k8s))
 Requires: (%{_cross_os}shibaken if %{_cross_os}variant-platform(aws))
 Requires: (%{_cross_os}cfsignal if %{_cross_os}variant-platform(aws))
-
+Requires: (%{_cross_os}corgid if %{_cross_os}variant-platform(aws))
 Requires: (%{_cross_os}warm-pool-wait if %{_cross_os}variant-family(aws-k8s))
 
 %description
@@ -377,6 +378,28 @@ Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}cfsignal-bin)
 %description -n %{_cross_os}cfsignal-fips-bin
 %{summary}.
 
+%package -n %{_cross_os}corgid
+Summary: Inspector SBOM telemetry sender
+Requires: %{_cross_os}corgid(binaries)
+%description -n %{_cross_os}corgid
+%{summary}.
+
+%package -n %{_cross_os}corgid-bin
+Summary: Inspector SBOM telemetry sender binaries
+Provides: %{_cross_os}corgid(binaries)
+Requires: (%{_cross_os}image-feature(no-fips) and %{_cross_os}corgid)
+Conflicts: (%{_cross_os}image-feature(fips) or %{_cross_os}corgid-fips-bin)
+%description -n %{_cross_os}corgid-bin
+%{summary}.
+
+%package -n %{_cross_os}corgid-fips-bin
+Summary: Inspector SBOM telemetry sender binaries, FIPS edition
+Provides: %{_cross_os}corgid(binaries)
+Requires: (%{_cross_os}image-feature(fips) and %{_cross_os}corgid)
+Conflicts: (%{_cross_os}image-feature(no-fips) or %{_cross_os}corgid-bin)
+%description -n %{_cross_os}corgid-fips-bin
+%{summary}.
+
 %package -n %{_cross_os}driverdog
 Summary: Tool to load additional drivers
 Requires: %{_cross_os}binutils
@@ -530,6 +553,7 @@ exec 1>"${aws_sdk_output}" 2>&1
   %cargo_build_aws_sdk --manifest-path %{_builddir}/sources/Cargo.toml \
   -p pluto \
   -p cfsignal \
+  -p corgid \
   &
 # Save the PID so we can wait for it later.
 aws_sdk_pid="$!"
@@ -541,6 +565,7 @@ exec 1>"${fips_aws_sdk_output}" 2>&1
   %cargo_build_fips_aws_sdk --manifest-path %{_builddir}/sources/Cargo.toml \
   -p pluto \
   -p cfsignal \
+  -p corgid \
   &
 # Save the PID so we can wait for it later.
 fips_aws_sdk_pid="$!"
@@ -680,6 +705,7 @@ done
 for p in \
   pluto \
   cfsignal \
+  corgid \
 ; do
   install -p -m 0755 %{__cargo_outdir_aws_sdk}/${p} %{buildroot}%{_cross_bindir}
   install -p -m 0755 %{__cargo_outdir_aws_sdk_fips}/${p} %{buildroot}%{_cross_fips_bindir}
@@ -770,7 +796,7 @@ install -p -m 0644 \
   %{S:100} %{S:102} %{S:103} %{S:105} \
   %{S:106} %{S:107} %{S:110} %{S:111} %{S:112} \
   %{S:113} %{S:114} %{S:120} %{S:122} %{S:123} %{S:124} \
-  %{S:125} \
+  %{S:125} %{S:126} \
   %{buildroot}%{_cross_unitdir}
 
 install -p -m 0644 %{S:10} %{buildroot}%{_cross_templatedir}
@@ -938,6 +964,15 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 
 %files -n %{_cross_os}cfsignal-fips-bin
 %{_cross_fips_bindir}/cfsignal
+
+%files -n %{_cross_os}corgid
+%{_cross_unitdir}/corgid.service
+
+%files -n %{_cross_os}corgid-bin
+%{_cross_bindir}/corgid
+
+%files -n %{_cross_os}corgid-fips-bin
+%{_cross_fips_bindir}/corgid
 
 %files -n %{_cross_os}driverdog
 %{_cross_bindir}/driverdog

@@ -60,6 +60,8 @@ members = [
 
     "cfsignal",
 
+    "corgid",
+
     "logdog",
 
     "models",
@@ -158,6 +160,7 @@ headers = "0.4"
 hex = "0.4"
 hex-literal = "0.4"
 hkdf = { version = "0.12", default-features = false }
+hmac = { version = "0.12", default-features = false }
 http = "0.2"
 httparse = "1"
 httptest = "0.15"
@@ -222,6 +225,7 @@ tracing = "0.1"
 typed-path = "0.9"
 unindent = "0.2"
 url = "2"
+uuid = { version = "1", features = ["v4"] }
 walkdir = "2.5"
 which = "4"
 zbus = { version = "5.11", default-features = false }

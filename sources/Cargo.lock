@@ -2083,6 +2083,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "533d38ecd2709b7608fb8e18e4504deb99e9a72879e6aa66373a76d8dc4259ea"
 
 [[package]]
+name = "corgid"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "base64",
+ "chrono",
+ "flate2",
+ "hex",
+ "hmac",
+ "imdsclient",
+ "log",
+ "reqwest",
+ "rustls 0.23.37",
+ "serde",
+ "serde_json",
+ "sha2",
+ "simplelog",
+ "snafu",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "corndog"
 version = "0.1.0"
 dependencies = [

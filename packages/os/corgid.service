@@ -1,0 +1,20 @@
+[Unit]
+Description=Inspector SBOM telemetry sender
+# Guarantee this runs late in the boot
+After=multi-user.target
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/corgid
+# Retry transient issues on failure since manual restart is refused.
+Restart=on-failure
+RestartSec=30
+StartLimitBurst=3
+StartLimitIntervalSec=300
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target
