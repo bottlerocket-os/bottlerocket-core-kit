@@ -1,0 +1,104 @@
+From 4efa2fa72a9dd68488e196f47963d8f0772a84a8 Mon Sep 17 00:00:00 2001
+From: Yutong Sun <yutongsu@amazon.com>
+Date: Sat, 11 Apr 2026 02:26:29 +0000
+Subject: [PATCH] Revert malloc: auto-enable THP on aarch64
+
+This reverts the following commits which introduced automatic THP
+activation in malloc via thp_init():
+
+  - 321e1fc7 malloc: Enable 2MB THP by default on Aarch64
+  - 1c588a21 malloc: Improve thp_init
+  - bd569425 malloc: Fix clang build after 1c588a2187
+
+The auto-enable causes every glibc-linked process to consume ~22-28MB
+of AnonHugePages, wasting significant memory on container-dense nodes.
+THP in malloc should only activate when explicitly requested via the
+glibc.malloc.hugetlb tunable.
+
+This reverts commit 321e1fc73f53081d92ba357cdd48c56b79292020.
+This reverts commit 1c588a2187a4f348ec155a1441784b51891bb667.
+This reverts commit bd569425330c6f5644c232b4b253e9ab905fcdba.
+
+Signed-off-by: Yutong Sun <yutongsu@amazon.com>
+---
+ malloc/malloc.c                               | 32 +++++--------------
+ .../sysv/linux/aarch64/malloc-hugepages.h     |  2 +-
+ 2 files changed, 9 insertions(+), 25 deletions(-)
+
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index a49e211925..a8c2c8f53a 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -1902,29 +1902,18 @@ free_perturb (char *p, size_t n)
+ 
+ /* ----------- Routines dealing with transparent huge pages ----------- */
+ 
+-static __always_inline void
+-thp_init (void)
+-{
+-  /* Initialize only once if DEFAULT_THP_PAGESIZE is defined.  */
+-  if (DEFAULT_THP_PAGESIZE == 0 || mp_.thp_mode != malloc_thp_mode_not_supported)
+-    return;
+-
+-  /* Set thp_pagesize even if thp_mode is never.  This reduces frequency
+-     of MORECORE () invocation.  */
+-  mp_.thp_mode = __malloc_thp_mode ();
+-  mp_.thp_pagesize = DEFAULT_THP_PAGESIZE;
+-}
+-
+ static inline void
+ madvise_thp (void *p, INTERNAL_SIZE_T size)
+ {
+ #ifdef MADV_HUGEPAGE
++  /* Only use __madvise if the system is using 'madvise' mode.
++     Otherwise the call is wasteful. */
++  if (mp_.thp_mode != malloc_thp_mode_madvise)
++    return;
+ 
+-  thp_init ();
+-
+-  /* Only use __madvise if the system is using 'madvise' mode and the size
+-     is at least a huge page, otherwise the call is wasteful. */
+-  if (mp_.thp_mode != malloc_thp_mode_madvise || size < mp_.thp_pagesize)
++  /* Do not consider areas smaller than a huge page or if the tunable is
++     not active.  */
++  if (mp_.thp_pagesize == 0 || size < mp_.thp_pagesize)
+     return;
+ 
+   /* Linux requires the input address to be page-aligned, and unaligned
+@@ -2472,9 +2461,6 @@ sysmalloc (INTERNAL_SIZE_T nb, mstate av)
+          previous calls. Otherwise, we correct to page-align below.
+        */
+ 
+-      /* Ensure thp_pagesize is initialized.  */
+-      thp_init ();
+-
+       if (__glibc_unlikely (mp_.thp_pagesize != 0))
+ 	{
+ 	  uintptr_t lastbrk = (uintptr_t) MORECORE (0);
+@@ -5132,9 +5118,7 @@ do_set_mxfast (size_t value)
+ static __always_inline int
+ do_set_hugetlb (size_t value)
+ {
+-  if (value == 0)
+-    mp_.thp_mode = malloc_thp_mode_never;
+-  else if (value == 1)
++  if (value == 1)
+     {
+       mp_.thp_mode = __malloc_thp_mode ();
+       if (mp_.thp_mode == malloc_thp_mode_madvise
+diff --git a/sysdeps/unix/sysv/linux/aarch64/malloc-hugepages.h b/sysdeps/unix/sysv/linux/aarch64/malloc-hugepages.h
+index 2204112e4e..eb7150a0e5 100644
+--- a/sysdeps/unix/sysv/linux/aarch64/malloc-hugepages.h
++++ b/sysdeps/unix/sysv/linux/aarch64/malloc-hugepages.h
+@@ -16,6 +16,6 @@
+    License along with the GNU C Library; see the file COPYING.LIB.  If
+    not, see <https://www.gnu.org/licenses/>.  */
+ 
+-#define DEFAULT_THP_PAGESIZE	(1UL << 21)
++# define DEFAULT_THP_PAGESIZE	1UL << 21
+ 
+ #include_next <malloc-hugepages.h>
+-- 
+2.47.0
+
