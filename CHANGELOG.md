@@ -1,3 +1,12 @@
+# v14.1.0 (2026-04-13)
+
+## OS Changes
+
+### Third Party Package Updates
+- Patch `glibc` to revert lazy THP initialization in malloc ([#905])
+
+[#905]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/905
+
 # v14.0.1 (2026-04-09)
 
 ## OS Changes
