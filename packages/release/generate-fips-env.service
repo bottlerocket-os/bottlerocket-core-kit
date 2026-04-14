@@ -1,0 +1,13 @@
+[Unit]
+Description=Generate FIPS Go environment
+DefaultDependencies=no
+Before=sysinit.target
+ConditionKernelCommandLine=fips=1
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cp /usr/share/bottlerocket/fips-go.env /run/fips-go.env
+RemainAfterExit=true
+
+[Install]
+WantedBy=sysinit.target

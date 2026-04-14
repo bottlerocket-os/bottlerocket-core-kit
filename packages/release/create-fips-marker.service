@@ -1,0 +1,17 @@
+# This file creates the /etc/system-fips marker file. This file can
+# be mounted into containers for certain distros (RHEL, Amazon Linux)
+# to trigger the use of FIPS certified crypto.
+
+[Unit]
+Description=Create FIPS system marker file
+DefaultDependencies=no
+ConditionKernelCommandLine=fips=1
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/touch /etc/system-fips
+RemainAfterExit=true
+
+[Install]
+WantedBy=sysinit.target

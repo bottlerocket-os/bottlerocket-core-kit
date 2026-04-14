@@ -143,6 +143,12 @@ Source1650: prepare-local-fs-encrypted.conf
 Source1651: local-mount-encrypted.conf
 Source1652: repart-local-encrypted.conf
 
+# Runtime FIPS activation sources.
+# These are always installed but only activate when fips=1 is on the kernel command line.
+Source1700: generate-fips-env.service
+Source1701: create-fips-marker.service
+Source1702: fips-go.env
+
 Requires: %{_cross_os}audit
 Requires: %{_cross_os}auditd
 Requires: %{_cross_os}chrony
@@ -371,6 +377,12 @@ install -p -m 0644 %{S:1400} %{buildroot}%{_cross_datadir}/logdog.d
 install -d %{buildroot}%{_cross_bootconfigdir}
 install -p -m 0644 %{S:1500} %{buildroot}%{_cross_bootconfigdir}/10-fips.conf
 
+# Runtime FIPS activation: install conditional services and static env file.
+# These are always present but only activate when fips=1 is on the kernel command line.
+install -p -m 0644 %{S:1700} %{S:1701} %{buildroot}%{_cross_unitdir}
+install -d %{buildroot}%{_cross_datadir}/bottlerocket
+install -p -m 0644 %{S:1702} %{buildroot}%{_cross_datadir}/bottlerocket/fips-go.env
+
 install -d %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d
 install -p -m 0644 %{S:1650} %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d/10-encrypted.conf
 
@@ -473,10 +485,13 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_datadir}/logdog.d/logdog.common.conf
 %{_cross_unitdir}/configure-snapshotter.service
 %{_cross_templatedir}/selected-snapshotter
-%{_cross_tmpfilesdir}/release-fips.conf
+# Runtime FIPS activation — conditional on fips=1 kernel command line parameter.
+# These are always present but are no-ops on non-FIPS boots.
 %{_cross_unitdir}/service.d/00-fips-go.conf
-%{_cross_unitdir}/*-bin.mount
-%{_cross_unitdir}/*-libexec.mount
+%{_cross_unitdir}/generate-fips-env.service
+%{_cross_unitdir}/create-fips-marker.service
+%{_cross_datadir}/bottlerocket/fips-go.env
+%{_cross_tmpfilesdir}/release-fips.conf
 %{_cross_unitdir}/fipscheck.target
 %{_cross_unitdir}/activate-preconfigured.service
 %{_cross_unitdir}/check-kernel-integrity.service
@@ -486,6 +501,8 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 
 %files fips
 %{_cross_bootconfigdir}/10-fips.conf
+%{_cross_unitdir}/*-bin.mount
+%{_cross_unitdir}/*-libexec.mount
 
 %files crypt
 %{_cross_unitdir}/encrypt-datastore.service
