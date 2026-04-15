@@ -7,7 +7,7 @@ description = "Mirrored regions with different values in 3rd Generation Intel Xe
 
 [[advisory.products]]
 package-name = "microcode"
-patched-version = "20240813"
+patched-version = "0"
 patched-release = "0"
 patched-epoch = "0"
 

@@ -7,7 +7,7 @@ description = "A protection mechanism failure in some 3rd, 4th, and 5th Generati
 
 [[advisory.products]]
 package-name = "microcode"
-patched-version = "20240813"
+patched-version = "0"
 patched-release = "0"
 patched-epoch = "0"
 
