@@ -46,6 +46,9 @@ enable_unprivileged_icmp = {{settings.container-runtime.enable-unprivileged-icmp
 {{#if settings.container-runtime.max-concurrent-downloads}}
 max_concurrent_downloads = {{settings.container-runtime.max-concurrent-downloads}}
 {{/if}}
+{{#if settings.container-runtime.max-concurrent-unpacks}}
+max_concurrent_unpacks = {{settings.container-runtime.max-concurrent-unpacks}}
+{{/if}}
 concurrent_layer_fetch_buffer = {{default 0 settings.container-runtime.concurrent-download-chunk-size}}
 
 [[plugins."io.containerd.transfer.v1.local".unpack_config]]
