@@ -1,0 +1,8 @@
+[Unit]
+Description=Unsupported setting warning for %i
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/unsupported-settings/%i
+ExecStart=/usr/bin/logger -p4 The setting "${UNSUPPORTED_SETTING}" is not supported and has no effect. ${UNSUPPORTED_REASON}
+StandardError=journal+console
