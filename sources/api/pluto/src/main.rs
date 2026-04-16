@@ -1,9 +1,10 @@
 /*!
 # Introduction
 
-pluto is called by sundog to generate settings required by Kubernetes.
-This is done dynamically because we require access to dynamic networking
-and cluster setup information.
+pluto is a special settings generator that runs only on Bottlerocket EKS nodes and is
+responsible for generating settings required by Kubernetes. It is invoked through a
+systemd service `pluto.service` after sundog generates rest of the settings but before
+`settings-applier.service` commits them.
 
 It uses IMDS to get information such as:
 
@@ -18,17 +19,6 @@ It uses the Bottlerocket API to get information such as:
 
 - Kubernetes Cluster Name
 - AWS Region
-
-# Interface
-
-Pluto takes the name of the setting that it is to generate as its first
-argument.
-It returns the generated setting to stdout as a JSON document.
-Any other output is returned to stderr.
-
-Pluto returns a special exit code of 2 to inform `sundog` that a setting should be skipped. For
-example, if `max-pods` cannot be generated, we want `sundog` to skip it without failing since a
-reasonable default is available.
 */
 
 mod api;
