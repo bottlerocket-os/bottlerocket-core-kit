@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-ljpndu5ez903"
+title = "binutils CVE-2025-1181"
+cve = "CVE-2025-1181"
+severity = "moderate"
+description = "A memory corruption flaw was found in the GNU Binutils linker (ld) during ELF garbage collection. Processing a crafted ELF binary could lead to memory corruption."
+
+[[advisory.products]]
+package-name = "binutils"
+patched-version = "2.44"
+patched-epoch = "1"
+
+[updateinfo]
+author = "maherhom"
+issue-date = 2026-04-20T21:34:38Z
+arches = ["aarch64", "x86_64"]
+version = "staging"
