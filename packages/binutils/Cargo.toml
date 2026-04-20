@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://mirrors.kernel.org/gnu/binutils/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://mirrors.kernel.org/gnu/binutils/binutils-2.43.1.tar.xz"
-sha512 = "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824"
+url = "https://mirrors.kernel.org/gnu/binutils/binutils-2.44.tar.xz"
+sha512 = "b85d3bbc0e334cf67a96219d3c7c65fbf3e832b2c98a7417bf131f3645a0307057ec81cd2b29ff2563cec53e3d42f73e2c60cc5708e80d4a730efdcc6ae14ad7"
 
 [[package.metadata.build-package.external-files]]
-url = "https://mirrors.kernel.org/gnu/binutils/binutils-2.43.1.tar.xz.sig"
-sha512 = "cf053f48a159afc7f0be10793d865a8a8c03dda283c2716b3860287c83ee2de68b04b568dff6a8d319092b89cb51cbeb16ccb6c17e630870cf440b8fb28d47f1"
+url = "https://mirrors.kernel.org/gnu/binutils/binutils-2.44.tar.xz.sig"
+sha512 = "b29de9335838bf238a41de6acf919516ff405a7beb6d17751f8f3f7d6ea37c2f58f7efbe1ecce3316c4eafd231d84fc50d0416218365d21cba17187485881d10"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
