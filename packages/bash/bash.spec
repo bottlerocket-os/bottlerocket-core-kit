@@ -55,6 +55,11 @@ echo %{release} > _patchlevel
 rm y.tab.*
 
 %build
+
+# GCC 15 defaults to -std=gnu23 which breaks bash compilation.
+export CFLAGS="%{_cross_cflags} -std=gnu17"
+export CFLAGS_FOR_BUILD="-std=gnu17"
+
 (
 export \
   ac_cv_rl_prefix="%{_cross_sysroot}" \
@@ -87,7 +92,7 @@ export \
   --with-installed-readline
 )
 
-make "CPPFLAGS=-D_GNU_SOURCE -DRECYCLES_PIDS -DDEFAULT_PATH_VALUE='\"/usr/local/bin:/usr/bin\"'" %{?_smp_mflags}
+%make_build "CPPFLAGS=-D_GNU_SOURCE -DRECYCLES_PIDS -DDEFAULT_PATH_VALUE='\"/usr/local/bin:/usr/bin\"'"
 
 %install
 %make_install install-headers

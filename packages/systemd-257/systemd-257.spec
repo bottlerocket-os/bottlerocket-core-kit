@@ -18,8 +18,8 @@ Source103: org.freedesktop.systemd1.toml
 Source1: systemd-mount-rate-bootconfig.conf
 Source2: systemd-cgroup-legacy-force-bootconfig.conf
 
-# Backport of upstream patch to change `Failed to execute <filepath> No such file 
-# or directory` error logs to debug 
+# Backport of upstream patch to change `Failed to execute <filepath> No such file
+# or directory` error logs to debug
 Patch1001: 1001-exec-util-make-missing-agents-a-gracefull-handled-issues.patch
 
 # Local patch to add the acquire the id for VMware
@@ -243,6 +243,8 @@ CONFIGURE_OPTS=(
  -Dcertificate-root='%{_cross_sysconfdir}/ssl'
  -Dpkgconfigdatadir='%{_cross_pkgconfigdir}'
  -Dpkgconfiglibdir='%{_cross_pkgconfigdir}'
+ -Dmount-path='%{_cross_bindir}/mount'
+ -Dumount-path='%{_cross_bindir}/umount'
 
  -Dadm-group=false
  -Dwheel-group=false
