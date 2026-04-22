@@ -88,8 +88,6 @@ Source1065: check-kernel-integrity.service
 Source1066: check-fips-modules.service
 Source1067: fips-modprobe@.service
 Source1068: configure-snapshotter.service
-Source1069: unsupported-setting-warning@.service
-Source1070: unsupported-setting-warning@.timer
 
 # Mounts that require build-time edits.
 Source1080: var-lib-kernel-devel-lower.mount.in
@@ -271,7 +269,7 @@ install -p -m 0644 \
   %{S:1045} %{S:1046} %{S:1047} %{S:1048} %{S:1049} \
   %{S:1050} \
   %{S:1060} %{S:1061} %{S:1062} %{S:1063} %{S:1064} \
-  %{S:1065} %{S:1066} %{S:1067} %{S:1068} %{S:1069} %{S:1070} \
+  %{S:1065} %{S:1066} %{S:1067} %{S:1068} \
   %{S:1600} %{S:1601} %{S:1602} %{S:1603} %{S:1604} \
   %{S:1605} %{S:1606} %{S:1607} %{S:1608} %{S:1609} \
   %{buildroot}%{_cross_unitdir}
@@ -441,8 +439,6 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/prepare-local-fs.service
 %{_cross_unitdir}/deprecation-warning@.service
 %{_cross_unitdir}/deprecation-warning@.timer
-%{_cross_unitdir}/unsupported-setting-warning@.service
-%{_cross_unitdir}/unsupported-setting-warning@.timer
 %{_cross_unitdir}/service.d/00-aws-config.conf
 %{_cross_unitdir}/service.d/10-requires-tmp.conf
 %dir %{_cross_unitdir}/systemd-resolved.service.d
