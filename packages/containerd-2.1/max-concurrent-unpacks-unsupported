@@ -1,7 +1,0 @@
-[required-extensions]
-container-runtime = { version = "v1", optional = true }
-+++
-{{~#if settings.container-runtime.max-concurrent-unpacks~}}
-UNSUPPORTED_SETTING=container-runtime.max-concurrent-unpacks
-UNSUPPORTED_REASON=This setting requires containerd 2.2 or later.
-{{~/if~}}
