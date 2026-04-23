@@ -2,6 +2,7 @@ use crate::aws::sdk_config;
 use crate::PROVIDER;
 use aws_smithy_experimental::hyper_1_0::HyperClientBuilder;
 use aws_smithy_types::error::display::DisplayErrorContext;
+use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
 use tokio_retry::{
@@ -59,12 +60,21 @@ where
         Retry::spawn(
             FibonacciBackoff::from_millis(FIBONACCI_BACKOFF_BASE_DURATION_MILLIS).map(jitter),
             || async {
-                client
+                log::info!("EC2 DescribeInstances attempt for {instance_id}");
+                let response = client
                     .describe_instances()
                     .instance_ids(instance_id.to_owned())
                     .send()
                     .await
-                    .context(DescribeInstancesSnafu { instance_id })?
+                    .context(DescribeInstancesSnafu { instance_id });
+                if let Err(Error::DescribeInstances { source, .. }) = &response {
+                    log::error!(
+                        "EC2 DescribeInstances attempt failed, will retry: code={} message={}",
+                        source.code().unwrap_or_default(),
+                        source.message().unwrap_or_default(),
+                    );
+                }
+                response?
                     .reservations
                     .and_then(|reservations| {
                         reservations.first().and_then(|r| {
@@ -78,6 +88,12 @@ where
                     .filter(|private_dns_name| !private_dns_name.is_empty())
                     .context(MissingSnafu {
                         field: "Reservation.Instance.PrivateDNSName",
+                    })
+                    .inspect_err(|e| {
+                        log::error!(
+                            "EC2 DescribeInstances attempt parsed to missing field, will retry: {}",
+                            e
+                        );
                     })
             },
         ),

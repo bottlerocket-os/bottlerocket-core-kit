@@ -2,6 +2,8 @@ use crate::aws::sdk_config;
 use crate::PROVIDER;
 use aws_sdk_eks::types::KubernetesNetworkConfigResponse;
 use aws_smithy_experimental::hyper_1_0::HyperClientBuilder;
+use aws_smithy_types::error::display::DisplayErrorContext;
+use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
 
@@ -12,8 +14,13 @@ pub(crate) type ClusterNetworkConfig = KubernetesNetworkConfigResponse;
 
 #[derive(Debug, Snafu)]
 pub(super) enum Error {
-    #[snafu(display("Error describing cluster: {}", source))]
+    #[snafu(display(
+        "Error describing EKS cluster '{}': {}",
+        cluster,
+        DisplayErrorContext(source)
+    ))]
     DescribeCluster {
+        cluster: String,
         #[snafu(source(from(aws_sdk_eks::error::SdkError<aws_sdk_eks::operation::describe_cluster::DescribeClusterError>, Box::new)))]
         source: Box<
             aws_sdk_eks::error::SdkError<
@@ -47,19 +54,34 @@ where
 
     let client = build_client(https_proxy, no_proxy, config)?;
 
-    tokio::time::timeout(
-        EKS_DESCRIBE_CLUSTER_TIMEOUT,
-        client.describe_cluster().name(cluster.to_owned()).send(),
-    )
+    tokio::time::timeout(EKS_DESCRIBE_CLUSTER_TIMEOUT, async {
+        log::info!("EKS DescribeCluster for {}", cluster);
+        let response = client
+            .describe_cluster()
+            .name(cluster.to_owned())
+            .send()
+            .await
+            .context(DescribeClusterSnafu { cluster });
+        if let Err(Error::DescribeCluster { source, .. }) = &response {
+            log::error!(
+                "EKS DescribeCluster attempt failed: code={} message={}",
+                source.code().unwrap_or_default(),
+                source.message().unwrap_or_default(),
+            );
+        }
+        response?
+            .cluster
+            .context(MissingSnafu { field: "cluster" })?
+            .kubernetes_network_config
+            .context(MissingSnafu {
+                field: "kubernetes_network_config",
+            })
+            .inspect_err(|e| {
+                log::error!("EKS DescribeCluster response missing expected field: {}", e);
+            })
+    })
     .await
     .context(DescribeClusterTimeoutSnafu)?
-    .context(DescribeClusterSnafu)?
-    .cluster
-    .context(MissingSnafu { field: "cluster" })?
-    .kubernetes_network_config
-    .context(MissingSnafu {
-        field: "kubernetes_network_config",
-    })
 }
 
 fn build_client<H, N>(
