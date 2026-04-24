@@ -1,5 +1,5 @@
 Name: %{_cross_os}binutils
-Version: 2.43.1
+Version: 2.44
 Release: 1%{?dist}
 Epoch: 1
 Summary: Tools for working with binaries
@@ -9,7 +9,6 @@ Source0: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
 Source1: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz.sig
 Source2: gpgkey-3A24BC1E8FB409FA9F14371813FCEF89DD9E3C4F.asc
 
-Patch0001: 0001-PR32560-stack-buffer-overflow-at-objdump-disassemble.patch
 
 Requires: %{_cross_os}libz
 BuildRequires: %{_cross_os}glibc-devel

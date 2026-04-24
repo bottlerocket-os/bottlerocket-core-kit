@@ -33,7 +33,6 @@ Summary: A statically-linked agent to enable remote management of EC2 instances
 %set_cross_go_flags
 
 export GOTOOLCHAIN=local
-export GO_MAJOR="1.25"
 
 go build -ldflags "${GOLDFLAGS}" -o amazon-ssm-agent \
   ./core/agent.go ./core/agent_unix.go ./core/agent_parser.go

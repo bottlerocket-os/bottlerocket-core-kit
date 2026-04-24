@@ -2,15 +2,14 @@
 %global gorepo cloud-provider-aws
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.31.9
-%global rpmver %{gover}
+%global gover 1.35.1
+%global rpmver 1.36.0
 
 %global _dwz_low_mem_die_limit 0
 
-Name: %{_cross_os}ecr-credential-provider-1.31
+Name: %{_cross_os}ecr-credential-provider-1.36
 Version: %{rpmver}
 Release: 1%{?dist}
-Epoch: 1
 Summary: Amazon ECR credential provider
 License: Apache-2.0
 URL: https://github.com/kubernetes/cloud-provider-aws

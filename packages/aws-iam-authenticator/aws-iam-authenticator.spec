@@ -34,7 +34,6 @@ Requires: %{_cross_os}aws-signing-helper
 
 %build
 %set_cross_go_flags
-export GO_MAJOR="1.25"
 go build -ldflags="${GOLDFLAGS}" -o aws-iam-authenticator ./cmd/aws-iam-authenticator
 
 %install

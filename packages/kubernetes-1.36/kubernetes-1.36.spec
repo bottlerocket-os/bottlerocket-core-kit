@@ -10,8 +10,8 @@
 %global gorepo kubernetes
 %global goimport %{goproject}/%{gorepo}
 
-%global releasever 16
-%global gover 1.34.4
+%global releasever 1
+%global gover 1.36.0
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -38,7 +38,7 @@ Summary: Container cluster management
 # base Apache-2.0, third_party Apache-2.0 AND BSD-3-Clause
 License: Apache-2.0 AND BSD-3-Clause
 URL: https://%{goimport}
-Source0: https://distro.eks.amazonaws.com/kubernetes-1-34/releases/%{releasever}/artifacts/kubernetes/v%{gover}/kubernetes-src.tar.gz
+Source0: https://distro.eks.amazonaws.com/kubernetes-1-36/releases/%{releasever}/artifacts/kubernetes/v%{gover}/kubernetes-src.tar.gz
 Source1: kubelet.service
 Source2: kubelet-env
 Source3: kubelet-config
@@ -55,6 +55,7 @@ Source13: etc-kubernetes-pki-private.mount
 Source14: credential-provider-config-yaml
 Source15: logdog.kubelet.conf
 Source16: multi-user-uphold-kubelet.conf
+Source17: kubelet-env-nvidia
 
 # ExecStartPre drop-ins
 Source20: prestart-load-pause-ctr.conf
@@ -75,23 +76,23 @@ BuildRequires: %{_cross_os}glibc-devel
 %description
 %{summary}.
 
-%package -n %{_cross_os}kubelet-1.34
+%package -n %{_cross_os}kubelet-1.36
 Summary: Container cluster node agent
 Requires: %{_cross_os}conntrack-tools
 Requires: %{_cross_os}containerd
 Requires: %{_cross_os}findutils
-Requires: %{_cross_os}ecr-credential-provider-1.34
+Requires: %{_cross_os}ecr-credential-provider-1.36
 Requires: %{_cross_os}aws-iam-authenticator
 Requires: %{_cross_os}static-pods
 
-%description -n %{_cross_os}kubelet-1.34
+%description -n %{_cross_os}kubelet-1.36
 %{summary}.
 
-%package -n %{_cross_os}kube-proxy-1.34
+%package -n %{_cross_os}kube-proxy-1.36
 Summary: Container cluster node proxy
-Requires: %{_cross_os}kubelet-1.34
+Requires: %{_cross_os}kubelet-1.36
 
-%description -n %{_cross_os}kube-proxy-1.34
+%description -n %{_cross_os}kube-proxy-1.36
 %{summary}.
 
 %prep
@@ -106,6 +107,7 @@ cp third_party/forked/golang/PATENTS PATENTS.golang
 
 %build
 export FORCE_HOST_GO=1
+export GO_MAJOR="1.26"
 
 # Build codegen programs with the host toolchain.
 make hack/update-codegen.sh
@@ -156,6 +158,7 @@ install -p -m 0644 %{S:20} %{S:21} %{S:22} %{buildroot}%{_cross_unitdir}/kubelet
 
 mkdir -p %{buildroot}%{_cross_templatedir}
 install -m 0644 %{S:2} %{buildroot}%{_cross_templatedir}/kubelet-env
+install -m 0644 %{S:17} %{buildroot}%{_cross_templatedir}/kubelet-env-nvidia
 install -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/kubelet-config
 install -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/kubelet-kubeconfig
 install -m 0644 %{S:5} %{buildroot}%{_cross_templatedir}/kubernetes-ca-crt
@@ -185,7 +188,7 @@ install -d %{buildroot}%{_cross_libexecdir}/kubernetes
 install -p -m 0644 ${output}/kubernetes-pause.tar %{buildroot}%{_cross_libexecdir}/kubernetes
 install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-container-image
 
-%files -n %{_cross_os}kubelet-1.34
+%files -n %{_cross_os}kubelet-1.36
 %license LICENSE LICENSE.gonum.graph LICENSE.shell2junit LICENSE.golang PATENTS.golang
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
@@ -200,7 +203,9 @@ install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-containe
 %{_cross_unitdir}/multi-user.target.d/10-kubelet-service.conf
 %dir %{_cross_templatedir}
 %{_cross_templatedir}/kubelet-env
+%{_cross_templatedir}/kubelet-env-nvidia
 %{_cross_templatedir}/kubelet-config
+%{_cross_templatedir}/pod-infra-container-image
 %{_cross_templatedir}/kubelet-kubeconfig
 %{_cross_templatedir}/kubelet-bootstrap-kubeconfig
 %{_cross_templatedir}/kubelet-exec-start-conf
@@ -213,11 +218,10 @@ install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-containe
 %dir %{_cross_libexecdir}/kubernetes
 %{_cross_libexecdir}/kubernetes/kubelet-plugins
 %{_cross_libexecdir}/kubernetes/kubernetes-pause.tar
-%{_cross_templatedir}/pod-infra-container-image
 %{_cross_datadir}/logdog.d/logdog.kubelet.conf
 %{_cross_bindir}/kubelet
 
-%files -n %{_cross_os}kube-proxy-1.34
+%files -n %{_cross_os}kube-proxy-1.36
 %{_cross_bindir}/kube-proxy
 
 %changelog

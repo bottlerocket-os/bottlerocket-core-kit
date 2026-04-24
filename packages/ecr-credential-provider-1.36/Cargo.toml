@@ -1,0 +1,24 @@
+[package]
+# "." is not allowed in crate names, but we want a friendlier name for the
+# directory and spec file, so we override it below.
+name = "ecr-credential-provider-1_36"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+package-name = "ecr-credential-provider-1.36"
+releases-url = "https://github.com/kubernetes/cloud-provider-aws/releases"
+
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/kubernetes/cloud-provider-aws/archive/refs/tags/v1.35.1.tar.gz"
+sha512 = "8737fe2f20e4f9ded0bab6d9bf965fa9ea34f08ef0a5cc7628ec7964b75c34a35aab3d7aa3c2bc5900fc890e2178e2c5849dccae8a86429e830377ef867508e3"
+path = "cloud-provider-aws-1.35.1.tar.gz"
+bundle-modules = [ "go" ]
+
+[build-dependencies]
+glibc = { path = "../glibc" }
