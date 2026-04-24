@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://lttng.org/files/urcu"
 
 [[package.metadata.build-package.external-files]]
-url = "https://lttng.org/files/urcu/userspace-rcu-0.15.5.tar.bz2"
-sha512 = "48c7e137b986c1a33d91ecd8e5101ed8783b7c4e15b8324660c72bce9879373b80ffd97aca0c3b8015a47dfe2c11b5f4acf9d4a065185d9ba405d4e50a2b58d8"
+url = "https://lttng.org/files/urcu/userspace-rcu-0.15.6.tar.bz2"
+sha512 = "53c28821dabfc1e8803c4299f6a9e589c9949d0062dd8aaa4aabb6d77641dfbd2b2c035c50680991d9f228499c12b9b23469044726a6ffce5e84f21f17cabff3"
 
 [[package.metadata.build-package.external-files]]
-url = "https://lttng.org/files/urcu/userspace-rcu-0.15.5.tar.bz2.asc"
-sha512 = "401a7c04cf553fa95330ce108e0dac0edac91dca423910dac5da86f465fcf734ac1aad7e333d5f6c606e324e5b50c44861cb514a294b3400155902ed59ea673d"
+url = "https://lttng.org/files/urcu/userspace-rcu-0.15.6.tar.bz2.asc"
+sha512 = "cd1b0fac74c01ef82d6e09a909b65026ccccec9b7bf042ec38783631c6a9e99993b570b2200ba814303483c99aaa44dc6ac2e58d7cd24ee5e5027becff724ff0"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
