@@ -19,7 +19,7 @@
 
 ### Kubernetes
 - Add beta packages for `kubernetes-1.36` and `ecr-credential-provider-1.36` ([#896])
-- Add `topology-manager-policy-options` for kubelet ([#901])
+- Add support for kubernetes settings `prefer-closest-numa-nodes` and `max-allowable-numa-nodes` ([#901])
 
 [#886]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/886
 [#892]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/892
