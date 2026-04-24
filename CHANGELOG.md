@@ -1,3 +1,32 @@
+# v14.2.0 (2026-04-24)
+
+## OS Changes
+- Add `max-concurrent-unpacks` setting support for `containerd-2.2` ([#886])
+- Update `host-ctr` to use Go `v1.26` ([#896])
+
+### Third Party Package Updates
+- Update `binutils` to `v2.44.0` ([#896])
+- Update `bash`, `ethtool`, `iproute`, `iptables`, `strace` ([#892])
+
+## Build Changes
+- Update Go toolchain to `v1.25` across packages ([#896])
+- Update Bottlerocket SDK to `v0.73.0` ([#896])
+- Bump `bottlerocket-settings-models` to 0.23.0 ([#901])
+- Set build flags for `bash` to follow c17 standard ([#911])
+- Configure `systemd-252`, `systemd-257` to set mount and umount path to `%{_cross_bindir})` ([#911])
+
+## Orchestrator Changes
+
+### Kubernetes
+- Add beta packages for `kubernetes-1.36` and `ecr-credential-provider-1.36` ([#896])
+- Add `topology-manager-policy-options` for kubelet ([#901])
+
+[#886]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/886
+[#892]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/892
+[#896]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/896
+[#901]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/901
+[#911]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/911
+
 # v14.1.0 (2026-04-13)
 
 ## OS Changes
