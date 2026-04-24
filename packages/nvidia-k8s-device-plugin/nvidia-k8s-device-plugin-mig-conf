@@ -1,10 +1,14 @@
 [required-extensions]
 kubelet-device-plugins = "v1"
-std = { version = "v1", helpers = ["if_not_null", "toml_encode"]}
+std = { version = "v1", helpers = ["if_not_null", "default", "toml_encode"]}
 +++
+{{#if_not_null settings.kubelet-device-plugins.nvidia}}
+{{#if (eq (default "true" settings.kubelet-device-plugins.nvidia.enabled) "true")}}
 {{#if_not_null settings.kubelet-device-plugins.nvidia.device-partitioning-strategy}}
 device-partitioning-strategy = "{{{settings.kubelet-device-plugins.nvidia.device-partitioning-strategy}}}"
 {{/if_not_null}}
 {{#if_not_null settings.kubelet-device-plugins.nvidia.mig.profile}}
 profile = {{ toml_encode settings.kubelet-device-plugins.nvidia.mig.profile }}
+{{/if_not_null}}
+{{/if}}
 {{/if_not_null}}
