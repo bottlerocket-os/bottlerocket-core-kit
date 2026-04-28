@@ -4384,11 +4384,13 @@ checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 name = "pluto"
 version = "0.1.0"
 dependencies = [
+ "argh",
  "aws-config",
  "aws-lc-rs",
  "aws-sdk-ec2",
  "aws-sdk-eks",
  "aws-smithy-experimental",
+ "aws-smithy-runtime-api",
  "aws-smithy-types",
  "aws-types",
  "base64",
@@ -4398,9 +4400,11 @@ dependencies = [
  "generate-readme",
  "httptest",
  "imdsclient",
+ "log",
  "rustls 0.23.37",
  "serde",
  "serde_json",
+ "simplelog",
  "snafu",
  "tempfile",
  "test-case",

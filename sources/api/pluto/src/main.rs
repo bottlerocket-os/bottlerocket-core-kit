@@ -1,9 +1,10 @@
 /*!
 # Introduction
 
-pluto is called by sundog to generate settings required by Kubernetes.
-This is done dynamically because we require access to dynamic networking
-and cluster setup information.
+pluto is a special settings generator that runs only on Bottlerocket EKS nodes and is
+responsible for generating settings required by Kubernetes. It is invoked through a
+systemd service `pluto.service` after sundog generates rest of the settings but before
+`settings-applier.service` commits them.
 
 It uses IMDS to get information such as:
 
@@ -18,17 +19,6 @@ It uses the Bottlerocket API to get information such as:
 
 - Kubernetes Cluster Name
 - AWS Region
-
-# Interface
-
-Pluto takes the name of the setting that it is to generate as its first
-argument.
-It returns the generated setting to stdout as a JSON document.
-Any other output is returned to stderr.
-
-Pluto returns a special exit code of 2 to inform `sundog` that a setting should be skipped. For
-example, if `max-pods` cannot be generated, we want `sundog` to skip it without failing since a
-reasonable default is available.
 */
 
 mod api;
@@ -37,11 +27,13 @@ mod ec2;
 mod eks;
 
 use api::{settings_view_get, settings_view_set, SettingsViewDelta};
+use argh::FromArgs;
 use aws_sdk_eks::types::IpFamily;
 use aws_smithy_experimental::hyper_1_0::CryptoMode;
 use base64::Engine;
 use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
 use imdsclient::ImdsClient;
+use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use snafu::{ensure, OptionExt, ResultExt};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
@@ -163,7 +155,18 @@ mod error {
 
         #[snafu(display("Unable to create tempdir: {}", source))]
         Tempdir { source: std::io::Error },
+
+        #[snafu(display("Failed to initialize logger: {}", source))]
+        Logger { source: log::SetLoggerError },
     }
+}
+
+/// Stores arguments
+#[derive(FromArgs, Debug)]
+struct Args {
+    /// log-level trace|debug|info|warn|error
+    #[argh(option)]
+    log_level: Option<LevelFilter>,
 }
 
 use error::PlutoError;
@@ -522,6 +525,14 @@ fn set_aws_config(aws_k8s_info: &SettingsViewDelta, filepath: &Path) -> Result<(
 }
 
 async fn run() -> Result<()> {
+    let args: Args = argh::from_env();
+
+    // SimpleLogger will send errors to stderr and anything less to stdout.
+    let log_level = args.log_level.unwrap_or(LevelFilter::Info);
+    SimpleLogger::init(log_level, LogConfig::default()).context(error::LoggerSnafu)?;
+
+    log::info!("pluto started");
+
     let mut client = ImdsClient::new();
     let current_settings = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
     let mut aws_k8s_info = SettingsViewDelta::from_api_response(current_settings);
@@ -548,9 +559,13 @@ async fn run() -> Result<()> {
             constants::API_SETTINGS_URI,
             constants::LAUNCH_TRANSACTION
         );
+
+        log::info!("Committing generated Kubernetes settings via Bottlerocket API");
         api::client_command(&["raw", "-m", "PATCH", "-u", uri, "-d", json_str.as_str()])
             .await
             .context(error::SetFailureSnafu)?;
+    } else {
+        log::info!("No settings generated; nothing to commit");
     }
 
     Ok(())
