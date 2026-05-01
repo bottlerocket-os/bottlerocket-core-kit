@@ -3,6 +3,7 @@ Description=Activate preconfigured.target
 DefaultDependencies=no
 After=fipscheck.target
 Requires=fipscheck.target
+ConditionKernelCommandLine=fips=1
 
 [Service]
 Type=oneshot
