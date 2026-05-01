@@ -2,7 +2,7 @@
 %global gorepo rolesanywhere-credential-helper
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.7.3
+%global gover 1.8.0
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -18,6 +18,7 @@ URL: https://github.com/aws/rolesanywhere-credential-helper
 Source: rolesanywhere-credential-helper-v%{gover}.tar.gz
 Source1: bundled-rolesanywhere-credential-helper-v%{gover}.tar.gz
 Source2: brush-aws-signing-helper.toml
+Source1000: clarify.toml
 
 BuildRequires: %{_cross_os}glibc-devel
 
@@ -54,7 +55,7 @@ install -d %{buildroot}%{_cross_datadir}/brush
 install -p -m 0755 %{S:2} %{buildroot}%{_cross_datadir}/brush/aws_signing_helper.toml
 ln -sf aws_signing_helper.toml %{buildroot}%{_cross_datadir}/brush/aws-signing-helper.toml
 
-%cross_scan_attribution go-vendor vendor
+%cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
 %files
 %license LICENSE
