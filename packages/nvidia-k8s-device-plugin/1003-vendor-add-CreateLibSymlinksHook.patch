@@ -1,0 +1,164 @@
+From a368b776c966394725bb59b67d55ebe260364e6a Mon Sep 17 00:00:00 2001
+From: Maher Homsi <maherhom@amazon.com>
+Date: Tue, 16 Jun 2026 22:34:09 +0000
+Subject: [PATCH] vendor: add CreateLibSymlinksHook to vendored
+ nvidia-container-toolkit
+
+Update the vendored nvidia-container-toolkit to include the
+CreateLibSymlinksHook feature. This is needed because patch 1002 enables
+this hook in the device plugin, but the vendored toolkit code does not
+include it.
+
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ .../internal/discover/hooks.go                | 15 ++++-
+ .../internal/discover/lib_path_symlinks.go    | 57 +++++++++++++++++++
+ .../nvidia-container-toolkit/pkg/nvcdi/api.go |  2 +
+ .../pkg/nvcdi/driver-nvml.go                  |  3 +
+ 4 files changed, 74 insertions(+), 3 deletions(-)
+ create mode 100644 vendor/github.com/NVIDIA/nvidia-container-toolkit/internal/discover/lib_path_symlinks.go
+
+diff --git a/vendor/github.com/NVIDIA/nvidia-container-toolkit/internal/discover/hooks.go b/vendor/github.com/NVIDIA/nvidia-container-toolkit/internal/discover/hooks.go
+index fb16f85..a831b3d 100644
+--- a/vendor/github.com/NVIDIA/nvidia-container-toolkit/internal/discover/hooks.go
++++ b/vendor/github.com/NVIDIA/nvidia-container-toolkit/internal/discover/hooks.go
+@@ -36,6 +36,8 @@ const (
+ 	ChmodHook = HookName("chmod")
+ 	// A CreateSymlinksHook is used to create symlinks in the container.
+ 	CreateSymlinksHook = HookName("create-symlinks")
++	// A CreateLibSymlinksHook is used to create library path compatibility symlinks.
++	CreateLibSymlinksHook = HookName("create-lib-symlinks")
+ 	// DisableDeviceNodeModificationHook refers to the hook used to ensure that
+ 	// device nodes are not created by libnvidia-ml.so or nvidia-smi in a
+ 	// container.
+@@ -57,6 +59,8 @@ var defaultDisabledHooks = []HookName{
+ 	// ChmodHook is disabled by default as it was a workaround for older
+ 	// versions of crun that has since been fixed.
+ 	ChmodHook,
++	// CreateLibSymlinksHook is disabled by default; opt-in for backwards compat.
++	CreateLibSymlinksHook,
+ }
+ 
+ var _ Discover = (*Hook)(nil)
+@@ -213,20 +217,25 @@ func (c cdiHookCreator) isDisabled(name HookName, args ...string) bool {
+ 
+ 	// still reject hooks that require args if none were provided
+ 	switch name {
+-	case CreateSymlinksHook, ChmodHook:
++	case CreateSymlinksHook, CreateLibSymlinksHook, ChmodHook:
+ 		return len(args) == 0
+ 	}
+ 	return false
+ }
+ 
+ func (c cdiHookCreator) requiredArgs(name HookName) []string {
+-	return append(c.fixedArgs, string(name))
++	cliName := name
++	switch name {
++	case CreateLibSymlinksHook:
++		cliName = CreateSymlinksHook
++	}
++	return append(c.fixedArgs, string(cliName))
+ }
+ 
+ func (c cdiHookCreator) transformArgs(name HookName, args ...string) []string {
+ 	var transformedArgs []string
+ 	switch name {
+-	case CreateSymlinksHook:
++	case CreateSymlinksHook, CreateLibSymlinksHook:
+ 		for _, arg := range args {
+ 			transformedArgs = append(transformedArgs, "--link", arg)
+ 		}
+diff --git a/vendor/github.com/NVIDIA/nvidia-container-toolkit/internal/discover/lib_path_symlinks.go b/vendor/github.com/NVIDIA/nvidia-container-toolkit/internal/discover/lib_path_symlinks.go
+new file mode 100644
+index 0000000..8b8b7a1
+--- /dev/null
++++ b/vendor/github.com/NVIDIA/nvidia-container-toolkit/internal/discover/lib_path_symlinks.go
+@@ -0,0 +1,57 @@
++package discover
++
++import (
++	"fmt"
++	"path/filepath"
++)
++
++const defaultLegacyLibPath = "/usr/lib/nvidia/tesla"
++
++type libPathSymlinks struct {
++	Discover
++	hookCreator   HookCreator
++	legacyLibPath string
++}
++
++// WithLibPathSymlinks decorates the provided discoverer to add a hook that
++// creates backwards-compatibility symlinks from legacyLibPath/<lib> to the
++// actual library paths.
++func WithLibPathSymlinks(mounts Discover, hookCreator HookCreator, legacyLibPath string) Discover {
++	if legacyLibPath == "" {
++		legacyLibPath = defaultLegacyLibPath
++	}
++	return &libPathSymlinks{
++		Discover:      mounts,
++		hookCreator:   hookCreator,
++		legacyLibPath: legacyLibPath,
++	}
++}
++
++// Hooks returns hooks from the wrapped discoverer plus a hook to create
++// library path compatibility symlinks.
++func (d *libPathSymlinks) Hooks() ([]Hook, error) {
++	hooks, err := d.Discover.Hooks()
++	if err != nil {
++		return nil, fmt.Errorf("failed to get hooks: %v", err)
++	}
++
++	mounts, err := d.Mounts()
++	if err != nil {
++		return nil, fmt.Errorf("failed to get library mounts: %v", err)
++	}
++
++	var links []string
++	for _, mount := range mounts {
++		basename := filepath.Base(mount.Path)
++		link := fmt.Sprintf("%s::%s", mount.Path, filepath.Join(d.legacyLibPath, basename))
++		links = append(links, link)
++	}
++
++	symlinkHook := d.hookCreator.Create(CreateLibSymlinksHook, links...)
++	if symlinkHook != nil {
++		hookList, _ := symlinkHook.Hooks()
++		hooks = append(hooks, hookList...)
++	}
++
++	return hooks, nil
++}
+diff --git a/vendor/github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/api.go b/vendor/github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/api.go
+index 7bf2fdc..08320c1 100644
+--- a/vendor/github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/api.go
++++ b/vendor/github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/api.go
+@@ -63,6 +63,8 @@ const (
+ 	EnableCudaCompatHook = discover.EnableCudaCompatHook
+ 	// An UpdateLDCacheHook is used to update the ldcache in the container.
+ 	UpdateLDCacheHook = discover.UpdateLDCacheHook
++	// A CreateLibSymlinksHook is used to create library path compatibility symlinks.
++	CreateLibSymlinksHook = discover.CreateLibSymlinksHook
+ 
+ 	// Deprecated: Use CreateSymlinksHook instead.
+ 	HookCreateSymlinks = CreateSymlinksHook
+diff --git a/vendor/github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/driver-nvml.go b/vendor/github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/driver-nvml.go
+index dd4f2b3..cd9ed8e 100644
+--- a/vendor/github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/driver-nvml.go
++++ b/vendor/github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/driver-nvml.go
+@@ -110,6 +110,9 @@ func (l *nvcdilib) NewDriverLibraryDiscoverer(version string, libcudaSoParentDir
+ 	cudaCompatLibHookDiscoverer := discover.NewCUDACompatHookDiscoverer(l.logger, l.hookCreator, &discover.EnableCUDACompatHookOptions{HostDriverVersion: version})
+ 	discoverers = append(discoverers, cudaCompatLibHookDiscoverer)
+ 
++	libPathSymlinksDiscoverer := discover.WithLibPathSymlinks(libraries, l.hookCreator, "")
++	discoverers = append(discoverers, libPathSymlinksDiscoverer)
++
+ 	updateLDCache, _ := discover.NewLDCacheUpdateHook(l.logger, libraries, l.hookCreator)
+ 	discoverers = append(discoverers, updateLDCache)
+ 
+-- 
+2.54.0
+
