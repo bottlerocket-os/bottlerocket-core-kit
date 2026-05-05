@@ -1,0 +1,190 @@
+From 75fb6b8355f68b1559818573736a7aa8c955065c Mon Sep 17 00:00:00 2001
+From: Maher Homsi <maherhom@amazon.com>
+Date: Wed, 17 Jun 2026 00:16:32 +0000
+Subject: [PATCH] Add --additional-symlinks flag for library path compatibility
+
+Add a --additional-symlinks flag to  that takes
+a directory path. When specified, for each discovered nvidia library
+mounted into the container, a symlink is created from
+<additional-symlinks-dir>/<lib> pointing to the actual library path.
+
+This enables backwards compatibility for workloads that expect nvidia
+libraries at /usr/lib/nvidia/tesla/ after libraries move to /usr/lib/.
+
+Usage:
+  nvidia-ctk cdi generate --additional-symlinks /usr/lib/nvidia/tesla
+
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ cmd/nvidia-ctk/cdi/generate/generate.go |  8 ++++
+ internal/discover/lib_path_symlinks.go  | 54 +++++++++++++++++++++++++
+ pkg/nvcdi/driver-nvml.go                | 10 +++++
+ pkg/nvcdi/lib.go                        |  2 +
+ pkg/nvcdi/options.go                    |  9 +++++
+ 5 files changed, 83 insertions(+)
+ create mode 100644 internal/discover/lib_path_symlinks.go
+
+diff --git a/cmd/nvidia-ctk/cdi/generate/generate.go b/cmd/nvidia-ctk/cdi/generate/generate.go
+index 2fff6ea..097eb07 100644
+--- a/cmd/nvidia-ctk/cdi/generate/generate.go
++++ b/cmd/nvidia-ctk/cdi/generate/generate.go
+@@ -68,6 +68,7 @@ type options struct {
+ 	enabledHooks       []string
+ 
+ 	featureFlags []string
++	libDirSymlinksDir string
+ 
+ 	csv struct {
+ 		files               []string
+@@ -243,6 +244,12 @@ func (m command) build() *cli.Command {
+ 				Destination: &opts.featureFlags,
+ 				Sources:     cli.EnvVars("NVIDIA_CTK_CDI_GENERATE_FEATURE_FLAGS"),
+ 			},
++			&cli.StringFlag{
++				Name:        "additional-symlinks",
++				Destination: &opts.libDirSymlinksDir,
++				Usage:       "Create symlinks in the specified directory pointing to each nvidia library. This enables backwards compatibility for workloads expecting libraries at a legacy path.",
++				Sources:     cli.EnvVars("NVIDIA_CTK_CDI_GENERATE_ADDITIONAL_SYMLINKS"),
++			},
+ 			&cli.BoolFlag{
+ 				Name:        "no-all-device",
+ 				Usage:       "Don't generate an `all` device for the resultant spec",
+@@ -397,6 +404,7 @@ func (m command) generateSpecs(opts *options) ([]generatedSpecs, error) {
+ 		nvcdi.WithDisabledHooks(opts.disabledHooks...),
+ 		nvcdi.WithEnabledHooks(opts.enabledHooks...),
+ 		nvcdi.WithFeatureFlags(opts.featureFlags...),
++		nvcdi.WithLibDirSymlinksDir(opts.libDirSymlinksDir),
+ 		// We set the following to allow for dependency injection:
+ 		nvcdi.WithNvmlLib(opts.nvmllib),
+ 	}
+diff --git a/internal/discover/lib_path_symlinks.go b/internal/discover/lib_path_symlinks.go
+new file mode 100644
+index 0000000..7c13dc3
+--- /dev/null
++++ b/internal/discover/lib_path_symlinks.go
+@@ -0,0 +1,54 @@
++package discover
++
++import (
++	"fmt"
++	"path/filepath"
++)
++
++type libDirSymlinks struct {
++	Discover
++	hookCreator HookCreator
++	symlinkDir  string
++}
++
++// WithLibDirSymlinks decorates the provided discoverer to add a hook that
++// creates symlinks in symlinkDir pointing to each discovered library.
++func WithLibDirSymlinks(mounts Discover, hookCreator HookCreator, symlinkDir string) Discover {
++	if symlinkDir == "" {
++		return mounts
++	}
++	return &libDirSymlinks{
++		Discover:    mounts,
++		hookCreator: hookCreator,
++		symlinkDir:  symlinkDir,
++	}
++}
++
++// Hooks returns hooks from the wrapped discoverer plus a create-symlinks hook
++// that creates symlinks in the configured directory.
++func (d *libDirSymlinks) Hooks() ([]Hook, error) {
++	hooks, err := d.Discover.Hooks()
++	if err != nil {
++		return nil, fmt.Errorf("failed to get hooks: %v", err)
++	}
++
++	mounts, err := d.Mounts()
++	if err != nil {
++		return nil, fmt.Errorf("failed to get library mounts: %v", err)
++	}
++
++	var links []string
++	for _, mount := range mounts {
++		basename := filepath.Base(mount.Path)
++		link := fmt.Sprintf("%s::%s", mount.Path, filepath.Join(d.symlinkDir, basename))
++		links = append(links, link)
++	}
++
++	symlinkHook := d.hookCreator.Create(CreateSymlinksHook, links...)
++	if symlinkHook != nil {
++		hookList, _ := symlinkHook.Hooks()
++		hooks = append(hooks, hookList...)
++	}
++
++	return hooks, nil
++}
+diff --git a/pkg/nvcdi/driver-nvml.go b/pkg/nvcdi/driver-nvml.go
+index dd4f2b3..b9ebd55 100644
+--- a/pkg/nvcdi/driver-nvml.go
++++ b/pkg/nvcdi/driver-nvml.go
+@@ -110,6 +110,16 @@ func (l *nvcdilib) NewDriverLibraryDiscoverer(version string, libcudaSoParentDir
+ 	cudaCompatLibHookDiscoverer := discover.NewCUDACompatHookDiscoverer(l.logger, l.hookCreator, &discover.EnableCUDACompatHookOptions{HostDriverVersion: version})
+ 	discoverers = append(discoverers, cudaCompatLibHookDiscoverer)
+ 
++	if l.libDirSymlinksDir != "" {
++		l.logger.Infof("Adding additional symlinks discoverer for directory %q", l.libDirSymlinksDir)
++		libDirSymlinksDiscoverer := discover.WithLibDirSymlinks(
++			libraries,
++			l.hookCreator,
++			l.libDirSymlinksDir,
++		)
++		discoverers = append(discoverers, libDirSymlinksDiscoverer)
++	}
++
+ 	updateLDCache, _ := discover.NewLDCacheUpdateHook(l.logger, libraries, l.hookCreator)
+ 	discoverers = append(discoverers, updateLDCache)
+ 
+diff --git a/pkg/nvcdi/lib.go b/pkg/nvcdi/lib.go
+index fa84e19..4a9f564 100644
+--- a/pkg/nvcdi/lib.go
++++ b/pkg/nvcdi/lib.go
+@@ -45,6 +45,7 @@ type nvcdilib struct {
+ 
+ 	hookCreator  discover.HookCreator
+ 	editsFactory edits.Factory
++	libDirSymlinksDir string
+ }
+ 
+ // New creates a new nvcdi library
+@@ -72,6 +73,7 @@ func New(opts ...Option) (Interface, error) {
+ 			discover.WithDisabledHooks(o.disabledHooks...),
+ 		),
+ 		editsFactory: o.editsFactory,
++		libDirSymlinksDir: o.libDirSymlinksDir,
+ 	}
+ 
+ 	var factory deviceSpecGeneratorFactory
+diff --git a/pkg/nvcdi/options.go b/pkg/nvcdi/options.go
+index a5e2b1c..f099dcf 100644
+--- a/pkg/nvcdi/options.go
++++ b/pkg/nvcdi/options.go
+@@ -55,6 +55,7 @@ type options struct {
+ 	enabledHooks  []discover.HookName
+ 
+ 	editsFactory edits.Factory
++	libDirSymlinksDir string
+ }
+ 
+ type platformlibs struct {
+@@ -344,6 +345,14 @@ func WithFeatureFlags[T string | FeatureFlag](featureFlags ...T) Option {
+ 	}
+ }
+ 
++// WithLibDirSymlinksDir sets the directory where additional library
++// symlinks should be created in the container.
++func WithLibDirSymlinksDir(dir string) Option {
++	return func(o *options) {
++		o.libDirSymlinksDir = dir
++	}
++}
++
+ // WithDisabledHook allows specific hooks to be disabled.
+ // This option can be specified multiple times for each hook.
+ //
+-- 
+2.54.0
+
