@@ -2,7 +2,7 @@
 %global gorepo runc
 %global goimport %{goproject}/%{gorepo}
 %global commit d6d73eb8c60246978da649ffe75ce5c8bca8f856
-%global gover 1.3.4
+%global gover 1.3.5
 
 %global _dwz_low_mem_die_limit 0
 
@@ -30,7 +30,7 @@ Requires: %{_cross_os}libseccomp
 %{summary}.
 
 %prep
-%{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:2}
+%{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:3}
 %autosetup -Sgit -n %{gorepo}-%{gover} -p1
 %cross_go_setup %{gorepo}-%{gover} %{goproject} %{goimport}
 
