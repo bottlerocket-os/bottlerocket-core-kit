@@ -1,5 +1,5 @@
 Name: %{_cross_os}libcap
-Version: 2.77
+Version: 2.78
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for getting and setting POSIX.1e capabilities
