@@ -101,6 +101,9 @@ Patch9020: 9020-core-validate-input-cgroup-path-more-prudently.patch
 Patch9038: 9038-nspawn-normalize-pivot_root-paths.patch
 Patch9039: 9039-nspawn-apply-BindUser-Ephemeral-from-settings-fil.patch
 
+# Backport fix for PrivateDevices= failing during early boot. See the patch.
+Patch9040: 9040-namespace-use-run-systemd-for-PrivateDevices.patch
+
 BuildRequires: gperf
 BuildRequires: intltool
 BuildRequires: meson

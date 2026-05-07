@@ -115,7 +115,6 @@ Source1109: modprobe-no-exit.conf
 Source1110: tmp-mount-noexec.conf
 Source1111: network-pre-target-dbus-dep.conf
 Source1112: fips-go.conf
-Source1113: requires-tmp.conf
 
 # network link rules
 Source1200: 80-release.link
@@ -294,7 +293,6 @@ install -p -m 0644 %{S:1104} %{buildroot}%{_cross_unitdir}/service.d/00-aws-conf
 
 install -d %{buildroot}%{_cross_unitdir}/service.d
 install -p -m 0644 %{S:1112} %{buildroot}%{_cross_unitdir}/service.d/00-fips-go.conf
-install -p -m 0644 %{S:1113} %{buildroot}%{_cross_unitdir}/service.d/10-requires-tmp.conf
 
 install -d %{buildroot}%{_cross_libdir}/systemd/system.conf.d
 install -p -m 0644 %{S:98} %{buildroot}%{_cross_libdir}/systemd/system.conf.d/80-release.conf
@@ -508,7 +506,6 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %dir %{_cross_unitdir}/prepare-local-fs.service.d
 %{_cross_unitdir}/prepare-local-fs.service
 %{_cross_unitdir}/service.d/00-aws-config.conf
-%{_cross_unitdir}/service.d/10-requires-tmp.conf
 %dir %{_cross_unitdir}/systemd-tmpfiles-setup.service.d
 %{_cross_unitdir}/systemd-tmpfiles-setup.service.d/00-debug.conf
 %dir %{_cross_unitdir}/systemd-udev-trigger.service.d
