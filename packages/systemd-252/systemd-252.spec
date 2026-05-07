@@ -96,6 +96,9 @@ Patch9018: 9018-meson-replace-openssl-dependency-with-libcrypto.patch
 # it does not apply to Bottlerocket where the API is restricted by the SELinux
 # policy
 Patch9019: 9019-suppress-log-for-units-with-mode-0044.patch
+# Backport of upstream PR #29343 to use /run/systemd instead of /tmp for
+# PrivateDevices= mount namespace, fixing race condition during early boot.
+Patch9020: 9020-namespace-use-run-systemd-for-PrivateDevices.patch
 
 BuildRequires: gperf
 BuildRequires: intltool
