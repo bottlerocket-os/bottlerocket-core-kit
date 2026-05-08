@@ -14,7 +14,8 @@ interface for encrypting and managing encrypted storage resources including:
 ### Commands
 
 #### Key Management
-- `generate-key <key-id>` - Generate an encryption key
+- `generate key <key-id>` - Generate an encryption key
+- `dump key <key-id>` - Dump encrypted key structure
 
 #### Block Device Operations
 - `encrypt block-device <path> <key-id>` - Encrypt a block device using LUKS
@@ -28,6 +29,7 @@ interface for encrypting and managing encrypted storage resources including:
 - `lock directory <path>` - Lock an encrypted directory (remove key)
 - `unlock directory <path> <key-id>` - Unlock an encrypted directory (add key)
 - `check directory <path> encrypted|unencrypted` - Check directory encryption state
+- `check directory <path> locked|unlocked` - Check directory lock state
 
 #### TPM Measurement Operations
 - `measure settings` - Measure OS settings into PCR 8

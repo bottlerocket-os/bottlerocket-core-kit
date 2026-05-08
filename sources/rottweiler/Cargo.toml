@@ -2,21 +2,29 @@
 name = "rottweiler"
 version = "0.1.0"
 edition = "2024"
-license = "Apache-2.0 OR MIT"
+license = "(Apache-2.0 OR MIT) AND LGPL-2.1-or-later"
 publish = false
 
 [dependencies]
 argh.workspace = true
+base64.workspace = true
+binrw.workspace = true
 bottlerocket-image-features.workspace = true
 envy.workspace = true
 hex.workspace = true
+hex-literal.workspace = true
 hkdf = { workspace = true, features = ["std"] }
 nix = { workspace = true, features = ["fs", "ioctl", "mount"] }
 serde = { workspace = true, features = ["derive"] }
+serde_plain.workspace = true
+serde_json.workspace = true
 sha2.workspace = true
 snafu.workspace = true
 walkdir.workspace = true
 zeroize = { workspace = true, features = ["alloc", "derive"] }
+
+[dev-dependencies]
+test-case.workspace = true
 
 [build-dependencies]
 generate-readme.workspace = true

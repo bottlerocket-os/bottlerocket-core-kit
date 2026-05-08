@@ -557,7 +557,7 @@ fn encrypt_ephemeral_device(device: &str) -> Result<String> {
 
     if !is_encrypted {
         run_rottweiler_checked(
-            &["generate-key", EPHEMERAL_STORAGE_KEY_ID],
+            &["generate", "key", EPHEMERAL_STORAGE_KEY_ID],
             EPHEMERAL_DATA_LINK,
         )?;
         run_rottweiler_checked(

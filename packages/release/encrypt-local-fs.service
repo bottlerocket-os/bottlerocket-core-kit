@@ -17,7 +17,7 @@ Environment=BOTTLEROCKET_DATA=/dev/disk/by-partlabel/BOTTLEROCKET-DATA
 ExecCondition=/usr/bin/rottweiler check block-device ${BOTTLEROCKET_DATA} unencrypted
 
 # Generate key and encrypt block device.
-ExecStart=/usr/bin/rottweiler generate-key bottlerocket-data
+ExecStart=/usr/bin/rottweiler generate key bottlerocket-data
 ExecStart=/usr/bin/rottweiler encrypt block-device ${BOTTLEROCKET_DATA} bottlerocket-data
 
 UMask=0077

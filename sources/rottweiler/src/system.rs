@@ -13,7 +13,13 @@ const TPM2_PCREXTEND: &str = "/usr/bin/tpm2_pcrextend";
 
 /// Encrypt data using systemd-creds with TPM2 PCRs
 pub fn systemd_creds_encrypt(name: &str, plaintext: &[u8]) -> Result<Zeroizing<Vec<u8>>> {
-    let pcrs = format!("--tpm2-pcrs={}", get_tpm2_pcrs()?);
+    let pcrs_vec = get_tpm2_pcrs()?;
+    let pcrs_str = pcrs_vec
+        .iter()
+        .map(|p| p.to_string())
+        .collect::<Vec<_>>()
+        .join("+");
+    let pcrs = format!("--tpm2-pcrs={}", pcrs_str);
     execute(
         SYSTEMD_CREDS,
         &[
@@ -152,12 +158,12 @@ fn execute(cmd: &str, args: &[&str], input: Option<&[u8]>) -> Result<Zeroizing<V
 ///
 /// If in-place updates are disabled, then the measurements in PCR 4 (kernel) and
 /// PCR 9 (userspace) shouldn't change.
-fn get_tpm2_pcrs() -> Result<String> {
+pub fn get_tpm2_pcrs() -> Result<Vec<u32>> {
     let features = bottlerocket_image_features::parse_image_features()?;
     Ok(if features.in_place_updates {
-        "7+11+14".to_string()
+        vec![7, 11, 14]
     } else {
-        "4+7+9+11+14".to_string()
+        vec![4, 7, 9, 11, 14]
     })
 }
 
