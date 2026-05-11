@@ -6,13 +6,18 @@ std = { version = "v1" }
 {{#if (eq settings.container-runtime.snapshotter "soci" )}}
 [plugins."io.containerd.cri.v1.images"]
 snapshotter = "soci"
-disable_snapshot_annotations = false
+
+[[plugins."io.containerd.transfer.v1.local".unpack_config]]
+platform = "linux"
+snapshotter = "soci"
+
 # Plug soci snapshotter into containerd
 [proxy_plugins.soci]
 type = "snapshot"
 address = "/run/soci-snapshotter/soci-snapshotter.sock"
 [proxy_plugins.soci.exports]
 root = "/var/lib/soci-snapshotter"
+enable_remote_snapshot_annotations = "true"
 {{else}}
 [plugins."io.containerd.cri.v1.images"]
 snapshotter = "overlayfs"
