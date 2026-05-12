@@ -18,7 +18,7 @@ index a0cf675..4b16d6a 100644
  
 +kmod_link_args = []
 +if get_option('default_library') == 'static'
-+  kmod_link_args += ['-static']
++  kmod_link_args += ['-static-pie']
 +endif
 +
  kmod = executable(
