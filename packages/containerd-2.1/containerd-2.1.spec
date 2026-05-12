@@ -42,6 +42,8 @@ Patch1001: 1001-Revert-Don-t-allow-io_uring-related-syscalls-in-the-.patch
 Patch1002: 1002-transfer-service-fallback-to-credentials.toml-for-re.patch
 # Patch to make ctr use hosts.toml for registry mirrors by default
 Patch1003: 1003-ctr-default-hosts-dir-to-etc-containerd-certs.d.patch
+# Patch to forward Create fields and fix event topics in sandbox controller
+Patch1004: 1004-sandbox-forward-Create-fields-fix-event-topics.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
