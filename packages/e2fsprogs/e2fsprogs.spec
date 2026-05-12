@@ -1,5 +1,5 @@
 Name: %{_cross_os}e2fsprogs
-Version: 1.47.3
+Version: 1.47.4
 Release: 1%{?dist}
 Epoch: 1
 Summary: Tools for managing ext2, ext3, and ext4 file systems
