@@ -2,9 +2,9 @@
 %global gorepo containerd
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 2.2.2
+%global gover 2.2.3
 %global rpmver %{gover}
-%global gitrev 301b2dac98f15c27117da5c8af12118a041a31d9
+%global gitrev 77c84241c7cbdd9b4eca2591793e3d4f4317c590
 
 %global package_priority_epoch 0
 %global _dwz_low_mem_die_limit 0
@@ -42,8 +42,6 @@ Patch1001: 1001-Revert-Don-t-allow-io_uring-related-syscalls-in-the-.patch
 Patch1002: 1002-transfer-service-fallback-to-credentials.toml-for-re.patch
 # Patch to make ctr use hosts.toml for registry mirrors by default
 Patch1003: 1003-ctr-default-hosts-dir-to-etc-containerd-certs.d.patch
-# Patch to fix whiteouts ignored during parallel unpack with overlayfs
-Patch1004: 1004-fix-overlayfs-whiteouts-during-parallel-unpack.patch
 
 BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
