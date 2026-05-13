@@ -216,7 +216,7 @@ tokio-test = "0.4"
 tokio-tungstenite = { version = "0.20", default-features = false }
 tokio-util = "0.7"
 toml = "0.8"
-tough = "0.20"
+tough = "0.22"
 tower = "0.4"
 tracing = "0.1"
 typed-path = "0.9"

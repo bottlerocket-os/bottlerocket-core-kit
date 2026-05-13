@@ -75,7 +75,8 @@ impl HttpQueryTransport {
     }
 }
 
-pub(crate) type TransportStream = Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send>>;
+pub(crate) type TransportStream =
+    Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send + Sync>>;
 
 #[async_trait]
 impl Transport for HttpQueryTransport {

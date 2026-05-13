@@ -1,3 +1,28 @@
+# v14.3.0 (2026-05-13)
+
+## OS Changes
+- Add logging to `pluto` ([#849])
+- Configure `containerd` transfer service remote snapshot annotations ([#923])
+- Update first-party `tough` dependency to the latest version ([#927])
+
+### Third Party Package Updates
+- Update `aws-iam-authenticator`, `aws-signing-helper`, `containerd-1.7`, `containerd-2.1` ([#917])
+- Update `containerd-2.2` ([#928])
+- Backport sandbox controller fix for `containerd-2.1` and `containerd-2.2` ([#925])
+
+## Orchestrator Changes
+
+### Kubernetes
+- Update `kubernetes-1.36`, `ecr-credential-provider-1.36` with official sources ([#920])
+
+[#849]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/849
+[#917]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/917
+[#920]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/920
+[#923]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/923
+[#925]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/925
+[#927]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/927
+[#928]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/928
+
 # v14.2.0 (2026-04-24)
 
 ## OS Changes
