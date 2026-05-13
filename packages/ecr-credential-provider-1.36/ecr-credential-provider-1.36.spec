@@ -2,8 +2,8 @@
 %global gorepo cloud-provider-aws
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.35.1
-%global rpmver 1.36.0
+%global gover 1.36.0
+%global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
 
@@ -37,6 +37,7 @@ Requires: %{_cross_os}aws-signing-helper
 %set_cross_go_flags
 
 export GOTOOLCHAIN=local
+export GO_MAJOR="1.26"
 
 go build -ldflags="${GOLDFLAGS}" -o=ecr-credential-provider cmd/ecr-credential-provider/*.go
 
