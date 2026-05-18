@@ -1,7 +1,7 @@
 %global abiver 59
 
 Name: %{_cross_os}rdma-core
-Version: 60.0
+Version: 60.1
 Release: 1%{?dist}
 Summary: RDMA core userspace infrastructure, including core libraries and util programs.
 License: Linux-OpenIB AND MIT
