@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-b8okc9cb56gk"
+title = "libcap CVE-2026-4878"
+cve = "CVE-2026-4878"
+severity = "moderate"
+description = "Local Privilege Escalation (LPE) via TOCTOU race condition in cap_set_file() through file capability injection."
+
+[[advisory.products]]
+package-name = "libcap"
+patched-version = "2.78"
+patched-epoch = "1"
+
+[updateinfo]
+author = "jpculp"
+issue-date = 2026-05-20T21:38:20Z
+arches = ["aarch64", "x86_64"]
+version = "staging"

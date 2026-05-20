@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-h6zf92f0298p"
+title = "libglib CVE-2026-1489"
+cve = "CVE-2026-1489"
+severity = "moderate"
+description = "A flaw was found in GLib. An integer overflow vulnerability in its Unicode case conversion implementation can lead to memory corruption. By processing specially crafted and extremely large Unicode strings, an attacker could trigger an undersized memory allocation, resulting in out-of-bounds writes. This could cause applications utilizing GLib for string conversion to crash or become unstable."
+
+[[advisory.products]]
+package-name = "libglib"
+patched-version = "2.86.5"
+patched-epoch = "1"
+
+[updateinfo]
+author = "jpculp"
+issue-date = 2026-05-20T21:38:20Z
+arches = ["aarch64", "x86_64"]
+version = "staging"
