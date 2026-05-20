@@ -1,11 +1,11 @@
 Name: %{_cross_os}libcryptsetup
-Version: 2.8.4
+Version: 2.8.6
 Release: 1%{?dist}
 Summary: Libraries for disk encryption support
 License: GPL-2.0-or-later WITH cryptsetup-OpenSSL-exception AND LGPL-2.1-or-later WITH cryptsetup-OpenSSL-exception
 URL: https://gitlab.com/cryptsetup/cryptsetup
-Source0: https://www.kernel.org/pub/linux/utils/cryptsetup/v2.7/cryptsetup-%{version}.tar.xz
-Source1: https://www.kernel.org/pub/linux/utils/cryptsetup/v2.7/cryptsetup-%{version}.tar.sign
+Source0: https://www.kernel.org/pub/linux/utils/cryptsetup/v2.8/cryptsetup-%{version}.tar.xz
+Source1: https://www.kernel.org/pub/linux/utils/cryptsetup/v2.8/cryptsetup-%{version}.tar.sign
 Source2: gpgkey-2A2918243FDE46648D0686F9D9B0577BD93E98FC.asc
 
 # AWS-LC is always in FIPS mode, which will prevent any use of the argon2 PBKDF.

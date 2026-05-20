@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://www.kernel.org/pub/linux/utils/cryptsetup/v2.8"
 
 [[package.metadata.build-package.external-files]]
-url = "https://www.kernel.org/pub/linux/utils/cryptsetup/v2.8/cryptsetup-2.8.4.tar.xz"
-sha512 = "cf9923552f93d3ca047fa17e2d73923b782e0f5146d9721fb8e1196374185524c2642c1243ea72107aef03a0b0b9d967576a58b1a680dd9b6a17dbf4a4430489"
+url = "https://www.kernel.org/pub/linux/utils/cryptsetup/v2.8/cryptsetup-2.8.6.tar.xz"
+sha512 = "b580e0b384a590447cf21a9d50142e7f799c3dae0fc13999886db45716f95523fa47c795335a27a7282ff1ee67eedd69989c56e6a429016aa957171fe2646d5e"
 
 [[package.metadata.build-package.external-files]]
-url = "https://www.kernel.org/pub/linux/utils/cryptsetup/v2.8/cryptsetup-2.8.4.tar.sign"
-sha512 = "b568ea6272960f186c83247c95c666355c44deb9be7508202ec56d0bca8dcfe660ef175f0f0792ebf9c1219f15cd3f24536dffff5e131142c1ead408a5350274"
+url = "https://www.kernel.org/pub/linux/utils/cryptsetup/v2.8/cryptsetup-2.8.6.tar.sign"
+sha512 = "5299d18b55c119bc80654be8868b9d111aedbe33654ccc64cb0e627d39c5265e960b406884347d4ed4129c39cc3fcd990c1861a80d7958059a17e945df769548"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
