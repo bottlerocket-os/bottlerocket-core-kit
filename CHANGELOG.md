@@ -1,3 +1,14 @@
+# v14.4.0 (2026-05-26)
+
+### Third Party Package Updates
+- Update `libcrypto`, `rdma-core` ([#881])
+
+## Build Changes
+- Update Bottlerocket SDK to `v0.74.0` ([#933])
+
+[#881]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/881
+[#933]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/933
+
 # v14.3.0 (2026-05-13)
 
 ## OS Changes
