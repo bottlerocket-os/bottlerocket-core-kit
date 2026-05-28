@@ -400,7 +400,6 @@ Conflicts: %{_cross_os}image-feature(no-host-containers)
 Summary: Compliance check framework
 Requires: (%{_cross_os}bloodhound-k8s if %{_cross_os}variant-runtime(k8s))
 Requires: (%{_cross_os}bloodhound-k8s-overrides if %{_cross_os}variant-runtime(k8s))
-Requires: (%{_cross_os}bloodhound-fips if %{_cross_os}image-feature(fips))
 %description -n %{_cross_os}bloodhound
 %{summary}.
 
@@ -414,12 +413,6 @@ Requires: (%{_cross_os}bloodhound and %{_cross_os}variant-runtime(k8s))
 Summary: CIS Test overrides for Kubernetes variants
 Requires: (%{_cross_os}bloodhound and %{_cross_os}variant-runtime(k8s))
 %description -n %{_cross_os}bloodhound-k8s-overrides
-%{summary}.
-
-%package -n %{_cross_os}bloodhound-fips
-Summary: Compliance checks for FIPS
-Requires: (%{_cross_os}bloodhound and %{_cross_os}image-feature(fips))
-%description -n %{_cross_os}bloodhound-fips
 %{summary}.
 
 %package -n %{_cross_os}xfscli
@@ -979,7 +972,9 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %files -n %{_cross_os}bloodhound
 %{_cross_bindir}/bloodhound
 %{_cross_bindir}/bottlerocket-cis-checks
+%{_cross_bindir}/bottlerocket-fips-checks
 %{_cross_libexecdir}/cis-checks/bottlerocket
+%{_cross_libexecdir}/fips-checks/bottlerocket
 %exclude %{_cross_libexecdir}/cis-checks/bottlerocket/br03040101.json
 
 %files -n %{_cross_os}bloodhound-k8s
@@ -989,10 +984,6 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %files -n %{_cross_os}bloodhound-k8s-overrides
 %{_cross_libexecdir}/cis-checks/bottlerocket/br03040101.json
 %{_cross_libexecdir}/cis-checks/kubernetes/k8s04021000.json
-
-%files -n %{_cross_os}bloodhound-fips
-%{_cross_bindir}/bottlerocket-fips-checks
-%{_cross_libexecdir}/fips-checks/bottlerocket
 
 %files -n %{_cross_os}xfscli
 %{_cross_sbindir}/xfs_admin
