@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-jgcxwcxt3sxd"
+title = "util-linux CVE-2026-27456"
+cve = "CVE-2026-27456"
+severity = "moderate"
+description = "A TOCTOU (time-of-check-time-of-use) race condition exists in libmount's loop device hook. The loopcxt_set_backing_file() function uses strdup() instead of ul_canonicalize_path(), and loopcxt_setup_device() does not set O_NOFOLLOW on open() flags for non-root mount operations. This flaw could allow a backing file specified in /etc/fstab to be replaced with a symlink to an arbitrary root-owned file between path resolution and open(), potentially leading to unauthorized file access."
+
+[[advisory.products]]
+package-name = "util-linux"
+patched-version = "2.41.4"
+patched-epoch = "1"
+
+[updateinfo]
+author = "maherhom"
+issue-date = 2026-05-26T23:16:23Z
+arches = ["x86_64", "aarch64"]
+version = "staging"

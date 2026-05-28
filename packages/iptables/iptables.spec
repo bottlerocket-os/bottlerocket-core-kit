@@ -1,5 +1,5 @@
 Name: %{_cross_os}iptables
-Version: 1.8.12
+Version: 1.8.13
 Release: 1%{?dist}
 Epoch: 1
 Summary: Tools for managing Linux kernel packet filtering capabilities

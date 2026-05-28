@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://www.kernel.org/pub/software/utils/pciutils/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://www.kernel.org/pub/software/utils/pciutils/pciutils-3.14.0.tar.gz"
-sha512 = "3b635274263fea621755b30a7c57348830957d8b4dfb9af69e14e269b07cc4a55a575acb092a5b6a66addb939c31082dfcb79a03531f34a31ea3c3ff7c7ce132"
+url = "https://www.kernel.org/pub/software/utils/pciutils/pciutils-3.15.0.tar.gz"
+sha512 = "c03c5617ed0c0f7c2e3b36889d93221521e449b93969256eb7512603b5dccf5ce0e5eb3c58662a091621e59257593a162f8ba36537d93e52386e227641a1a593"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

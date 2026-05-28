@@ -1,5 +1,5 @@
 Name: %{_cross_os}pciutils
-Version: 3.14.0
+Version: 3.15.0
 Release: 1%{?dist}
 Epoch: 1
 Summary: PCI bus related utilities
