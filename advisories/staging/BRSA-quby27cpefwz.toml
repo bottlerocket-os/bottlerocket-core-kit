@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-quby27cpefwz"
+title = "libglib CVE-2026-1484"
+cve = "CVE-2026-1484"
+severity = "moderate"
+description = "A flaw was found in the GLib Base64 encoding routine when processing very large input data. Due to incorrect use of integer types during length calculation, the library may miscalculate buffer boundaries. This can cause memory writes outside the allocated buffer. Applications that process untrusted or extremely large Base64 input using GLib may crash or behave unpredictably."
+
+[[advisory.products]]
+package-name = "libglib"
+patched-version = "2.86.5"
+patched-epoch = "1"
+
+[updateinfo]
+author = "jpculp"
+issue-date = 2026-05-20T21:38:20Z
+arches = ["aarch64", "x86_64"]
+version = "staging"

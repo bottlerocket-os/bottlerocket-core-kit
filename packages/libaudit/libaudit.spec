@@ -1,5 +1,5 @@
 Name: %{_cross_os}libaudit
-Version: 4.1.2
+Version: 4.1.4
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for the audit subsystem

@@ -1,14 +1,10 @@
 Name: %{_cross_os}libisal
-Version: 2.31.1
+Version: 2.32.0
 Release: 1%{?dist}
 Summary: Library for Intel ISA
 License: BSD-3-Clause
 URL: https://github.com/intel/isa-l
 Source0: https://github.com/intel/isa-l/archive/v%{version}/isa-l-%{version}.tar.gz
-
-# Fix LTO type mismatch warnings.
-Patch0001: 0001-Address-compiler-warnings-on-ppc64le-and-s390x.patch
-Patch0002: 0002-Address-type-mismatch-warnings-on-aarch64.patch
 
 # Patch to optimize stdin / stdout pipe usage for containerd.
 Patch1001: 1001-igzip-increase-stdin-and-stdout-pipe-sizes.patch

@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-ldnum2jh8n92"
+title = "libcap CVE-2025-1390"
+cve = "CVE-2025-1390"
+severity = "high"
+description = "The PAM module pam_cap.so of libcap configuration supports group names starting with `@`, during actual parsing, configurations not starting with `@` are incorrectly recognized as group names. This may result in nonintended users being granted an inherited capability set, potentially leading to security risks. Attackers can exploit this vulnerability to achieve local privilege escalation on systems where /etc/security/capability.conf is used to configure user inherited privileges by constructing specific usernames."
+
+[[advisory.products]]
+package-name = "libcap"
+patched-version = "2.78"
+patched-epoch = "1"
+
+[updateinfo]
+author = "jpculp"
+issue-date = 2026-05-20T21:38:20Z
+arches = ["aarch64", "x86_64"]
+version = "staging"

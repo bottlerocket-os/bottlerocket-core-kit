@@ -1,5 +1,5 @@
 Name: %{_cross_os}liburcu
-Version: 0.15.5
+Version: 0.15.6
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for userspace RCU

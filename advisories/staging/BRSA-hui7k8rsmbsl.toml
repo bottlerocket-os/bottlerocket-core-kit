@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-hui7k8rsmbsl"
+title = "libglib CVE-2026-1485"
+cve = "CVE-2026-1485"
+severity = "low"
+description = "A flaw was found in GLib's content type parsing logic. This buffer underflow vulnerability occurs because the length of a header line is stored in a signed integer, which can lead to integer wraparound for very large inputs. This results in pointer underflow and out-of-bounds memory access. Exploitation requires a local user to install or process a specially crafted treemagic file, which can lead to local denial of service or application instability."
+
+[[advisory.products]]
+package-name = "libglib"
+patched-version = "2.86.5"
+patched-epoch = "1"
+
+[updateinfo]
+author = "jpculp"
+issue-date = 2026-05-20T21:38:20Z
+arches = ["aarch64", "x86_64"]
+version = "staging"
