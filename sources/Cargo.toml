@@ -85,6 +85,7 @@ members = [
     "xfscli",
 
     "whippet",
+    "bottlerocket-crypto-provider",
 ]
 
 [workspace.dependencies]
