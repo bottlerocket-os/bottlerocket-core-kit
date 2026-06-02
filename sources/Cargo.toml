@@ -128,6 +128,7 @@ aws-sdk-s3 = { version = "1", default-features = false, features = ["default-htt
 aws-sdk-secretsmanager = { version = "1", default-features = false, features = ["default-https-client", "rt-tokio"] }
 aws-sdk-ssm = { version = "1", default-features = false, features = ["default-https-client", "rt-tokio"] }
 aws-smithy-checksums = "0"
+aws-smithy-http-client = "1"
 aws-smithy-runtime = "1"
 aws-smithy-runtime-api = "1"
 aws-smithy-types = "1"
