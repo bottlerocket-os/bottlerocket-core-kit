@@ -1971,7 +1971,7 @@ dependencies = [
  "aws-config",
  "aws-lc-rs",
  "aws-sdk-cloudformation",
- "aws-smithy-experimental",
+ "aws-smithy-http-client 0.1.0",
  "aws-types",
  "generate-readme",
  "imdsclient",
