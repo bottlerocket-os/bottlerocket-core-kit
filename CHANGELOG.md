@@ -1,3 +1,16 @@
+# v14.5.0 (2026-06-02)
+
+### Third Party Package Updates
+- Update `libaudit`, `liburcu`, `libncurses`, `libglib`, `libbpf`, `libdevmapper`, `libisal`, `libcap`, `libcryptsetup` ([#921])
+- Update `e2fsprogs`, `iptable`, `mdadm`, `xfsprogs`, `pciutils`, `util-linux` ([#930])
+- Update `kubernetes-1.30-1.35`, `runc`, `ecs-agent`, `amazon-ssm-agent`, `soci-snapshotter`, `cni-plugins` ([#932])
+- Update `amazon-ecs-cni-plugins` ([#934])
+
+[#921]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/921
+[#930]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/930
+[#932]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/932
+[#934]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/934
+
 # v14.4.0 (2026-05-26)
 
 ### Third Party Package Updates
