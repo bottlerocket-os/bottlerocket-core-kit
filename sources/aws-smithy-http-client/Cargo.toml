@@ -1,0 +1,33 @@
+[package]
+name = "aws-smithy-http-client"
+version = "0.1.0"
+authors = ["AWS Rust SDK Team <aws-sdk-rust@amazon.com>"]
+description = "HTTP client for smithy-rs ecosystem (Bottlerocket carry)"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[features]
+default-client = ["dep:hyper", "dep:hyper-util", "dep:tower", "dep:rustls-pki-types", "dep:rustls-native-certs"]
+rustls-ring = ["dep:rustls", "rustls?/ring", "dep:hyper-rustls", "dep:tokio-rustls", "default-client"]
+rustls-aws-lc = ["dep:rustls", "rustls?/aws_lc_rs", "dep:hyper-rustls", "dep:tokio-rustls", "default-client"]
+rustls-aws-lc-fips = ["dep:rustls", "rustls?/fips", "dep:hyper-rustls", "dep:tokio-rustls", "default-client"]
+
+[dependencies]
+aws-smithy-async = { workspace = true }
+aws-smithy-runtime-api = { workspace = true, features = ["client", "http-1x"] }
+aws-smithy-types = { workspace = true, features = ["http-body-1-x"] }
+h2 = { workspace = true }
+http = "1"
+hyper = { workspace = true, features = ["client", "http1", "http2"], optional = true }
+hyper-rustls = { workspace = true, features = ["http2", "http1", "native-tokio", "tls12"], default-features = false, optional = true }
+hyper-util = { workspace = true, features = ["http1", "http2", "client-legacy", "client-proxy"], optional = true }
+pin-project-lite = "0.2"
+rustls = { workspace = true, optional = true }
+rustls-native-certs = { version = "0.8", optional = true }
+rustls-pki-types = { version = "1", features = ["std"], optional = true }
+tokio = { workspace = true }
+tokio-rustls = { version = "0.26", default-features = false, optional = true }
+tower = { version = "0.5", optional = true }
+tracing = "0.1"
+url = { workspace = true }
