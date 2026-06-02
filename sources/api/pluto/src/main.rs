@@ -29,7 +29,7 @@ mod eks;
 use api::{settings_view_get, settings_view_set, SettingsViewDelta};
 use argh::FromArgs;
 use aws_sdk_eks::types::IpFamily;
-use aws_smithy_experimental::hyper_1_0::CryptoMode;
+use aws_smithy_http_client::tls::rustls_provider::CryptoMode;
 use base64::Engine;
 use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
 use imdsclient::ImdsClient;

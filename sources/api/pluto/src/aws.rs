@@ -1,5 +1,11 @@
+use crate::PROVIDER;
 use aws_config::default_provider::credentials::DefaultCredentialsChain;
 use aws_config::{imds, BehaviorVersion};
+use aws_smithy_http_client::{
+    proxy::{ProxyConfig, ProxyError},
+    tls, Builder as HttpClientBuilder, Connector,
+};
+use aws_smithy_runtime_api::client::http::SharedHttpClient;
 use aws_smithy_types::retry::{RetryConfig, RetryConfigBuilder};
 use aws_types::region::Region;
 use aws_types::SdkConfig;
@@ -31,4 +37,46 @@ pub(crate) async fn sdk_config(region: &str) -> SdkConfig {
         .retry_config(sdk_retry_config())
         .load()
         .await
+}
+
+/// If the proxy has no scheme, assume http://. The proxy then opens a
+/// tunnel for the HTTPS request.
+pub(crate) fn proxy_url(proxy: &str) -> String {
+    let proxy = proxy.trim();
+    if proxy.contains("://") {
+        proxy.to_string()
+    } else {
+        format!("http://{proxy}")
+    }
+}
+
+/// Returns the HTTP client for the AWS SDK clients, with the HTTPS proxy and
+/// its no_proxy list if set.
+pub(crate) fn sdk_http_client<H, N>(
+    https_proxy: Option<H>,
+    no_proxy: Option<&[N]>,
+) -> Result<SharedHttpClient, ProxyError>
+where
+    H: AsRef<str>,
+    N: AsRef<str>,
+{
+    let http_client = if let Some(https_proxy) = https_proxy {
+        let mut proxy = ProxyConfig::https(proxy_url(https_proxy.as_ref()))?;
+        if let Some(no_proxy) = no_proxy {
+            let no_proxy_str: Vec<&str> = no_proxy.iter().map(|s| s.as_ref()).collect();
+            proxy = proxy.no_proxy(no_proxy_str.join(","));
+        }
+        HttpClientBuilder::new().build_with_connector_fn(move |settings, _runtime_components| {
+            let mut builder = Connector::builder()
+                .proxy_config(proxy.clone())
+                .tls_provider(tls::Provider::Rustls(PROVIDER.clone()));
+            builder.set_connector_settings(settings.cloned());
+            builder.build()
+        })
+    } else {
+        HttpClientBuilder::new()
+            .tls_provider(tls::Provider::Rustls(PROVIDER.clone()))
+            .build_https()
+    };
+    Ok(http_client)
 }
