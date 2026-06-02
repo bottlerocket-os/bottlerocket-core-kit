@@ -21,7 +21,6 @@ members = [
     "api/shibaken",
     "api/prairiedog",
     "api/simple-settings-plugin",
-    "aws-smithy-experimental",
 
     "bloodhound",
 
@@ -91,7 +90,6 @@ members = [
 
 [workspace.dependencies]
 apiclient = { version = "0.1", path = "api/apiclient", default-features = false }
-aws-smithy-experimental = { version = "0.1", path = "aws-smithy-experimental" }
 aws-smithy-http-client = { version = "0.1", path = "aws-smithy-http-client" }
 block-party = { version = "0.1", path = "updater/block-party" }
 bottlerocket-image-features = { version = "0.1", path = "bottlerocket-image-features" }
