@@ -13,6 +13,8 @@
 // of hyper, but it lacks Unix-domain socket support:
 // https://github.com/seanmonstar/reqwest/issues/39
 
+extern crate hyper_0_14 as hyper;
+
 use hyper::{body, header, Body, Client, Request};
 use hyper_unix_connector::{UnixClient, Uri};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
