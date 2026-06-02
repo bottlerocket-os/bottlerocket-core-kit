@@ -1055,6 +1055,29 @@ dependencies = [
 
 [[package]]
 name = "aws-smithy-http-client"
+version = "0.1.0"
+dependencies = [
+ "aws-smithy-async",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "h2 0.4.13",
+ "http 1.4.0",
+ "hyper 1.9.0",
+ "hyper-rustls 0.27.7",
+ "hyper-util",
+ "pin-project-lite",
+ "rustls 0.23.40",
+ "rustls-native-certs 0.8.3",
+ "rustls-pki-types",
+ "tokio",
+ "tokio-rustls 0.26.4",
+ "tower 0.5.3",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "aws-smithy-http-client"
 version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59e62db736db19c488966c8d787f52e6270be565727236fd5579eaa301e7bc4a"
@@ -1144,7 +1167,7 @@ checksum = "bb5b6167fcdf47399024e81ac08e795180c576a20e4d4ce67949f9a88ae37dc1"
 dependencies = [
  "aws-smithy-async",
  "aws-smithy-http",
- "aws-smithy-http-client",
+ "aws-smithy-http-client 1.1.5",
  "aws-smithy-observability",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
