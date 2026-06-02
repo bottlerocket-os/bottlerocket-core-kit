@@ -13,6 +13,7 @@ snapshotter = "soci"
 
 # Plug soci snapshotter into containerd
 [proxy_plugins.soci]
+capabilities = ["remap-ids"]
 type = "snapshot"
 address = "/run/soci-snapshotter/soci-snapshotter.sock"
 [proxy_plugins.soci.exports]
