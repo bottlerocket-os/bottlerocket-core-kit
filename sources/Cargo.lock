@@ -4636,7 +4636,7 @@ dependencies = [
  "aws-lc-rs",
  "aws-sdk-ec2",
  "aws-sdk-eks",
- "aws-smithy-experimental",
+ "aws-smithy-http-client 0.1.0",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
  "aws-types",
