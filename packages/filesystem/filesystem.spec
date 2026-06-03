@@ -8,18 +8,10 @@ Epoch: 1
 Summary: The basic directory layout
 License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket
-Requires: (%{name}-fips if %{_cross_os}image-feature(fips))
 
 %description
 %{summary}.
 
-%package fips
-Summary: The FIPS directory layout
-Requires: (%{_cross_os}image-feature(fips) and %{name})
-Conflicts: %{_cross_os}image-feature(no-fips)
-
-%description fips
-%{summary}.
 
 %prep
 
@@ -82,11 +74,6 @@ ln -s .%{_sbindir} %{buildroot}/sbin
 /opt
 /srv
 
-%exclude %{_cross_prefix}/fips
-%exclude %{_cross_fips_bindir}
-%exclude %{_cross_fips_libexecdir}
-
-%files fips
 %dir %{_cross_prefix}/fips
 %{_cross_fips_bindir}
 %{_cross_fips_libexecdir}

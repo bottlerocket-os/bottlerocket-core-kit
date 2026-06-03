@@ -177,17 +177,18 @@ Requires: %{_cross_os}shim
 Requires: %{_cross_os}systemd
 Requires: %{_cross_os}util-linux
 Requires: %{_cross_os}xfsprogs
+Requires: %{_cross_os}libkcapi
 Requires: (%{name}-fips if %{_cross_os}image-feature(fips))
 Requires: (%{name}-crypt if %{_cross_os}image-feature(encrypted-storage))
 
 %description
 %{summary}.
 
+
 %package fips
-Summary: Bottlerocket release, FIPS edition
+Summary: Bottlerocket release, FIPS boot configuration
 Requires: (%{_cross_os}image-feature(fips) and %{name})
 Conflicts: %{_cross_os}image-feature(no-fips)
-Requires: %{_cross_os}libkcapi
 
 %description fips
 %{summary}.
@@ -203,7 +204,6 @@ Requires: %{_cross_os}rottweiler
 %package swap
 Summary: Bottlerocket release, with zram-based swap
 Requires: %{name}
-Requires: (%{name}-fips if %{_cross_os}image-feature(fips))
 
 %description swap
 %{summary}.
@@ -473,9 +473,6 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_datadir}/logdog.d/logdog.common.conf
 %{_cross_unitdir}/configure-snapshotter.service
 %{_cross_templatedir}/selected-snapshotter
-
-%files fips
-%{_cross_bootconfigdir}/10-fips.conf
 %{_cross_tmpfilesdir}/release-fips.conf
 %{_cross_unitdir}/service.d/00-fips-go.conf
 %{_cross_unitdir}/*-bin.mount
@@ -486,6 +483,9 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/check-fips-modules.service
 %dir %{_cross_unitdir}/check-fips-modules.service.d
 %{_cross_unitdir}/fips-modprobe@.service
+
+%files fips
+%{_cross_bootconfigdir}/10-fips.conf
 
 %files crypt
 %{_cross_unitdir}/encrypt-datastore.service

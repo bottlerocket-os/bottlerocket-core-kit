@@ -3,6 +3,7 @@ Description=FIPS integrity check
 AllowIsolate=false
 RefuseManualStart=true
 RefuseManualStop=true
+ConditionKernelCommandLine=fips=1
 
 [Install]
 WantedBy=preconfigured.target
