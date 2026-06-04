@@ -65,9 +65,6 @@ skip-tree = [
     { name = "windows-sys" },
     # httptest uses an older version of bstr
     { name = "httptest", version = "=0.15" },
-    # aws-smithy-experimental brings a set of new dependencies that
-    # the aws-sdk doesn't support
-    { name = "aws-smithy-experimental", version = "=0.1" },
     # tough 0.24 uses reqwest 0.13 while the rest of the workspace uses 0.12
     { name = "tough", version = "=0.24" },
     # aws-smithy-http-client (local carry) brings newer TLS dependencies
