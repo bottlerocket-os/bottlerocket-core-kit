@@ -16,7 +16,8 @@ pub async fn signal_resource(
     status: String,
 ) -> Result<()> {
     info!("Connecting to IMDS");
-    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    bottlerocket_crypto_provider::install_provider()
+        .expect("failed to install crypto provider");
     let mut client = ImdsClient::new();
     let instance_id = get_instance_id(&mut client).await?;
     let region = get_region(&mut client).await?;
@@ -27,10 +28,10 @@ pub async fn signal_resource(
         .load()
         .await;
 
-    #[cfg(feature = "fips")]
-    let crypto_mode = CryptoMode::AwsLcFips;
-    #[cfg(not(feature = "fips"))]
-    let crypto_mode = CryptoMode::AwsLc;
+    let crypto_mode = CryptoMode::Custom(
+        bottlerocket_crypto_provider::provider()
+            .expect("failed to detect FIPS mode for crypto provider"),
+    );
 
     let https_proxy: Option<String> = match env::var_os("HTTPS_PROXY") {
         Some(https_proxy) => https_proxy.to_str().map(|h| h.to_string()),
