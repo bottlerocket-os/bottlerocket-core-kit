@@ -4364,7 +4364,6 @@ version = "0.1.0"
 dependencies = [
  "argh",
  "aws-config",
- "aws-lc-rs",
  "aws-sdk-ec2",
  "aws-sdk-eks",
  "aws-smithy-http-client 0.1.0",
@@ -4372,6 +4371,7 @@ dependencies = [
  "aws-smithy-types",
  "aws-types",
  "base64",
+ "bottlerocket-crypto-provider",
  "bottlerocket-modeled-types",
  "bottlerocket-settings-models",
  "constants",
@@ -4379,7 +4379,6 @@ dependencies = [
  "httptest",
  "imdsclient",
  "log",
- "rustls 0.23.42",
  "serde",
  "serde_json",
  "simplelog",

@@ -1,5 +1,5 @@
 use crate::aws::sdk_config;
-use crate::PROVIDER;
+use crate::crypto_mode;
 use aws_smithy_http_client::{proxy::ProxyConfig, tls, Builder as HttpClientBuilder, Connector};
 use aws_smithy_types::error::display::DisplayErrorContext;
 use aws_smithy_types::error::metadata::ProvideErrorMetadata;
@@ -126,13 +126,13 @@ where
         HttpClientBuilder::new().build_with_connector_fn(move |settings, _runtime_components| {
             let mut builder = Connector::builder()
                 .proxy_config(proxy.clone())
-                .tls_provider(tls::Provider::Rustls(PROVIDER.clone()));
+                .tls_provider(tls::Provider::Rustls(crypto_mode()));
             builder.set_connector_settings(settings.cloned());
             builder.build()
         })
     } else {
         HttpClientBuilder::new()
-            .tls_provider(tls::Provider::Rustls(PROVIDER.clone()))
+            .tls_provider(tls::Provider::Rustls(crypto_mode()))
             .build_https()
     };
     let ec2_config = aws_sdk_ec2::config::Builder::from(&config)

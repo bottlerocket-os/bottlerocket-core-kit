@@ -57,11 +57,13 @@ const AWS_CONFIG_FILE: &str = "config.pluto";
 /// The environment variable that specifies the path to the AWS config file.
 const AWS_CONFIG_FILE_ENV_VAR: &str = "AWS_CONFIG_FILE";
 
-// Shared crypto provider for HyperClients
-#[cfg(not(feature = "fips"))]
-const PROVIDER: CryptoMode = CryptoMode::AwsLc;
-#[cfg(feature = "fips")]
-const PROVIDER: CryptoMode = CryptoMode::AwsLcFips;
+// Shared crypto provider for HyperClients — uses runtime FIPS detection
+fn crypto_mode() -> CryptoMode {
+    CryptoMode::Custom(
+        bottlerocket_crypto_provider::provider()
+            .expect("failed to detect FIPS mode for crypto provider"),
+    )
+}
 
 mod error {
     use crate::{api, ec2, eks};
@@ -537,7 +539,8 @@ async fn run() -> Result<()> {
     let current_settings = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
     let mut aws_k8s_info = SettingsViewDelta::from_api_response(current_settings);
 
-    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    bottlerocket_crypto_provider::install_provider()
+        .expect("failed to install crypto provider");
 
     let temp_dir = tempfile::tempdir().context(error::TempdirSnafu)?;
     let aws_config_file_path = temp_dir.path().join(AWS_CONFIG_FILE);
