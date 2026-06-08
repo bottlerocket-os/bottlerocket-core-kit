@@ -15,6 +15,8 @@ Currently supported feature flags:
 
 - `IN_PLACE_UPDATES` - Controls whether in-place updates are enabled (default: true)
 - `ENCRYPTED_STORAGE` - Controls whether encrypted storage is enabled (default: false)
+- `NO_DATA_PARTITIONS` - When true, the build omits `BOTTLEROCKET-DATA-{A,B}` filesystems (default: false)
+- `NO_PRIVATE_PARTITION` - When true, the build omits the `BOTTLEROCKET-PRIVATE` filesystem (default: false)
 
 ## Usage
 
@@ -56,6 +58,10 @@ pub struct ImageFeatures {
     pub in_place_updates: bool,
     #[serde(default)]
     pub encrypted_storage: bool,
+    #[serde(default)]
+    pub no_data_partitions: bool,
+    #[serde(default)]
+    pub no_private_partition: bool,
 }
 
 fn default_true() -> bool {
@@ -68,6 +74,8 @@ pub fn parse_image_features() -> Result<ImageFeatures> {
         return Ok(ImageFeatures {
             in_place_updates: true,
             encrypted_storage: false,
+            no_data_partitions: false,
+            no_private_partition: false,
         });
     }
 
@@ -148,5 +156,39 @@ IN_PLACE_UPDATES="false"
         let content = "";
         let features = parse_image_features_from_str(content).unwrap();
         assert_eq!(features.in_place_updates, true);
+        assert_eq!(features.encrypted_storage, false);
+        assert_eq!(features.no_data_partitions, false);
+        assert_eq!(features.no_private_partition, false);
+    }
+
+    #[test]
+    fn test_parse_no_data_partitions_quoted() {
+        let content = r#"NO_DATA_PARTITIONS="true""#;
+        let features = parse_image_features_from_str(content).unwrap();
+        assert_eq!(features.no_data_partitions, true);
+        assert_eq!(features.no_private_partition, false);
+    }
+
+    #[test]
+    fn test_parse_no_private_partition_unquoted() {
+        let content = "NO_PRIVATE_PARTITION=true";
+        let features = parse_image_features_from_str(content).unwrap();
+        assert_eq!(features.no_private_partition, true);
+        assert_eq!(features.no_data_partitions, false);
+    }
+
+    #[test]
+    fn test_parse_mixed_new_flags() {
+        let content = r#"# Image feature configuration
+IN_PLACE_UPDATES="true"
+ENCRYPTED_STORAGE=false
+NO_DATA_PARTITIONS="true"
+NO_PRIVATE_PARTITION=true
+"#;
+        let features = parse_image_features_from_str(content).unwrap();
+        assert_eq!(features.in_place_updates, true);
+        assert_eq!(features.encrypted_storage, false);
+        assert_eq!(features.no_data_partitions, true);
+        assert_eq!(features.no_private_partition, true);
     }
 }

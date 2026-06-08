@@ -14,6 +14,20 @@ Bottlerocket's encrypted storage feature provides:
 
 All encryption keys are sealed to TPM2 PCRs, ensuring data can only be decrypted when the system boots in a trusted state.
 
+## Compatibility with partition-omitting image features
+
+Encrypted storage relies on both the `BOTTLEROCKET-DATA` partition (LUKS device) and the `BOTTLEROCKET-PRIVATE` partition (datastore directory and keystore). It is therefore mutually exclusive with the following image features:
+
+- `no-data-partitions` — omits the `BOTTLEROCKET-DATA-{A,B}` filesystems.
+- `no-private-partition` — omits the `BOTTLEROCKET-PRIVATE` filesystem.
+
+This is enforced two ways:
+
+1. **Build time.** `release-crypt` declares `Conflicts: image-feature(no-data-partitions)` and `Conflicts: image-feature(no-private-partition)`, so a variant cannot enable both `encrypted-storage` and either of the partition-omitting flags. RPM dependency resolution fails with a clear conflict.
+2. **Runtime.** Even if `ENCRYPTED_STORAGE=true` is set in `/usr/share/bottlerocket/image-features.env` on a build that does not actually have the partitions, `apiserver`'s `should_encrypt()` returns `false` when either `NO_DATA_PARTITIONS` or `NO_PRIVATE_PARTITION` is true, so the ephemeral-storage flow does not attempt encryption.
+
+See [`PARTITION_FEATURES.md`](PARTITION_FEATURES.md) for how the kit boots on partition-omitting builds and how operators attach persistent storage at runtime.
+
 ## Architecture
 
 ### Components

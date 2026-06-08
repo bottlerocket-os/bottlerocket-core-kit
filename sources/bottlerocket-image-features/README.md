@@ -18,6 +18,8 @@ Currently supported feature flags:
 
 - `IN_PLACE_UPDATES` - Controls whether in-place updates are enabled (default: true)
 - `ENCRYPTED_STORAGE` - Controls whether encrypted storage is enabled (default: false)
+- `NO_DATA_PARTITIONS` - When true, the build omits `BOTTLEROCKET-DATA-{A,B}` filesystems (default: false)
+- `NO_PRIVATE_PARTITION` - When true, the build omits the `BOTTLEROCKET-PRIVATE` filesystem (default: false)
 
 ### Usage
 

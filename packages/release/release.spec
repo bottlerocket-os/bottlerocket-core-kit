@@ -197,6 +197,11 @@ Conflicts: %{_cross_os}image-feature(no-fips)
 Summary: Bottlerocket release, with encrypted storage
 Requires: (%{_cross_os}image-feature(encrypted-storage) and %{name})
 Requires: %{_cross_os}rottweiler
+# Encrypted storage relies on both BOTTLEROCKET-DATA (LUKS device) and
+# BOTTLEROCKET-PRIVATE (datastore directory). It is incompatible with
+# image features that omit those filesystems.
+Conflicts: %{_cross_os}image-feature(no-data-partitions)
+Conflicts: %{_cross_os}image-feature(no-private-partition)
 
 %description crypt
 %{summary}.

@@ -526,14 +526,30 @@ pub fn format_device<S: AsRef<OsStr>>(device: S, format: &Filesystem) -> Result<
     Ok(())
 }
 
-/// Checks if ephemeral storage encryption is enabled via image features
+/// Checks if ephemeral storage encryption is enabled via image features.
+///
+/// Encryption requires both the `BOTTLEROCKET-DATA` and `BOTTLEROCKET-PRIVATE`
+/// partitions, so even if `ENCRYPTED_STORAGE=true` is somehow set, we
+/// short-circuit to `false` when either of the partition-omitting features
+/// (`no-data-partitions`, `no-private-partition`) is enabled. This defends
+/// against an out-of-band edit of `image-features.env` on a build that did
+/// not actually create those partitions.
 fn should_encrypt() -> Result<bool> {
     let features = bottlerocket_image_features::parse_image_features().map_err(|e| {
         error::Error::LoadImageFeatures {
             message: e.to_string(),
         }
     })?;
-    Ok(features.encrypted_storage)
+    Ok(should_encrypt_from_features(&features))
+}
+
+/// Pure helper for `should_encrypt` so the partition-feature interaction
+/// can be exercised in unit tests without touching the filesystem.
+fn should_encrypt_from_features(features: &bottlerocket_image_features::ImageFeatures) -> bool {
+    if features.no_data_partitions || features.no_private_partition {
+        return false;
+    }
+    features.encrypted_storage
 }
 
 /// Encrypt ephemeral device using rottweiler
@@ -726,6 +742,47 @@ mod tests {
         ] {
             assert!(allowed_dirs.allowed_exact.contains(dir));
         }
+    }
+
+    #[test]
+    fn test_should_encrypt_from_features() {
+        use bottlerocket_image_features::ImageFeatures;
+
+        // Encryption requested and partitions present: enable.
+        let f = ImageFeatures {
+            in_place_updates: true,
+            encrypted_storage: true,
+            no_data_partitions: false,
+            no_private_partition: false,
+        };
+        assert!(should_encrypt_from_features(&f));
+
+        // Encryption requested but data partition absent: disabled.
+        let f = ImageFeatures {
+            in_place_updates: true,
+            encrypted_storage: true,
+            no_data_partitions: true,
+            no_private_partition: false,
+        };
+        assert!(!should_encrypt_from_features(&f));
+
+        // Encryption requested but private partition absent: disabled.
+        let f = ImageFeatures {
+            in_place_updates: true,
+            encrypted_storage: true,
+            no_data_partitions: false,
+            no_private_partition: true,
+        };
+        assert!(!should_encrypt_from_features(&f));
+
+        // Defaults: encryption off.
+        let f = ImageFeatures {
+            in_place_updates: true,
+            encrypted_storage: false,
+            no_data_partitions: false,
+            no_private_partition: false,
+        };
+        assert!(!should_encrypt_from_features(&f));
     }
 
     #[test]
