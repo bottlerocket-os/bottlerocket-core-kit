@@ -13,8 +13,8 @@ releases-url = "https://github.com/NVIDIA/nvidia-container-toolkit/releases"
 
 # Should match the version of the libnvidia-container package
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/NVIDIA/nvidia-container-toolkit/archive/v1.18.2/nvidia-container-toolkit-1.18.2.tar.gz"
-sha512 = "ea4e0c67df944b4399175a190098c0d3a778af90d2d34f262a092572dfc6be3b522f99c3f2b2c9f426d3f145f845170c80e51d53fb16144f766570e7420e4902"
+url = "https://github.com/NVIDIA/nvidia-container-toolkit/archive/v1.19.1/nvidia-container-toolkit-1.19.1.tar.gz"
+sha512 = "4524ab3813d7819b2249aec9b7af6f4053f2f7119ebf23dfa58c9566eafd29d1890183a3126030062cbd35944c388b4469a3493fb774ee96b43af15d0608b40e"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

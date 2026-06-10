@@ -7,6 +7,9 @@ Subject: [PATCH] Ensure that generated CDI specs do not contain
 Signed-off-by: Evan Lezar <elezar@nvidia.com>
 (cherry picked from commit 49dc098d513923505a66bc8380ed80c0ce9a0165)
 Signed-off-by: Piyush Jena <jepiyush@amazon.com>
+
+[rework to apply to latest upstream
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>]
 ---
  internal/cdi/cdi.go | 1 +
  1 file changed, 1 insertion(+)
@@ -15,14 +18,13 @@ diff --git a/internal/cdi/cdi.go b/internal/cdi/cdi.go
 index 7cad67cf4..bee83c6e4 100644
 --- a/internal/cdi/cdi.go
 +++ b/internal/cdi/cdi.go
-@@ -126,6 +126,7 @@ func New(infolib info.Interface, nvmllib nvml.Interface, devicelib device.Interf
+@@ -119,6 +119,7 @@ func New(infolib info.Interface, nvmllib nvml.Interface, devicelib device.Interf
  		nvcdi.WithNVIDIACDIHookPath(c.nvidiaCTKPath),
  		nvcdi.WithNvmlLib(c.nvmllib),
  		nvcdi.WithVendor(c.vendor),
-+		nvcdi.WithDisabledHook(nvcdi.HookEnableCudaCompat),
++		nvcdi.WithDisabledHook(nvcdi.EnableCudaCompatHook),
  	}
-
- 	c.cdilibs = make(map[string]nvcdi.SpecGenerator)
---
+ 
+ 	// On Tegra (CSV mode), the default CSV files live under the driver root.
+-- 
 2.52.0
-
