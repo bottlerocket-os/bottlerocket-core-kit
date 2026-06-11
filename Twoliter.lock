@@ -4,7 +4,7 @@ project-vendor = "Bottlerocket"
 
 [sdk]
 name = "bottlerocket-sdk"
-version = "0.74.0"
+version = "0.75.0"
 vendor = "bottlerocket"
-source = "public.ecr.aws/bottlerocket/bottlerocket-sdk:v0.74.0"
-digest = "JkyAeKTcFAbrjNJKA9yuKbZcAP8kgv9phwX5jkFbFhk="
+source = "public.ecr.aws/bottlerocket/bottlerocket-sdk:v0.75.0"
+digest = "7l4qkyh/nqq6Z+tq/4Bwh2EPba8BfsKfVlnnNwclWzM="
