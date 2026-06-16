@@ -377,8 +377,6 @@ install -p -m 0644 %{S:1400} %{buildroot}%{_cross_datadir}/logdog.d
 install -d %{buildroot}%{_cross_bootconfigdir}
 install -p -m 0644 %{S:1500} %{buildroot}%{_cross_bootconfigdir}/10-fips.conf
 
-# Runtime FIPS activation: install conditional services and static env file.
-# These are always present but only activate when fips=1 is on the kernel command line.
 install -p -m 0644 %{S:1700} %{S:1701} %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_datadir}/bottlerocket
 install -p -m 0644 %{S:1702} %{buildroot}%{_cross_datadir}/bottlerocket/fips-go.env
@@ -485,13 +483,13 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_datadir}/logdog.d/logdog.common.conf
 %{_cross_unitdir}/configure-snapshotter.service
 %{_cross_templatedir}/selected-snapshotter
-# Runtime FIPS activation — conditional on fips=1 kernel command line parameter.
-# These are always present but are no-ops on non-FIPS boots.
 %{_cross_unitdir}/service.d/00-fips-go.conf
 %{_cross_unitdir}/generate-fips-env.service
 %{_cross_unitdir}/create-fips-marker.service
 %{_cross_datadir}/bottlerocket/fips-go.env
 %{_cross_tmpfilesdir}/release-fips.conf
+%{_cross_unitdir}/*-bin.mount
+%{_cross_unitdir}/*-libexec.mount
 %{_cross_unitdir}/fipscheck.target
 %{_cross_unitdir}/activate-preconfigured.service
 %{_cross_unitdir}/check-kernel-integrity.service
@@ -501,8 +499,6 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 
 %files fips
 %{_cross_bootconfigdir}/10-fips.conf
-%{_cross_unitdir}/*-bin.mount
-%{_cross_unitdir}/*-libexec.mount
 
 %files crypt
 %{_cross_unitdir}/encrypt-datastore.service
