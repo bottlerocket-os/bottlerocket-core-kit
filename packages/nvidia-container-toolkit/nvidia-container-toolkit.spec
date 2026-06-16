@@ -2,7 +2,7 @@
 %global gorepo nvidia-container-toolkit
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.18.2
+%global gover 1.19.1
 %global rpmver %{gover}
 
 Name: %{_cross_os}nvidia-container-toolkit
@@ -55,7 +55,7 @@ Conflicts: %{name}-ecs
 
 %build
 %cross_go_configure %{goimport}
-export GO_MAJOR="1.25"
+export GO_MAJOR="1.26"
 
 # We don't set `-Wl,-z,now`, because the binary uses lazy loading
 # to load the NVIDIA libraries in the host
