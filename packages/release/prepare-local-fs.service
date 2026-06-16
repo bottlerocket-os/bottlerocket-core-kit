@@ -13,6 +13,13 @@ Type=oneshot
 EnvironmentFile=/usr/share/bottlerocket/image-features.env
 Environment=DATA_PARTITION_BLOCK_DEVICE=/dev/disk/by-partlabel/BOTTLEROCKET-DATA
 
+# Wipe stale or false-positive partition/filesystem signatures before
+# formatting. Only runs when no valid filesystem is detected, so existing
+# data partitions are left untouched. Prevents mkfs.xfs from refusing to
+# format due to pseudorandom data matching signature patterns (e.g. Atari
+# partition table on encrypted EBS volumes).
+ExecStart=-/bin/sh -c '! /usr/sbin/blkid ${DATA_PARTITION_BLOCK_DEVICE} && /usr/sbin/wipefs -a ${DATA_PARTITION_BLOCK_DEVICE}'
+
 # Create the filesystem on the partition, if it doesn't exist.
 ExecStart=/usr/lib/systemd/systemd-makefs ${DATA_PARTITION_FILESYSTEM} ${DATA_PARTITION_BLOCK_DEVICE}
 
