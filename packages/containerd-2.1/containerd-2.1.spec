@@ -36,6 +36,12 @@ Source201: containerd-disable-pigz.conf
 
 Source1000: clarify.toml
 
+Patch0001: 0001-cri-filter-CDI-annotations-on-checkpoint-restore.patch
+Patch0002: 0002-Bound-user-database-file-reads-in-openBoundedUserFil.patch
+Patch0003: 0003-cri-do-not-re-tag-restored-checkpoints.patch
+Patch0004: 0004-Do-not-propagate-reserved-labels-from-image-configs.patch
+Patch0005: 0005-cri-make-checkpoint-restore-robust-to-unexpected-arc.patch
+
 # Patch to support moving from containerd-1.7 to 2.x
 Patch1001: 1001-Revert-Don-t-allow-io_uring-related-syscalls-in-the-.patch
 # Patch for transfer service to fall back to file for registry creds.
