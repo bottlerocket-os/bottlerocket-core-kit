@@ -37,6 +37,9 @@ Source201: containerd-disable-pigz.conf
 
 Source1000: clarify.toml
 
+Patch0001: 0001-Do-not-propagate-reserved-labels-from-image-configs.patch
+Patch0002: 0002-Bound-user-database-file-reads-in-openBoundedUserFil.patch
+
 # Backport of upstream patches for igzip support.
 Patch1001: 1001-Use-Intel-ISA-L-s-igzip-if-available.patch
 Patch1002: 1002-Skip-exec.LookPath-if-a-specific-gzip-implementation.patch
