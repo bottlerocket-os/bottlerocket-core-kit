@@ -57,7 +57,7 @@ where
 
     tokio::time::timeout(
         FETCH_PRIVATE_DNS_NAME_TIMEOUT,
-        Retry::spawn(
+        Retry::start(
             FibonacciBackoff::from_millis(FIBONACCI_BACKOFF_BASE_DURATION_MILLIS).map(jitter),
             || async {
                 log::info!("EC2 DescribeInstances attempt for {instance_id}");
