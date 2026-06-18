@@ -1,3 +1,10 @@
+# v14.5.1 (2026-06-18)
+
+### Third Party Package Updates
+- Include CVE fixes for containerd-1.7 ([f4dd7cb2])
+- Update containerd-2.1 from 2.1.7 to 2.1.8 and include CVE patches ([41448816], [e7c6a123])
+- Update containerd-2.2 from 2.2.3 to 2.2.4 and include CVE patches ([e4da5949], [5e0c087f])
+
 # v14.5.0 (2026-06-02)
 
 ### Third Party Package Updates
