@@ -210,7 +210,7 @@ syn = { version = "2", default-features = false }
 tar = { version = "0.4", default-features = false }
 tempfile = "3"
 test-case = "3"
-tokio = { version = "~1.43", default-features = false }  # LTS
+tokio = { version = "~1.51", default-features = false }  # LTS
 tokio-retry = "0.3"
 tokio-test = "0.4"
 tokio-tungstenite = { version = "0.20", default-features = false }

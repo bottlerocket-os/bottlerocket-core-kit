@@ -48,10 +48,7 @@ wildcards = "deny"
 
 deny = [{ name = "structopt" }, { name = "clap", wrappers = ["cargo-readme"] }]
 
-skip = [
-    # `aws-sigv4 v1.2.6` depends on both `crypto-bigint v0.5.5` and `crypto-bigint v0.4.9`
-    { name = "crypto-bigint", version = "=0.4.9" },
-]
+skip = []
 skip-tree = [
     # windows-sys is not a direct dependency. mio and schannel
     # are using different versions of windows-sys. we skip the
@@ -69,7 +66,12 @@ skip-tree = [
     { name = "rand", version = "=0.8" },
     # zbus introduces newer versions of crates that are either
     # incompatible or way ahead from the versions used in other crates
-    { name = "zbus", version = "=5.14.0" }
+    { name = "zbus", version = "=5.14.0" },
+    # aws-sigv4 upgraded to newer RustCrypto crates (hmac 0.13, sha2 0.11,
+    # hashbrown 0.16, foldhash 0.2) while other deps still use older versions
+    { name = "aws-sigv4" },
+    # lru 0.16 uses hashbrown 0.16 / foldhash 0.2 while other deps use older versions
+    { name = "lru" },
 ]
 
 [bans.workspace-dependencies]

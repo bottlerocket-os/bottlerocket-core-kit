@@ -287,7 +287,7 @@ impl ImdsClient {
         debug!("Requesting {}", &uri);
         timeout(
             self.retry_timeout,
-            Retry::spawn(retry_strategy(), || async {
+            Retry::start(retry_strategy(), || async {
                 let session_token = match self.read_token().await? {
                     Some(session_token) => session_token,
                     None => self.write_token().await?,
@@ -448,7 +448,7 @@ async fn fetch_token(
     let uri = format!("{imds_base_uri}/{SESSION_TARGET}");
     timeout(
         *retry_timeout,
-        Retry::spawn(retry_strategy(), || async {
+        Retry::start(retry_strategy(), || async {
             let response = client
                 .put(&uri)
                 .header("X-aws-ec2-metadata-token-ttl-seconds", "60")

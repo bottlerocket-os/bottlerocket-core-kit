@@ -21,7 +21,7 @@ type Result<T> = std::result::Result<T, error::Error>;
 async fn main() -> Result<()> {
     let cli: Cli = argh::from_env();
     let ip: std::net::IpAddr = cli.ip_address.parse().context(error::InvalidIpSnafu)?;
-    let hostname = Retry::spawn(retry_strategy(), || async { lookup_addr(&ip) })
+    let hostname = Retry::start(retry_strategy(), || async { lookup_addr(&ip) })
         .await
         .map_err(|e| error::Error::Lookup {
             source: Box::new(e),
