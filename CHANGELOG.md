@@ -1,9 +1,15 @@
 # v14.5.1 (2026-06-18)
 
 ### Third Party Package Updates
-- Include CVE fixes for containerd-1.7 ([f4dd7cb2])
-- Update containerd-2.1 from 2.1.7 to 2.1.8 and include CVE patches ([41448816], [e7c6a123])
-- Update containerd-2.2 from 2.2.3 to 2.2.4 and include CVE patches ([e4da5949], [5e0c087f])
+- Include CVE fixes for containerd-1.7 ([#d3898326])
+- Update containerd-2.1 from 2.1.7 to 2.1.8 and include CVE patches ([#6d6e3ba9], [#d05edc04])
+- Update containerd-2.2 from 2.2.3 to 2.2.4 and include CVE patches ([#33f6b6d4], [#f45396d9])
+
+[#d3898326]: https://github.com/bottlerocket-os/bottlerocket-core-kit/commit/d38983261fa858d5d21c2fb96d0bee34a30cecf4
+[#6d6e3ba9]: https://github.com/bottlerocket-os/bottlerocket-core-kit/commit/6d6e3ba905002d3eed388d0cc54ae5ed172021a3
+[#d05edc04]: https://github.com/bottlerocket-os/bottlerocket-core-kit/commit/d05edc045d1abb1987585f2696317c2d25cedb1e
+[#33f6b6d4]: https://github.com/bottlerocket-os/bottlerocket-core-kit/commit/33f6b6d40c5db9318fd64306aaa13e57ad5fbd45
+[#f45396d9]: https://github.com/bottlerocket-os/bottlerocket-core-kit/commit/f45396d93c2555ed7da51a91d33bfaa6dc1bcd10
 
 # v14.5.0 (2026-06-02)
 
