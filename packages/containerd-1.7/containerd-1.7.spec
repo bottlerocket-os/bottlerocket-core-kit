@@ -2,9 +2,9 @@
 %global gorepo containerd
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.7.31
+%global gover 1.7.33
 %global rpmver %{gover}
-%global gitrev 96caa5dff04a9f1c0f6f0938feae22b6ca7eb0be
+%global gitrev e8b1a9bc270f9952197c470b8bad573b03a3a608
 
 %global package_priority_epoch 2
 %global _dwz_low_mem_die_limit 0
@@ -36,9 +36,6 @@ Source200: containerd-disable-igzip.conf
 Source201: containerd-disable-pigz.conf
 
 Source1000: clarify.toml
-
-Patch0001: 0001-Do-not-propagate-reserved-labels-from-image-configs.patch
-Patch0002: 0002-Bound-user-database-file-reads-in-openBoundedUserFil.patch
 
 # Backport of upstream patches for igzip support.
 Patch1001: 1001-Use-Intel-ISA-L-s-igzip-if-available.patch
