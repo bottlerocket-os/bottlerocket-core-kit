@@ -1,3 +1,33 @@
+# v14.6.0 (2026-06-19)
+
+## OS Changes
+- Allow disabling `nvidia-k8s-device-plugin` through API ([#914])
+- Move FIPS components from `release-fips` sub-package to base package controlled via kernel commandline parameter ([#918])
+- Normalize NVIDIA library paths in containers so libraries appear at `/usr/lib` ([#919])
+- Update Rust and Go dependencies for first-party sources ([#949])
+
+### Third Party Package Updates
+- Update `nvidia-container-toolkit`, `libnvidia-container`, `nvidia-k8s-device-plugin` ([#931])
+
+## Build Changes
+- Bump `bottlerocket-settings-models` to 0.24.0 ([#914])
+- Update Twoliter to 0.20.0 ([#936])
+- Update `bottlerocket-sdk` to v0.76.0 ([#942], [#945])
+
+## Orchestrator Changes
+### Kubernetes
+- Add the `remap-ids` capability to the soci-snapshotter configuration, allowing it to start pods with `hostUsers: false` ([#939])  - Thanks @mhulscher!
+
+[#914]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/914
+[#918]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/918
+[#919]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/919
+[#931]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/931
+[#936]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/936
+[#939]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/939
+[#942]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/942
+[#945]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/945
+[#949]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/949
+
 # v14.5.1 (2026-06-18)
 
 ### Third Party Package Updates
