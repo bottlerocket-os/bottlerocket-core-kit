@@ -34,7 +34,7 @@ flags:
     deviceListStrategy: "volume-mounts"
     {{/if}}
     deviceIDStrategy: {{default "index" settings.kubelet-device-plugins.nvidia.device-id-strategy}}
-    containerDriverRoot: "/"
+    containerDriverRoot: "__PREFIX__"
 {{#if settings.kubelet-device-plugins.nvidia.device-sharing-strategy}}
 {{#if (eq settings.kubelet-device-plugins.nvidia.device-sharing-strategy "time-slicing")}}
 sharing:

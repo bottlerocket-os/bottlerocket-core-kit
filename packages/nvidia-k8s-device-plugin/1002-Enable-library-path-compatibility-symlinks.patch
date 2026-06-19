@@ -1,0 +1,95 @@
+From 977d56b4afabd8f7740e9da11effa6a76ec53020 Mon Sep 17 00:00:00 2001
+From: Maher Homsi <maherhom@amazon.com>
+Date: Tue, 16 Jun 2026 21:55:00 +0000
+Subject: [PATCH] Enable library path compatibility symlinks
+
+Add a --cdi-enabled-hooks CLI flag to allow explicitly enabling hooks
+during CDI spec generation. This replaces the previously hardcoded
+enablement of CreateLibSymlinksHook with a flag-driven approach.
+
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ cmd/nvidia-device-plugin/main.go           | 7 +++++++
+ cmd/nvidia-device-plugin/plugin-manager.go | 1 +
+ internal/cdi/cdi.go                        | 4 ++++
+ internal/cdi/options.go                    | 8 ++++++++
+ 4 files changed, 20 insertions(+)
+
+diff --git a/cmd/nvidia-device-plugin/main.go b/cmd/nvidia-device-plugin/main.go
+index 7aee63f..1e336cb 100644
+--- a/cmd/nvidia-device-plugin/main.go
++++ b/cmd/nvidia-device-plugin/main.go
+@@ -45,6 +45,7 @@ type options struct {
+ 	configFile      string
+ 	kubeletSocket   string
+ 	cdiFeatureFlags cli.StringSlice
++	cdiEnabledHooks cli.StringSlice
+ }
+ 
+ func main() {
+@@ -180,6 +181,12 @@ func main() {
+ 			EnvVars:     []string{"CDI_FEATURE_FLAGS"},
+ 			Destination: &o.cdiFeatureFlags,
+ 		},
++		&cli.StringSliceFlag{
++			Name:        "cdi-enabled-hooks",
++			Usage:       "A set of hooks to explicitly enable when generating CDI specifications",
++			EnvVars:     []string{"CDI_ENABLED_HOOKS"},
++			Destination: &o.cdiEnabledHooks,
++		},
+ 	}
+ 	o.flags = c.Flags
+ 
+diff --git a/cmd/nvidia-device-plugin/plugin-manager.go b/cmd/nvidia-device-plugin/plugin-manager.go
+index e2681b5..d4617cb 100644
+--- a/cmd/nvidia-device-plugin/plugin-manager.go
++++ b/cmd/nvidia-device-plugin/plugin-manager.go
+@@ -63,6 +63,7 @@ func GetPlugins(ctx context.Context, infolib info.Interface, nvmllib nvml.Interf
+ 		cdi.WithMofedEnabled(*config.Flags.MOFEDEnabled),
+ 		cdi.WithImexChannels(imexChannels),
+ 		cdi.WithFeatureFlags(o.cdiFeatureFlags.Value()...),
++		cdi.WithEnabledHooks(o.cdiEnabledHooks.Value()...),
+ 		cdi.WithDeviceDiscoveryStrategy(resolvedStrategy),
+ 	)
+ 	if err != nil {
+diff --git a/internal/cdi/cdi.go b/internal/cdi/cdi.go
+index 02cc6c0..9de02b3 100644
+--- a/internal/cdi/cdi.go
++++ b/internal/cdi/cdi.go
+@@ -62,6 +62,9 @@ type cdiHandler struct {
+ 	// nvcdiFeatureFlags allows finer control over CDI spec generation.
+ 	nvcdiFeatureFlags []string
+ 
++	// nvcdiEnabledHooks is a list of hooks to explicitly enable when generating CDI specs.
++	nvcdiEnabledHooks []string
++
+ 	gdsEnabled     bool
+ 	mofedEnabled   bool
+ 	gdrcopyEnabled bool
+@@ -132,6 +135,7 @@ func New(infolib info.Interface, nvmllib nvml.Interface, devicelib device.Interf
+ 		nvcdi.WithNvmlLib(c.nvmllib),
+ 		nvcdi.WithVendor(c.vendor),
+ 		nvcdi.WithDisabledHook(nvcdi.EnableCudaCompatHook),
++		nvcdi.WithEnabledHooks(c.nvcdiEnabledHooks...),
+ 	}
+ 
+ 	// On Tegra (CSV mode), the default CSV files live under the driver root.
+diff --git a/internal/cdi/options.go b/internal/cdi/options.go
+index f9f62ca..b178b30 100644
+--- a/internal/cdi/options.go
++++ b/internal/cdi/options.go
+@@ -124,3 +124,11 @@ func WithDeviceDiscoveryStrategy(strategy string) Option {
+ 		c.deviceDiscoveryStrategy = strategy
+ 	}
+ }
++
++// WithEnabledHooks sets the list of hooks to explicitly enable during CDI
++// spec generation.
++func WithEnabledHooks(hooks ...string) Option {
++	return func(c *cdiHandler) {
++		c.nvcdiEnabledHooks = hooks
++	}
++}
+-- 
+2.54.0
+

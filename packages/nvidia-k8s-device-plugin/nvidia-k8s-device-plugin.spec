@@ -14,7 +14,7 @@ License: Apache-2.0
 URL: https://github.com/NVIDIA/k8s-device-plugin
 Source0: https://%{goimport}/archive/v%{gover}/v%{gover}.tar.gz#/k8s-device-plugin-%{gover}.tar.gz
 Source1: nvidia-k8s-device-plugin.service
-Source2: nvidia-k8s-device-plugin-conf
+Source2: nvidia-k8s-device-plugin-conf.in
 Source3: nvidia-k8s-device-plugin-exec-start-conf
 Source4: nvidia-k8s-device-plugin-mig-conf
 Source5: nvidia-mps-control-daemon.service
@@ -22,6 +22,8 @@ Source6: nvidia-mps-control-daemon-exec-start-conf
 
 Patch0001: 0001-Update-MPS-roots-for-immutable-host-OS.patch
 Patch1001: 1001-Ensure-that-generated-CDI-specs-do-not-contain-enabl.patch
+Patch1002: 1002-Enable-library-path-compatibility-symlinks.patch
+Patch1003: 1003-vendor-add-CreateLibSymlinksHook.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 
@@ -53,7 +55,8 @@ install -p -m 0644 %{S:1} %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:5} %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_unitdir}/nvidia-k8s-device-plugin.service.d
 install -d %{buildroot}%{_cross_unitdir}/nvidia-mps-control-daemon.service.d
-install -D -m 0644 %{S:2} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-conf
+sed -e 's|__PREFIX__|/%{_cross_arch}-bottlerocket-linux-gnu/sys-root|g' %{S:2} > nvidia-k8s-device-plugin-conf
+install -D -m 0644 nvidia-k8s-device-plugin-conf %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-conf
 install -D -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf
 install -D -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-mig-conf
 install -D -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-mps-control-daemon-exec-start-conf

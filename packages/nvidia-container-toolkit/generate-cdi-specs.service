@@ -27,12 +27,15 @@ RefuseManualStop=true
 Type=oneshot
 # Explanation of the options:
 # --format json: to be consistent across Bottlerocket's variants
+# --additional-symlinks: create backwards-compat symlinks at this path so
+#                        libraries appear in containers
 # --mode nvml: the default mode ("auto") resolves to this already, make it explicit
 # --device-name-strategy uuid: the ECS agent only supports device UUIDs; for k8s
 #                              this is irrelevant because these specs will be used
 #                              only when NVIDIA_VISIBLE_DEVICES is "all"
 # --output /etc/cdi/nvidia.json: store the CDI specifications at this location
 ExecStart=/usr/bin/nvidia-ctk cdi generate --format json \
+  --additional-symlinks /usr/lib/nvidia/tesla \
   --mode nvml \
   --device-name-strategy uuid \
   --output /etc/cdi/nvidia.json

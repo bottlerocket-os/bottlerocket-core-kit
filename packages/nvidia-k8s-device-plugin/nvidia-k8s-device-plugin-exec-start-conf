@@ -11,7 +11,7 @@ ExecStart=
 # A brief sleep is needed to avoid the `test` failing its first check
 ExecStartPre=/usr/bin/sleep 0.1
 ExecStartPre=/usr/bin/test -S /var/lib/kubelet/device-plugins/kubelet.sock
-ExecStart=/usr/bin/nvidia-device-plugin --config-file=/etc/nvidia-k8s-device-plugin/settings.yaml
+ExecStart=/usr/bin/nvidia-device-plugin --config-file=/etc/nvidia-k8s-device-plugin/settings.yaml --cdi-enabled-hooks create-lib-symlinks
 RemainAfterExit=true
 {{else}}
 Restart=no
