@@ -1,0 +1,27 @@
+[advisory]
+id = "BRSA-rrw1j1iyz4iz"
+title = "containerd CVE-2026-53488"
+cve = "CVE-2026-53488"
+severity = "high"
+description = "A flaw in containerd's CRI plugin propagates labels from an image config (the LABEL instruction in a Dockerfile) to a container without validation, which can result in executing an arbitrary command on the host."
+
+[[advisory.products]]
+package-name = "containerd-1.7"
+patched-version = "1.7.31"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "containerd-2.1"
+patched-version = "2.1.8"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "containerd-2.2"
+patched-version = "2.2.4"
+patched-epoch = "0"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2026-06-18T22:17:00Z
+arches = ["x86_64", "aarch64"]
+version = "14.5.1"
