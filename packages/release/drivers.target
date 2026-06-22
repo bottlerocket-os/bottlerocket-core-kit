@@ -2,7 +2,7 @@
 Description=Driver units
 AllowIsolate=yes
 After=basic.target
-Before=preconfigured.target settings-applier.service
+Before=preconfigured.target
 Requires=basic.target
 
 [Install]

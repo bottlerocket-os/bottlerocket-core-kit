@@ -165,52 +165,66 @@ Source1700: generate-fips-env.service
 Source1701: create-fips-marker.service
 Source1702: fips-go.env
 
+# Managed release drop-ins and configs
+Source1750: activate-multi-user-managed.conf
+Source1751: drivers-target-managed.conf
+Source1752: prepare-local-fs-managed.conf
+Source1753: release-managed-tmpfiles.conf
+
+# Base requires
 Requires: %{_cross_os}audit
 Requires: %{_cross_os}auditd
-Requires: %{_cross_os}chrony
 Requires: %{_cross_os}conntrack-tools
 Requires: %{_cross_os}containerd
 Requires: %{_cross_os}coreutils
 Requires: %{_cross_os}dbus-broker
 Requires: %{_cross_os}e2fsprogs
-Requires: %{_cross_os}early-boot-config
-Requires: %{_cross_os}ethtool
-Requires: %{_cross_os}libgcc
-Requires: %{_cross_os}libstd-rust
 Requires: %{_cross_os}filesystem
 Requires: %{_cross_os}findutils
 Requires: %{_cross_os}glibc
 Requires: %{_cross_os}grep
+Requires: %{_cross_os}iproute
+Requires: %{_cross_os}iptables
+Requires: %{_cross_os}keyutils
+Requires: %{_cross_os}libgcc
+Requires: %{_cross_os}libkcapi
+Requires: %{_cross_os}libstd-rust
+Requires: %{_cross_os}policycoreutils
+Requires: %{_cross_os}procps
+Requires: %{_cross_os}selinux-policy
+Requires: %{_cross_os}systemd
+Requires: %{_cross_os}util-linux
+Requires: %{_cross_os}xfsprogs
+
+Requires: (%{name}-fips if %{_cross_os}image-feature(fips))
+Requires: (%{name}-managed if %{_cross_os}image-feature(no-standalone-image))
+
+%description
+%{summary}.
+
+%package managed
+Summary: Bottlerocket release - managed
+Requires: (%{_cross_os}image-feature(no-standalone-image) and %{name})
+Requires: %{_cross_os}chrony
+Requires: %{_cross_os}early-boot-config
+Requires: %{_cross_os}ethtool
 # For newer versions of twoliter that support UKIs, explicitly request the bootloader(efi) capability
 Requires: (%{_cross_os}bootloader(efi) if (%{_cross_os}image-feature(uki-image) or %{_cross_os}image-feature(no-uki-image)))
 # Older versions of twoliter that don't support UKIs always get GRUB
 Requires: (%{_cross_os}grub or %{_cross_os}image-feature(uki-image) or %{_cross_os}image-feature(no-uki-image))
-Requires: %{_cross_os}iproute
-Requires: %{_cross_os}iptables
 Requires: %{_cross_os}kexec-tools
-Requires: %{_cross_os}keyutils
 Requires: %{_cross_os}makedumpfile
 Requires: %{_cross_os}mdadm
 Requires: %{_cross_os}netdog
 Requires: %{_cross_os}os
 Requires: %{_cross_os}pciutils
-Requires: %{_cross_os}policycoreutils
-Requires: %{_cross_os}procps
 Requires: (%{_cross_os}rdma-core if %{_cross_os}variant-platform(aws))
-Requires: %{_cross_os}selinux-policy
 Requires: %{_cross_os}shim
-Requires: %{_cross_os}systemd
-Requires: %{_cross_os}util-linux
-Requires: %{_cross_os}xfsprogs
-Requires: %{_cross_os}libkcapi
-Requires: (%{name}-fips if %{_cross_os}image-feature(fips))
 Requires: (%{name}-crypt if %{_cross_os}image-feature(encrypted-storage))
-Requires: (%{name}-ephemeral-crypt if %{_cross_os}image-feature(ephemeral-encryption-keys))
 
 
-%description
+%description managed
 %{summary}.
-
 
 %package fips
 Summary: Bottlerocket release, FIPS boot configuration
@@ -222,7 +236,7 @@ Conflicts: %{_cross_os}image-feature(no-fips)
 
 %package crypt
 Summary: Bottlerocket release, with encrypted storage
-Requires: (%{_cross_os}image-feature(encrypted-storage) and %{name})
+Requires: (%{_cross_os}image-feature(encrypted-storage) and %{name}-managed)
 Requires: %{_cross_os}rottweiler
 
 %description crypt
@@ -411,6 +425,8 @@ install -d %{buildroot}%{_cross_datadir}/bottlerocket
 install -p -m 0644 %{S:1702} %{buildroot}%{_cross_datadir}/bottlerocket/fips-go.env
 
 install -d %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d
+install -p -m 0644 %{S:1752} \
+  %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d/10-managed.conf
 install -p -m 0644 %{S:1650} %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d/10-encrypted.conf
 
 install -d %{buildroot}%{_cross_unitdir}/local.mount.d
@@ -442,6 +458,16 @@ install -p -m 0644 %{S:1674} %{buildroot}%{_cross_unitdir}/encrypt-datastore.ser
 
 ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 
+install -d %{buildroot}%{_cross_unitdir}/activate-multi-user.service.d
+install -p -m 0644 %{S:1750} \
+  %{buildroot}%{_cross_unitdir}/activate-multi-user.service.d/10-managed.conf
+
+install -d %{buildroot}%{_cross_unitdir}/drivers.target.d
+install -p -m 0644 %{S:1751} \
+  %{buildroot}%{_cross_unitdir}/drivers.target.d/10-managed.conf
+
+install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.conf
+
 %files
 %{_cross_factorydir}%{_cross_sysconfdir}/nsswitch.conf
 %{_cross_factorydir}%{_cross_sysconfdir}/issue
@@ -451,12 +477,10 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_libdir}/os-release
 %dir %{_cross_libdir}/repart.d
 %{_cross_libdir}/repart.d/80-local.conf
-%{_cross_libdir}/systemd/logind.conf.d/80-inhibit-maxdelay.conf
 %{_cross_libdir}/systemd/network/80-release.link
-%{_cross_libdir}/systemd/networkd.conf.d/80-release.conf
 %{_cross_libdir}/systemd/system.conf.d/80-release.conf
-%{_cross_libdir}/modules-load.d/nf_conntrack.conf
 %{_cross_libdir}/systemd/journald.conf.d/journald.conf
+%{_cross_unitdir}/activate-preconfigured.service
 %{_cross_unitdir}/configured.target
 %{_cross_unitdir}/drivers.target
 %{_cross_unitdir}/preconfigured.target
@@ -464,49 +488,24 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/default.target
 %{_cross_unitdir}/activate-configured.service
 %{_cross_unitdir}/activate-multi-user.service
-%{_cross_unitdir}/disable-kexec-load.service
-%{_cross_unitdir}/capture-kernel-dump.service
-%{_cross_unitdir}/load-crash-kernel.service
-%{_cross_unitdir}/prepare-boot.service
 %{_cross_unitdir}/prepare-opt.service
 %{_cross_unitdir}/prepare-var.service
 %{_cross_unitdir}/repart-local.service
-%{_cross_unitdir}/\x2ebottlerocket.mount
-%dir %{_cross_unitdir}/\x2ebottlerocket.mount.d
 %{_cross_unitdir}/var.mount
 %{_cross_unitdir}/opt.mount
 %{_cross_unitdir}/mnt.mount
-%{_cross_unitdir}/etc-cni.mount
-%{_cross_unitdir}/opt-cni.mount
-%{_cross_unitdir}/opt-csi.mount
-%{_cross_unitdir}/opt-civ.mount
-%{_cross_unitdir}/media-cdrom.mount
 %{_cross_unitdir}/local.mount
-%{_cross_unitdir}/*-lower.mount
-%{_cross_unitdir}/*-kernels.mount
 %{_cross_unitdir}/*-licenses.mount
-%{_cross_unitdir}/var-lib-bottlerocket.mount
 %{_cross_unitdir}/*-modules.mount
 %{_cross_unitdir}/runtime.slice
-%{_cross_unitdir}/set-hostname.service
 %{_cross_unitdir}/mask-local-mnt.service
 %{_cross_unitdir}/mask-local-opt.service
 %{_cross_unitdir}/mask-local-var.service
 %dir %{_cross_unitdir}/network-pre.target.d
 %{_cross_unitdir}/network-pre.target.d/00-dbus-dep.conf
-%{_cross_unitdir}/root-.aws.mount
-%{_cross_unitdir}/repart-data-preferred.service
-%{_cross_unitdir}/repart-data-fallback.service
 %{_cross_unitdir}/prepare-local-fs.service
-%{_cross_unitdir}/deprecation-warning@.service
-%{_cross_unitdir}/deprecation-warning@.timer
 %{_cross_unitdir}/service.d/00-aws-config.conf
 %{_cross_unitdir}/service.d/10-requires-tmp.conf
-%dir %{_cross_unitdir}/systemd-resolved.service.d
-%{_cross_unitdir}/systemd-resolved.service.d/00-env.conf
-%{_cross_unitdir}/systemd-resolved.service.d/10-private-tmp.conf
-%dir %{_cross_unitdir}/systemd-networkd.service.d
-%{_cross_unitdir}/systemd-networkd.service.d/00-env.conf
 %dir %{_cross_unitdir}/systemd-tmpfiles-setup.service.d
 %{_cross_unitdir}/systemd-tmpfiles-setup.service.d/00-debug.conf
 %dir %{_cross_unitdir}/systemd-udev-trigger.service.d
@@ -519,36 +518,72 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/modprobe@.service.d/10-remain-after-exit.conf
 %dir %{_cross_unitdir}/tmp.mount.d
 %{_cross_unitdir}/tmp.mount.d/10-no-exec.conf
+%{_cross_unitdir}/configure-snapshotter.service
+%{_cross_unitdir}/*-bin.mount
+%{_cross_unitdir}/*-libexec.mount
+%{_cross_tmpfilesdir}/release-fips.conf
+%{_cross_libdir}/systemd/logind.conf.d/80-inhibit-maxdelay.conf
+%{_cross_libdir}/systemd/networkd.conf.d/80-release.conf
+%{_cross_libdir}/modules-load.d/nf_conntrack.conf
+%dir %{_cross_unitdir}/activate-multi-user.service.d
+%dir %{_cross_unitdir}/drivers.target.d
+%dir %{_cross_unitdir}/prepare-local-fs.service.d
+%{_cross_unitdir}/check-fips-modules.service
+%{_cross_unitdir}/fipscheck.target
+%dir %{_cross_unitdir}/check-fips-modules.service.d
+%dir %{_cross_unitdir}/systemd-resolved.service.d
+%{_cross_unitdir}/systemd-resolved.service.d/00-env.conf
+%{_cross_unitdir}/systemd-resolved.service.d/10-private-tmp.conf
+%dir %{_cross_unitdir}/systemd-networkd.service.d
+%{_cross_unitdir}/systemd-networkd.service.d/00-env.conf
+%{_cross_unitdir}/check-kernel-integrity.service
+%{_cross_unitdir}/generate-fips-hmac-path-uki.service
+%{_cross_unitdir}/generate-fips-hmac-path-vmlinuz.service
+%{_cross_unitdir}/fips-modprobe@.service
 %dir %{_cross_templatedir}
-%{_cross_templatedir}/modprobe-conf
-%{_cross_templatedir}/netdog-toml
+
+%files managed
+%{_cross_tmpfilesdir}/release-managed.conf
+%{_cross_unitdir}/activate-multi-user.service.d/10-managed.conf
+%{_cross_unitdir}/capture-kernel-dump.service
+%{_cross_unitdir}/disable-kexec-load.service
+%{_cross_unitdir}/load-crash-kernel.service
+%{_cross_unitdir}/drivers.target.d/10-managed.conf
+%{_cross_unitdir}/prepare-local-fs.service.d/10-managed.conf
+%{_cross_unitdir}/deprecation-warning@.service
+%{_cross_unitdir}/deprecation-warning@.timer
+%{_cross_unitdir}/prepare-boot.service
+%{_cross_unitdir}/repart-data-preferred.service
+%{_cross_unitdir}/repart-data-fallback.service
+%{_cross_unitdir}/set-hostname.service
+%{_cross_unitdir}/\x2ebottlerocket.mount
+%dir %{_cross_unitdir}/\x2ebottlerocket.mount.d
+%{_cross_unitdir}/etc-cni.mount
+%{_cross_unitdir}/media-cdrom.mount
+%{_cross_unitdir}/opt-cni.mount
+%{_cross_unitdir}/opt-csi.mount
+%{_cross_unitdir}/opt-civ.mount
+%{_cross_unitdir}/root-.aws.mount
+%{_cross_unitdir}/var-lib-bottlerocket.mount
+%{_cross_unitdir}/*-lower.mount
+%{_cross_unitdir}/*-kernels.mount
+%{_cross_datadir}/logdog.d/logdog.common.conf
 %{_cross_templatedir}/motd
 %{_cross_templatedir}/proxy-env
 %{_cross_templatedir}/hostname-env
 %{_cross_templatedir}/hosts
+%{_cross_templatedir}/modprobe-conf
+%{_cross_templatedir}/netdog-toml
 %{_cross_templatedir}/aws-config
 %{_cross_templatedir}/aws-credentials
 %{_cross_templatedir}/modules-load
 %{_cross_templatedir}/log4j-hotpatch-enabled
-%{_cross_udevrulesdir}/61-mount-cdrom.rules
-%{_cross_datadir}/logdog.d/logdog.common.conf
-%{_cross_unitdir}/configure-snapshotter.service
 %{_cross_templatedir}/selected-snapshotter
 %{_cross_unitdir}/service.d/00-fips-go.conf
 %{_cross_unitdir}/generate-fips-env.service
 %{_cross_unitdir}/create-fips-marker.service
 %{_cross_datadir}/bottlerocket/fips-go.env
-%{_cross_tmpfilesdir}/release-fips.conf
-%{_cross_unitdir}/*-bin.mount
-%{_cross_unitdir}/*-libexec.mount
-%{_cross_unitdir}/fipscheck.target
-%{_cross_unitdir}/activate-preconfigured.service
-%{_cross_unitdir}/check-kernel-integrity.service
-%{_cross_unitdir}/generate-fips-hmac-path-uki.service
-%{_cross_unitdir}/generate-fips-hmac-path-vmlinuz.service
-%{_cross_unitdir}/check-fips-modules.service
-%dir %{_cross_unitdir}/check-fips-modules.service.d
-%{_cross_unitdir}/fips-modprobe@.service
+%{_cross_udevrulesdir}/61-mount-cdrom.rules
 
 %files fips
 %{_cross_bootconfigdir}/10-fips.conf
