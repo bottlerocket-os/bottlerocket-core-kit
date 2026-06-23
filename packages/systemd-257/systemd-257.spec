@@ -245,6 +245,8 @@ CONFIGURE_OPTS=(
  -Dpkgconfiglibdir='%{_cross_pkgconfigdir}'
  -Dmount-path='%{_cross_bindir}/mount'
  -Dumount-path='%{_cross_bindir}/umount'
+ -Dkmod-path='%{_cross_bindir}/kmod'
+ 
 
  -Dadm-group=false
  -Dwheel-group=false
