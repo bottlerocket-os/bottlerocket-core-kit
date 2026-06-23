@@ -1,3 +1,10 @@
+# v14.6.1 (2026-06-23)
+
+## OS Changes
+- Pin `kmod` binary in `systemd` to use `/usr/bin/` ([#957])
+
+[#957]:https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/957
+
 # v14.6.0 (2026-06-19)
 
 ## OS Changes
