@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-hg86gkmhd6vu"
+title = "containerd CVE-2026-53489"
+cve = "CVE-2026-53489"
+severity = "moderate"
+description = "A flaw in containerd's CRI plugin restores container.log from a checkpoint image without validating a symlinked path which can result in reading an arbitrary file on the host."
+
+[[advisory.products]]
+package-name = "containerd-2.1"
+patched-version = "2.1.8"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "containerd-2.2"
+patched-version = "2.2.4"
+patched-epoch = "0"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2026-06-18T22:17:00Z
+arches = ["aarch64", "x86_64"]
+version = "14.5.1"

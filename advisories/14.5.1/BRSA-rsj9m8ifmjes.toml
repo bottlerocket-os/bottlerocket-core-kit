@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-rsj9m8ifmjes"
+title = "containerd CVE-2026-53492"
+cve = "CVE-2026-53492"
+severity = "moderate"
+description = "A flaw in containerd's CRI implementation trusts Container Device Interface (CDI) annotations from untrusted checkpoint image metadata during container restoration, which can allow injecting arbitrary device nodes and host mounts into the restored container."
+
+[[advisory.products]]
+package-name = "containerd-2.1"
+patched-version = "2.1.8"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "containerd-2.2"
+patched-version = "2.2.4"
+patched-epoch = "0"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2026-06-18T22:17:00Z
+arches = ["x86_64", "aarch64"]
+version = "14.5.1"

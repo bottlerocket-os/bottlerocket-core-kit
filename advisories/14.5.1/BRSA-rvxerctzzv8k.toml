@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-rvxerctzzv8k"
+title = "containerd CVE-2026-50195"
+cve = "CVE-2026-50195"
+severity = "high"
+description = "A flaw in containerd's CRI checkpoint import process fails to validate image references within a checkpoint image's configuration. Pods may unknowingly execute the wrong image, which can lead to arbitrary code execution."
+
+[[advisory.products]]
+package-name = "containerd-2.1"
+patched-version = "2.1.8"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "containerd-2.2"
+patched-version = "2.2.4"
+patched-epoch = "0"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2026-06-18T22:17:00Z
+arches = ["x86_64", "aarch64"]
+version = "14.5.1"

@@ -1,0 +1,27 @@
+[advisory]
+id = "BRSA-fjsigcujf6oz"
+title = "containerd CVE-2026-47262"
+cve = "CVE-2026-47262"
+severity = "moderate"
+description = "A flaw in containerd allows a crafted image to cause unbounded memory consumption during group parsing when creating a container which can lead to an Out Of Memory (OOM) kill of the containerd process"
+
+[[advisory.products]]
+package-name = "containerd-1.7"
+patched-version = "1.7.31"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "containerd-2.1"
+patched-version = "2.1.8"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "containerd-2.2"
+patched-version = "2.2.4"
+patched-epoch = "0"
+
+[updateinfo]
+author = "vighmah"
+issue-date = 2026-06-18T22:17:00Z
+arches = ["x86_64", "aarch64"]
+version = "14.5.1"
