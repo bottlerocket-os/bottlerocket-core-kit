@@ -1,0 +1,38 @@
+From 1c55a0a5e26a07df828f72092ad1203e221b60db Mon Sep 17 00:00:00 2001
+From: Luca Boccassi <luca.boccassi@gmail.com>
+Date: Wed, 11 Mar 2026 13:27:14 +0000
+Subject: [PATCH] nspawn: normalize pivot_root paths
+
+commit 7b85f5498a958e5bb660c703b8f4a71cceed3373 upstream.
+
+Add path_is_normalized() validation to pivot_root_parse() for both
+root_new and root_old paths.
+
+Originally reported on yeswehack.com as:
+YWH-PGM9780-116
+
+Follow-up for b53ede699cdc5233041a22591f18863fb3fe2672
+
+Signed-off-by: Luca Boccassi <luca.boccassi@gmail.com>
+(cherry picked from commit 7b85f5498a958e5bb660c703b8f4a71cceed3373)
+[maherhom: backported to v252; patch applies cleanly without modifications]
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ src/nspawn/nspawn-mount.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/nspawn/nspawn-mount.c b/src/nspawn/nspawn-mount.c
+index e7c7c59147b92..8a243e8d03270 100644
+--- a/src/nspawn/nspawn-mount.c
++++ b/src/nspawn/nspawn-mount.c
+@@ -1370,7 +1370,9 @@ int pivot_root_parse(char **pivot_root_new, char **pivot_root_old, const char *s
+ 
+         if (!path_is_absolute(root_new))
+                 return -EINVAL;
+-        if (root_old && !path_is_absolute(root_old))
++        if (!path_is_normalized(root_new))
++                return -EINVAL;
++        if (root_old && (!path_is_absolute(root_old) || !path_is_normalized(root_old)))
+                 return -EINVAL;
+ 
+         free_and_replace(*pivot_root_new, root_new);
