@@ -4,7 +4,7 @@
 %global package_priority_epoch 0
 
 Name: %{_cross_os}systemd-257
-Version: 257.9
+Version: 257.13
 Release: 1%{?dist}
 Summary: System and Service Manager
 License: GPL-2.0-or-later AND GPL-2.0-only AND LGPL-2.1-or-later
