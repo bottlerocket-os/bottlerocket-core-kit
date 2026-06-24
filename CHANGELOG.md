@@ -1,3 +1,10 @@
+# v14.6.2 (2026-06-25)
+
+## OS Changes
+- Make fips marker file and GO FIPS activation conditional controlled via kernel commandline parameter ([#908])
+
+[#908]:https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/908
+
 # v14.6.1 (2026-06-23)
 
 ## OS Changes
