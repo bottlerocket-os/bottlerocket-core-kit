@@ -10,6 +10,7 @@ allow = [
     # "BSD-2-Clause",
     "BSD-3-Clause",
     "BSL-1.0",
+    "CDLA-Permissive-2.0",
     # "CC0-1.0",
     "ISC",
     "MIT",
@@ -72,6 +73,9 @@ skip-tree = [
     { name = "aws-sigv4" },
     # lru 0.16 uses hashbrown 0.16 / foldhash 0.2 while other deps use older versions
     { name = "lru" },
+    # tough 0.23 brings reqwest 0.13 which coexists with reqwest 0.12
+    # used by the rest of the workspace
+    { name = "tough", version = "=0.23" },
 ]
 
 [bans.workspace-dependencies]
