@@ -414,7 +414,7 @@ dependencies = [
  "nix",
  "olpc-cjson",
  "rand 0.8.6",
- "reqwest 0.12.28",
+ "reqwest",
  "retry-read",
  "rustls 0.23.40",
  "serde",
@@ -3691,7 +3691,7 @@ dependencies = [
  "http 0.2.12",
  "httptest",
  "log",
- "reqwest 0.12.28",
+ "reqwest",
  "serde_json",
  "snafu",
  "tokio",
@@ -3979,7 +3979,7 @@ dependencies = [
  "flate2",
  "generate-readme",
  "glob",
- "reqwest 0.12.28",
+ "reqwest",
  "rustls 0.23.40",
  "serde_json",
  "shell-words",
@@ -4084,7 +4084,7 @@ dependencies = [
  "generate-readme",
  "httptest",
  "log",
- "reqwest 0.12.28",
+ "reqwest",
  "rustls 0.23.40",
  "serde",
  "serde_json",
@@ -4817,6 +4817,7 @@ version = "0.11.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "434b42fec591c96ef50e21e886936e66d3cc3f737104fdb9b737c40ffb94c098"
 dependencies = [
+ "aws-lc-rs",
  "bytes",
  "getrandom 0.3.4",
  "lru-slab",
@@ -5039,9 +5040,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.12.28"
+version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
+checksum = "219c5811de6525e5416c7d5d53bb656d3afdbc6c5af816e0802bcfa42dbdc1c3"
 dependencies = [
  "base64",
  "bytes",
@@ -5059,44 +5060,6 @@ dependencies = [
  "percent-encoding",
  "pin-project-lite",
  "quinn",
- "rustls 0.23.40",
- "rustls-native-certs 0.8.4",
- "rustls-pki-types",
- "serde",
- "serde_json",
- "serde_urlencoded",
- "sync_wrapper",
- "tokio",
- "tokio-rustls 0.26.4",
- "tower 0.5.3",
- "tower-http",
- "tower-service",
- "url",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "reqwest"
-version = "0.13.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "219c5811de6525e5416c7d5d53bb656d3afdbc6c5af816e0802bcfa42dbdc1c3"
-dependencies = [
- "base64",
- "bytes",
- "futures-core",
- "futures-util",
- "http 1.4.2",
- "http-body 1.0.1",
- "http-body-util",
- "hyper 1.10.1",
- "hyper-rustls 0.27.9",
- "hyper-util",
- "js-sys",
- "log",
- "percent-encoding",
- "pin-project-lite",
  "rustls 0.23.40",
  "rustls-pki-types",
  "rustls-platform-verifier",
@@ -6818,7 +6781,7 @@ dependencies = [
  "olpc-cjson",
  "pem",
  "percent-encoding",
- "reqwest 0.13.4",
+ "reqwest",
  "rustls 0.23.40",
  "rustls-platform-verifier",
  "serde",

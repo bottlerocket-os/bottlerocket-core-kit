@@ -12,7 +12,7 @@ exclude = ["README.md"]
 [features]
 default = ["tls"]
 aws-sdk = ["dep:aws-config", "dep:aws-smithy-types", "dep:aws-sdk-s3", "dep:aws-sdk-secretsmanager", "dep:aws-sdk-ssm", "dep:aws-smithy-checksums"]
-tls = ["aws-sdk", "dep:rustls", "dep:aws-lc-rs", "reqwest/rustls-tls-native-roots"]
+tls = ["aws-sdk", "dep:rustls", "dep:aws-lc-rs", "reqwest/rustls"]
 fips = ["tls", "aws-lc-rs/fips", "rustls/fips"]
 
 [dependencies]

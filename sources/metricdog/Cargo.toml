@@ -16,7 +16,7 @@ argh.workspace = true
 aws-lc-rs = { workspace = true, features = ["bindgen"] }
 bottlerocket-release.workspace = true
 log.workspace = true
-reqwest = { workspace = true, features = ["blocking", "rustls-tls-native-roots"] }
+reqwest = { workspace = true, features = ["blocking", "rustls"] }
 rustls.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true

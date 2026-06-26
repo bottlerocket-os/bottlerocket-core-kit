@@ -73,9 +73,6 @@ skip-tree = [
     { name = "aws-sigv4" },
     # lru 0.16 uses hashbrown 0.16 / foldhash 0.2 while other deps use older versions
     { name = "lru" },
-    # tough 0.23 brings reqwest 0.13 which coexists with reqwest 0.12
-    # used by the rest of the workspace
-    { name = "tough", version = "=0.23" },
 ]
 
 [bans.workspace-dependencies]
