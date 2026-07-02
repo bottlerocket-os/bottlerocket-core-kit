@@ -1,3 +1,18 @@
+# v14.7.0 (2026-07-02)
+
+## OS Changes
+- Enable PIE for kmod static builds ([#929])
+- Add ghostdog command to create devices ([#963])
+
+### Third Party Package Updates
+
+- Update `kubernetes-1.36` ([#964])
+- Backport patch to fix memory leak in `kubernetes-1.36` ([#964])
+
+[#929]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/929
+[#963]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/963
+[#964]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/964
+
 # v14.6.2 (2026-06-25)
 
 ## OS Changes
