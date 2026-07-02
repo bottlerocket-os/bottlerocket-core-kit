@@ -10,8 +10,8 @@
 %global gorepo kubernetes
 %global goimport %{goproject}/%{gorepo}
 
-%global releasever 2
-%global gover 1.36.0
+%global releasever 4
+%global gover 1.36.1
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -66,6 +66,8 @@ Source22: make-kubelet-dirs.conf
 Source100: pause-config.json
 Source101: pause-manifest.json
 Source102: pod-infra-container-image
+
+Patch0001: 0001-kubelet-startPodSync-reuse-the-previous-context-to-f.patch
 
 Source1000: clarify.toml
 
