@@ -13,7 +13,10 @@ hex.workspace = true
 hkdf = { workspace = true, features = ["std"] }
 nix = { workspace = true, features = ["fs", "ioctl", "mount"] }
 serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+settings-extension-measurement.workspace = true
 sha2.workspace = true
+simplelog.workspace = true
 snafu.workspace = true
 walkdir.workspace = true
 zeroize = { workspace = true, features = ["alloc", "derive"] }
