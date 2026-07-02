@@ -67,6 +67,8 @@ Source100: pause-config.json
 Source101: pause-manifest.json
 Source102: pod-infra-container-image
 
+Patch0001: 0001-kubelet-startPodSync-reuse-the-previous-context-to-f.patch
+
 Source1000: clarify.toml
 
 BuildRequires: git
