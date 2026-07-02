@@ -5,6 +5,7 @@ It can also be called for EFA device detection which can be used for ExecConditi
 It can also check if devices on the PCI bus match a particular NVIDIA driver.
 */
 
+mod create_device;
 mod error;
 mod infiniband;
 
@@ -61,6 +62,7 @@ enum SubCommand {
     MatchDriver(MatchDriverArgs),
     MatchNvidiaDriver(MatchNvidiaDriverArgs),
     WriteInfinibandGuid(WriteInfinibandGuidArgs),
+    CreateDevice(CreateDeviceArgs),
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -113,6 +115,24 @@ struct MatchDriverArgs {
 struct WriteInfinibandGuidArgs {
     #[argh(positional)]
     env_file: PathBuf,
+}
+
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "create-device")]
+/// Create a device node using mknod based on /proc/devices lookup
+struct CreateDeviceArgs {
+    #[argh(positional)]
+    /// device name to look up in /proc/devices
+    device_name: String,
+    #[argh(positional)]
+    /// minor device number
+    minor: u32,
+    #[argh(option)]
+    /// override path for device node (default: /dev/<device_name><minor>)
+    path: Option<String>,
+    #[argh(option, default = "String::from(\"0666\")")]
+    /// permissions mode (default: 0666)
+    mode: String,
 }
 
 #[derive(Deserialize)]
@@ -182,6 +202,9 @@ fn main() -> Result<()> {
         }
         SubCommand::WriteInfinibandGuid(envfile) => {
             find_and_write_infiniband_guid(envfile.env_file)?;
+        }
+        SubCommand::CreateDevice(args) => {
+            create_device::create_device(&args)?;
         }
     }
     Ok(())

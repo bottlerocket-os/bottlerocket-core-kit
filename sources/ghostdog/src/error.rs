@@ -78,6 +78,24 @@ pub(super) enum Error {
     NoInf1Present,
     #[snafu(display("Did not detect inf2+ hardware"))]
     NoInf2Present,
+    #[snafu(display("Failed to read /proc/devices: {}", source))]
+    ReadProcDevices { source: std::io::Error },
+    #[snafu(display("Failed to parse /proc/devices line: {}", line))]
+    ParseProcDevices { line: String },
+    #[snafu(display("Device '{}' not found in /proc/devices", name))]
+    DeviceNotFound { name: String },
+    #[snafu(display("Device path already exists: {}", path.display()))]
+    DevicePathExists { path: std::path::PathBuf },
+    #[snafu(display("Failed to execute mknod for '{}': {}", path.display(), source))]
+    MknodExecution {
+        path: std::path::PathBuf,
+        source: std::io::Error,
+    },
+    #[snafu(display("mknod failed for '{}': {}", path.display(), stderr))]
+    MknodFailed {
+        path: std::path::PathBuf,
+        stderr: String,
+    },
 }
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;
