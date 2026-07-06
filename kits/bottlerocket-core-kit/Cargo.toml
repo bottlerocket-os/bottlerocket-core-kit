@@ -26,7 +26,6 @@ cni = { path = "../../packages/cni" }
 cni-plugins = { path = "../../packages/cni-plugins" }
 conntrack-tools = { path = "../../packages/conntrack-tools" }
 containerd-1_7 = { path = "../../packages/containerd-1.7" }
-containerd-2_1 = { path = "../../packages/containerd-2.1" }
 containerd-2_2 = { path = "../../packages/containerd-2.2" }
 coreutils = { path = "../../packages/coreutils" }
 cri-tools = { path = "../../packages/cri-tools" }
