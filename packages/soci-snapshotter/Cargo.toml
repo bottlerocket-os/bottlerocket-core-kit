@@ -12,15 +12,15 @@ path = "../packages.rs"
 releases-url = "https://github.com/awslabs/soci-snapshotter/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/awslabs/soci-snapshotter/archive/v0.13.0/soci-snapshotter-0.13.0.tar.gz"
-sha512 = "afaa4e775d7ee938664c7cc84b3c51ba9523e9bb94c0bcc3dcc00316ff4b9e8c85e090ab67afad5292d210ad46b30baca427f31ec03917d7cb695f6d9e506f33"
-bundle-root-path = "soci-snapshotter-0.13.0/cmd"
+url = "https://github.com/awslabs/soci-snapshotter/archive/v0.14.0/soci-snapshotter-0.14.0.tar.gz"
+sha512 = "2f7ad6f2f1bddc695c33dd95fd5075bfb9c8b843ae67380d2d068696183f3fbbd0440bf45af5b3dac02ab7fa083fbec4e1929621b827db5cb6c50530344ab9ad"
+bundle-root-path = "soci-snapshotter-0.14.0/cmd"
 bundle-output-path = "bundled-cmd.tar.gz"
 bundle-modules = [ "go" ]
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/awslabs/soci-snapshotter/archive/v0.13.0/soci-snapshotter-0.13.0.tar.gz"
-sha512 = "afaa4e775d7ee938664c7cc84b3c51ba9523e9bb94c0bcc3dcc00316ff4b9e8c85e090ab67afad5292d210ad46b30baca427f31ec03917d7cb695f6d9e506f33"
+url = "https://github.com/awslabs/soci-snapshotter/archive/v0.14.0/soci-snapshotter-0.14.0.tar.gz"
+sha512 = "2f7ad6f2f1bddc695c33dd95fd5075bfb9c8b843ae67380d2d068696183f3fbbd0440bf45af5b3dac02ab7fa083fbec4e1929621b827db5cb6c50530344ab9ad"
 bundle-modules = [ "go" ]
 
 [build-dependencies]
