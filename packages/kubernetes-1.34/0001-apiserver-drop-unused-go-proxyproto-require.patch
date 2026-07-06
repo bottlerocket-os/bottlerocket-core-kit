@@ -1,0 +1,32 @@
+From 7ed9e7fc8a7da070ea01a3ee33ec35ce24e3194b Mon Sep 17 00:00:00 2001
+From: Jingwei Wang <jweiw@amazon.com>
+Date: Wed, 1 Jul 2026 22:51:28 +0000
+Subject: [PATCH] apiserver: drop unused go-proxyproto require
+
+The apiserver module lists github.com/pires/go-proxyproto as an
+explicit dependency, but nothing in the tree imports it and it is
+absent from both the vendor directory and vendor/modules.txt.
+Building with -mod=vendor therefore fails with "inconsistent
+vendoring". Remove the orphaned require so go.mod agrees with the
+vendor directory.
+
+Signed-off-by: Jingwei Wang <jweiw@amazon.com>
+---
+ staging/src/k8s.io/apiserver/go.mod | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/staging/src/k8s.io/apiserver/go.mod b/staging/src/k8s.io/apiserver/go.mod
+index 06467cd3..12472b7e 100644
+--- a/staging/src/k8s.io/apiserver/go.mod
++++ b/staging/src/k8s.io/apiserver/go.mod
+@@ -23,7 +23,6 @@ require (
+ 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
+ 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
+ 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f
+-	github.com/pires/go-proxyproto v0.7.1-0.20240628150027-b718e7ce4964
+ 	github.com/spf13/pflag v1.0.6
+ 	github.com/stretchr/testify v1.11.1
+ 	go.etcd.io/etcd/api/v3 v3.6.4
+--
+2.51.1
+
