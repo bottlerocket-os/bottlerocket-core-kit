@@ -1,0 +1,17 @@
+[Unit]
+Description=Reserves static hugepages at early boot
+After=settings-applier.service
+Requires=settings-applier.service
+# Block manual interactions with this service, since we want to run it only at boot time
+RefuseManualStart=true
+RefuseManualStop=true
+ConditionPathExists=/etc/corndog.toml
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/corndog allocate-hugepages
+RemainAfterExit=yes
+StandardError=journal+console
+
+[Install]
+RequiredBy=preconfigured.target
