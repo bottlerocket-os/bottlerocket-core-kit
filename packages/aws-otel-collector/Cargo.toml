@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/aws-observability/aws-otel-collector/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/aws-observability/aws-otel-collector/archive/v0.47.0/aws-otel-collector-v0.47.0.tar.gz"
-sha512 = "46436c5bd29f7d56d432c5d1731c0e136ae3b452b059de13e8eefb59e3596aff5805482772e95672d43ae76acbbb4cc4acada711006969b74daa43a7daff9e0f"
+url = "https://github.com/aws-observability/aws-otel-collector/archive/v0.48.0/aws-otel-collector-v0.48.0.tar.gz"
+sha512 = "df6f726f56ab1ab904b712bb386253e3407972d80aa3154efc02bb70f7148f0f6c193194d2cc47ca092dd2eb47fc33a6e0a4d6e34cc3df3ca6a95a150a044dfd"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
