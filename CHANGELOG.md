@@ -1,3 +1,15 @@
+# v14.8.0 (2026-07-09)
+
+### Third Party Package Updates
+
+- Update `containerd-1.7`, `containerd-2.1` and `containerd-2.2` ([#954])
+- Update `aws-signing-helper`, `ecr-credential-provider-1.32-1.35`, `kubernetes-1.30-1.35`, `soci-snapshotter`, `aws-otel-collector` ([#971])
+- Update `bash`, `util-linux`, `libglib` ([#973])
+
+[#954]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/954
+[#971]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/971
+[#973]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/973
+
 # v14.7.0 (2026-07-02)
 
 ## OS Changes
