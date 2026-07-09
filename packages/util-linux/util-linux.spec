@@ -1,5 +1,5 @@
-%global majorminor 2.41
-%global version %{majorminor}.4
+%global majorminor 2.42
+%global version %{majorminor}.2
 
 Name: %{_cross_os}util-linux
 Version: %{version}
@@ -211,11 +211,13 @@ done
 %exclude %{_cross_bindir}/colcrt
 %exclude %{_cross_bindir}/colrm
 %exclude %{_cross_bindir}/column
+%exclude %{_cross_bindir}/copyfilerange
 %exclude %{_cross_bindir}/coresched
 %exclude %{_cross_bindir}/eject
 %exclude %{_cross_bindir}/enosys
 %exclude %{_cross_bindir}/exch
 %exclude %{_cross_bindir}/fincore
+%exclude %{_cross_bindir}/getino
 %exclude %{_cross_bindir}/getopt
 %exclude %{_cross_bindir}/hardlink
 %exclude %{_cross_bindir}/hexdump
