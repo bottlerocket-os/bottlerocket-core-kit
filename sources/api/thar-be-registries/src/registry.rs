@@ -7,9 +7,18 @@ use crate::error::{ParseRegistrySnafu, Result};
 pub(crate) const DOCKER_HUB_HOST: &str = "docker.io";
 pub(crate) const DOCKER_HUB_REGISTRY: &str = "registry-1.docker.io";
 
-/// Parse registry string, extracting host:port and optional scheme.
-/// Works with full URLs (https://docker.io) or bare hostnames (docker.io, registry:5000).
-/// Defaults to https scheme when none is provided.
+/// Parse a registry string into its `(host, scheme)` components.
+///
+/// Returns:
+/// - `host`: The registry host and optional port (e.g. `docker.io`, `registry.example.com:5000`).
+///   Used to construct the directory name under `certs.d/` and the `server` URL in `hosts.toml`.
+/// - `scheme`: Either `http` or `https`. Written into the `server` field of `hosts.toml`
+///   (e.g. `server = "https://registry.example.com:5000"`).
+///
+/// Scheme is determined as follows:
+/// - Explicit scheme in input (`http://` or `https://`) → preserved as-is.
+/// - No scheme, port 80 → `http`.
+/// - No scheme, any other port or no port → `https`.
 pub(crate) fn parse_registry(registry: &str) -> Result<(String, String)> {
     // Try parsing as-is first (handles URLs with scheme like https://docker.io)
     // Only accept if it has a host (registry:5000 parses as scheme with no host)
@@ -24,7 +33,8 @@ pub(crate) fn parse_registry(registry: &str) -> Result<(String, String)> {
     if let Ok(url) = Url::parse(&format!("https://{}", registry)) {
         if let Some(host) = url.host_str() {
             let port = parsed_port(&url, registry);
-            return Ok((format_host_port(host, port), "https".to_string()));
+            let scheme = if port == Some(80) { "http" } else { "https" };
+            return Ok((format_host_port(host, port), scheme.to_string()));
         }
     }
 
@@ -103,19 +113,22 @@ mod tests {
     #[test_case("http://registry.local:5000", "registry.local:5000", "http"; "http url with port")]
     // Default port preservation: explicit :443 and :80 must be retained
     #[test_case("192.168.1.1:443", "192.168.1.1:443", "https"; "bare host with explicit 443")]
-    #[test_case("192.168.1.1:80", "192.168.1.1:80", "https"; "bare host with explicit 80")]
+    #[test_case("192.168.1.1:80", "192.168.1.1:80", "http"; "bare host with explicit 80")]
     #[test_case("registry.example.com:443", "registry.example.com:443", "https"; "bare hostname with explicit 443")]
-    #[test_case("registry.example.com:80", "registry.example.com:80", "https"; "bare hostname with explicit 80")]
+    #[test_case("registry.example.com:80", "registry.example.com:80", "http"; "bare hostname with explicit 80")]
     #[test_case("https://192.168.1.1:443", "192.168.1.1:443", "https"; "https url with explicit 443")]
     #[test_case("http://192.168.1.1:80", "192.168.1.1:80", "http"; "http url with explicit 80")]
     #[test_case("https://registry.example.com:443", "registry.example.com:443", "https"; "https hostname with explicit 443")]
     #[test_case("http://registry.example.com:80", "registry.example.com:80", "http"; "http hostname with explicit 80")]
+    // Explicit scheme always wins over port-based inference.
+    #[test_case("https://registry.example.com:80", "registry.example.com:80", "https"; "explicit https on port 80")]
+    #[test_case("http://registry.example.com:443", "registry.example.com:443", "http"; "explicit http on port 443")]
     // Bare IP with no port defaults to https.
     #[test_case("192.168.1.1", "192.168.1.1", "https"; "bare ip no port")]
     // IPv6 addresses
     #[test_case("[::1]:5000", "[::1]:5000", "https"; "ipv6 loopback with port")]
     #[test_case("[2001:db8::1]:443", "[2001:db8::1]:443", "https"; "ipv6 with explicit 443")]
-    #[test_case("[2001:db8::1]:80", "[2001:db8::1]:80", "https"; "ipv6 with explicit 80")]
+    #[test_case("[2001:db8::1]:80", "[2001:db8::1]:80", "http"; "ipv6 with explicit 80")]
     #[test_case("https://[::1]:443", "[::1]:443", "https"; "ipv6 https with explicit 443")]
     #[test_case("http://[::1]:80", "[::1]:80", "http"; "ipv6 http with explicit 80")]
     // Ensure port-like patterns in IPv6 do not cause false positives.

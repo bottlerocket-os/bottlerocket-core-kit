@@ -259,6 +259,20 @@ mod tests {
     &[r#"server = "https://registry.example.com:443""#]
     ; "port 443 preserves port in directory and server"
   )]
+    #[test_case(
+    "registry.example.com:80",
+    &["http://mirror.local"],
+    "registry.example.com_80_/hosts.toml",
+    &[r#"server = "http://registry.example.com:80""#]
+    ; "port 80 infers http scheme"
+  )]
+    #[test_case(
+    "http://registry.local:5000",
+    &["http://mirror.local:5000"],
+    "registry.local_5000_/hosts.toml",
+    &[r#"server = "http://registry.local:5000""#]
+    ; "explicit http scheme preserved"
+  )]
     fn test_write_hosts_toml(
         registry: &str,
         endpoints: &[&str],
@@ -308,6 +322,13 @@ mod tests {
     "registry.example.com_443_/credentials.toml",
     &[r#"username = "user""#, r#"password = "pass""#]
     ; "port 443 encodes directory name"
+  )]
+    #[test_case(
+    "registry.example.com:80",
+    Some("user"), Some("pass"), None, None,
+    "registry.example.com_80_/credentials.toml",
+    &[r#"username = "user""#, r#"password = "pass""#]
+    ; "port 80 encodes directory name"
   )]
     fn test_write_credentials_toml(
         registry: &str,
