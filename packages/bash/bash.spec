@@ -1,11 +1,14 @@
+%global majorminor 5.3
+%global version %{majorminor}.15
+
 Name: %{_cross_os}bash
-Version: 5.3
+Version: %{version}
 Release: 1%{?dist}
 Summary: The GNU Bourne Again shell
 License: GPL-3.0-or-later
 URL: https://www.gnu.org/software/bash
-Source0: https://ftp.gnu.org/gnu/bash/bash-%{version}.tar.gz
-Source1: https://ftp.gnu.org/gnu/bash/bash-%{version}.tar.gz.sig
+Source0: https://ftp.gnu.org/gnu/bash/bash-%{majorminor}.tar.gz
+Source1: https://ftp.gnu.org/gnu/bash/bash-%{majorminor}.tar.gz.sig
 Source2: gpgkey-7C0135FB088AAF6C66C650B9BB5869F064EA74AB.asc
 
 # Disable loadable builtin examples
@@ -20,6 +23,12 @@ Patch1006: bash53-006
 Patch1007: bash53-007
 Patch1008: bash53-008
 Patch1009: bash53-009
+Patch1010: bash53-010
+Patch1011: bash53-011
+Patch1012: bash53-012
+Patch1013: bash53-013
+Patch1014: bash53-014
+Patch1015: bash53-015
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libncurses-devel
@@ -44,7 +53,7 @@ Requires: %{name}
 
 %prep
 %{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:2}
-%autosetup -n bash-%{version} -N
+%autosetup -n bash-%{majorminor} -N
 %autopatch -p1 -m0001 -M1000
 %autopatch -p0 -m1001
 

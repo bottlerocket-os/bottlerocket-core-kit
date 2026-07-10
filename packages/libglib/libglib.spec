@@ -1,12 +1,12 @@
 Name: %{_cross_os}libglib
-Version: 2.86.5
+Version: 2.88.2
 Release: 1%{?dist}
 Epoch: 1
 Summary: The GLib libraries
 # glib2 is LGPL-2.1-only
 License: LGPL-2.1-only
 URL: https://www.gtk.org/
-Source0: https://download.gnome.org/sources/glib/2.86/glib-%{version}.tar.xz
+Source0: https://download.gnome.org/sources/glib/2.88/glib-%{version}.tar.xz
 BuildRequires: meson
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libffi-devel
