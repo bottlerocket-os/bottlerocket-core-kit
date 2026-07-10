@@ -252,6 +252,13 @@ mod tests {
     &[r#"[host."https://mirror.global"]"#]
     ; "global mirror"
   )]
+    #[test_case(
+    "registry.example.com:443",
+    &["https://mirror.local"],
+    "registry.example.com_443_/hosts.toml",
+    &[r#"server = "https://registry.example.com:443""#]
+    ; "port 443 preserves port in directory and server"
+  )]
     fn test_write_hosts_toml(
         registry: &str,
         endpoints: &[&str],
@@ -294,6 +301,13 @@ mod tests {
     "registry.example.com/credentials.toml",
     &[r#"auth = "dXNlcjpwYXNz""#]
     ; "auth only"
+  )]
+    #[test_case(
+    "registry.example.com:443",
+    Some("user"), Some("pass"), None, None,
+    "registry.example.com_443_/credentials.toml",
+    &[r#"username = "user""#, r#"password = "pass""#]
+    ; "port 443 encodes directory name"
   )]
     fn test_write_credentials_toml(
         registry: &str,
