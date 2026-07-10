@@ -2,9 +2,9 @@
 %global gorepo containerd
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 2.2.4
+%global gover 2.2.5
 %global rpmver %{gover}
-%global gitrev 193637f7ee8ae5f5aa5248f49e7baa3e6164966e
+%global gitrev e53c7c1516c3b2bff98eb76f1f4117477e6f4e66
 
 %global package_priority_epoch 0
 %global _dwz_low_mem_die_limit 0
@@ -35,12 +35,6 @@ Source200: containerd-disable-igzip.conf
 Source201: containerd-disable-pigz.conf
 
 Source1000: clarify.toml
-
-Patch0001: 0001-cri-filter-CDI-annotations-on-checkpoint-restore.patch
-Patch0002: 0002-Bound-user-database-file-reads-in-openUserFile.patch
-Patch0003: 0003-cri-do-not-re-tag-restored-checkpoints.patch
-Patch0004: 0004-Do-not-propagate-reserved-labels-from-image-configs.patch
-Patch0005: 0005-cri-make-checkpoint-restore-robust-to-unexpected-arc.patch
 
 # Patch to support moving from containerd-1.7 to 2.x
 Patch1001: 1001-Revert-Don-t-allow-io_uring-related-syscalls-in-the-.patch
