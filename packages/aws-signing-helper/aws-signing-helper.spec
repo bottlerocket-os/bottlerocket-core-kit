@@ -2,7 +2,7 @@
 %global gorepo rolesanywhere-credential-helper
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.8.0
+%global gover 1.8.1
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -35,6 +35,7 @@ Requires: %{_cross_os}package-file(/bin/sh)
 
 %build
 %set_cross_go_flags
+export GO_MAJOR="1.26"
 
 go build -ldflags "-X 'main.Version=${gover}' ${GOLDFLAGS}" -o aws-signing-helper main.go
 

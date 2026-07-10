@@ -10,8 +10,8 @@
 %global gorepo kubernetes
 %global goimport %{goproject}/%{gorepo}
 
-%global releasever 18
-%global gover 1.34.7
+%global releasever 19
+%global gover 1.34.8
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -67,6 +67,9 @@ Source101: pause-manifest.json
 Source102: pod-infra-container-image
 
 Source1000: clarify.toml
+
+# Remove an orphaned go-proxyproto require that breaks -mod=vendor builds.
+Patch0001: 0001-apiserver-drop-unused-go-proxyproto-require.patch
 
 BuildRequires: git
 BuildRequires: rsync
