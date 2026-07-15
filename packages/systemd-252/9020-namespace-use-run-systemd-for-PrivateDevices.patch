@@ -1,0 +1,35 @@
+From cd7f3702eb47c82a50bf74c2b7c15c2e4e1f5c79 Mon Sep 17 00:00:00 2001
+From: Maher Homsi <maherhom@amazon.com>
+Date: Mon, 18 May 2026 18:33:34 +0000
+Subject: [PATCH] namespace: use /run/systemd for PrivateDevices= temp mount
+
+Backport of the core fix from systemd PR #29343 (commit cd7f3702eb47),
+adapted for systemd v252.
+
+Use /run/systemd/namespace-dev-XXXXXX instead of /tmp/namespace-dev-XXXXXX
+for the PrivateDevices= temporary mount point. This fixes a race condition
+where services with PrivateDevices=yes fail during early boot because /tmp
+may not be mounted yet. /run is always available as it is mounted before
+any services start.
+
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ src/core/namespace.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/core/namespace.c b/src/core/namespace.c
+index 6870f70..a1b2c3d 100644
+--- a/src/core/namespace.c
++++ b/src/core/namespace.c
+@@ -918,7 +918,7 @@ static int mount_private_dev(MountEntry *m) {
+                 "/dev/urandom\0"
+                 "/dev/tty\0";
+ 
+-        char temporary_mount[] = "/tmp/namespace-dev-XXXXXX";
++        char temporary_mount[] = "/run/systemd/namespace-dev-XXXXXX";
+         const char *d, *dev = NULL, *devpts = NULL, *devshm = NULL, *devhugepages = NULL, *devmqueue = NULL, *devlog = NULL, *devptmx = NULL;
+         bool can_mknod = true;
+         int r;
+-- 
+2.53.0
+
