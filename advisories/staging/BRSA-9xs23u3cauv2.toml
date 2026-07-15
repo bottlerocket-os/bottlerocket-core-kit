@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-9xs23u3cauv2"
+title = "systemd CVE-2026-40225"
+cve = "CVE-2026-40225"
+severity = "moderate"
+description = "A flaw was found in systemd-nspawn where pivot_root path parsing only validated that paths were absolute but did not check normalization, allowing path traversal via non-normalized paths."
+
+[[advisory.products]]
+package-name = "systemd-252"
+patched-version = "252.39"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "systemd-257"
+patched-version = "257.13"
+patched-epoch = "0"
+
+[updateinfo]
+author = "maherhom"
+issue-date = 2026-07-15T23:36:55Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
