@@ -15,7 +15,7 @@ ExecStart=/usr/bin/kubelet \
     --cloud-provider "" \
 {{/unless}}
     --config /etc/kubernetes/kubelet/config \
-    --container-runtime-endpoint=unix:///run/containerd/containerd.sock \
+    --container-runtime-endpoint={{default "unix:///run/containerd/containerd.sock" settings.kubernetes.container-runtime-endpoint}} \
     --containerd=/run/containerd/containerd.sock \
     --root-dir /var/lib/kubelet \
     --cert-dir /var/lib/kubelet/pki \
