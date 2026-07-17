@@ -135,6 +135,20 @@ mod tests {
     // [fe80::443] has no port — the "443" is part of the address, not a port.
     #[test_case("[fe80::443]", "[fe80::443]", "https"; "ipv6 addr containing 443 no port")]
     #[test_case("https://[fe80::443]", "[fe80::443]", "https"; "ipv6 addr containing 443 with scheme no port")]
+    // URLs with IP, port, and path — parse_registry extracts only host:port and scheme.
+    // With scheme
+    #[test_case("https://10.0.0.1:443/path/to/resource", "10.0.0.1:443", "https"; "https ip with 443 and path")]
+    #[test_case("http://172.16.0.5:80/path/to/resource", "172.16.0.5:80", "http"; "http ip with 80 and path")]
+    #[test_case("https://10.0.0.1:8443/path/to/resource", "10.0.0.1:8443", "https"; "https ip with custom port and path")]
+    #[test_case("https://registry.example.com/path/to/resource", "registry.example.com", "https"; "https hostname no port with path")]
+    #[test_case("https://registry.example.com:5000/path/to/resource", "registry.example.com:5000", "https"; "https hostname custom port with path")]
+    #[test_case("http://registry.example.com:80/path/to/resource", "registry.example.com:80", "http"; "http hostname port 80 with path")]
+    // Schemeless with path
+    #[test_case("196.18.8.18:443/path/to/resource", "196.18.8.18:443", "https"; "schemeless ip port 443 with path")]
+    #[test_case("192.168.1.1:5000/path/to/resource", "192.168.1.1:5000", "https"; "schemeless ip custom port with path")]
+    #[test_case("192.168.1.1:80/path/to/resource", "192.168.1.1:80", "http"; "schemeless ip port 80 with path")]
+    #[test_case("registry.example.com:5000/path/to/resource", "registry.example.com:5000", "https"; "schemeless hostname custom port with path")]
+    #[test_case("registry.example.com:443/path/to/resource", "registry.example.com:443", "https"; "schemeless hostname port 443 with path")]
     fn test_parse_registry(input: &str, expected_host: &str, expected_scheme: &str) {
         let (host, scheme) = parse_registry(input).unwrap();
         assert_eq!(host, expected_host);

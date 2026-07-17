@@ -273,6 +273,58 @@ mod tests {
     &[r#"server = "http://registry.local:5000""#]
     ; "explicit http scheme preserved"
   )]
+    #[test_case(
+    "docker.io",
+    &["https://10.0.0.1:443/path/to/resource"],
+    "docker.io/hosts.toml",
+    &[r#"[host."https://10.0.0.1:443/path/to/resource"]"#, "override_path = true"]
+    ; "https ip port 443 with path sets override_path"
+  )]
+    #[test_case(
+    "registry.example.com",
+    &["https://172.16.0.5:8443/path/to/resource"],
+    "registry.example.com/hosts.toml",
+    &[r#"[host."https://172.16.0.5:8443/path/to/resource"]"#, "override_path = true"]
+    ; "https ip custom port with path sets override_path"
+  )]
+    // Schemeless endpoints with path — override_path must be set
+    #[test_case(
+    "public.ecr.aws",
+    &["196.18.8.18:443/v2/eks-a-test"],
+    "public.ecr.aws/hosts.toml",
+    &[r#"[host."196.18.8.18:443/v2/eks-a-test"]"#, "override_path = true"]
+    ; "schemeless ip port 443 with path against public.ecr.aws sets override_path"
+  )]
+    #[test_case(
+    "registry.example.com",
+    &["192.168.1.1:5000/path/to/resource"],
+    "registry.example.com/hosts.toml",
+    &[r#"[host."192.168.1.1:5000/path/to/resource"]"#, "override_path = true"]
+    ; "schemeless ip custom port with path sets override_path"
+  )]
+    #[test_case(
+    "registry.example.com",
+    &["mirror.local:5000/path/to/resource"],
+    "registry.example.com/hosts.toml",
+    &[r#"[host."mirror.local:5000/path/to/resource"]"#, "override_path = true"]
+    ; "schemeless hostname custom port with path sets override_path"
+  )]
+    // http scheme with path — override_path
+    #[test_case(
+    "registry.example.com",
+    &["http://mirror.local:5000/path/to/resource"],
+    "registry.example.com/hosts.toml",
+    &[r#"[host."http://mirror.local:5000/path/to/resource"]"#, "override_path = true"]
+    ; "http hostname custom port with path sets override_path"
+  )]
+    // Hostname no port with path
+    #[test_case(
+    "docker.io",
+    &["https://mirror.example.com/path/to/resource"],
+    "docker.io/hosts.toml",
+    &[r#"[host."https://mirror.example.com/path/to/resource"]"#, "override_path = true"]
+    ; "https hostname no port with path sets override_path"
+  )]
     fn test_write_hosts_toml(
         registry: &str,
         endpoints: &[&str],
