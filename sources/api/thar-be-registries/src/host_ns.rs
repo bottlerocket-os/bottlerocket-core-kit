@@ -23,12 +23,22 @@ impl Endpoint {
 
     /// Checks if this endpoint has a path component beyond "/".
     pub fn has_path_component(&self) -> bool {
+        // Try parsing as-is first (handles URLs with scheme like https://host/path)
+        // Only accept if it has a host (registry:5000 parses as scheme with no host)
         if let Ok(url) = Url::parse(&self.0) {
-            let p = url.path();
-            !p.is_empty() && p != "/"
-        } else {
-            false
+            if let Some(_host) = url.host_str() {
+                return !url.path().is_empty() && url.path() != "/";
+            }
         }
+
+        // Parse bare hostname with https:// prefix (handles registry:5000/v2/path)
+        if let Ok(url) = Url::parse(&format!("https://{}", &self.0)) {
+            if let Some(_host) = url.host_str() {
+                return !url.path().is_empty() && url.path() != "/";
+            }
+        }
+
+        false
     }
 }
 
@@ -153,8 +163,34 @@ mod tests {
 
     #[test]
     fn test_endpoint_has_path_component() {
+        // === With scheme, no path ===
         assert!(!Endpoint::new("https://mirror.example.com").has_path_component());
         assert!(!Endpoint::new("https://mirror.example.com/").has_path_component());
+        assert!(!Endpoint::new("http://mirror.example.com").has_path_component());
+        assert!(!Endpoint::new("https://192.168.1.1").has_path_component());
+        assert!(!Endpoint::new("https://192.168.1.1:443").has_path_component());
+        assert!(!Endpoint::new("http://192.168.1.1:80").has_path_component());
+        assert!(!Endpoint::new("https://192.168.1.1:5000").has_path_component());
+
+        // === With scheme, with path ===
         assert!(Endpoint::new("https://mirror.example.com/v2/docker-hub").has_path_component());
+        assert!(Endpoint::new("http://mirror.example.com/v2/docker-hub").has_path_component());
+        assert!(Endpoint::new("https://192.168.1.1:443/v2/myrepo").has_path_component());
+        assert!(Endpoint::new("http://192.168.1.1:80/v2/myrepo").has_path_component());
+        assert!(Endpoint::new("https://192.168.1.1:5000/path/to/resource").has_path_component());
+        assert!(Endpoint::new("https://registry.example.com/v2/mirror").has_path_component());
+
+        // === Schemeless, no path ===
+        assert!(!Endpoint::new("196.18.8.18:443").has_path_component());
+        assert!(!Endpoint::new("192.168.1.1:5000").has_path_component());
+        assert!(!Endpoint::new("registry.example.com:5000").has_path_component());
+        assert!(!Endpoint::new("mirror.example.com").has_path_component());
+
+        // === Schemeless, with path ===
+        assert!(Endpoint::new("196.18.8.18:443/v2/eks-a-test").has_path_component());
+        assert!(Endpoint::new("192.168.1.1:5000/path/to/resource").has_path_component());
+        assert!(Endpoint::new("192.168.1.1:80/v2/myrepo").has_path_component());
+        assert!(Endpoint::new("registry.example.com:5000/v2/mirror").has_path_component());
+        assert!(Endpoint::new("registry.example.com/v2/mirror").has_path_component());
     }
 }

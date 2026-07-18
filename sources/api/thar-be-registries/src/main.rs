@@ -252,6 +252,79 @@ mod tests {
     &[r#"[host."https://mirror.global"]"#]
     ; "global mirror"
   )]
+    #[test_case(
+    "registry.example.com:443",
+    &["https://mirror.local"],
+    "registry.example.com_443_/hosts.toml",
+    &[r#"server = "https://registry.example.com:443""#]
+    ; "port 443 preserves port in directory and server"
+  )]
+    #[test_case(
+    "registry.example.com:80",
+    &["http://mirror.local"],
+    "registry.example.com_80_/hosts.toml",
+    &[r#"server = "http://registry.example.com:80""#]
+    ; "port 80 infers http scheme"
+  )]
+    #[test_case(
+    "http://registry.local:5000",
+    &["http://mirror.local:5000"],
+    "registry.local_5000_/hosts.toml",
+    &[r#"server = "http://registry.local:5000""#]
+    ; "explicit http scheme preserved"
+  )]
+    #[test_case(
+    "docker.io",
+    &["https://10.0.0.1:443/path/to/resource"],
+    "docker.io/hosts.toml",
+    &[r#"[host."https://10.0.0.1:443/path/to/resource"]"#, "override_path = true"]
+    ; "https ip port 443 with path sets override_path"
+  )]
+    #[test_case(
+    "registry.example.com",
+    &["https://172.16.0.5:8443/path/to/resource"],
+    "registry.example.com/hosts.toml",
+    &[r#"[host."https://172.16.0.5:8443/path/to/resource"]"#, "override_path = true"]
+    ; "https ip custom port with path sets override_path"
+  )]
+    // Schemeless endpoints with path — override_path must be set
+    #[test_case(
+    "public.ecr.aws",
+    &["196.18.8.18:443/v2/eks-a-test"],
+    "public.ecr.aws/hosts.toml",
+    &[r#"[host."196.18.8.18:443/v2/eks-a-test"]"#, "override_path = true"]
+    ; "schemeless ip port 443 with path against public.ecr.aws sets override_path"
+  )]
+    #[test_case(
+    "registry.example.com",
+    &["192.168.1.1:5000/path/to/resource"],
+    "registry.example.com/hosts.toml",
+    &[r#"[host."192.168.1.1:5000/path/to/resource"]"#, "override_path = true"]
+    ; "schemeless ip custom port with path sets override_path"
+  )]
+    #[test_case(
+    "registry.example.com",
+    &["mirror.local:5000/path/to/resource"],
+    "registry.example.com/hosts.toml",
+    &[r#"[host."mirror.local:5000/path/to/resource"]"#, "override_path = true"]
+    ; "schemeless hostname custom port with path sets override_path"
+  )]
+    // http scheme with path — override_path
+    #[test_case(
+    "registry.example.com",
+    &["http://mirror.local:5000/path/to/resource"],
+    "registry.example.com/hosts.toml",
+    &[r#"[host."http://mirror.local:5000/path/to/resource"]"#, "override_path = true"]
+    ; "http hostname custom port with path sets override_path"
+  )]
+    // Hostname no port with path
+    #[test_case(
+    "docker.io",
+    &["https://mirror.example.com/path/to/resource"],
+    "docker.io/hosts.toml",
+    &[r#"[host."https://mirror.example.com/path/to/resource"]"#, "override_path = true"]
+    ; "https hostname no port with path sets override_path"
+  )]
     fn test_write_hosts_toml(
         registry: &str,
         endpoints: &[&str],
@@ -294,6 +367,20 @@ mod tests {
     "registry.example.com/credentials.toml",
     &[r#"auth = "dXNlcjpwYXNz""#]
     ; "auth only"
+  )]
+    #[test_case(
+    "registry.example.com:443",
+    Some("user"), Some("pass"), None, None,
+    "registry.example.com_443_/credentials.toml",
+    &[r#"username = "user""#, r#"password = "pass""#]
+    ; "port 443 encodes directory name"
+  )]
+    #[test_case(
+    "registry.example.com:80",
+    Some("user"), Some("pass"), None, None,
+    "registry.example.com_80_/credentials.toml",
+    &[r#"username = "user""#, r#"password = "pass""#]
+    ; "port 80 encodes directory name"
   )]
     fn test_write_credentials_toml(
         registry: &str,
