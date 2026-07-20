@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-zavixeztokdt"
+title = "systemd CVE-2026-40226"
+cve = "CVE-2026-40226"
+severity = "moderate"
+description = "A flaw was found in systemd-nspawn where Ephemeral and BindUser settings from .nspawn settings files were applied regardless of whether the file was trusted, potentially allowing privilege escalation."
+
+[[advisory.products]]
+package-name = "systemd-252"
+patched-version = "252.39"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "systemd-257"
+patched-version = "257.13"
+patched-epoch = "0"
+
+[updateinfo]
+author = "maherhom"
+issue-date = 2026-07-15T23:37:07Z
+arches = ["x86_64", "aarch64"]
+version = "staging"

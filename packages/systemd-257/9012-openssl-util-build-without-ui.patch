@@ -1,4 +1,4 @@
-From cbd9ff7231882d22e79c69b333d5394bcdc144e8 Mon Sep 17 00:00:00 2001
+From f143397edcad1a76e33876cfb5bfa0b51ae17d50 Mon Sep 17 00:00:00 2001
 From: Vighnesh Maheshwari <vighmah@amazon.com>
 Date: Thu, 16 Oct 2025 10:00:47 -0700
 Subject: [PATCH] openssl-util: build without ui.h
@@ -6,13 +6,63 @@ Subject: [PATCH] openssl-util: build without ui.h
 Remove some code that depends on openssl/ui.h which is not provided by
 aws-lc. This can probably be submitted upstream.
 
-Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
----
- src/shared/openssl-util.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+[Refreshed for v257.13: Extended patch to guard new UI_METHOD references
+in openssl-util.c (load_key_from_provider, load_key_from_engine, and
+openssl_load_private_key) that were added upstream since 257.9.]
 
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ src/shared/openssl-util.c | 17 ++++++++++++++---
+ src/shared/openssl-util.h | 11 +++++++++++
+ 2 files changed, 25 insertions(+), 3 deletions(-)
+
+diff --git a/src/shared/openssl-util.c b/src/shared/openssl-util.c
+index a48bb1c..8d3e9ff 100644
+--- a/src/shared/openssl-util.c
++++ b/src/shared/openssl-util.c
+@@ -1319,7 +1319,11 @@ int pkey_generate_volume_keys(
+ static int load_key_from_provider(
+                 const char *provider,
+                 const char *private_key_uri,
++#ifndef OPENSSL_NO_UI_CONSOLE
+                 UI_METHOD *ui_method,
++#else
++                void *ui_method,
++#endif /* OPENSSL_NO_UI_CONSOLE */
+                 EVP_PKEY **ret) {
+ 
+         assert(provider);
+@@ -1362,7 +1366,13 @@ static int load_key_from_provider(
+ #endif
+ }
+ 
+-static int load_key_from_engine(const char *engine, const char *private_key_uri, UI_METHOD *ui_method, EVP_PKEY **ret) {
++static int load_key_from_engine(const char *engine, const char *private_key_uri,
++#ifndef OPENSSL_NO_UI_CONSOLE
++                UI_METHOD *ui_method,
++#else
++                void *ui_method,
++#endif /* OPENSSL_NO_UI_CONSOLE */
++                EVP_PKEY **ret) {
+         assert(engine);
+         assert(private_key_uri);
+         assert(ret);
+@@ -1659,9 +1669,10 @@ int openssl_load_private_key(
+                 if (r < 0)
+                         return log_debug_errno(r, "Failed to allocate ask-password user interface: %m");
+ 
+-                UI_METHOD *ui_method = NULL;
+ #ifndef OPENSSL_NO_UI_CONSOLE
+-                ui_method = ui->method;
++                UI_METHOD *ui_method = ui->method;
++#else
++                void *ui_method = NULL;
+ #endif
+ 
+                 switch (private_key_source_type) {
 diff --git a/src/shared/openssl-util.h b/src/shared/openssl-util.h
-index e25a175a80..784e764058 100644
+index e25a175..784e764 100644
 --- a/src/shared/openssl-util.h
 +++ b/src/shared/openssl-util.h
 @@ -41,6 +41,9 @@ int parse_openssl_key_source_argument(const char *argument, char **private_key_s

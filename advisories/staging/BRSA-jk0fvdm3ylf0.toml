@@ -1,0 +1,22 @@
+[advisory]
+id = "BRSA-jk0fvdm3ylf0"
+title = "systemd CVE-2026-29111"
+cve = "CVE-2026-29111"
+severity = "moderate"
+description = "A flaw was found in systemd where the GetUnitByControlGroup D-Bus method accepted non-absolute and non-normalized cgroup paths, potentially allowing path traversal."
+
+[[advisory.products]]
+package-name = "systemd-252"
+patched-version = "252.39"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "systemd-257"
+patched-version = "257.13"
+patched-epoch = "0"
+
+[updateinfo]
+author = "maherhom"
+issue-date = 2026-07-15T23:30:17Z
+arches = ["aarch64", "x86_64"]
+version = "staging"

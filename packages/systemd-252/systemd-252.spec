@@ -96,6 +96,10 @@ Patch9018: 9018-meson-replace-openssl-dependency-with-libcrypto.patch
 # it does not apply to Bottlerocket where the API is restricted by the SELinux
 # policy
 Patch9019: 9019-suppress-log-for-units-with-mode-0044.patch
+# Backport fixes for CVE-2026-29111, CVE-2026-40225, CVE-2026-40226
+Patch9020: 9020-core-validate-input-cgroup-path-more-prudently.patch
+Patch9038: 9038-nspawn-normalize-pivot_root-paths.patch
+Patch9039: 9039-nspawn-apply-BindUser-Ephemeral-from-settings-fil.patch
 
 BuildRequires: gperf
 BuildRequires: intltool

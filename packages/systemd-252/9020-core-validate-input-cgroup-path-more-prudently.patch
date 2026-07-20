@@ -1,0 +1,36 @@
+From 1d22f706bd04f45f8422e17fbde3f56ece17758a Mon Sep 17 00:00:00 2001
+From: Mike Yuan <me@yhndnzj.com>
+Date: Thu, 26 Feb 2026 11:06:34 +0100
+Subject: [PATCH] core: validate input cgroup path more prudently
+
+commit efa6ba2ab625aaa160ac435a09e6482fc63bdbe8 upstream.
+
+Validate that cgroup paths received via the GetUnitByControlGroup D-Bus
+method are both absolute and normalized before performing the lookup.
+
+Signed-off-by: Mike Yuan <me@yhndnzj.com>
+[maherhom: backported to v252; dropped varlink-unit.c hunk (file does not
+exist in v252), adjusted sd_bus_error_setf parameter from reterr_error to
+error to match v252 API]
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ src/core/dbus-manager.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/core/dbus-manager.c b/src/core/dbus-manager.c
+index 2610442384475..104094dc46c59 100644
+--- a/src/core/dbus-manager.c
++++ b/src/core/dbus-manager.c
+@@ -623,6 +623,12 @@ static int method_get_unit_by_control_group(sd_bus_message *message, void *userd
+         if (r < 0)
+                 return r;
+ 
++        if (!path_is_absolute(cgroup))
++                return sd_bus_error_setf(error, SD_BUS_ERROR_INVALID_ARGS, "Control group path is not absolute: %s", cgroup);
++
++        if (!path_is_normalized(cgroup))
++                return sd_bus_error_setf(error, SD_BUS_ERROR_INVALID_ARGS, "Control group path is not normalized: %s", cgroup);
++
+         u = manager_get_unit_by_cgroup(m, cgroup);
+         if (!u)
+                 return sd_bus_error_setf(error, BUS_ERROR_NO_SUCH_UNIT,

@@ -1,0 +1,62 @@
+From 61bceb1bff4b1f9c126b18dc971ca3e6d8c71c40 Mon Sep 17 00:00:00 2001
+From: Luca Boccassi <luca.boccassi@gmail.com>
+Date: Wed, 11 Mar 2026 12:15:26 +0000
+Subject: [PATCH] nspawn: apply BindUser/Ephemeral from settings file only if
+ trusted
+
+commit 61bceb1bff4b1f9c126b18dc971ca3e6d8c71c40 upstream.
+
+Only apply BindUser and Ephemeral settings from .nspawn settings files
+when the file is trusted. Log a warning otherwise.
+
+Originally reported on yeswehack.com as:
+YWH-PGM9780-116
+
+Follow-up for 2f8930449079403b26c9164b8eeac78d5af2c8df
+Follow-up for a2f577fca0be79b23f61f033229b64884e7d840a
+
+Signed-off-by: Luca Boccassi <luca.boccassi@gmail.com>
+(cherry picked from commit 61bceb1bff4b1f9c126b18dc971ca3e6d8c71c40)
+[maherhom: backported to v252; adjusted line offsets in merge_settings()
+(function at different position in v252)]
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ src/nspawn/nspawn.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/src/nspawn/nspawn.c b/src/nspawn/nspawn.c
+index 1b3aa7d1ad50a..84e94e845a6b5 100644
+--- a/src/nspawn/nspawn.c
++++ b/src/nspawn/nspawn.c
+@@ -4329,8 +4329,13 @@ static int merge_settings(Settings *settings, const char *path) {
+         }
+ 
+         if ((arg_settings_mask & SETTING_EPHEMERAL) == 0 &&
+-            settings->ephemeral >= 0)
+-                arg_ephemeral = settings->ephemeral;
++            settings->ephemeral >= 0) {
++
++                if (!arg_settings_trusted)
++                        log_warning("Ignoring ephemeral setting, file %s is not trusted.", path);
++                else
++                        arg_ephemeral = settings->ephemeral;
++        }
+ 
+         if ((arg_settings_mask & SETTING_DIRECTORY) == 0 &&
+             settings->root) {
+@@ -4498,8 +4503,13 @@ static int merge_settings(Settings *settings, const char *path) {
+         }
+ 
+         if ((arg_settings_mask & SETTING_BIND_USER) == 0 &&
+-            !strv_isempty(settings->bind_user))
+-                strv_free_and_replace(arg_bind_user, settings->bind_user);
++            !strv_isempty(settings->bind_user)) {
++
++                if (!arg_settings_trusted)
++                        log_warning("Ignoring bind user setting, file %s is not trusted.", path);
++                else
++                        strv_free_and_replace(arg_bind_user, settings->bind_user);
++        }
+ 
+         if ((arg_settings_mask & SETTING_NOTIFY_READY) == 0 &&
+             settings->notify_ready >= 0)
