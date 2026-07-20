@@ -3,11 +3,14 @@ corndog is a delicious way to get at the meat inside the kernels.
 It sets kernel-related settings, for example:
 * sysctl values, based on key/value pairs in `settings.kernel.sysctl`
 * lockdown mode, based on the value of `settings.kernel.lockdown`
+* static and transparent hugepage settings, based on the values of `settings.kernel.hugepages`
 
 corndog also provides a settings generator for hugepages, subcommand "generate-hugepages-setting".
 */
+mod hugepages;
 
-use bottlerocket_modeled_types::{Lockdown, SysctlKey};
+use crate::hugepages::*;
+use bottlerocket_modeled_types::{HugepagesSettings, Lockdown, SysctlKey};
 use log::{debug, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
@@ -26,6 +29,7 @@ const SYSCTL_CONFIG_DIR: &str = "/etc/sysctl.d";
 const SYSCTL_CONFIG_FILENAME: &str = "95-corndog.conf";
 const SYSTEMD_SYSCTL_BIN: &str = "/usr/lib/systemd/systemd-sysctl";
 const NR_HUGEPAGES_PATH_SYSCTL: &str = "/proc/sys/vm/nr_hugepages";
+
 /// Number of hugepages we will assign per core.
 /// See [`compute_hugepages_for_efa`] for more detail on the computation consideration.
 const HUGEPAGES_2MB_PER_CORE: u64 = 110;
@@ -44,6 +48,8 @@ struct KernelSettings {
     // Values are almost always a single line and often just an integer... but not always.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     sysctl: Option<HashMap<SysctlKey, String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    hugepages: Option<HugepagesSettings>,
 }
 
 /// Trait for executing system commands
@@ -83,6 +89,13 @@ fn run() -> Result<()> {
             if let Some(lockdown) = kernel.lockdown {
                 debug!("Setting lockdown: {lockdown:#?}");
                 set_lockdown(&lockdown)?;
+            }
+        }
+        "allocate-hugepages" => {
+            let kernel = get_kernel_settings(args.config_path)?;
+            if let Some(hugepages) = kernel.hugepages {
+                debug!("Applying hugepages settings: {hugepages:#?}");
+                apply_hugepages(&hugepages)?;
             }
         }
         "generate-hugepages-setting" => {
@@ -255,6 +268,19 @@ fn set_lockdown(lockdown: &str) -> Result<()> {
     fs::write(LOCKDOWN_PATH, lockdown).context(error::LockdownSnafu { current, lockdown })
 }
 
+fn apply_hugepages(hugepages: &HugepagesSettings) -> Result<()> {
+    if let Some(static_hugepages) = &hugepages.static_hugepages {
+        set_static_hugepages(static_hugepages).context(error::HugepagesSnafu)?;
+    }
+
+    // Setting transparent hugepages settings.
+    if let Some(transparent_hugepages) = &hugepages.transparent_hugepages {
+        set_transparent_hugepages(transparent_hugepages).context(error::HugepagesSnafu)?;
+    }
+
+    Ok(())
+}
+
 /// The Linux kernel provides human-readable output like `[none] integrity confidentiality` when
 /// you read settings from virtual files like /sys/kernel/security/lockdown.  This parses out the
 /// current value of the setting from that human-readable output.
@@ -288,6 +314,7 @@ fn usage() -> ! {
         sysctl
         lockdown
         generate-hugepages-setting
+        allocate-hugepages,
 
     Global arguments:
         --config-path PATH
@@ -305,14 +332,17 @@ fn usage_msg<S: AsRef<str>>(msg: S) -> ! {
 }
 
 /// Parses the arguments to the program and return a representative `Args`.
-fn parse_args(args: env::Args) -> Args {
+fn parse_args<A>(args: A) -> Args
+where
+    A: Iterator<Item = String>,
+{
     let mut log_level = None;
     let mut config_path = None;
     let mut subcommand = None;
 
     let mut iter = args.skip(1);
     while let Some(arg) = iter.next() {
-        match arg.as_ref() {
+        match arg.as_str() {
             "--log-level" => {
                 let log_level_str = iter
                     .next()
@@ -330,7 +360,9 @@ fn parse_args(args: env::Args) -> Args {
                 )
             }
 
-            "sysctl" | "lockdown" | "generate-hugepages-setting" => subcommand = Some(arg),
+            "sysctl" | "lockdown" | "generate-hugepages-setting" | "allocate-hugepages" => {
+                subcommand = Some(arg)
+            }
 
             _ => usage(),
         }
@@ -393,6 +425,11 @@ mod error {
         #[snafu(display("Logger setup error: {}", source))]
         Logger { source: log::SetLoggerError },
 
+        #[snafu(display("Failed to apply hugepage settings: {}", source))]
+        Hugepages {
+            source: crate::hugepages::error::Error,
+        },
+
         #[snafu(display("Failed to create temporary file in {}: {}", path.display(), source))]
         CreateTempFile { path: PathBuf, source: io::Error },
 
@@ -424,6 +461,10 @@ type Result<T> = std::result::Result<T, error::Error>;
 #[cfg(test)]
 mod test {
     use super::*;
+    use bottlerocket_modeled_types::{
+        HugepageSize, TransparentHugepageDefragPolicy, TransparentHugepagePolicy,
+    };
+    use std::fs;
     use std::os::unix::process::ExitStatusExt;
     use std::process::ExitStatus;
     use tempfile::TempDir;
@@ -556,6 +597,55 @@ mod test {
         let num_cores: usize = 2;
         let computed_hugepages = compute_hugepages_for_efa(num_cores);
         assert_eq!(computed_hugepages, "220")
+    }
+
+    #[test]
+    fn test_deserialize_hugepages_settings() {
+        let toml_str = r#"
+        [hugepages.static]
+        essential = true
+        "2Mi" = { count = "512" }
+        "1Gi" = { count = "4" }
+
+        [hugepages.transparent]
+        enabled = "always"
+        defrag = "defer+madvise"
+        "#;
+        let kernel: KernelSettings = toml::from_str(toml_str).unwrap();
+        let hugepages = kernel.hugepages.expect("hugepages should be present");
+
+        let two_mi = HugepageSize::try_from("2Mi").unwrap();
+        let one_gi = HugepageSize::try_from("1Gi").unwrap();
+        let static_hugepages = hugepages
+            .static_hugepages
+            .as_ref()
+            .expect("static block should be present");
+
+        assert!(static_hugepages.essential);
+        let two_mi_pool = static_hugepages
+            .hugepages_config
+            .get(&two_mi)
+            .expect("2Mi pool should be present");
+        assert_eq!(two_mi_pool.count, "512");
+        assert_eq!(
+            static_hugepages
+                .hugepages_config
+                .get(&one_gi)
+                .map(|c| &c.count),
+            Some(&"4".try_into().unwrap())
+        );
+        // Neither the block-level `essential` nor the named `transparent` field leaks into the
+        // flattened static pool map.
+        assert_eq!(static_hugepages.hugepages_config.len(), 2);
+
+        let transparent = hugepages
+            .transparent_hugepages
+            .expect("transparent should be present");
+        assert_eq!(transparent.enabled, Some(TransparentHugepagePolicy::Always));
+        assert_eq!(
+            transparent.defrag,
+            Some(TransparentHugepageDefragPolicy::DeferMadvise)
+        );
     }
 
     #[test_case("".to_string(), "0".to_string())]

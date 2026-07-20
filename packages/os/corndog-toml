@@ -1,5 +1,6 @@
 [required-extensions]
 kernel = "v1"
+std = { version = "v1", helpers = ["default"] }
 +++
 {{#if settings.kernel.lockdown}}
 lockdown = "{{{settings.kernel.lockdown}}}"
@@ -9,4 +10,25 @@ lockdown = "{{{settings.kernel.lockdown}}}"
 {{#each settings.kernel.sysctl}}
 "{{@key}}" = "{{{this}}}"
 {{/each}}
+{{/if}}
+{{#if settings.kernel.hugepages}}
+{{#if settings.kernel.hugepages.static}}
+[hugepages.static]
+essential = {{default false settings.kernel.hugepages.static.essential}}
+{{#each settings.kernel.hugepages.static}}
+{{#if this.count}}
+[hugepages.static."{{@key}}"]
+count = "{{{this.count}}}"
+{{/if}}
+{{/each}}
+{{/if}}
+{{#if settings.kernel.hugepages.transparent}}
+[hugepages.transparent]
+{{#if settings.kernel.hugepages.transparent.enabled}}
+enabled = "{{{settings.kernel.hugepages.transparent.enabled}}}"
+{{/if}}
+{{#if settings.kernel.hugepages.transparent.defrag}}
+defrag = "{{{settings.kernel.hugepages.transparent.defrag}}}"
+{{/if}}
+{{/if}}
 {{/if}}
