@@ -1,3 +1,27 @@
+# v14.9.0 (2026-07-20)
+
+## OS Changes
+- Add support for static hugepages and transparent hugepages([#952])
+- Fix `thar-be-registries` port inference and path validation for registry URLs ([#976])
+
+### Third Party Package Updates
+- Update `runc` to 1.3.6 ([#974])
+- Update `systemd-257` and backport changes to `systemd-252` ([#961])
+
+## Build Changes
+- Bump `bottlerocket-settings-models` to 0.25.0 ([#978]) - Thanks @shvbsle!
+
+## Orchestrator Changes
+### Kubernetes
+- Gate kubelet `--container-runtime-endpoint` on `settings.kubernetes.container-runtime-endpoint` ([#968])
+
+[#952]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/952
+[#961]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/961
+[#968]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/968
+[#974]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/974
+[#976]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/976
+[#978]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/978
+
 # v14.8.0 (2026-07-09)
 
 ### Third Party Package Updates
