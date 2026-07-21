@@ -9,11 +9,11 @@
 - Update `systemd-257` and backport changes to `systemd-252` ([#961])
 
 ## Build Changes
-- Bump `bottlerocket-settings-models` to 0.25.0 ([#978]) - Thanks @shvbsle!
+- Bump `bottlerocket-settings-models` to 0.25.0 ([#978])
 
 ## Orchestrator Changes
 ### Kubernetes
-- Gate kubelet `--container-runtime-endpoint` on `settings.kubernetes.container-runtime-endpoint` ([#968])
+- Gate kubelet `--container-runtime-endpoint` on `settings.kubernetes.container-runtime-endpoint` ([#968]) - Thanks @shvbsle!
 
 [#952]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/952
 [#961]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/961
