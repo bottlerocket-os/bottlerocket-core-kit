@@ -2,10 +2,10 @@
 %global agent_gorepo amazon-ecs-agent
 %global agent_goimport %{agent_goproject}/%{agent_gorepo}
 
-%global agent_gover 1.103.2
+%global agent_gover 1.105.1
 
 # git rev-parse --short=8
-%global agent_gitrev 08149542
+%global agent_gitrev 8dfceca6
 
 # Construct reproducible tar archives
 # See https://reproducible-builds.org/docs/archives/
