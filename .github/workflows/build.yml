@@ -17,8 +17,6 @@ on:
       - '**.tpl'
       # Sample config files and OpenAPI docs
       - '**.yaml'
-      # Bottlerocket Security Advisories
-      - 'advisories/**'
       # VSCode configurations
       - '.vscode/**'
       # Mailmap
