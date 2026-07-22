@@ -85,6 +85,7 @@ Source300: ephemeral-storage.rules
 Source301: ebs-volumes.rules
 Source302: ephemeral-ebs-storage.rules
 Source303: supplemental-storage.rules
+Source304: ena-ptp.rules
 
 # 4xx sources: Bottlerocket licenses
 Source400: COPYRIGHT
@@ -793,6 +794,7 @@ install -p -m 0644 %{S:300} %{buildroot}%{_cross_udevrulesdir}/80-ephemeral-stor
 install -p -m 0644 %{S:301} %{buildroot}%{_cross_udevrulesdir}/81-ebs-volumes.rules
 install -p -m 0644 %{S:302} %{buildroot}%{_cross_udevrulesdir}/82-ephemeral-ebs-storage.rules
 install -p -m 0644 %{S:303} %{buildroot}%{_cross_udevrulesdir}/83-supplemental-storage.rules
+install -p -m 0644 %{S:304} %{buildroot}%{_cross_udevrulesdir}/84-ena-ptp.rules
 
 install -d %{buildroot}%{_cross_datadir}/whippet/
 install -p -m 0644 %{S:22} %{buildroot}%{_cross_datadir}/whippet/system.toml
@@ -813,6 +815,7 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_licensedir}/COPYRIGHT
 %{_cross_licensedir}/LICENSE-MIT
 %{_cross_licensedir}/LICENSE-APACHE
+%{_cross_udevrulesdir}/84-ena-ptp.rules
 
 %files -n %{_cross_os}apiserver
 %{_cross_bindir}/apiserver
