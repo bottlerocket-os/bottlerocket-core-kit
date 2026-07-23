@@ -9,7 +9,9 @@ use serde_json::value::Value;
 use snafu::{OptionExt, ResultExt};
 
 pub mod reflective;
+pub mod system;
 pub use reflective::{IsArray, IsBool, IsNull, IsNumber, IsObject, IsString};
+pub use system::IsCgroupV2;
 
 // This helper checks if any objects have '"enabled": true' in their properties.
 //

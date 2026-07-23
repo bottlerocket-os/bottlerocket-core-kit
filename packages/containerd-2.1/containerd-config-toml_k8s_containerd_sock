@@ -2,7 +2,7 @@
 container-registry = "v1"
 container-runtime = "v1"
 kubernetes = "v1"
-std = { version = "v1", helpers = ["join_array", "default"]}
+std = { version = "v1", helpers = ["join_array", "default", "is_cgroup_v2"]}
 +++
 version = 3
 root = "/var/lib/containerd"
@@ -62,6 +62,11 @@ platform = "linux/amd64"
 [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.runc]
 runtime_type = "io.containerd.runc.v2"
 base_runtime_spec = "/etc/containerd/cri-base.json"
+{{#if (is_cgroup_v2)}}
+{{#if settings.container-runtime.cgroup-writable}}
+cgroup_writable = {{settings.container-runtime.cgroup-writable}}
+{{/if}}
+{{/if}}
 
 [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.runc.options]
 SystemdCgroup = true
