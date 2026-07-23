@@ -1,0 +1,27 @@
+[advisory]
+id = "BRSA-4xkkdto38tkr"
+title = "kubernetes-1.30 support ended"
+severity = "low"
+end-of-life = true
+description = "kubernetes-1.30 and ecr-credential-provider-1.30 are no longer included in Bottlerocket. All users must upgrade to a version of the OS that does not include these packages."
+
+[[advisory.products]]
+package-name = "kubelet-1.30"
+patched-version = "1.30.14"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "kube-proxy-1.30"
+patched-version = "1.30.14"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "ecr-credential-provider-1.30"
+patched-version = "1.30.10"
+patched-epoch = "1"
+
+[updateinfo]
+author = "qianxj"
+issue-date = 2026-07-23T21:27:51Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
