@@ -86,7 +86,6 @@ dependencies = [
  "cni-plugins",
  "conntrack-tools",
  "containerd-1_7",
- "containerd-2_1",
  "containerd-2_2",
  "coreutils",
  "cri-tools",
@@ -243,13 +242,6 @@ dependencies = [
 
 [[package]]
 name = "containerd-1_7"
-version = "0.1.0"
-dependencies = [
- "glibc",
-]
-
-[[package]]
-name = "containerd-2_1"
 version = "0.1.0"
 dependencies = [
  "glibc",

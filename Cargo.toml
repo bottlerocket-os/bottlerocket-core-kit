@@ -16,7 +16,6 @@ members = [
   "packages/cni-plugins",
   "packages/conntrack-tools",
   "packages/containerd-1.7",
-  "packages/containerd-2.1",
   "packages/containerd-2.2",
   "packages/coreutils",
   "packages/cri-tools",
