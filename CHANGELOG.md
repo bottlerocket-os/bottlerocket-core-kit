@@ -1,3 +1,16 @@
+# v15.0.0 (2026-07-23)
+
+## OS Changes
+- Drop `kubernetes-1.30` and `ecr-credential-provider-1.30` packages ([#970])
+- Drop `containerd-2.1` package ([#967])
+
+## Build Changes
+- Update `bottlerocket-sdk` to v0.77.0 ([#977])
+
+[#967]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/967
+[#970]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/970
+[#977]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/977
+
 # v14.9.0 (2026-07-20)
 
 ## OS Changes
