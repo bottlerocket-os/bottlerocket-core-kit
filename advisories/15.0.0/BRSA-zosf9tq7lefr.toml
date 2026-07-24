@@ -12,6 +12,6 @@ patched-epoch = "1"
 
 [updateinfo]
 author = "shijiao"
-issue-date = 2026-07-06T21:38:13Z
+issue-date = 2026-07-24T21:38:13Z
 arches = ["aarch64", "x86_64"]
-version = "staging"
+version = "15.0.0"
