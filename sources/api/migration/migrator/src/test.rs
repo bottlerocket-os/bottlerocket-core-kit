@@ -5,9 +5,9 @@ use crate::{
     cleanup_orphaned_datastores, copy_without_transient_entries, find_orphaned_entries,
     flip_to_new_version, perform_migrations, MigrationVersionMeta,
 };
-use chrono::{DateTime, Utc};
 use datastore::memory::MemoryDataStore;
 use datastore::{serialize_scalar, Committed, DataStore, Key};
+use jiff::Timestamp;
 use semver::Version;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -194,9 +194,7 @@ async fn create_test_repo(test_type: TestType) -> TestRepo {
 
     // Create and sign the TUF repository.
     let mut editor = tough::editor::RepositoryEditor::new(root()).await.unwrap();
-    let long_ago: DateTime<Utc> = DateTime::parse_from_rfc3339("1970-01-01T00:00:00Z")
-        .unwrap()
-        .into();
+    let long_ago = Timestamp::UNIX_EPOCH;
     let one = std::num::NonZeroU64::new(1).unwrap();
     editor
         .targets_version(one)

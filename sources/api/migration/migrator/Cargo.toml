@@ -41,7 +41,7 @@ percent-encoding.workspace = true
 generate-readme.workspace = true
 
 [dev-dependencies]
-chrono = { workspace = true, features = ["clock", "std"] }
+jiff.workspace = true
 maplit.workspace = true
 storewolf.workspace = true
 tempfile.workspace = true
