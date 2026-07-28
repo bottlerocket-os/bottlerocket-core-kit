@@ -613,6 +613,15 @@ func withSuperpowered() oci.SpecOpts {
 		oci.WithHostNamespace(runtimespec.PIDNamespace),
 		oci.WithParentCgroupDevices,
 		oci.WithPrivileged,
+		// oci.WithPrivileged applies WithAllCurrentCapabilities, which
+		// derives the spec's capability set from the *caller's* CapEff.
+		// When host-ctr is invoked from a context with a reduced
+		// bounding set (e.g. from inside a bootstrap container), that
+		// yields a superpowered container with only that subset of
+		// capabilities. Overwrite with the fixed kernel-known list so
+		// --superpowered means the same thing regardless of who
+		// invokes host-ctr; the shim is daemon-forked and can grant it.
+		oci.WithAllKnownCapabilities,
 		oci.WithNewPrivileges,
 		oci.WithSelinuxLabel("system_u:system_r:super_t:s0:c0.c1023"),
 		oci.WithAllDevicesAllowed,
