@@ -19,7 +19,7 @@ diff --git a/staging/src/k8s.io/apiserver/go.mod b/staging/src/k8s.io/apiserver/
 index 06467cd3..12472b7e 100644
 --- a/staging/src/k8s.io/apiserver/go.mod
 +++ b/staging/src/k8s.io/apiserver/go.mod
-@@ -23,7 +23,6 @@ require (
+@@ -26,7 +26,6 @@ require (
  	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
  	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
  	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f
