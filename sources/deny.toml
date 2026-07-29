@@ -21,6 +21,7 @@ allow = [
 ]
 
 exceptions = [
+    { name = "webpki-root-certs", allow = ["CDLA-Permissive-2.0"], version = "*" },
 ]
 
 # https://github.com/hsivonen/encoding_rs The non-test code that isn't generated from the WHATWG data in this crate is
@@ -60,6 +61,8 @@ skip-tree = [
     # aws-smithy-experimental brings a set of new dependencies that
     # the aws-sdk doesn't support
     { name = "aws-smithy-experimental", version = "=0.1" },
+    # tough 0.24 uses reqwest 0.13 while the rest of the workspace uses 0.12
+    { name = "tough", version = "=0.24" },
     # actix-http has upgraded to v0.9 of 'rand' but upstream has called out some
     # breaking changes which will need to be explored for our first party code
     # https://rust-random.github.io/book/update-0.9.html
