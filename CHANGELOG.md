@@ -1,3 +1,12 @@
+# Unreleased
+
+## Build Changes
+
+* Update Twoliter to `0.22.0` ([#991])
+
+[#991]: https://github.com/bottlerocket-os/bottlerocket-kernel-kit/pull/991
+
+
 # v15.0.0 (2026-07-23)
 
 ## OS Changes
