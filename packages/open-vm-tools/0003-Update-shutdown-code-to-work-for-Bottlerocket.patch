@@ -7,14 +7,16 @@ Bottlerocket doesn't have /bin/sh which makes the call system() fail
 with an unexpected error code. This results in the guest shutdown and
 reboot calls via vmtoolsd returning as if the request was successful but
 the call actually failed completely. This commit replaces the current
-call to system() with g_spawn_sync() which should be a drop in
-replacement for system().
+call to system() with g_spawn_command_line_sync() which should be a drop
+in replacement for system().
 
 Signed-off-by: Matthew Yeazel <yeazelm@amazon.com>
+[jpculp: port to open-vm-tools 13.1.0]
+Signed-off-by: Patrick J.P. Culp <jpculp@amazon.com>
 ---
  lib/system/Makefile.am   |  3 +++
- lib/system/systemLinux.c | 14 +++++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ lib/system/systemLinux.c | 26 +++++++++++++++++++-------
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
 diff --git a/lib/system/Makefile.am b/lib/system/Makefile.am
 index 52b1a1dd..d2613c43 100644
@@ -30,10 +32,10 @@ index 52b1a1dd..d2613c43 100644
  libSystem_la_SOURCES =
  libSystem_la_SOURCES += systemLinux.c
 diff --git a/lib/system/systemLinux.c b/lib/system/systemLinux.c
-index a688ab25..d24e2c4c 100644
+index c7fc6146..c4107a1b 100644
 --- a/lib/system/systemLinux.c
 +++ b/lib/system/systemLinux.c
-@@ -54,6 +54,7 @@
+@@ -55,6 +55,7 @@
  #include <sys/ioctl.h>
  #include <net/if.h>
  #include <sys/ioctl.h>
@@ -41,36 +43,53 @@ index a688ab25..d24e2c4c 100644
  
  #if defined sun || defined __APPLE__
  #   include <utmpx.h>
-@@ -305,6 +306,8 @@ void
- System_Shutdown(Bool reboot)  // IN: "reboot or shutdown" flag
+@@ -780,10 +781,10 @@ SNEForEachCallback(const char *key,     // IN: environment variable
+  *
+  * SystemRunShutdownCommand --
+  *
+- *   Run a reboot or shutdown command using system() and log a warning if it fails.
++ *   Run a reboot or shutdown command and log a warning if it fails.
+  *
+  * Return value:
+- *    Returns the return value of the system() call.
++ *    Returns the exit status of the command, or -1 on exec failure.
+  *
+  * Side effects:
+  *    None.
+@@ -795,17 +796,28 @@ static int
+ SystemRunShutdownCommand(Bool reboot,     // IN: "reboot or shutdown" flag
+                          const char *cmd) // IN: "command to run"
  {
-    char *cmd;
-+   int exit_status = 0;
+-   int status;
++   int status = 0;
 +   Bool success;
- 
-    if (reboot) {
- #if defined(sun)
-@@ -325,10 +328,19 @@ System_Shutdown(Bool reboot)  // IN: "reboot or shutdown" flag
-       cmd = "/sbin/shutdown -h now";
- #endif
-    }
--   if (system(cmd) == -1) {
 +
 +   success = g_spawn_command_line_sync(cmd,
 +                           NULL,
 +                           NULL,
-+                           &exit_status,
++                           &status,
 +                           NULL);
++
 +   if (!success) {
-       fprintf(stderr, "Unable to execute %s command: \"%s\"\n",
-               reboot ? "reboot" : "shutdown", cmd);
-    }
-+   if ((success) && exit_status != 0) {
-+      fprintf(stderr, "Command %s failed with exit %d\n", cmd, exit_status);
++      Warning("%s: %s command \"%s\": failed to execute\n",
++              __func__, reboot ? "reboot" : "shutdown", cmd);
++      return -1;
 +   }
- }
  
+-   if ((status = system(cmd)) != 0) {
++   if (status != 0) {
+       char cmsg[128];
  
+       Str_Snprintf(cmsg, sizeof(cmsg), "%s: %s command \"%s\"",
+                    __func__, reboot ? "reboot" : "shutdown", cmd);
+ 
+-      if (status == -1) {
+-         Warning("%s: failed. Error: %s\n", cmsg, Err_Errno2String(errno));
+-      } else if (WIFEXITED(status)) {
++      if (WIFEXITED(status)) {
+          Warning("%s exited. status: %d\n", cmsg, WEXITSTATUS(status));
+       } else if (WIFSIGNALED(status)) {
+          Warning("%s terminated by signal: %d\n", cmsg, WTERMSIG(status));
 -- 
 2.37.1 (Apple Git-137.1)
 

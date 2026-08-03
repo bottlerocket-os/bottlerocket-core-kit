@@ -1,5 +1,5 @@
 Name: %{_cross_os}xfsprogs
-Version: 6.19.0
+Version: 7.0.1
 Release: 1%{?dist}
 Summary: Utilities for managing the XFS filesystem
 License: GPL-2.0-only AND LGPL-2.1-only
@@ -37,7 +37,8 @@ Requires: %{name}
   --enable-blkid=yes \
   --enable-lto=no \
   --enable-editline=no \
-  --enable-scrub=no
+  --enable-scrub=no \
+  --enable-healer=no
 
 %make_build
 
