@@ -1,5 +1,5 @@
 [clarify."sigs.k8s.io/yaml"]
 expression = "MIT AND Apache-2.0"
 license-files = [
-    { path = "LICENSE", hash = 0xcdf3ae00},
+    { path = "LICENSE", hash = 0x617d80bc},
 ]
