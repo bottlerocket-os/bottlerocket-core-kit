@@ -1,0 +1,54 @@
+From 85ebe82b744c7941433962fde312aa062c15d6d2 Mon Sep 17 00:00:00 2001
+From: Prasanth Dendukuri <prasden@amazon.com>
+Date: Thu, 18 Jun 2026 11:22:27 -0700
+Subject: [PATCH] Prepare v3.4.0 (#3306)
+
+### Issues:
+Addresses `V2066643219`
+
+### Description of changes:
+Prepare release AWS-LC FIPS v3.4.0
+
+By submitting this pull request, I confirm that my contribution is made
+under the terms of the Apache 2.0 license and the ISC license.
+
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
+---
+ crypto/fipsmodule/service_indicator/service_indicator_test.cc | 4 ++--
+ include/openssl/base.h                                        | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/crypto/fipsmodule/service_indicator/service_indicator_test.cc b/crypto/fipsmodule/service_indicator/service_indicator_test.cc
+index 02e21a00f..f2331a5cb 100644
+--- a/crypto/fipsmodule/service_indicator/service_indicator_test.cc
++++ b/crypto/fipsmodule/service_indicator/service_indicator_test.cc
+@@ -5254,7 +5254,7 @@ TEST(ServiceIndicatorTest, ED25519SigGenVerify) {
+ // Since this is running in FIPS mode it should end in FIPS
+ // Update this when the AWS-LC version number is modified
+ TEST(ServiceIndicatorTest, AWSLCVersionString) {
+-  ASSERT_STREQ(awslc_version_string(), "AWS-LC FIPS 3.3.0");
++  ASSERT_STREQ(awslc_version_string(), "AWS-LC FIPS 3.4.0");
+ }
+ 
+ #else
+@@ -5297,6 +5297,6 @@ TEST(ServiceIndicatorTest, BasicTest) {
+ // Since this is not running in FIPS mode it shouldn't end in FIPS
+ // Update this when the AWS-LC version number is modified
+ TEST(ServiceIndicatorTest, AWSLCVersionString) {
+-  ASSERT_STREQ(awslc_version_string(), "AWS-LC 3.3.0");
++  ASSERT_STREQ(awslc_version_string(), "AWS-LC 3.4.0");
+ }
+ #endif // AWSLC_FIPS
+diff --git a/include/openssl/base.h b/include/openssl/base.h
+index 5d5e0385b..a079509b7 100644
+--- a/include/openssl/base.h
++++ b/include/openssl/base.h
+@@ -122,7 +122,7 @@ extern "C" {
+ // ServiceIndicatorTest.AWSLCVersionString
+ // Note: there are two versions of this test. Only one test is compiled
+ // depending on FIPS mode.
+-#define AWSLC_VERSION_NUMBER_STRING "3.3.0"
++#define AWSLC_VERSION_NUMBER_STRING "3.4.0"
+ 
+ #if defined(BORINGSSL_SHARED_LIBRARY)
+ 

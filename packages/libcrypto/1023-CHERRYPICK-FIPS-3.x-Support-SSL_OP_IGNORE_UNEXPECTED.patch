@@ -1,0 +1,137 @@
+From ae7840f3f9b023e39e55d7c16bf151c50166c00a Mon Sep 17 00:00:00 2001
+From: Prasanth Dendukuri <prasden@amazon.com>
+Date: Thu, 18 Jun 2026 08:02:09 -0700
+Subject: [PATCH] [CHERRYPICK FIPS 3.x] Support SSL_OP_IGNORE_UNEXPECTED_EOF
+ option (#3294) (#3301)
+
+### Description of changes:
+CPython only exposes ssl.OP_IGNORE_UNEXPECTED_EOF when the linked libssl
+defines this macro. Because AWS-LC
+does not define it, Python 3.10+ built against AWS-LC raises
+ssl.SSLEOFError: EOF occurred in violation of protocol on an unexpected
+EOF whenever a peer closes the TLS connection without sending a closure
+notification.
+
+### Testing:
+Added SSLTest.IgnoreUnexpectedEOF, which enables the option, closes the
+server's write side without a close_notify, and asserts the client's
+SSL_read returns SSL_ERROR_ZERO_RETURN.
+
+
+This PR adds SSL_OP_IGNORE_UNEXPECTED_EOF. When enabled, an unexpected
+transport EOF (the peer closing without a close_notify alert) is
+reported as a clean shutdown with SSL_ERROR_ZERO_RETURN instead of
+SSL_ERROR_SYSCALL
+
+By submitting this pull request, I confirm that my contribution is made
+under the terms of the Apache 2.0 license and the ISC license.
+
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
+---
+ include/openssl/ssl.h |  6 +++++
+ ssl/ssl_buffer.cc     | 11 +++++++++
+ ssl/ssl_test.cc       | 52 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+)
+
+diff --git a/include/openssl/ssl.h b/include/openssl/ssl.h
+index ca4f35d30..fb94efc7c 100644
+--- a/include/openssl/ssl.h
++++ b/include/openssl/ssl.h
+@@ -781,6 +781,12 @@ OPENSSL_EXPORT int SSL_version(const SSL *ssl);
+ // SSL_OP_NO_TICKET disables session ticket support (RFC 5077).
+ #define SSL_OP_NO_TICKET 0x00004000L
+ 
++// SSL_OP_IGNORE_UNEXPECTED_EOF configures a connection to treat an unexpected
++// transport EOF (the peer closing the connection without sending a
++// close_notify alert) as a clean shutdown. When set, |SSL_read| reports
++// |SSL_ERROR_ZERO_RETURN| instead of |SSL_ERROR_SYSCALL|. 
++#define SSL_OP_IGNORE_UNEXPECTED_EOF 0x00000080L
++
+ // SSL_OP_CIPHER_SERVER_PREFERENCE configures servers to select ciphers and
+ // ECDHE curves according to the server's preferences instead of the
+ // client's.
+diff --git a/ssl/ssl_buffer.cc b/ssl/ssl_buffer.cc
+index f257d3fc8..6ddcd1cc9 100644
+--- a/ssl/ssl_buffer.cc
++++ b/ssl/ssl_buffer.cc
+@@ -590,6 +590,17 @@ static int tls_read_buffer_extend_to(SSL *ssl, size_t len) {
+     int ret = BIO_read(ssl->rbio.get(), buf->data() + buf->size(),
+                        static_cast<int>(read_amount));
+     if (ret <= 0) {
++      // If the peer closed the transport without a close_notify and the caller
++      // enabled SSL_OP_IGNORE_UNEXPECTED_EOF, report a clean shutdown with
++      // SSL_ERROR_ZERO_RETURN.
++      if (ret == 0  && (ssl->options & SSL_OP_IGNORE_UNEXPECTED_EOF) &&
++          ssl->s3->read_shutdown == ssl_shutdown_none &&
++          !SSL_in_init(ssl) && BIO_eof(ssl->rbio.get())) {
++        ssl->s3->read_shutdown = ssl_shutdown_close_notify;
++        ssl->s3->rwstate = SSL_ERROR_ZERO_RETURN;
++        return ret;
++      }
++      
+       ssl->s3->rwstate = SSL_ERROR_WANT_READ;
+       return ret;
+     }
+diff --git a/ssl/ssl_test.cc b/ssl/ssl_test.cc
+index e2ee69afc..786e8921d 100644
+--- a/ssl/ssl_test.cc
++++ b/ssl/ssl_test.cc
+@@ -11715,6 +11715,58 @@ TEST(SSLTest, QuietShutdown) {
+   EXPECT_EQ(SSL_get_error(server.get(), ret), SSL_ERROR_ZERO_RETURN);
+ }
+ 
++// Test that |SSL_OP_IGNORE_UNEXPECTED_EOF| causes an unexpected transport EOF
++// when the server closes without a close_notify to be reported as a clean shutdown,
++// |SSL_ERROR_ZERO_RETURN|, instead of |SSL_ERROR_SYSCALL|.
++TEST(SSLTest, IgnoreUnexpectedEOFClient) {
++  bssl::UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  bssl::UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++  SSL_CTX_set_options(client_ctx.get(), SSL_OP_IGNORE_UNEXPECTED_EOF);
++  bssl::UniquePtr<SSL> client, server;
++  ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                     server_ctx.get()));
++
++  // Close the server's write side without sending a close_notify, so the client
++  // sees an unexpected transport EOF.
++  EXPECT_TRUE(BIO_shutdown_wr(SSL_get_wbio(server.get())));
++
++  // With the option set, the client reports the EOF as a clean shutdown rather
++  // than |SSL_ERROR_SYSCALL|.
++  char buf[1];
++  int ret = SSL_read(client.get(), buf, sizeof(buf));
++  EXPECT_EQ(ret, 0);
++  EXPECT_EQ(SSL_get_error(client.get(), ret), SSL_ERROR_ZERO_RETURN);
++}
++
++// Test that |SSL_OP_IGNORE_UNEXPECTED_EOF| behaves symmetrically on the server:
++// when the client closes without a close_notify, the server's |SSL_read| reports
++// the unexpected transport EOF as a clean shutdown with |SSL_ERROR_ZERO_RETURN|.
++TEST(SSLTest, IgnoreUnexpectedEOFServer) {
++  bssl::UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  bssl::UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++  SSL_CTX_set_options(server_ctx.get(), SSL_OP_IGNORE_UNEXPECTED_EOF);
++  bssl::UniquePtr<SSL> client, server;
++  ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                     server_ctx.get()));
++
++  // Close the client's write side without sending a close_notify, so the server
++  // sees an unexpected transport EOF.
++  EXPECT_TRUE(BIO_shutdown_wr(SSL_get_wbio(client.get())));
++
++  // With the option set, the server reports the EOF as a clean shutdown rather
++  // than |SSL_ERROR_SYSCALL|.
++  char buf[1];
++  int ret = SSL_read(server.get(), buf, sizeof(buf));
++  EXPECT_EQ(ret, 0);
++  EXPECT_EQ(SSL_get_error(server.get(), ret), SSL_ERROR_ZERO_RETURN);
++}
++
+ TEST(SSLTest, InvalidSignatureAlgorithm) {
+   bssl::UniquePtr<SSL_CTX> ctx(SSL_CTX_new(TLS_method()));
+   ASSERT_TRUE(ctx);

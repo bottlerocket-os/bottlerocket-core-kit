@@ -1,0 +1,746 @@
+From 32ae5a9bf11f52640bfc011502264b65aea72131 Mon Sep 17 00:00:00 2001
+From: Will Childs-Klein <childw@amazon.com>
+Date: Thu, 9 Apr 2026 14:25:46 -0400
+Subject: [PATCH] [Cherry-pick 2024] Implement SSL_CTX_set_client_hello_cb for
+ ClientHello callback (#2490) (#3143)
+
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
+---
+ include/openssl/ssl.h        |  56 ++++++
+ ssl/CMakeLists.txt           |   1 +
+ ssl/handshake_server.cc      |  20 ++
+ ssl/internal.h               |   4 +
+ ssl/ssl_client_hello_test.cc | 350 +++++++++++++++++++++++++++++++++++
+ ssl/ssl_common_test.h        | 191 +++++++++++++++++++
+ ssl/ssl_lib.cc               |  38 ++++
+ 7 files changed, 660 insertions(+)
+ create mode 100644 ssl/ssl_client_hello_test.cc
+ create mode 100644 ssl/ssl_common_test.h
+
+diff --git a/include/openssl/ssl.h b/include/openssl/ssl.h
+index dfbea1ee7..ca4f35d30 100644
+--- a/include/openssl/ssl.h
++++ b/include/openssl/ssl.h
+@@ -1117,6 +1117,62 @@ SSL_get0_peer_verify_algorithms(const SSL *ssl, const uint16_t **out_sigalgs);
+ OPENSSL_EXPORT size_t SSL_get0_peer_delegation_algorithms(
+     const SSL *ssl, const uint16_t **out_sigalgs);
+ 
++// SSL_CLIENT_HELLO_SUCCESS indicates that the ClientHello processing was
++// successful. The handshake will continue normally.
++# define SSL_CLIENT_HELLO_SUCCESS 1
++// SSL_CLIENT_HELLO_ERROR indicates that a fatal error occurred while processing
++// the ClientHello. The callback should set |*al| to a TLS alert value to return
++// to the client. The handshake will be aborted.
++# define SSL_CLIENT_HELLO_ERROR   0
++// SSL_CLIENT_HELLO_RETRY indicates that the handshake should be paused and the
++// server should retry when it can continue.
++//
++// WARNING: The current implementation does not properly support
++// SSL_CLIENT_HELLO_RETRY and attempting to use it will result in handshake
++// failure.
++# define SSL_CLIENT_HELLO_RETRY   (-1)
++
++// SSL_client_hello_cb_fn is a callback function that is called when a ClientHello
++// is received. The callback may inspect the ClientHello and make decisions 
++// about the connection based on its contents.
++//
++// The callback should return one of:
++// - SSL_CLIENT_HELLO_SUCCESS to continue the handshake
++// - SSL_CLIENT_HELLO_ERROR to abort the handshake with alert |*al|
++// - SSL_CLIENT_HELLO_RETRY (not supported) is handled like SSL_CLIENT_HELLO_ERROR
++typedef int (*SSL_client_hello_cb_fn)(SSL *s, int *al, void *arg);
++
++// SSL_CTX_set_client_hello_cb configures a callback that is called when a
++// ClientHello message is received. This can be used to select certificates,
++// adjust settings, or otherwise make decisions about the connection before
++// the handshake proceeds.
++//
++// The callback is invoked before most ClientHello processing and before the
++// decision whether to resume a session is made. It may inspect the ClientHello
++// and configure the connection accordingly.
++//
++// The callback function is passed the |SSL| object, a pointer to an alert value,
++// and the argument provided when the callback was set. It should return either
++// SSL_CLIENT_HELLO_SUCCESS, SSL_CLIENT_HELLO_ERROR, or SSL_CLIENT_HELLO_RETRY.
++// Note that SSL_CLIENT_HELLO_RETRY is not fully supported; it is treated the
++// same as SSL_CLIENT_HELLO_ERROR.
++OPENSSL_EXPORT void SSL_CTX_set_client_hello_cb(SSL_CTX *c, SSL_client_hello_cb_fn cb,
++                                 void *arg);
++
++// SSL_client_hello_isv2 always returns zero as SSLv2 is not supported.
++OPENSSL_EXPORT int SSL_client_hello_isv2(SSL *s);
++
++// SSL_client_hello_get0_ext searches the extensions in the ClientHello for an
++// extension of the given type. If found, it sets |*out| to point to the
++// extension contents (not including the type and length bytes) and |*outlen|
++// to the length of the extension contents. If not found, it returns zero.
++//
++// This function can only be called from within a client hello callback (see
++// |SSL_CTX_set_client_hello_cb|) or during server certificate selection (see
++// |SSL_CTX_set_select_certificate_cb|).
++OPENSSL_EXPORT int SSL_client_hello_get0_ext(SSL *s, unsigned int type, const unsigned char **out,
++                              size_t *outlen);
++
+ // SSL_certs_clear resets the private key, leaf certificate, and certificate
+ // chain of |ssl|.
+ OPENSSL_EXPORT void SSL_certs_clear(SSL *ssl);
+diff --git a/ssl/CMakeLists.txt b/ssl/CMakeLists.txt
+index 2e90a885f..c6a2f5cd6 100644
+--- a/ssl/CMakeLists.txt
++++ b/ssl/CMakeLists.txt
+@@ -80,6 +80,7 @@ if(BUILD_TESTING)
+ 
+     span_test.cc
+     ssl_test.cc
++    ssl_client_hello_test.cc
+     ssl_c_test.c
+   )
+ 
+diff --git a/ssl/handshake_server.cc b/ssl/handshake_server.cc
+index 7dc241aed..f90c3a556 100644
+--- a/ssl/handshake_server.cc
++++ b/ssl/handshake_server.cc
+@@ -715,6 +715,26 @@ static enum ssl_hs_wait_t do_read_client_hello_after_ech(SSL_HANDSHAKE *hs) {
+     return ssl_hs_error;
+   }
+ 
++  // Finished parsing the ClientHello, now we can start processing it.
++  // Give the ClientHello callback a crack at things
++  const SSL_CTX* sctx = ssl->ctx.get();
++  if (sctx != NULL && sctx->client_hello_cb != NULL) {
++    int al = SSL_AD_INTERNAL_ERROR;
++    // A failure in the ClientHello callback terminates the connection.
++    switch (sctx->client_hello_cb(ssl, &al, sctx->client_hello_cb_arg)) {
++      case SSL_CLIENT_HELLO_SUCCESS:
++        break;
++      case SSL_CLIENT_HELLO_RETRY:
++        // This case is treated as failure.
++        OPENSSL_FALLTHROUGH;
++      case SSL_CLIENT_HELLO_ERROR:
++      default:
++        OPENSSL_PUT_ERROR(SSL, SSL_R_CONNECTION_REJECTED);
++        ssl_send_alert(ssl, SSL3_AL_FATAL, al);
++        return ssl_hs_error;
++    }
++  }
++
+   // Run the early callback.
+   if (ssl->ctx->select_certificate_cb != NULL) {
+     switch (ssl->ctx->select_certificate_cb(&client_hello)) {
+diff --git a/ssl/internal.h b/ssl/internal.h
+index 7a8e566e6..02fc2c8d5 100644
+--- a/ssl/internal.h
++++ b/ssl/internal.h
+@@ -3873,6 +3873,10 @@ struct ssl_ctx_st {
+   // more than this due to padding and MAC overheads.
+   uint16_t max_send_fragment = SSL3_RT_MAX_PLAIN_LENGTH;
+ 
++  /* ClientHello callback.  Mostly for extensions, but not entirely. */
++  SSL_client_hello_cb_fn client_hello_cb = NULL;
++  void *client_hello_cb_arg = NULL;
++
+   // TLS extensions servername callback
+   int (*servername_callback)(SSL *, int *, void *) = nullptr;
+   void *servername_arg = nullptr;
+diff --git a/ssl/ssl_client_hello_test.cc b/ssl/ssl_client_hello_test.cc
+new file mode 100644
+index 000000000..37459e524
+--- /dev/null
++++ b/ssl/ssl_client_hello_test.cc
+@@ -0,0 +1,350 @@
++/* Copyright (c) 2024, Amazon.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
++ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
++ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
++
++#include <gtest/gtest.h>
++
++#include <openssl/ssl.h>
++#include <openssl/tls1.h>
++
++#include "ssl_common_test.h"
++
++BSSL_NAMESPACE_BEGIN
++
++namespace {
++
++// Test SSL client hello callback functionality
++TEST(SSLClientHelloTest, ClientHelloCallback) {
++  UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++
++  // Test that callback is called and can access client hello data
++  bool callback_called = false;
++  SSL_CTX_set_client_hello_cb(
++      server_ctx.get(),
++      [](SSL *ssl, int *al, void *arg) -> int {
++        bool *called = static_cast<bool *>(arg);
++        *called = true;
++
++        // Test SSL_client_hello_isv2 - should return 0 (not SSLv2)
++        EXPECT_EQ(0, SSL_client_hello_isv2(ssl));
++
++        // Test SSL_client_hello_get0_ext for a common extension
++        const unsigned char *ext_data = nullptr;
++        size_t ext_len = 0;
++        // Try to get server_name extension (type 0)
++        (void)SSL_client_hello_get0_ext(ssl, TLSEXT_TYPE_server_name, &ext_data,
++                                        &ext_len);
++        // Extension may or may not be present, but function should not crash
++
++        return SSL_CLIENT_HELLO_SUCCESS;
++      },
++      &callback_called);
++
++  UniquePtr<SSL> client, server;
++  ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                     server_ctx.get()));
++  EXPECT_TRUE(callback_called);
++}
++
++// Test client hello callback return values
++TEST(SSLClientHelloTest, ClientHelloCallbackReturnValues) {
++  UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++
++  // Test SSL_CLIENT_HELLO_ERROR causes connection failure
++  SSL_CTX_set_client_hello_cb(
++      server_ctx.get(),
++      [](SSL *ssl, int *al, void *arg) -> int {
++        *al = SSL_AD_INTERNAL_ERROR;
++        return SSL_CLIENT_HELLO_ERROR;
++      },
++      nullptr);
++
++  UniquePtr<SSL> client, server;
++  ASSERT_FALSE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                      server_ctx.get()));
++}
++
++// Test SSL_client_hello_get0_ext with various extensions
++TEST(SSLClientHelloTest, ClientHelloGetExtension) {
++  UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++
++  struct ExtensionTest {
++    bool found_supported_versions = false;
++    bool found_key_share = false;
++  } test_data;
++
++  SSL_CTX_set_client_hello_cb(
++      server_ctx.get(),
++      [](SSL *ssl, int *al, void *arg) -> int {
++        ExtensionTest *data = static_cast<ExtensionTest *>(arg);
++        const unsigned char *ext_data = nullptr;
++        size_t ext_len = 0;
++
++        // Test common TLS 1.3 extensions
++        // Supported versions extension (43)
++        if (SSL_client_hello_get0_ext(ssl, TLSEXT_TYPE_supported_versions,
++                                      &ext_data, &ext_len)) {
++          data->found_supported_versions = true;
++          EXPECT_GT(ext_len, 0u);
++          EXPECT_NE(nullptr, ext_data);
++        }
++
++        // Key share extension (51) - TLS 1.3
++        if (SSL_client_hello_get0_ext(ssl, TLSEXT_TYPE_key_share, &ext_data,
++                                      &ext_len)) {
++          data->found_key_share = true;
++          EXPECT_GT(ext_len, 0u);
++          EXPECT_NE(nullptr, ext_data);
++        }
++
++        // Test non-existent extension (should return 0)
++        EXPECT_EQ(0,
++                  SSL_client_hello_get0_ext(ssl, 65535, &ext_data, &ext_len));
++
++        return SSL_CLIENT_HELLO_SUCCESS;
++      },
++      &test_data);
++
++  UniquePtr<SSL> client, server;
++  ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                     server_ctx.get()));
++
++  // In TLS 1.3, we should find supported_versions extension
++  EXPECT_TRUE(test_data.found_supported_versions);
++}
++
++// Test that SSL_client_hello_isv2 correctly identifies non-SSLv2 hellos
++TEST(SSLClientHelloTest, ClientHelloIsV2) {
++  UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++
++  // Test with different TLS versions
++  for (uint16_t version :
++       {TLS1_VERSION, TLS1_1_VERSION, TLS1_2_VERSION, TLS1_3_VERSION}) {
++    SCOPED_TRACE(version);
++
++    ASSERT_TRUE(SSL_CTX_set_min_proto_version(client_ctx.get(), version));
++    ASSERT_TRUE(SSL_CTX_set_max_proto_version(client_ctx.get(), version));
++    ASSERT_TRUE(SSL_CTX_set_min_proto_version(server_ctx.get(), version));
++    ASSERT_TRUE(SSL_CTX_set_max_proto_version(server_ctx.get(), version));
++
++    bool tested = false;
++    SSL_CTX_set_client_hello_cb(
++        server_ctx.get(),
++        [](SSL *ssl, int *al, void *arg) -> int {
++          bool *tested_ptr = static_cast<bool *>(arg);
++          *tested_ptr = true;
++          // Should always return 0 since SSLv2 is not supported
++          EXPECT_EQ(0, SSL_client_hello_isv2(ssl));
++          return SSL_CLIENT_HELLO_SUCCESS;
++        },
++        &tested);
++
++    UniquePtr<SSL> client, server;
++    ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                       server_ctx.get()));
++    EXPECT_TRUE(tested);
++  }
++}
++
++// Test multiple callbacks and state management
++TEST(SSLClientHelloTest, ClientHelloCallbackState) {
++  UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++
++  int call_count = 0;
++  SSL_CTX_set_client_hello_cb(
++      server_ctx.get(),
++      [](SSL *ssl, int *al, void *arg) -> int {
++        int *count = static_cast<int *>(arg);
++        (*count)++;
++        return SSL_CLIENT_HELLO_SUCCESS;
++      },
++      &call_count);
++
++  // First connection
++  {
++    UniquePtr<SSL> client, server;
++    ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                       server_ctx.get()));
++  }
++  EXPECT_EQ(1, call_count);
++
++  // Second connection should call callback again
++  {
++    UniquePtr<SSL> client, server;
++    ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                       server_ctx.get()));
++  }
++  EXPECT_EQ(2, call_count);
++
++  // Reset callback to nullptr
++  SSL_CTX_set_client_hello_cb(server_ctx.get(), nullptr, nullptr);
++
++  // Third connection should not increment count
++  {
++    UniquePtr<SSL> client, server;
++    ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                       server_ctx.get()));
++  }
++  EXPECT_EQ(2, call_count);
++}
++
++// Test error handling with invalid parameters
++TEST(SSLClientHelloTest, ClientHelloCallbackErrorHandling) {
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(server_ctx);
++  UniquePtr<SSL> ssl(SSL_new(server_ctx.get()));
++  ASSERT_TRUE(ssl);
++
++  // Test SSL_client_hello_isv2 with invalid SSL context (before handshake)
++  // Should not crash but return reasonable value
++  EXPECT_EQ(0, SSL_client_hello_isv2(ssl.get()));
++
++  // Test SSL_client_hello_get0_ext with invalid parameters
++  const unsigned char *ext_data = nullptr;
++  size_t ext_len = 0;
++  EXPECT_EQ(0, SSL_client_hello_get0_ext(ssl.get(), 0, &ext_data, &ext_len));
++}
++
++// Test interaction with other callbacks (select_certificate_cb)
++TEST(SSLClientHelloTest, ClientHelloCallbackWithSelectCertificate) {
++  UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++
++  bool client_hello_called = false;
++
++  SSL_CTX_set_client_hello_cb(
++      server_ctx.get(),
++      [](SSL *ssl, int *al, void *arg) -> int {
++        bool *called = static_cast<bool *>(arg);
++        *called = true;
++        return SSL_CLIENT_HELLO_SUCCESS;
++      },
++      &client_hello_called);
++
++  SSL_CTX_set_select_certificate_cb(
++      server_ctx.get(),
++      [](const SSL_CLIENT_HELLO *client_hello) -> ssl_select_cert_result_t {
++        // Just verify the callback is called by testing the SSL pointer
++        EXPECT_NE(nullptr, client_hello->ssl);
++        return ssl_select_cert_success;
++      });
++
++  UniquePtr<SSL> client, server;
++  ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                     server_ctx.get()));
++
++  // Client hello callback should be called
++  EXPECT_TRUE(client_hello_called);
++}
++
++// Test SSL_CLIENT_HELLO_RETRY return value (though treated as error in current
++// implementation)
++TEST(SSLClientHelloTest, ClientHelloCallbackRetry) {
++  UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++
++  // Test SSL_CLIENT_HELLO_RETRY causes connection failure
++  SSL_CTX_set_client_hello_cb(
++      server_ctx.get(),
++      [](SSL *ssl, int *al, void *arg) -> int {
++        return SSL_CLIENT_HELLO_RETRY;
++      },
++      nullptr);
++
++  UniquePtr<SSL> client, server;
++  // Currently, RETRY is treated as failure in AWS-LC
++  ASSERT_FALSE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                      server_ctx.get()));
++}
++
++// Test extension retrieval with known extensions
++TEST(SSLClientHelloTest, ClientHelloKnownExtensions) {
++  UniquePtr<SSL_CTX> client_ctx(SSL_CTX_new(TLS_method()));
++  UniquePtr<SSL_CTX> server_ctx =
++      CreateContextWithTestCertificate(TLS_method());
++  ASSERT_TRUE(client_ctx);
++  ASSERT_TRUE(server_ctx);
++
++  struct ExtensionResults {
++    bool found_signature_algorithms = false;
++    bool found_supported_groups = false;
++    size_t signature_algorithms_len = 0;
++    size_t supported_groups_len = 0;
++  } results;
++
++  SSL_CTX_set_client_hello_cb(
++      server_ctx.get(),
++      [](SSL *ssl, int *al, void *arg) -> int {
++        ExtensionResults *res = static_cast<ExtensionResults *>(arg);
++        const unsigned char *ext_data = nullptr;
++        size_t ext_len = 0;
++
++        // Check signature_algorithms extension (13)
++        if (SSL_client_hello_get0_ext(ssl, TLSEXT_TYPE_signature_algorithms,
++                                      &ext_data, &ext_len)) {
++          res->found_signature_algorithms = true;
++          res->signature_algorithms_len = ext_len;
++        }
++
++        // Check supported_groups extension (10)
++        if (SSL_client_hello_get0_ext(ssl, TLSEXT_TYPE_supported_groups,
++                                      &ext_data, &ext_len)) {
++          res->found_supported_groups = true;
++          res->supported_groups_len = ext_len;
++        }
++
++        return SSL_CLIENT_HELLO_SUCCESS;
++      },
++      &results);
++
++  UniquePtr<SSL> client, server;
++  ASSERT_TRUE(ConnectClientAndServer(&client, &server, client_ctx.get(),
++                                     server_ctx.get()));
++
++  // These extensions should be present in modern TLS handshakes
++  EXPECT_TRUE(results.found_signature_algorithms);
++  EXPECT_TRUE(results.found_supported_groups);
++  EXPECT_GT(results.signature_algorithms_len, 0u);
++  EXPECT_GT(results.supported_groups_len, 0u);
++}
++
++}  // namespace
++
++BSSL_NAMESPACE_END
+diff --git a/ssl/ssl_common_test.h b/ssl/ssl_common_test.h
+new file mode 100644
+index 000000000..de3d180c9
+--- /dev/null
++++ b/ssl/ssl_common_test.h
+@@ -0,0 +1,191 @@
++/* Copyright (c) 2024, Amazon.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
++ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
++ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
++
++#ifndef SSL_COMMON_TEST_H
++#define SSL_COMMON_TEST_H
++
++#include <string>
++
++#include <openssl/bio.h>
++#include <openssl/evp.h>
++#include <openssl/pem.h>
++#include <openssl/ssl.h>
++#include <openssl/x509.h>
++
++#include "../crypto/test/test_util.h"
++
++BSSL_NAMESPACE_BEGIN
++
++inline bssl::UniquePtr<EVP_PKEY> KeyFromPEM(const char *pem) {
++  bssl::UniquePtr<BIO> bio(BIO_new_mem_buf(pem, strlen(pem)));
++  if (!bio) {
++    return nullptr;
++  }
++  return bssl::UniquePtr<EVP_PKEY>(
++      PEM_read_bio_PrivateKey(bio.get(), nullptr, nullptr, nullptr));
++}
++
++inline bssl::UniquePtr<X509> GetTestCertificate() {
++  static const char kCertPEM[] =
++      "-----BEGIN CERTIFICATE-----\n"
++      "MIICWDCCAcGgAwIBAgIJAPuwTC6rEJsMMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV\n"
++      "BAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX\n"
++      "aWRnaXRzIFB0eSBMdGQwHhcNMTQwNDIzMjA1MDQwWhcNMTcwNDIyMjA1MDQwWjBF\n"
++      "MQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50\n"
++      "ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKB\n"
++      "gQDYK8imMuRi/03z0K1Zi0WnvfFHvwlYeyK9Na6XJYaUoIDAtB92kWdGMdAQhLci\n"
++      "HnAjkXLI6W15OoV3gA/ElRZ1xUpxTMhjP6PyY5wqT5r6y8FxbiiFKKAnHmUcrgfV\n"
++      "W28tQ+0rkLGMryRtrukXOgXBv7gcrmU7G1jC2a7WqmeI8QIDAQABo1AwTjAdBgNV\n"
++      "HQ4EFgQUi3XVrMsIvg4fZbf6Vr5sp3Xaha8wHwYDVR0jBBgwFoAUi3XVrMsIvg4f\n"
++      "Zbf6Vr5sp3Xaha8wDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOBgQA76Hht\n"
++      "ldY9avcTGSwbwoiuIqv0jTL1fHFnzy3RHMLDh+Lpvolc5DSrSJHCP5WuK0eeJXhr\n"
++      "T5oQpHL9z/cCDLAKCKRa4uV0fhEdOWBqyR9p8y5jJtye72t6CuFUV5iqcpF4BH4f\n"
++      "j2VNHwsSrJwkD4QUGlUtH7vwnQmyCFxZMmWAJg==\n"
++      "-----END CERTIFICATE-----\n";
++  return CertFromPEM(kCertPEM);
++}
++
++inline bssl::UniquePtr<EVP_PKEY> GetTestKey() {
++  static const char kKeyPEM[] =
++      "-----BEGIN RSA PRIVATE KEY-----\n"
++      "MIICXgIBAAKBgQDYK8imMuRi/03z0K1Zi0WnvfFHvwlYeyK9Na6XJYaUoIDAtB92\n"
++      "kWdGMdAQhLciHnAjkXLI6W15OoV3gA/ElRZ1xUpxTMhjP6PyY5wqT5r6y8FxbiiF\n"
++      "KKAnHmUcrgfVW28tQ+0rkLGMryRtrukXOgXBv7gcrmU7G1jC2a7WqmeI8QIDAQAB\n"
++      "AoGBAIBy09Fd4DOq/Ijp8HeKuCMKTHqTW1xGHshLQ6jwVV2vWZIn9aIgmDsvkjCe\n"
++      "i6ssZvnbjVcwzSoByhjN8ZCf/i15HECWDFFh6gt0P5z0MnChwzZmvatV/FXCT0j+\n"
++      "WmGNB/gkehKjGXLLcjTb6dRYVJSCZhVuOLLcbWIV10gggJQBAkEA8S8sGe4ezyyZ\n"
++      "m4e9r95g6s43kPqtj5rewTsUxt+2n4eVodD+ZUlCULWVNAFLkYRTBCASlSrm9Xhj\n"
++      "QpmWAHJUkQJBAOVzQdFUaewLtdOJoPCtpYoY1zd22eae8TQEmpGOR11L6kbxLQsk\n"
++      "aMly/DOnOaa82tqAGTdqDEZgSNmCeKKknmECQAvpnY8GUOVAubGR6c+W90iBuQLj\n"
++      "LtFp/9ihd2w/PoDwrHZaoUYVcT4VSfJQog/k7kjE4MYXYWL8eEKg3WTWQNECQQDk\n"
++      "104Wi91Umd1PzF0ijd2jXOERJU1wEKe6XLkYYNHWQAe5l4J4MWj9OdxFXAxIuuR/\n"
++      "tfDwbqkta4xcux67//khAkEAvvRXLHTaa6VFzTaiiO8SaFsHV3lQyXOtMrBpB5jd\n"
++      "moZWgjHvB2W9Ckn7sDqsPB+U2tyX0joDdQEyuiMECDY8oQ==\n"
++      "-----END RSA PRIVATE KEY-----\n";
++  return KeyFromPEM(kKeyPEM);
++}
++
++inline bssl::UniquePtr<SSL_CTX> CreateContextWithTestCertificate(
++    const SSL_METHOD *method) {
++  bssl::UniquePtr<SSL_CTX> ctx(SSL_CTX_new(method));
++  bssl::UniquePtr<X509> cert = GetTestCertificate();
++  bssl::UniquePtr<EVP_PKEY> key = GetTestKey();
++  if (!ctx || !cert || !key ||
++      !SSL_CTX_use_certificate(ctx.get(), cert.get()) ||
++      !SSL_CTX_use_PrivateKey(ctx.get(), key.get())) {
++    return nullptr;
++  }
++  return ctx;
++}
++
++inline bool CompleteHandshakes(SSL *client, SSL *server) {
++  for (;;) {
++    int client_ret = SSL_do_handshake(client);
++    int client_err = SSL_get_error(client, client_ret);
++    if (client_err != SSL_ERROR_NONE && client_err != SSL_ERROR_WANT_READ &&
++        client_err != SSL_ERROR_WANT_WRITE &&
++        client_err != SSL_ERROR_PENDING_TICKET) {
++      fprintf(stderr, "Client error: %s\n", SSL_error_description(client_err));
++      return false;
++    }
++
++    int server_ret = SSL_do_handshake(server);
++    int server_err = SSL_get_error(server, server_ret);
++    if (server_err != SSL_ERROR_NONE && server_err != SSL_ERROR_WANT_READ &&
++        server_err != SSL_ERROR_WANT_WRITE &&
++        server_err != SSL_ERROR_PENDING_TICKET) {
++      fprintf(stderr, "Server error: %s\n", SSL_error_description(server_err));
++      return false;
++    }
++
++    if (client_ret == 1 && server_ret == 1) {
++      break;
++    }
++  }
++
++  return true;
++}
++
++inline bool CreateClientAndServer(bssl::UniquePtr<SSL> *out_client,
++                                  bssl::UniquePtr<SSL> *out_server,
++                                  SSL_CTX *client_ctx, SSL_CTX *server_ctx) {
++  bssl::UniquePtr<SSL> client(SSL_new(client_ctx)), server(SSL_new(server_ctx));
++  if (!client || !server) {
++    return false;
++  }
++  SSL_set_connect_state(client.get());
++  SSL_set_accept_state(server.get());
++
++  BIO *bio1, *bio2;
++  if (!BIO_new_bio_pair(&bio1, 0, &bio2, 0)) {
++    return false;
++  }
++  // SSL_set_bio takes ownership.
++  SSL_set_bio(client.get(), bio1, bio1);
++  SSL_set_bio(server.get(), bio2, bio2);
++
++  *out_client = std::move(client);
++  *out_server = std::move(server);
++  return true;
++}
++
++struct ClientConfig {
++  SSL_SESSION *session = nullptr;
++  std::string servername;
++  std::string verify_hostname;
++  unsigned hostflags = 0;
++  bool early_data = false;
++};
++
++inline bool ConnectClientAndServer(bssl::UniquePtr<SSL> *out_client,
++                                   bssl::UniquePtr<SSL> *out_server,
++                                   SSL_CTX *client_ctx, SSL_CTX *server_ctx,
++                                   const ClientConfig &config = ClientConfig(),
++                                   bool shed_handshake_config = true) {
++  bssl::UniquePtr<SSL> client, server;
++  if (!CreateClientAndServer(&client, &server, client_ctx, server_ctx)) {
++    return false;
++  }
++  if (config.early_data) {
++    SSL_set_early_data_enabled(client.get(), 1);
++  }
++  if (config.session) {
++    SSL_set_session(client.get(), config.session);
++  }
++  if (!config.servername.empty() &&
++      !SSL_set_tlsext_host_name(client.get(), config.servername.c_str())) {
++    return false;
++  }
++  if (!config.verify_hostname.empty()) {
++    if (!SSL_set1_host(client.get(), config.verify_hostname.c_str())) {
++      return false;
++    }
++    SSL_set_hostflags(client.get(), config.hostflags);
++  }
++
++  SSL_set_shed_handshake_config(client.get(), shed_handshake_config);
++  SSL_set_shed_handshake_config(server.get(), shed_handshake_config);
++
++  if (!CompleteHandshakes(client.get(), server.get())) {
++    return false;
++  }
++
++  *out_client = std::move(client);
++  *out_server = std::move(server);
++  return true;
++}
++
++BSSL_NAMESPACE_END
++
++#endif  // SSL_COMMON_TEST_H
+diff --git a/ssl/ssl_lib.cc b/ssl/ssl_lib.cc
+index 0d140b3d9..fc5b216e7 100644
+--- a/ssl/ssl_lib.cc
++++ b/ssl/ssl_lib.cc
+@@ -2971,6 +2971,44 @@ void SSL_set_msg_callback_arg(SSL *ssl, void *arg) {
+   ssl->msg_callback_arg = arg;
+ }
+ 
++void SSL_CTX_set_client_hello_cb(SSL_CTX *c, SSL_client_hello_cb_fn cb,
++                                 void *arg) {
++  c->client_hello_cb = cb;
++  c->client_hello_cb_arg = arg;
++}
++
++int SSL_client_hello_isv2(SSL *s) {
++  // SSLv2 not supported
++  return 0;
++}
++
++int SSL_client_hello_get0_ext(SSL *s, unsigned int type, const unsigned char **out,
++                              size_t *outlen) {
++  GUARD_PTR(s);
++  GUARD_PTR(s->s3);
++  SSL_HANDSHAKE* hs = s->s3->hs.get();
++  GUARD_PTR(hs);
++
++  SSLMessage msg_unused;
++  SSL_CLIENT_HELLO client_hello;
++  if (!hs->GetClientHello(&msg_unused, &client_hello)) {
++    return 0;
++  }
++
++  CBS cbs;
++  if (!ssl_client_hello_get_extension(&client_hello, &cbs, static_cast<uint16_t>(type))) {
++    return 0;  // Extension not found
++  }
++
++  if (out != nullptr) {
++    *out = CBS_data(&cbs);
++  }
++  if (outlen != nullptr) {
++    *outlen = CBS_len(&cbs);
++  }
++  return 1;  // Success
++}
++
+ void SSL_CTX_set_keylog_callback(SSL_CTX *ctx,
+                                  void (*cb)(const SSL *ssl, const char *line)) {
+   ctx->keylog_callback = cb;
