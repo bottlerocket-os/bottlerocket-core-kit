@@ -1,11 +1,16 @@
 # Unreleased
 
+## OS Changes
+
+### Third Party Package Updates
+* Update `libcrypto`, `libdevmapper`, `libncurses`, `libelf`, and `libffi` ([#998])
+
 ## Build Changes
 
 * Update Twoliter to `0.22.0` ([#991])
 
 [#991]: https://github.com/bottlerocket-os/bottlerocket-kernel-kit/pull/991
-
+[#998]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/998
 
 # v15.0.0 (2026-07-23)
 

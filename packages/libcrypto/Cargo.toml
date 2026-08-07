@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/aws/aws-lc/commits/fips-2024-09-27/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/aws/aws-lc/archive/AWS-LC-FIPS-3.1.0/aws-lc-AWS-LC-FIPS-3.1.0.tar.gz"
-sha512 = "077b6302e10c9610c141e020d233c16daa278ad7babfd17c414c50bdfb9ca4792f67a1e6fcef0fd05304d8d5437c706c3911c2dc50abadb67755ecffec438b1d"
+url = "https://github.com/aws/aws-lc/archive/AWS-LC-FIPS-3.3.0/aws-lc-AWS-LC-FIPS-3.3.0.tar.gz"
+sha512 = "67b59a1d9cc4eede0894c3ca051bb375f344c4fbdd4c84701bf52890949ed08b8340f32a816f3a9d0cdf75cb991f8cf60a1c53de05cdf1f05f53be2cfa0e4fa7"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

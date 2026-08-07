@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://sourceware.org/elfutils/ftp/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://sourceware.org/elfutils/ftp/0.194/elfutils-0.194.tar.bz2"
-sha512 = "5d00502f61b92643bf61dc61da4ddded36c423466388d992bcd388c5208761b8ed9db1a01492c085cd0984eef30c08f895a8e307e78e0df8df40b56ae35b78a5"
+url = "https://sourceware.org/elfutils/ftp/0.195/elfutils-0.195.tar.bz2"
+sha512 = "e1e1fdf4f7f72bf520deb0103bb8fd208dc247bab14af100c6fb56d38c0ef6c6d54ff5bd15b84e4f70e2b2ea481e5999fea2842360f8932a861122df79b5fc8f"
 
 [[package.metadata.build-package.external-files]]
-url = "https://sourceware.org/elfutils/ftp/0.194/elfutils-0.194.tar.bz2.sig"
-sha512 = "12d90f66dfa37544fb6b368099fac3eae9487188b0ce49409ae5c647c1fa3c68582efc5216a758d830e3775d5686ac2605dba600ad258f27ae99d5ce1094b624"
+url = "https://sourceware.org/elfutils/ftp/0.195/elfutils-0.195.tar.bz2.sig"
+sha512 = "a5e11ce7752d0fac6e809aea61b6a5bbd1141d8c52c2f741ddd32b93af97af43aa555a99a45feac3bc34381570f2e7fb281f8aff53f74e3b5e64c56eb1d9d2c5"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

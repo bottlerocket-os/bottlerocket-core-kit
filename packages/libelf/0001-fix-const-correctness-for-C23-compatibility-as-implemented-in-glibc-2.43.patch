@@ -1,47 +1,28 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: KCSesh <kssessio@amazon.com>
-Date: Mon, 10 Mar 2026 04:00:00 +0000
-Subject: [PATCH] fix const-correctness for C23 compatibility as implemented in glibc 2.43
+Date: Tue, 10 Mar 2026 04:00:00 +0000
+Subject: [PATCH] fix const-correctness for C23 compatibility as implemented in
+ glibc 2.43
 
 glibc 2.43 C23 type-generic functions (memchr, bsearch, strrchr) now
 return const-qualified pointers when given const-qualified input. Add
-const qualifiers to all affected call sites in libdw, libcpu, and src.
+const qualifiers to remaining affected call sites in libdw and src.
 
-diff --git a/libcpu/riscv_disasm.c b/libcpu/riscv_disasm.c
-index 0dee842..b918353 100644
---- a/libcpu/riscv_disasm.c
-+++ b/libcpu/riscv_disasm.c
-@@ -1259,7 +1259,7 @@ riscv_disasm (Ebl *ebl,
- 		  if (rd != 0)
- 		    op[last++] = REG (rd);
- 		  struct known_csrs key = { csr, NULL };
--		  struct known_csrs *found = bsearch (&key, known,
-+		  const struct known_csrs *found = bsearch (&key, known,
- 						      sizeof (known) / sizeof (known[0]),
- 						      sizeof (known[0]),
- 						      compare_csr);
+[vighmah:
+Reduced patch to only the two fixes not yet addressed by
+4a5cf8be906d5991e7527e69e3f2ceaa74811301.
+]
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
+
+---
+ libdw/dwarf_getsrclines.c | 2 +-
+ src/readelf.c             | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
 diff --git a/libdw/dwarf_getsrclines.c b/libdw/dwarf_getsrclines.c
-index be10cde..23942b8 100644
+index 76db292..23942b8 100644
 --- a/libdw/dwarf_getsrclines.c
 +++ b/libdw/dwarf_getsrclines.c
-@@ -364,7 +364,7 @@ read_srcfiles (Dwarf *dbg,
-       const unsigned char *dirp = linep;
-       while (dirp < lineendp && *dirp != 0)
- 	{
--	  uint8_t *endp = memchr (dirp, '\0', lineendp - dirp);
-+	  const uint8_t *endp = memchr (dirp, '\0', lineendp - dirp);
- 	  if (endp == NULL)
- 	    goto invalid_data;
- 	  ++ndirs;
-@@ -440,7 +440,7 @@ read_srcfiles (Dwarf *dbg,
-       for (unsigned int n = 1; n < ndirlist; n++)
- 	{
- 	  dirarray[n].dir = (char *) linep;
--	  uint8_t *endp = memchr (linep, '\0', lineendp - linep);
-+	  const uint8_t *endp = memchr (linep, '\0', lineendp - linep);
- 	  assert (endp != NULL); // Checked above when calculating ndirlist.
- 	  dirarray[n].len = endp - linep;
- 	  linep = endp + 1;
 @@ -527,7 +527,7 @@ read_srcfiles (Dwarf *dbg,
  
  	  /* First comes the file name.  */
@@ -51,47 +32,11 @@ index be10cde..23942b8 100644
  	  if (endp == NULL)
  	    goto invalid_data;
  	  size_t fnamelen = endp - (uint8_t *) fname;
-@@ -927,7 +927,7 @@ read_srclines (Dwarf *dbg,
- 	    case DW_LNE_define_file:
- 	      {
- 		char *fname = (char *) linep;
--		uint8_t *endp = memchr (linep, '\0', lineendp - linep);
-+		const uint8_t *endp = memchr (linep, '\0', lineendp - linep);
- 		if (endp == NULL)
- 		  goto invalid_data;
- 		size_t fnamelen = endp - linep;
 diff --git a/src/readelf.c b/src/readelf.c
-index ee6c203..25df6b5 100644
+index 0258d41..974a823 100644
 --- a/src/readelf.c
 +++ b/src/readelf.c
-@@ -8269,7 +8269,7 @@ attr_callback (Dwarf_Attribute *attrp, void *arg)
- 		    valuestr = dwarf_filesrc (files, num, NULL, NULL);
- 		    if (valuestr != NULL)
- 		      {
--			char *filename = strrchr (valuestr, '/');
-+			const char *filename = strrchr (valuestr, '/');
- 			if (filename != NULL)
- 			  valuestr = filename + 1;
- 		      }
-@@ -9033,7 +9033,7 @@ print_form_data (Dwarf *dbg, int form, const unsigned char *readp,
- 		 Dwarf_Off str_offsets_base, FILE *out)
- {
-   Dwarf_Word val;
--  unsigned char *endp;
-+  const unsigned char *endp;
-   Elf_Data *data;
-   char *str;
-   switch (form)
-@@ -9530,7 +9530,7 @@ print_debug_line_section (Dwfl_Module *dwflmod, Ebl *ebl, GElf_Ehdr *ehdr,
- 	{
- 	  while (linep < lineendp && *linep != 0)
- 	    {
--	      unsigned char *endp = memchr (linep, '\0', lineendp - linep);
-+	      const unsigned char *endp = memchr (linep, '\0', lineendp - linep);
- 	      if (unlikely (endp == NULL))
- 		goto invalid_unit;
- 
-@@ -9613,7 +9613,7 @@ print_debug_line_section (Dwfl_Module *dwflmod, Ebl *ebl, GElf_Ehdr *ehdr,
+@@ -9674,7 +9674,7 @@ print_debug_line_section (Dwfl_Module *dwflmod, Ebl *ebl, GElf_Ehdr *ehdr,
  	    {
  	      /* First comes the file name.  */
  	      char *fname = (char *) linep;
@@ -100,13 +45,3 @@ index ee6c203..25df6b5 100644
  	      if (unlikely (endp == NULL))
  		goto invalid_unit;
  	      linep = endp + 1;
-@@ -9764,7 +9764,7 @@ print_debug_line_section (Dwfl_Module *dwflmod, Ebl *ebl, GElf_Ehdr *ehdr,
- 		case DW_LNE_define_file:
- 		  {
- 		    char *fname = (char *) linep;
--		    unsigned char *endp = memchr (linep, '\0',
-+		    const unsigned char *endp = memchr (linep, '\0',
- 						  lineendp - linep);
- 		    if (unlikely (endp == NULL))
- 		      goto invalid_unit;
-

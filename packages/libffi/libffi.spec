@@ -1,5 +1,5 @@
 Name: %{_cross_os}libffi
-Version: 3.5.2
+Version: 3.7.1
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for FFI

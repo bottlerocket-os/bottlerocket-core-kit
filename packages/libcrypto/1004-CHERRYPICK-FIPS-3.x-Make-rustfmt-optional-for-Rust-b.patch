@@ -1,0 +1,78 @@
+From 3d259a774e4efced4770422af3b34ab07b3b16a5 Mon Sep 17 00:00:00 2001
+From: Justin W Smith <103147162+justsmth@users.noreply.github.com>
+Date: Wed, 27 May 2026 13:26:45 -0400
+Subject: [PATCH] [CHERRYPICK FIPS 3.x] Make rustfmt optional for Rust bindings
+ generation (#3270) (#3273)
+
+Cherrypick of #3270 onto the `fips-2024-09-27` branch.
+
+-----
+### Description of changes:
+Configuring with `-DGENERATE_RUST_BINDINGS=ON` currently hard-fails if
+`rustfmt` isn't on `PATH`. This PR makes `rustfmt` optional: we still
+probe for it, but only pass `--formatter rustfmt` to bindgen when it's
+found. When it isn't, bindgen falls back to its built-in `prettyplease`
+formatter and the build proceeds.
+
+### Call-outs:
+`prettyplease` and `rustfmt` produce slightly different output, so
+bindings generated on a machine without `rustfmt` will have cosmetic
+differences from ones generated in an environment where `rustfmt` is
+available.
+
+### Testing:
+Existing CI exercises the `rustfmt`-present path. Locally verified that
+`cmake -DGENERATE_RUST_BINDINGS=ON ...` configures and the bindings
+target builds both with `rustfmt` on `PATH` and with it removed.
+
+By submitting this pull request, I confirm that my contribution is made
+under the terms of the Apache 2.0 license and the ISC license.
+
+Signed-off-by: Vighnesh Maheshwari <vighmah@amazon.com>
+---
+ CMakeLists.txt            | 11 ++++++-----
+ cmake/rust_bindings.cmake |  6 +++++-
+ 2 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cbc6a092f..336c8c5d5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -71,13 +71,14 @@ if(GENERATE_RUST_BINDINGS)
+   message(STATUS "Found bindgen-cli: ${BINDGEN_EXECUTABLE} (version ${BINDGEN_VERSION})")
+   message(STATUS "Rust bindings target version: ${RUST_BINDINGS_TARGET_VERSION}")
+ 
+-  # Check for rustfmt (required for --formatter rustfmt option)
++  # Check for rustfmt (optional: used to format the generated bindings if available)
+   find_program(RUSTFMT_EXECUTABLE NAMES rustfmt)
+-  if(NOT RUSTFMT_EXECUTABLE)
+-    message(FATAL_ERROR "GENERATE_RUST_BINDINGS requires rustfmt but it was not found. "
+-                        "Install it with: rustup component add rustfmt")
++  if(RUSTFMT_EXECUTABLE)
++    message(STATUS "Found rustfmt: ${RUSTFMT_EXECUTABLE}")
++  else()
++    message(STATUS "rustfmt not found; generated Rust bindings will not be formatted. "
++                   "Install it with: rustup component add rustfmt")
+   endif()
+-  message(STATUS "Found rustfmt: ${RUSTFMT_EXECUTABLE}")
+ endif()
+ 
+ # Configure entropy source in case of FIPS build
+diff --git a/cmake/rust_bindings.cmake b/cmake/rust_bindings.cmake
+index 583130cb6..8d2d3f962 100644
+--- a/cmake/rust_bindings.cmake
++++ b/cmake/rust_bindings.cmake
+@@ -165,8 +165,12 @@ function(generate_rust_bindings)
+     "--with-derive-eq"
+     "--generate" "functions,types,vars,methods,constructors,destructors"
+     "--rust-target" "${RUST_BINDINGS_TARGET_VERSION}"
+-    "--formatter" "rustfmt"
+   )
++  # Use rustfmt as the formatter only if it was discovered. Otherwise fall back
++  # to bindgen's default ("prettyplease") so the build doesn't require rustfmt.
++  if(RUSTFMT_EXECUTABLE)
++    list(APPEND _bindgen_args "--formatter" "rustfmt")
++  endif()
+   # Add symbol prefix if specified. See module-level comment for why we use
+   # --prefix-link-name instead of including the prefix symbols header.
+   if(ARG_PREFIX AND NOT ARG_PREFIX STREQUAL "")

@@ -1,5 +1,5 @@
 Name: %{_cross_os}libdevmapper
-Version: 2.03.39
+Version: 2.03.41
 Release: 1%{?dist}
 Summary: Library for device mapper
 License: LGPL-2.1-only
@@ -94,6 +94,7 @@ find %{buildroot} -type f -executable -exec chmod u+w {} +
 %{_cross_sbindir}/blkdeactivate
 %{_cross_sbindir}/dmsetup
 %{_cross_sbindir}/dmstats
+%{_cross_sbindir}/dmvdostats
 %{_cross_udevrulesdir}/10-dm.rules
 %{_cross_udevrulesdir}/13-dm-disk.rules
 %{_cross_udevrulesdir}/95-dm-notify.rules
