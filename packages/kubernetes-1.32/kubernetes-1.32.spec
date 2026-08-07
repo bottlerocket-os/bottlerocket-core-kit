@@ -55,6 +55,7 @@ Source13: etc-kubernetes-pki-private.mount
 Source14: credential-provider-config-yaml
 Source15: logdog.kubelet.conf
 Source16: multi-user-uphold-kubelet.conf
+Source17: ephemeral-storage.conf
 
 # ExecStartPre drop-ins
 Source20: prestart-load-pause-ctr.conf
@@ -181,6 +182,8 @@ ln -rs \
 install -d %{buildroot}%{_cross_datadir}/logdog.d
 install -p -m 0644 %{S:15} %{buildroot}%{_cross_datadir}/logdog.d
 
+install -D -p -m 0644 %{S:17} %{buildroot}%{_cross_libdir}/bottlerocket/ephemeral-storage.d/kubelet.conf
+
 install -d %{buildroot}%{_cross_libexecdir}/kubernetes
 install -p -m 0644 ${output}/kubernetes-pause.tar %{buildroot}%{_cross_libexecdir}/kubernetes
 install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-container-image
@@ -215,6 +218,7 @@ install -p -m 0644 %{S:102} %{buildroot}%{_cross_templatedir}/pod-infra-containe
 %{_cross_libexecdir}/kubernetes/kubernetes-pause.tar
 %{_cross_templatedir}/pod-infra-container-image
 %{_cross_datadir}/logdog.d/logdog.kubelet.conf
+%{_cross_libdir}/bottlerocket/ephemeral-storage.d/kubelet.conf
 %{_cross_bindir}/kubelet
 
 %files -n %{_cross_os}kube-proxy-1.32
