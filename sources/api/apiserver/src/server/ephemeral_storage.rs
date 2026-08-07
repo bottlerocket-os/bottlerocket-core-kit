@@ -38,9 +38,10 @@ static EPHEMERAL_PATH: &str = "/dev/disk/ephemeral";
 static EPHEMERAL_EBS_PATH: &str = "/dev/disk/ephemeral-ebs";
 /// Key ID to use for ephemeral storage encryption
 static EPHEMERAL_STORAGE_KEY_ID: &str = "ephemeral-storage";
+static BIND_DIRS_DROPIN_DIR: &str = "/usr/lib/bottlerocket/ephemeral-storage.d";
 
 pub struct BindDirs {
-    pub allowed_exact: HashSet<&'static str>,
+    pub allowed_exact: HashSet<String>,
     pub allowed_prefixes: HashSet<&'static str>,
     pub disallowed_contains: HashSet<&'static str>,
 }
@@ -174,7 +175,7 @@ pub fn initialize(
 
 /// Binds the specified directories to the pre-configured array, creating those directories if
 /// they do not exist.
-pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
+pub fn bind(dirs: Vec<String>) -> Result<()> {
     let device_name = EPHEMERAL_STORAGE_LINK;
     if !std::fs::exists(device_name).is_ok_and(|x| x) {
         info!("ephemeral storage not initialized, skipping binding");
@@ -182,12 +183,8 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
     }
 
     let dirs = if dirs.is_empty() {
-        let allowed_dirs = allowed_bind_dirs(variant);
-        allowed_dirs
-            .allowed_exact
-            .into_iter()
-            .map(|s| s.to_string())
-            .collect()
+        let allowed_dirs = allowed_bind_dirs()?;
+        allowed_dirs.allowed_exact.into_iter().collect()
     } else {
         dirs
     };
@@ -198,9 +195,9 @@ pub fn bind(variant: &str, dirs: Vec<String>) -> Result<()> {
         .map(|dir| dir.trim_end_matches("/").to_string())
         .collect();
 
-    let allowed_dirs = allowed_bind_dirs(variant);
+    let allowed_dirs = allowed_bind_dirs()?;
     for dir in &dirs {
-        let exact_match = allowed_dirs.allowed_exact.contains(dir.as_str());
+        let exact_match = allowed_dirs.allowed_exact.contains(dir);
         let prefix_match = allowed_dirs
             .allowed_prefixes
             .iter()
@@ -448,28 +445,85 @@ fn discover_disks(path: &str) -> Result<Vec<String>> {
     Ok(filenames)
 }
 
-/// allowed_bind_dirs returns a set of the directories that can be bound to ephemeral storage, which
-/// varies based on the variant, a set of the prefixes of directories that are allowed to be bound.
+/// read_bind_dir_dropins reads newline-delimited absolute paths from all files in the specified
+/// directory, skipping comments and blank lines. Returns an error if any entry is unreadable or
+/// if a fragment contains an invalid path (non-absolute or containing "..").
+fn read_bind_dir_dropins(dir: &str) -> Result<HashSet<String>> {
+    let mut paths = HashSet::new();
+
+    // If the directory doesn't exist, return empty set (graceful no-op)
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(paths),
+        Err(e) => {
+            return Err(e).context(error::ReadDropinDirSnafu { dir });
+        }
+    };
+
+    for entry in entries {
+        let entry = entry.context(error::ReadDropinDirEntrySnafu { dir })?;
+
+        let path = entry.path();
+        ensure!(
+            path.is_file(),
+            error::InvalidDropinEntrySnafu {
+                path: &path,
+                reason: "not a regular file",
+            }
+        );
+
+        let content =
+            fs::read_to_string(&path).context(error::ReadDropinFileSnafu { path: &path })?;
+
+        for line in content.lines() {
+            let line = line.trim();
+
+            // Skip comments and blank lines
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+
+            // Trim trailing slash
+            let line = line.trim_end_matches('/');
+
+            // Reject non-absolute paths
+            ensure!(
+                line.starts_with('/'),
+                error::InvalidDropinEntrySnafu {
+                    path: &path,
+                    reason: format!("non-absolute path: {line}"),
+                }
+            );
+
+            // Reject paths containing ".."
+            ensure!(
+                !line.contains(".."),
+                error::InvalidDropinEntrySnafu {
+                    path: &path,
+                    reason: format!("path contains '..': {line}"),
+                }
+            );
+
+            paths.insert(line.to_string());
+        }
+    }
+
+    Ok(paths)
+}
+
+/// allowed_bind_dirs returns a set of the directories that can be bound to ephemeral storage,
+/// a set of the prefixes of directories that are allowed to be bound,
 /// and a set of substrings that are disallowed in the directory name.
-pub fn allowed_bind_dirs(variant: &str) -> BindDirs {
-    let mut allowed_exact = HashSet::from(["/var/lib/containerd", "/var/lib/host-containerd"]);
-    if variant.contains("k8s") {
-        allowed_exact.insert("/var/lib/kubelet");
-        allowed_exact.insert("/var/log/pods");
-        allowed_exact.insert("/var/lib/soci-snapshotter");
-    }
-    if variant.contains("ecs") {
-        allowed_exact.insert("/var/lib/docker");
-        allowed_exact.insert("/var/log/ecs");
-    }
+pub fn allowed_bind_dirs() -> Result<BindDirs> {
+    let allowed_exact = read_bind_dir_dropins(BIND_DIRS_DROPIN_DIR)?;
     let allowed_prefixes = HashSet::from(["/mnt/"]);
     let disallowed_contains = HashSet::from(["..", "/mnt/.ephemeral"]);
 
-    BindDirs {
+    Ok(BindDirs {
         allowed_exact,
         allowed_prefixes,
         disallowed_contains,
-    }
+    })
 }
 
 /// scans the raid array to identify if it has been created already
@@ -704,6 +758,29 @@ pub mod error {
 
         #[snafu(display("Cannot bind directory '{}': directory is masked", dir.display()))]
         DirectoryAlreadyMasked { dir: PathBuf },
+
+        #[snafu(display(
+            "Failed to read ephemeral-storage drop-in directory '{}': {}",
+            dir,
+            source
+        ))]
+        ReadDropinDir { dir: String, source: std::io::Error },
+
+        #[snafu(display(
+            "Failed to read entry in ephemeral-storage drop-in directory '{}': {}",
+            dir,
+            source
+        ))]
+        ReadDropinDirEntry { dir: String, source: std::io::Error },
+
+        #[snafu(display("Failed to read ephemeral-storage drop-in file '{}': {}", path.display(), source))]
+        ReadDropinFile {
+            path: PathBuf,
+            source: std::io::Error,
+        },
+
+        #[snafu(display("Invalid entry in ephemeral-storage drop-in '{}': {}", path.display(), reason))]
+        InvalidDropinEntry { path: PathBuf, reason: String },
     }
 }
 
@@ -712,30 +789,111 @@ pub type Result<T> = std::result::Result<T, error::Error>;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use tempfile::tempdir;
 
     #[test]
-    fn test_bind_with_default_dirs_k8s() {
-        let variant = "aws-k8s-1.33";
-        let allowed_dirs = allowed_bind_dirs(variant);
+    fn test_read_bind_dir_dropins_union_and_dedup() {
+        let dir = tempdir().unwrap();
+        let dir_path = dir.path();
 
-        for dir in [
-            "/var/lib/kubelet",
-            "/var/lib/containerd",
-            "/var/lib/soci-snapshotter",
-            "/var/log/pods",
-        ] {
-            assert!(allowed_dirs.allowed_exact.contains(dir));
-        }
+        // Create two fragment files with some overlapping paths
+        fs::write(
+            dir_path.join("kubelet.conf"),
+            "/var/lib/kubelet\n/var/lib/containerd\n/var/log/pods\n",
+        )
+        .unwrap();
+        fs::write(
+            dir_path.join("soci-snapshotter.conf"),
+            "/var/lib/containerd\n/var/lib/soci-snapshotter\n",
+        )
+        .unwrap();
+
+        let result = read_bind_dir_dropins(dir_path.to_str().unwrap()).unwrap();
+
+        // Should have union of all paths (4 unique paths)
+        assert_eq!(result.len(), 4);
+        assert!(result.contains("/var/lib/kubelet"));
+        assert!(result.contains("/var/lib/containerd"));
+        assert!(result.contains("/var/log/pods"));
+        assert!(result.contains("/var/lib/soci-snapshotter"));
     }
 
     #[test]
-    fn test_bind_with_default_dirs_ecs() {
-        let variant = "aws-ecs-2";
-        let allowed_dirs = allowed_bind_dirs(variant);
+    fn test_read_bind_dir_dropins_skip_comments_and_blanks() {
+        let dir = tempdir().unwrap();
+        let dir_path = dir.path();
 
-        for dir in ["/var/lib/docker", "/var/lib/containerd", "/var/log/ecs"] {
-            assert!(allowed_dirs.allowed_exact.contains(dir));
-        }
+        // Create fragment with comments and blank lines
+        fs::write(
+            dir_path.join("test.conf"),
+            "# This is a comment\n\n/var/lib/kubelet\n  \n# Another comment\n/var/log/pods\n\n",
+        )
+        .unwrap();
+
+        let result = read_bind_dir_dropins(dir_path.to_str().unwrap()).unwrap();
+
+        // Should only have the two valid paths
+        assert_eq!(result.len(), 2);
+        assert!(result.contains("/var/lib/kubelet"));
+        assert!(result.contains("/var/log/pods"));
+    }
+
+    #[test]
+    fn test_read_bind_dir_dropins_trim_trailing_slash() {
+        let dir = tempdir().unwrap();
+        let dir_path = dir.path();
+
+        // Create fragment with paths that have trailing slashes
+        fs::write(
+            dir_path.join("test.conf"),
+            "/var/lib/kubelet/\n/var/log/pods/\n",
+        )
+        .unwrap();
+
+        let result = read_bind_dir_dropins(dir_path.to_str().unwrap()).unwrap();
+
+        // Should have paths without trailing slashes
+        assert_eq!(result.len(), 2);
+        assert!(result.contains("/var/lib/kubelet"));
+        assert!(result.contains("/var/log/pods"));
+        assert!(!result.contains("/var/lib/kubelet/"));
+        assert!(!result.contains("/var/log/pods/"));
+    }
+
+    #[test]
+    fn test_read_bind_dir_dropins_reject_non_absolute_path() {
+        let dir = tempdir().unwrap();
+        let dir_path = dir.path();
+
+        fs::write(
+            dir_path.join("test.conf"),
+            "/var/lib/kubelet\nrelative/path\n",
+        )
+        .unwrap();
+
+        let result = read_bind_dir_dropins(dir_path.to_str().unwrap());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_read_bind_dir_dropins_reject_dotdot_path() {
+        let dir = tempdir().unwrap();
+        let dir_path = dir.path();
+
+        fs::write(dir_path.join("test.conf"), "/var/../etc/passwd\n").unwrap();
+
+        let result = read_bind_dir_dropins(dir_path.to_str().unwrap());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_read_bind_dir_dropins_nonexistent_dir() {
+        // Call with a directory that doesn't exist
+        let result = read_bind_dir_dropins("/nonexistent/path/to/nowhere").unwrap();
+
+        // Should return empty set without error
+        assert!(result.is_empty());
     }
 
     #[test]

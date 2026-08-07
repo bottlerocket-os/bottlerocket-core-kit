@@ -41,5 +41,6 @@ generate-readme.workspace = true
 
 [dev-dependencies]
 maplit.workspace = true
+tempfile.workspace = true
 toml.workspace = true
 simple-settings-plugin.workspace = true

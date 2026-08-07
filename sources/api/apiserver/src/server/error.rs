@@ -131,6 +131,11 @@ pub enum Error {
         source: ephemeral_storage::error::Error,
     },
 
+    #[snafu(display("Unable to read ephemeral storage allowed dirs: {}", source))]
+    EphemeralAllowedDirs {
+        source: ephemeral_storage::error::Error,
+    },
+
     #[snafu(display("Unable to make {} key '{}': {}", key_type, name, source))]
     NewKey {
         key_type: String,
