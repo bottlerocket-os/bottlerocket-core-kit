@@ -4,6 +4,7 @@
 
 ### Third Party Package Updates
 * Update `libcrypto`, `libdevmapper`, `libncurses`, `libelf`, and `libffi` ([#998])
+* Replace hardcoded ephemeral-storage bind-dir allowlist with package-contributed drop-in fragments in `/usr/lib/bottlerocket/ephemeral-storage.d/` ([#1001])
 
 ## Build Changes
 
@@ -11,6 +12,7 @@
 
 [#991]: https://github.com/bottlerocket-os/bottlerocket-kernel-kit/pull/991
 [#998]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/998
+[#1001]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1001
 
 # v15.0.0 (2026-07-23)
 
