@@ -461,6 +461,7 @@ dependencies = [
  "simple-settings-plugin",
  "simplelog",
  "snafu",
+ "tempfile",
  "thar-be-updates",
  "tokio",
  "toml",

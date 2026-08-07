@@ -32,6 +32,7 @@ Source108: pause-repositories
 Source109: version.go
 Source110: ecs-defaults.conf
 Source111: ecs-nvidia.conf
+Source112: ephemeral-storage.conf
 
 # Mount for writing ECS agent configuration
 Source200: etc-systemd-system-ecs.service.d.mount
@@ -177,6 +178,8 @@ ln -rs %{buildroot}%{_cross_sysconfdir}/pki/tls/certs/ca-bundle.crt %{buildroot}
 install -d %{buildroot}%{_cross_datadir}/logdog.d
 install -p -m 0644 %{S:300} %{buildroot}%{_cross_datadir}/logdog.d
 
+install -D -p -m 0644 %{S:112} %{buildroot}%{_cross_libdir}/bottlerocket/ephemeral-storage.d/ecs-agent.conf
+
 %files
 %{_cross_attribution_file}
 %{_cross_attribution_vendor_dir}
@@ -189,6 +192,7 @@ install -p -m 0644 %{S:300} %{buildroot}%{_cross_datadir}/logdog.d
 %{_cross_sysctldir}/90-ecs.conf
 %{_cross_libdir}/amazon-ecs-agent/amazon-ecs-pause.tar
 %{_cross_datadir}/logdog.d/logdog.ecs.conf
+%{_cross_libdir}/bottlerocket/ephemeral-storage.d/ecs-agent.conf
 %{_cross_bindir}/amazon-ecs-agent
 
 %files config

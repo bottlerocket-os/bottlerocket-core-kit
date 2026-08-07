@@ -741,6 +741,7 @@ for p in apiclient ; do
 done
 
 install -d %{buildroot}%{_cross_datadir}/bottlerocket
+install -d %{buildroot}%{_cross_libdir}/bottlerocket/ephemeral-storage.d
 
 install -d %{buildroot}%{_cross_sysusersdir}
 install -p -m 0644 %{S:2} %{buildroot}%{_cross_sysusersdir}/api.conf
@@ -818,6 +819,7 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_bindir}/apiserver
 %{_cross_unitdir}/apiserver.service
 %{_cross_sysusersdir}/api.conf
+%dir %{_cross_libdir}/bottlerocket/ephemeral-storage.d
 
 %files -n %{_cross_os}apiclient
 

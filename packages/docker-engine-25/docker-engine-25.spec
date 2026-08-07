@@ -25,6 +25,7 @@ Source2: docker.socket
 Source3: docker-sysusers.conf
 Source4: daemon-json
 Source5: daemon-nvidia-json
+Source6: ephemeral-storage.conf
 
 # Create container storage mount point.
 Source100: prepare-var-lib-docker.service
@@ -92,6 +93,8 @@ install -d %{buildroot}%{_cross_templatedir}
 install -p -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/docker-daemon-json
 install -p -m 0644 %{S:5} %{buildroot}%{_cross_templatedir}/docker-daemon-nvidia-json
 
+install -D -p -m 0644 %{S:6} %{buildroot}%{_cross_libdir}/bottlerocket/ephemeral-storage.d/docker.conf
+
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
 %files
@@ -103,6 +106,7 @@ install -p -m 0644 %{S:5} %{buildroot}%{_cross_templatedir}/docker-daemon-nvidia
 %{_cross_sysusersdir}/docker.conf
 %{_cross_templatedir}/docker-daemon-json
 %{_cross_templatedir}/docker-daemon-nvidia-json
+%{_cross_libdir}/bottlerocket/ephemeral-storage.d/docker.conf
 %{_cross_bindir}/dockerd
 %{_cross_bindir}/docker-proxy
 %changelog

@@ -14,6 +14,7 @@ Requires: %{_cross_os}containerd
 Source10: host-containerd.service
 Source11: host-containerd-tmpfiles.conf
 Source12: host-containerd-config.toml
+Source13: ephemeral-storage.conf
 
 # Mount for writing host-ctr configuration
 Source100: etc-host-containers.mount.in
@@ -46,6 +47,8 @@ install -p -m 0644 %{S:11} %{buildroot}%{_cross_tmpfilesdir}/host-containerd.con
 install -d %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/host-containerd
 install -p -m 0644 %{S:12} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/host-containerd/config.toml
 
+install -D -p -m 0644 %{S:13} %{buildroot}%{_cross_libdir}/bottlerocket/ephemeral-storage.d/host-containerd.conf
+
 %cross_scan_attribution go-vendor vendor
 
 %files
@@ -55,5 +58,6 @@ install -p -m 0644 %{S:12} %{buildroot}%{_cross_factorydir}%{_cross_sysconfdir}/
 %{_cross_tmpfilesdir}/host-containerd.conf
 %{_cross_factorydir}%{_cross_sysconfdir}/host-containerd/config.toml
 %{_cross_bindir}/host-ctr
+%{_cross_libdir}/bottlerocket/ephemeral-storage.d/host-containerd.conf
 
 %changelog

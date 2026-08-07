@@ -15,6 +15,7 @@ Source1: bundled-soci-snapshotter-%{gover}.tar.gz
 Source2: bundled-cmd.tar.gz
 Source3: soci-config-toml
 Source4: k8s-snapshotter-conf
+Source5: ephemeral-storage.conf
 Source100: etc-soci-snapshotter.mount.in
 Source101: soci-snapshotter.service
 Source102: soci-snapshotter.socket
@@ -87,6 +88,8 @@ install -d %{buildroot}%{_cross_templatedir}
 install -p -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/soci-config-toml
 install -p -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/k8s-snapshotter-conf
 
+install -D -p -m 0644 %{S:5} %{buildroot}%{_cross_libdir}/bottlerocket/ephemeral-storage.d/soci-snapshotter.conf
+
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
 %post igzip -p <lua>
@@ -104,6 +107,7 @@ posix.symlink("%{_cross_bindir}/unpigz", "%{_cross_bindir}/soci-gunzip")
 %{_cross_attribution_file}
 %{_cross_templatedir}/soci-config-toml
 %{_cross_bindir}/soci-snapshotter-grpc
+%{_cross_libdir}/bottlerocket/ephemeral-storage.d/soci-snapshotter.conf
 
 %files pigz
 # No files provided by pigz but required for packaging.

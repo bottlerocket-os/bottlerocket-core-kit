@@ -812,9 +812,7 @@ async fn initialize_ephemeral_storage(cfg: web::Json<Init>) -> Result<HttpRespon
 }
 /// Bind directories to ephemeral storage (mount array, bind, and unmount)
 async fn bind_ephemeral_storage(cfg: web::Json<Bind>) -> Result<HttpResponse> {
-    let os_info = controller::get_os_info()?;
-    ephemeral_storage::bind(&os_info.variant_id, cfg.0.targets)
-        .context(error::EphemeralBindSnafu {})?;
+    ephemeral_storage::bind(cfg.0.targets).context(error::EphemeralBindSnafu {})?;
     Ok(HttpResponse::NoContent().finish()) // 204
 }
 
@@ -855,20 +853,15 @@ async fn list_ephemeral_storage_dirs(
     req: HttpRequest,
     query: web::Query<HashMap<String, String>>,
 ) -> Result<HttpResponse> {
-    let os_info = controller::get_os_info()?;
-
-    let allowed_dirs = ephemeral_storage::allowed_bind_dirs(&os_info.variant_id);
+    let allowed_dirs =
+        ephemeral_storage::allowed_bind_dirs().context(error::EphemeralAllowedDirsSnafu {})?;
     let mut text_response = String::new();
     for dir in &allowed_dirs.allowed_exact {
         text_response.push_str(dir);
         text_response.push('\n');
     }
 
-    let allowed: Vec<String> = allowed_dirs
-        .allowed_exact
-        .iter()
-        .map(|x| String::from(*x))
-        .collect();
+    let allowed: Vec<String> = allowed_dirs.allowed_exact.into_iter().collect();
     list_ephemeral_response(req, query, allowed, text_response).await
 }
 
@@ -1039,6 +1032,7 @@ impl ResponseError for error::Error {
             EphemeralBind { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             EphemeralInitialize { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             EphemeralListDisks { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            EphemeralAllowedDirs { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             InvalidMetadata { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             ConfigApplierFork { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             ConfigApplierStart { .. } => StatusCode::INTERNAL_SERVER_ERROR,

@@ -24,6 +24,7 @@ Source4: containerd-config-toml_k8s_nvidia_containerd_sock
 Source5: containerd-tmpfiles.conf
 Source6: containerd-cri-base-json
 Source7: snapshotter-toml
+Source8: ephemeral-storage.conf
 
 # Mount for writing containerd configuration
 Source100: etc-containerd.mount
@@ -134,6 +135,8 @@ install -d %{buildroot}%{_cross_unitdir}/containerd.service.d
 install -p -m 0644 %{S:200} %{buildroot}%{_cross_unitdir}/containerd.service.d/005-disable-igzip.conf
 install -p -m 0644 %{S:201} %{buildroot}%{_cross_unitdir}/containerd.service.d/005-disable-pigz.conf
 
+install -D -p -m 0644 %{S:8} %{buildroot}%{_cross_libdir}/bottlerocket/ephemeral-storage.d/containerd.conf
+
 %cross_scan_attribution --clarify %{S:1000} go-vendor vendor
 
 %files
@@ -148,6 +151,7 @@ install -p -m 0644 %{S:201} %{buildroot}%{_cross_unitdir}/containerd.service.d/0
 %{_cross_templatedir}/containerd-cri-base-json
 %{_cross_templatedir}/snapshotter-toml
 %{_cross_tmpfilesdir}/containerd.conf
+%{_cross_libdir}/bottlerocket/ephemeral-storage.d/containerd.conf
 %{_cross_bindir}/containerd
 %{_cross_bindir}/containerd-shim
 %{_cross_bindir}/containerd-shim-runc-v1
