@@ -12,6 +12,9 @@ Source0: https://www.kernel.org/pub/linux/utils/util-linux/v%{majorminor}/util-l
 Source1: https://www.kernel.org/pub/linux/utils/util-linux/v%{majorminor}/util-linux-%{version}.tar.sign
 Source2: gpgkey-B0C64D14301CC6EFAEDF60E4E4B71D5EEC39C284.asc
 
+# Only probe for the partition tables our kernel configuration supports.
+Patch1: 0001-libblkid-keep-only-supported-partition-probers.patch
+
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libacl-devel
 BuildRequires: %{_cross_os}libncurses-devel
