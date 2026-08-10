@@ -165,7 +165,10 @@ Requires: %{_cross_os}filesystem
 Requires: %{_cross_os}findutils
 Requires: %{_cross_os}glibc
 Requires: %{_cross_os}grep
-Requires: %{_cross_os}grub
+# For newer versions of twoliter that support UKIs, explicitly request the bootloader(efi) capability
+Requires: (%{_cross_os}bootloader(efi) if (%{_cross_os}image-feature(uki-image) or %{_cross_os}image-feature(no-uki-image)))
+# Older versions of twoliter that don't support UKIs always get GRUB
+Requires: (%{_cross_os}grub or %{_cross_os}image-feature(uki-image) or %{_cross_os}image-feature(no-uki-image))
 Requires: %{_cross_os}iproute
 Requires: %{_cross_os}iptables
 Requires: %{_cross_os}kexec-tools
