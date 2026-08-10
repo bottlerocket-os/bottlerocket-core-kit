@@ -18,6 +18,7 @@ Currently supported feature flags:
 
 - `IN_PLACE_UPDATES` - Controls whether in-place updates are enabled (default: true)
 - `ENCRYPTED_STORAGE` - Controls whether encrypted storage is enabled (default: false)
+- `EPHEMERAL_ENCRYPTION_KEYS` - Controls whether encryption keys are regenerated every boot (default: false)
 
 ### Usage
 

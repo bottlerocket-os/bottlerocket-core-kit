@@ -15,6 +15,7 @@ Currently supported feature flags:
 
 - `IN_PLACE_UPDATES` - Controls whether in-place updates are enabled (default: true)
 - `ENCRYPTED_STORAGE` - Controls whether encrypted storage is enabled (default: false)
+- `EPHEMERAL_ENCRYPTION_KEYS` - Controls whether encryption keys are regenerated every boot (default: false)
 
 ## Usage
 
@@ -56,6 +57,8 @@ pub struct ImageFeatures {
     pub in_place_updates: bool,
     #[serde(default)]
     pub encrypted_storage: bool,
+    #[serde(default)]
+    pub ephemeral_encryption_keys: bool,
 }
 
 fn default_true() -> bool {
@@ -68,6 +71,7 @@ pub fn parse_image_features() -> Result<ImageFeatures> {
         return Ok(ImageFeatures {
             in_place_updates: true,
             encrypted_storage: false,
+            ephemeral_encryption_keys: false,
         });
     }
 
@@ -148,5 +152,26 @@ IN_PLACE_UPDATES="false"
         let content = "";
         let features = parse_image_features_from_str(content).unwrap();
         assert_eq!(features.in_place_updates, true);
+        assert_eq!(features.ephemeral_encryption_keys, false);
+    }
+
+    #[test]
+    fn test_parse_env_ephemeral_encryption_keys_false() {
+        let content = r#"EPHEMERAL_ENCRYPTION_KEYS="false""#;
+        let features = parse_image_features_from_str(content).unwrap();
+        assert_eq!(features.ephemeral_encryption_keys, false);
+    }
+
+    #[test]
+    fn test_parse_env_ephemeral_encryption_keys_true() {
+        let content = r#"EPHEMERAL_ENCRYPTION_KEYS="true""#;
+        let features = parse_image_features_from_str(content).unwrap();
+        assert_eq!(features.ephemeral_encryption_keys, true);
+    }
+
+    #[test]
+    fn test_parse_env_ephemeral_encryption_keys_invalid() {
+        let content = r#"EPHEMERAL_ENCRYPTION_KEYS="yes""#;
+        assert!(parse_image_features_from_str(content).is_err());
     }
 }
