@@ -1,20 +1,34 @@
 # Unreleased
 
+# v15.1.0 (2026-08-10)
 ## OS Changes
+* Replace hardcoded ephemeral-storage bind-dir allowlist with package-contributed drop-in fragments in `/usr/lib/bottlerocket/ephemeral-storage.d/` ([#1001])
+* Make superpowered containers receive all kernel-known capabilities ([#987]) - Thanks @anirbag
 
 ### Third Party Package Updates
 * Update `libcrypto`, `libdevmapper`, `libncurses`, `libelf`, and `libffi` ([#998])
-* Replace hardcoded ephemeral-storage bind-dir allowlist with package-contributed drop-in fragments in `/usr/lib/bottlerocket/ephemeral-storage.d/` ([#1001])
-* update aws-signing-helper to v1.8.4 ([#1003])
+* Update `containerd-1.7`, `containerd-2.2`, `kubernetes-1.31`, `kubernetes-1.32`, `kubernetes-1.33`, `kubernetes-1.34`, `kubernetes-1.35`, and `kubernetes-1.36` ([#989])
+* Update `aws-signing-helper` ([#989], [#1003])
+* Update `soci-snapshotter` ([#989], [#995]) - Thanks @ayush-panta
 
 ## Build Changes
-
 * Update Twoliter to `0.22.1` ([#991], [#996])
+* Update bottlerocket-sdk to v0.78.0 ([#1002])
+* Update first-party tough dependency to the latest version ([#990])
 
+## Orchestrator Changes
+* Update eni-max-pods mapping ([#997])
+
+[#987]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/987
+[#989]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/989
+[#990]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/990
 [#991]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/991
+[#995]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/995
 [#996]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/996
+[#997]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/997
 [#998]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/998
 [#1001]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1001
+[#1002]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1002
 [#1003]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1003
 
 # v15.0.0 (2026-07-23)
