@@ -105,7 +105,6 @@ Requires: %{_cross_os}metricdog
 Requires: %{_cross_os}prairiedog
 Requires: %{_cross_os}schnauzer
 Requires: %{_cross_os}settings-committer
-Requires: %{_cross_os}signpost
 Requires: %{_cross_os}storewolf
 Requires: %{_cross_os}sundog
 Requires: %{_cross_os}xfscli
@@ -119,6 +118,8 @@ Requires: (%{_cross_os}bork or %{_cross_os}image-feature(no-in-place-updates))
 Requires: (%{_cross_os}migration or %{_cross_os}image-feature(no-in-place-updates))
 Requires: (%{_cross_os}thar-be-updates or %{_cross_os}image-feature(no-in-place-updates))
 Requires: (%{_cross_os}updog or %{_cross_os}image-feature(no-in-place-updates))
+
+Requires: (%{_cross_os}signpost or %{_cross_os}image-feature(uki-image))
 
 Requires: (%{_cross_os}pluto if %{_cross_os}variant-family(aws-k8s))
 Requires: (%{_cross_os}shibaken if %{_cross_os}variant-platform(aws))
@@ -239,6 +240,7 @@ Requires: %{_cross_os}nvme-cli
 
 %package -n %{_cross_os}signpost
 Summary: Bottlerocket GPT priority querier/switcher
+Conflicts: %{_cross_os}image-feature(uki-image)
 %description -n %{_cross_os}signpost
 %{summary}.
 
