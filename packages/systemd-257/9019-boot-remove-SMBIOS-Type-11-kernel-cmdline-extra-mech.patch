@@ -1,0 +1,185 @@
+From 18967f6064e3e9a6d139e9d19e92367e4f9c3c94 Mon Sep 17 00:00:00 2001
+From: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+Date: Wed, 12 Aug 2026 18:55:46 +0000
+Subject: [PATCH] boot: remove SMBIOS Type 11 kernel-cmdline-extra mechanism
+
+Remove the ability for sd-boot and the UKI stub to extend the kernel
+command line with values read from SMBIOS Type 11 OEM strings
+("io.systemd.boot.kernel-cmdline-extra" and
+"io.systemd.stub.kernel-cmdline-extra").
+
+SMBIOS Type 11 OEM strings are supplied by the firmware or VMM and
+were being trusted to inject additional kernel command line
+arguments outside of the UKI/boot entry itself. Remove this
+mechanism entirely:
+
+- src/boot/stub.c: drop cmdline_append_and_measure_smbios() and its
+  call site in run().
+- src/boot/boot.c: drop the block in image_start() that appended the
+  "io.systemd.boot.kernel-cmdline-extra" OEM string to the boot
+  entry options.
+- src/boot/smbios.c, src/boot/smbios.h: drop
+  smbios_find_oem_string(), which no longer has any callers.
+
+systemd-vmspawn's arg_kernel_cmdline_extra is left untouched: aside
+from the (now dead) SMBIOS Type 11 OEM string arguments it still
+generates for QEMU when booting via a bootloader/UKI, it is also
+used to build the kernel command line passed directly via QEMU's
+-append when booting a kernel image directly, so it is not solely
+tied to this mechanism.
+
+Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+---
+ src/boot/boot.c   | 12 ------------
+ src/boot/smbios.c | 27 ---------------------------
+ src/boot/smbios.h |  2 --
+ src/boot/stub.c   | 36 +-----------------------------------
+ 4 files changed, 1 insertion(+), 76 deletions(-)
+
+diff --git a/src/boot/boot.c b/src/boot/boot.c
+index 21aa00b356..da5e97771e 100644
+--- a/src/boot/boot.c
++++ b/src/boot/boot.c
+@@ -23,7 +23,6 @@
+ #include "sbat.h"
+ #include "secure-boot.h"
+ #include "shim.h"
+-#include "smbios.h"
+ #include "ticks.h"
+ #include "tpm2-pcr.h"
+ #include "uki.h"
+@@ -2599,17 +2598,6 @@ static EFI_STATUS image_start(
+          * so). */
+         _cleanup_free_ char16_t *options = xstrdup16(options_initrd ?: entry->options_implied ? NULL : entry->options);
+ 
+-        if (entry->type == LOADER_LINUX && !is_confidential_vm()) {
+-                const char *extra = smbios_find_oem_string("io.systemd.boot.kernel-cmdline-extra");
+-                if (extra) {
+-                        _cleanup_free_ char16_t *tmp = TAKE_PTR(options), *extra16 = xstr8_to_16(extra);
+-                        if (isempty(tmp))
+-                                options = TAKE_PTR(extra16);
+-                        else
+-                                options = xasprintf("%ls %ls", tmp, extra16);
+-                }
+-        }
+-
+         /* Prefix profile if it's non-zero */
+         if (entry->profile > 0) {
+                 _cleanup_free_ char16_t *tmp = TAKE_PTR(options);
+diff --git a/src/boot/smbios.c b/src/boot/smbios.c
+index 329619f85b..844b558cea 100644
+--- a/src/boot/smbios.c
++++ b/src/boot/smbios.c
+@@ -182,33 +182,6 @@ bool smbios_in_hypervisor(void) {
+         return FLAGS_SET(type0->bios_characteristics_ext[1], 1 << 4);
+ }
+ 
+-const char* smbios_find_oem_string(const char *name) {
+-        uint64_t left;
+-
+-        assert(name);
+-
+-        const SmbiosTableType11 *type11 = (const SmbiosTableType11 *) get_smbios_table(11, sizeof(SmbiosTableType11), &left);
+-        if (!type11)
+-                return NULL;
+-
+-        assert(left >= type11->header.length); /* get_smbios_table() already validated this */
+-        left -= type11->header.length;
+-
+-        for (const char *p = type11->contents, *limit = type11->contents + left; p < limit; ) {
+-                const char *e = memchr(p, 0, limit - p);
+-                if (!e || e == p) /* Double NUL byte means we've reached the end of the OEM strings. */
+-                        break;
+-
+-                const char *eq = startswith8(p, name);
+-                if (eq && *eq == '=')
+-                        return eq + 1;
+-
+-                p = e + 1;
+-        }
+-
+-        return NULL;
+-}
+-
+ static const char* smbios_get_string(const SmbiosHeader *header, size_t nr, uint64_t left) {
+         const char *s = (const char *) ASSERT_PTR(header);
+ 
+diff --git a/src/boot/smbios.h b/src/boot/smbios.h
+index 34625c8572..674d702841 100644
+--- a/src/boot/smbios.h
++++ b/src/boot/smbios.h
+@@ -5,8 +5,6 @@
+ 
+ bool smbios_in_hypervisor(void);
+ 
+-const char* smbios_find_oem_string(const char *name);
+-
+ typedef struct RawSmbiosInfo {
+         const char *manufacturer;
+         const char *product_name;
+diff --git a/src/boot/stub.c b/src/boot/stub.c
+index 06bf513950..6904d21fd8 100644
+--- a/src/boot/stub.c
++++ b/src/boot/stub.c
+@@ -17,7 +17,6 @@
+ #include "sbat.h"
+ #include "secure-boot.h"
+ #include "shim.h"
+-#include "smbios.h"
+ #include "splash.h"
+ #include "tpm2-pcr.h"
+ #include "uki.h"
+@@ -768,37 +767,6 @@ static void measure_sections(
+         }
+ }
+ 
+-static void cmdline_append_and_measure_smbios(char16_t **cmdline, int *parameters_measured) {
+-        assert(cmdline);
+-        assert(parameters_measured);
+-
+-        /* SMBIOS OEM Strings data is controlled by the host admin and not covered by the VM attestation, so
+-         * MUST NOT be trusted when in a confidential VM */
+-        if (is_confidential_vm())
+-                return;
+-
+-        const char *extra = smbios_find_oem_string("io.systemd.stub.kernel-cmdline-extra");
+-        if (!extra)
+-                return;
+-
+-        _cleanup_free_ char16_t *extra16 = mangle_stub_cmdline(xstr8_to_16(extra));
+-        if (isempty(extra16))
+-                return;
+-
+-        /* SMBIOS strings are measured in PCR1, but we also want to measure them in our specific PCR12, as
+-         * firmware-owned PCRs are very difficult to use as they'll contain unpredictable measurements that
+-         * are not under control of the machine owner. */
+-        bool m = false;
+-        (void) tpm_log_load_options(extra16, &m);
+-        combine_measured_flag(parameters_measured, m);
+-
+-        _cleanup_free_ char16_t *tmp = TAKE_PTR(*cmdline);
+-        if (isempty(tmp))
+-                *cmdline = TAKE_PTR(extra16);
+-        else
+-                *cmdline = xasprintf("%ls %ls", tmp, extra16);
+-}
+-
+ static void initrds_free(struct iovec (*initrds)[_INITRD_MAX]) {
+         assert(initrds);
+ 
+@@ -1219,11 +1187,9 @@ static EFI_STATUS run(EFI_HANDLE image) {
+         load_all_addons(image, loaded_image, uname, &cmdline_addons, &dt_addons, &n_dt_addons, &initrd_addons, &n_initrd_addons, &ucode_addons, &n_ucode_addons);
+ 
+         /* If we have any extra command line to add via PE addons, load them now and append, and measure the
+-         * additions together, after the embedded options, but before the smbios ones, so that the order is
+-         * reversed from "most hardcoded" to "most dynamic". The global addons are loaded first, and the
++         * additions together, after the embedded options. The global addons are loaded first, and the
+          * image-specific ones later, for the same reason. */
+         cmdline_append_and_measure_addons(cmdline_addons, &cmdline, &parameters_measured);
+-        cmdline_append_and_measure_smbios(&cmdline, &parameters_measured);
+ 
+         export_common_variables(loaded_image);
+         export_stub_variables(loaded_image, profile);
+-- 
+2.52.0
+

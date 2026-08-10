@@ -3,6 +3,14 @@
 
 %global package_priority_epoch 0
 
+# Install the systemd-boot bootloader at the same location as the GRUB and
+# shim EFI binaries, so image builds find all ESP loaders in one place.
+%global efidir /boot/efi/EFI/BOOT
+
+# systemd-boot reads its own configuration from /loader/loader.conf on the
+# volume it was loaded from, i.e. the ESP, never from XBOOTLDR.
+%global loaderdir /boot/efi/loader
+
 Name: %{_cross_os}systemd-257
 Version: 257.13
 Release: 1%{?dist}
@@ -17,6 +25,7 @@ Source103: org.freedesktop.systemd1.toml
 
 Source1: systemd-mount-rate-bootconfig.conf
 Source2: systemd-cgroup-legacy-force-bootconfig.conf
+Source3: loader.conf
 
 # Backport of upstream patch to change `Failed to execute <filepath> No such file
 # or directory` error logs to debug
@@ -81,6 +90,11 @@ Patch9016: 9016-bootctl-disable-secure-boot-autoenroll.patch
 
 # Patch meson to set OPENSSL_NO_UI_CONSOLE CFLAGS for the build
 Patch9017: 9017-meson-set-DOPENSSL_NO_UI_CONSOLE-when-using-openssl.patch
+# Patch meson to skip unsupported architecture builds 
+Patch9018: 9018-build-correct-sd-boot-EFI-arch-on-the-Bottlerocket-S.patch
+# Remove undesired SMBIOS functionality
+Patch9019: 9019-boot-remove-SMBIOS-Type-11-kernel-cmdline-extra-mech.patch
+Patch9020: 9020-boot-vmspawn-finish-removing-SMBIOS-cmdline-extra-bi.patch
 
 BuildRequires: gperf
 BuildRequires: intltool
@@ -173,6 +187,17 @@ Provides: %{_cross_os}auditd = %{package_priority_epoch}:
 Conflicts: %{_cross_os}auditd
 
 %description journald-audit
+%{summary}.
+
+%package bootloader
+Summary: EFI boot loader and stub binaries
+Requires: %{name}
+Requires: %{_cross_os}image-feature(uki-image)
+Provides: %{_cross_os}bootloader(efi)
+Conflicts: %{_cross_os}image-feature(no-uki-image)
+Conflicts: %{_cross_os}image-feature(in-place-updates)
+
+%description bootloader
 %{summary}.
 
 %prep
@@ -299,7 +324,13 @@ CONFIGURE_OPTS=(
  -Dglib=disabled
  -Ddbus=disabled
 
- -Dbootloader=disabled
+ -Dbootloader=enabled
+
+ -Dsbat-distro='bottlerocket'
+ -Dsbat-distro-generation=1
+ -Dsbat-distro-summary='Bottlerocket'
+ -Dsbat-distro-pkgname='systemd-boot'
+ -Dsbat-distro-url='https://github.com/bottlerocket-os/bottlerocket/'
 
  -Dbashcompletiondir=no
  -Dzshcompletiondir=no
@@ -371,6 +402,20 @@ find %{buildroot} -type f -name README -print -delete
 install -d %{buildroot}%{_cross_bootconfigdir}
 install -p -m 0644 %{S:1} %{buildroot}%{_cross_bootconfigdir}/20-mount-rate-limit-burst.conf
 install -p -m 0644 %{S:2} %{buildroot}%{_cross_bootconfigdir}/21-cgroup-enable-legacy-force.conf
+
+# Relocate the systemd-boot EFI binary from the meson install location to
+# %%{efidir}, matching the GRUB and shim convention. The UKI stub
+# (linux%%{_cross_efi_arch}.efi.stub) stays in %%{_cross_libdir}/systemd/boot/efi
+# since it is a build-time input for ukify, not an ESP loader.
+install -d %{buildroot}%{efidir}
+mv %{buildroot}%{_cross_libdir}/systemd/boot/efi/systemd-boot%{_cross_efi_arch}.efi \
+  %{buildroot}%{efidir}/systemd-boot%{_cross_efi_arch}.efi
+
+# Ship sensible systemd-boot defaults. This has to land on the ESP rather than
+# the boot partition, since systemd-boot only reads /loader/loader.conf from
+# the volume it was loaded from.
+install -d %{buildroot}%{loaderdir}
+install -p -m 0644 %{S:3} %{buildroot}%{loaderdir}/loader.conf
 
 %files
 %license LICENSE.GPL2 LICENSE.LGPL2.1
@@ -450,6 +495,25 @@ install -p -m 0644 %{S:2} %{buildroot}%{_cross_bootconfigdir}/21-cgroup-enable-l
 %exclude %{_cross_libdir}/systemd/systemd-ssh-proxy
 %exclude %{_cross_systemdgeneratordir}/systemd-ssh-generator
 %exclude %{_cross_systemdgeneratordir}/systemd-gpt-auto-generator
+
+# Bottlerocket does not ship the systemd-boot bootloader runtime or the
+# TPM measured-boot/pcrlock subsystem; we build -Dbootloader=enabled only to
+# produce sd-stub/sd-boot EFI binaries for UKI assembly. Exclude the whole
+# subsystem (units, wants symlinks, generator, and helper binaries).
+%exclude %{_cross_unitdir}/systemd-bless-boot*
+%exclude %{_cross_unitdir}/systemd-boot-random-seed*
+%exclude %{_cross_unitdir}/systemd-boot-update*
+%exclude %{_cross_unitdir}/systemd-bootctl*
+%exclude %{_cross_unitdir}/systemd-pcr*
+%exclude %{_cross_unitdir}/systemd-tpm2-setup*
+%exclude %{_cross_unitdir}/*.target.wants/systemd-boot-random-seed.service
+%exclude %{_cross_unitdir}/*.target.wants/systemd-pcr*
+%exclude %{_cross_unitdir}/*.target.wants/systemd-tpm2-setup*
+%exclude %{_cross_unitdir}/*.target.wants/systemd-bootctl.socket
+%exclude %{_cross_systemdgeneratordir}/systemd-bless-boot-generator
+%exclude %{_cross_libdir}/systemd/systemd-bless-boot
+%exclude %{_cross_libdir}/systemd/systemd-tpm2-setup
+%exclude %{_cross_libdir}/systemd/systemd-pcrextend
 
 %dir %{_cross_libdir}/systemd/system-preset
 %{_cross_libdir}/systemd/system-preset/90-systemd.preset
@@ -887,3 +951,11 @@ install -p -m 0644 %{S:2} %{buildroot}%{_cross_bootconfigdir}/21-cgroup-enable-l
 
 %files journald-audit
 %{_cross_unitdir}/systemd-journald-audit.socket
+
+%files bootloader
+%dir %{efidir}
+%{efidir}/systemd-boot%{_cross_efi_arch}.efi
+%dir %{loaderdir}
+%{loaderdir}/loader.conf
+%dir %{_cross_libdir}/systemd/boot
+%{_cross_libdir}/systemd/boot/efi/
