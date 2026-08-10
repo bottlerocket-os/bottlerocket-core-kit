@@ -64,6 +64,20 @@ pub enum Error {
         successful: bool,
     },
 
+    #[snafu(display(
+        "Found {} partitions of type {} on the OS disk, expected at most one: {:?}",
+        partitions.len(),
+        partition_type,
+        partitions
+    ))]
+    MultiplePartitionsOfType {
+        partition_type: String,
+        partitions: Vec<PathBuf>,
+    },
+
+    #[snafu(display("No XBOOTLDR partition found on the OS disk"))]
+    NoXbootldrPartition,
+
     #[snafu(display("Failed to open {} for {}: {}", path.display(), what, source))]
     Open {
         path: PathBuf,
