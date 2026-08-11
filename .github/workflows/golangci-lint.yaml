@@ -14,17 +14,17 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version: 1.21
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262        
       - name: lint-host-ctr
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@d583c34f0599d37dbac4a198b9c83201be380893
         with:
           version: latest
           working-directory: sources/host-ctr
       - name: lint-ecs-gpu-init
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@d583c34f0599d37dbac4a198b9c83201be380893
         with:
           version: latest
           working-directory: sources/ecs-gpu-init
