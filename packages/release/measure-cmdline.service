@@ -10,6 +10,12 @@ RefuseManualStop=true
 
 [Service]
 Type=oneshot
+EnvironmentFile=-/usr/share/bottlerocket/image-format.env
+
+# Skip on UKI images; the kernel command line is measured as part of the
+# UKI PE binary itself, not extended separately here.
+ExecCondition=[ "${UKI_IMAGE}" != "true" ]
+
 ExecStart=/usr/bin/rottweiler measure kernel-command-line
 RemainAfterExit=true
 
