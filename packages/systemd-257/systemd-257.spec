@@ -96,6 +96,10 @@ Patch9018: 9018-build-correct-sd-boot-EFI-arch-on-the-Bottlerocket-S.patch
 Patch9019: 9019-boot-remove-SMBIOS-Type-11-kernel-cmdline-extra-mech.patch
 Patch9020: 9020-boot-vmspawn-finish-removing-SMBIOS-cmdline-extra-bi.patch
 
+# Correctly check the EFI_STATUS return of the measurement call in
+# tpm_log_tagged_event so early return only happens on failure
+Patch9021: 9021-measure-figure-success-of-measurement-correctly.patch
+
 BuildRequires: gperf
 BuildRequires: intltool
 BuildRequires: meson

@@ -1,0 +1,32 @@
+From bb19b6104978b5ede792fa3f0cfc74272f20bf9c Mon Sep 17 00:00:00 2001
+From: Maher Homsi <maherhom@amazon.com>
+Date: Tue, 11 Aug 2026 13:30:00 -0700
+Subject: [PATCH] measure: figure success of measurement correctly
+
+Compare the EFI_STATUS return of tpm_log_tagged_event's measurement call
+against EFI_SUCCESS instead of "if (!err)", which masked failures as
+success (EFI_SUCCESS is 0).
+
+Backported from upstream bb19b6104978b5ede792fa3f0cfc74272f20bf9c.
+
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ src/boot/measure.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/boot/measure.c b/src/boot/measure.c
+index 22129cb87d61d..3c51998d1b298 100644
+--- a/src/boot/measure.c
++++ b/src/boot/measure.c
+@@ -285,7 +285,7 @@ EFI_STATUS tpm_log_tagged_event(
+         }
+
+         err = tpm2_measure_to_pcr_and_tagged_event_log(tpm2, pcrindex, buffer, buffer_size, event_id, description);
+-        if (!err)
++        if (err != EFI_SUCCESS)
+                 return err;
+
+         if (ret_measured)
+--
+2.51.0
+
