@@ -41,6 +41,12 @@ pub(super) enum Error {
         path: PathBuf,
     },
 
+    #[snafu(display("Failed to scan the OS disk's partition table: {}", source))]
+    ScanDiskLayout { source: SignpostError },
+
+    #[snafu(display("Failed to scan the OS disk for the XBOOTLDR partition: {}", source))]
+    ScanForXbootldrPartition { source: SignpostError },
+
     #[snafu(display("Failed to setup mount '{}': '{}'", path, source))]
     SetupMount { path: String, source: nix::Error },
 
