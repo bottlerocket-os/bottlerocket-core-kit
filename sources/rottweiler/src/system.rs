@@ -1,3 +1,5 @@
+use serde::Deserialize;
+use settings_extension_measurement::MeasurementSettingsV1;
 use snafu::prelude::*;
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -161,21 +163,77 @@ fn get_tpm2_pcrs() -> Result<String> {
     })
 }
 
-/// Get canonicalized settings from apiclient, excluding seed and hostname
-pub fn apiclient_get_settings() -> Result<Zeroizing<Vec<u8>>> {
-    execute(
+/// Wrapper structs for deserializing the apiclient verbose JSON response.
+/// apiclient returns: `{"settings":{"measurement":{"excluded-settings":[...]}}}`
+#[derive(Deserialize)]
+struct ApiSettingsResponse {
+    settings: ApiSettingsMeasurement,
+}
+
+#[derive(Deserialize)]
+struct ApiSettingsMeasurement {
+    measurement: MeasurementSettingsV1,
+}
+
+/// Get the user-configured excluded settings from the API.
+/// Returns an empty list if the setting is not configured.
+fn get_extra_excluded_settings() -> Result<Vec<String>> {
+    let output = execute(
         APICLIENT,
-        &[
-            "get",
-            "settings",
-            "--exclude",
-            "settings.updates.seed",
-            "--exclude",
-            "settings.network.hostname",
-            "--canonicalize",
-        ],
+        &["get", "settings.measurement.excluded-settings"],
         None,
-    )
+    )?;
+
+    let text = String::from_utf8_lossy(&output);
+    let response: ApiSettingsResponse =
+        serde_json::from_str(text.trim()).with_whatever_context(|e| {
+            format!("failed to parse measurement exclusion settings: {e}")
+        })?;
+
+    let excluded = match response.settings.measurement.excluded_settings {
+        Some(values) => values,
+        None => return Ok(Vec::new()),
+    };
+
+    // Normalize values by stripping a leading "settings." prefix if present.
+    // Users may provide either "host-containers" or "settings.host-containers";
+    // we need bare names for constructing the apiclient `--exclude` arguments.
+    Ok(excluded
+        .iter()
+        .map(|v| {
+            v.trim()
+                .strip_prefix("settings.")
+                .unwrap_or(v.trim())
+                .to_string()
+        })
+        .collect())
+}
+
+/// Get canonicalized settings from apiclient, excluding seed, hostname, and
+/// any additional settings the customer has configured via
+/// `settings.measurement.excluded-settings`.
+pub fn apiclient_get_settings() -> Result<Zeroizing<Vec<u8>>> {
+    let extra_exclusions = get_extra_excluded_settings()?;
+
+    let mut args: Vec<String> = vec![
+        "get".into(),
+        "settings".into(),
+        "--exclude".into(),
+        "settings.updates.seed".into(),
+        "--exclude".into(),
+        "settings.network.hostname".into(),
+    ];
+
+    args.extend(
+        extra_exclusions
+            .iter()
+            .flat_map(|s| ["--exclude".to_string(), format!("settings.{}", s)]),
+    );
+
+    args.push("--canonicalize".into());
+
+    let arg_refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+    execute(APICLIENT, &arg_refs, None)
 }
 
 /// Extend a TPM PCR with SHA256, SHA384, and SHA512 hashes
@@ -189,4 +247,73 @@ pub fn tpm2_pcrextend(pcr: u32, sha256: &str, sha384: &str, sha512: &str) -> Res
         None,
     )?;
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    // === API response deserialization ===
+
+    #[test]
+    fn parse_nested_json_response() {
+        // Simulate what apiclient actually returns
+        let json = r#"{"settings":{"measurement":{"excluded-settings":["host-containers","bootstrap-containers"]}}}"#;
+        let response: ApiSettingsResponse = serde_json::from_str(json).unwrap();
+        let excluded = response.settings.measurement.excluded_settings.unwrap();
+        assert_eq!(excluded, vec!["host-containers", "bootstrap-containers"]);
+    }
+
+    #[test]
+    fn parse_empty_excluded_settings() {
+        let json = r#"{"settings":{"measurement":{"excluded-settings":[]}}}"#;
+        let response: ApiSettingsResponse = serde_json::from_str(json).unwrap();
+        let excluded = response.settings.measurement.excluded_settings.unwrap();
+        assert!(excluded.is_empty());
+    }
+
+    #[test]
+    fn parse_missing_excluded_settings_field() {
+        // When the excluded-settings key is absent, it deserializes as None
+        let json = r#"{"settings":{"measurement":{}}}"#;
+        let response: ApiSettingsResponse = serde_json::from_str(json).unwrap();
+        assert!(response.settings.measurement.excluded_settings.is_none());
+    }
+
+    #[test]
+    fn parse_malformed_json_fails() {
+        let json = r#"not json at all"#;
+        let result = serde_json::from_str::<ApiSettingsResponse>(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_wrong_structure_fails() {
+        // Missing "settings" wrapper
+        let json = r#"{"measurement":{"excluded-settings":["host-containers"]}}"#;
+        let result = serde_json::from_str::<ApiSettingsResponse>(json);
+        assert!(result.is_err());
+    }
+
+    // === Normalization for apiclient args ===
+
+    #[test]
+    fn normalize_strips_settings_prefix() {
+        let value = "settings.host-containers";
+        let normalized = value
+            .trim()
+            .strip_prefix("settings.")
+            .unwrap_or(value.trim());
+        assert_eq!(normalized, "host-containers");
+    }
+
+    #[test]
+    fn normalize_leaves_bare_value_unchanged() {
+        let value = "host-containers";
+        let normalized = value
+            .trim()
+            .strip_prefix("settings.")
+            .unwrap_or(value.trim());
+        assert_eq!(normalized, "host-containers");
+    }
 }
