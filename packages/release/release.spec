@@ -88,6 +88,8 @@ Source1065: check-kernel-integrity.service
 Source1066: check-fips-modules.service
 Source1067: fips-modprobe@.service
 Source1068: configure-snapshotter.service
+Source1069: generate-fips-hmac-path-uki.service
+Source1070: generate-fips-hmac-path-vmlinuz.service
 
 # Mounts that require build-time edits.
 Source1080: var-lib-kernel-devel-lower.mount.in
@@ -281,6 +283,7 @@ install -p -m 0644 \
   %{S:1065} %{S:1066} %{S:1067} %{S:1068} \
   %{S:1600} %{S:1601} %{S:1602} %{S:1603} %{S:1604} \
   %{S:1605} %{S:1606} %{S:1607} %{S:1608} %{S:1609} \
+  %{S:1069} %{S:1070} \
   %{buildroot}%{_cross_unitdir}
 
 install -d %{buildroot}%{_cross_unitdir}/systemd-tmpfiles-setup.service.d
@@ -496,6 +499,8 @@ ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 %{_cross_unitdir}/fipscheck.target
 %{_cross_unitdir}/activate-preconfigured.service
 %{_cross_unitdir}/check-kernel-integrity.service
+%{_cross_unitdir}/generate-fips-hmac-path-uki.service
+%{_cross_unitdir}/generate-fips-hmac-path-vmlinuz.service
 %{_cross_unitdir}/check-fips-modules.service
 %dir %{_cross_unitdir}/check-fips-modules.service.d
 %{_cross_unitdir}/fips-modprobe@.service

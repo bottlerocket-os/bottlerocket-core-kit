@@ -1,0 +1,19 @@
+[Unit]
+Description=Determine FIPS HMAC in vmlinuz image
+RefuseManualStart=true
+RefuseManualStop=true
+DefaultDependencies=no
+Before=fipscheck.target check-kernel-integrity.service
+ConditionKernelCommandLine=fips=1
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/usr/share/bottlerocket/image-format.env
+ExecCondition=[ "${UKI_IMAGE}" != "true" ]
+ExecStart=/usr/bin/echo "HMAC_PATH=/boot/.vmlinuz.hmac"
+RemainAfterExit=true
+StandardOutput=file:/etc/fips-hmac-path.env
+StandardError=journal+console
+
+[Install]
+RequiredBy=fipscheck.target
