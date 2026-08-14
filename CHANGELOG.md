@@ -1,5 +1,13 @@
 # Unreleased
 
+# v16.0.0 (2026-08-14)
+## OS Changes
+* Add support for Unified Kernel Images ([#1007])
+* Add support for ephemeral encryption keys ([#999])
+
+[#999]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/999
+[#1007]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1007
+
 # v15.1.0 (2026-08-10)
 ## OS Changes
 * Replace hardcoded ephemeral-storage bind-dir allowlist with package-contributed drop-in fragments in `/usr/lib/bottlerocket/ephemeral-storage.d/` ([#1001])
