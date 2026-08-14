@@ -12,6 +12,7 @@ RefuseManualStop=true
 [Service]
 Type=oneshot
 Environment=BOTTLEROCKET_DATA=/dev/disk/by-partlabel/BOTTLEROCKET-DATA
+EnvironmentFile=/usr/share/bottlerocket/image-features.env
 
 # Only format if not already encrypted.
 ExecCondition=/usr/bin/rottweiler check block-device ${BOTTLEROCKET_DATA} unencrypted

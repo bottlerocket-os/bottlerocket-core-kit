@@ -1,0 +1,27 @@
+[Unit]
+Description=Prepare Private Filesystem (/.bottlerocket)
+DefaultDependencies=no
+Conflicts=umount.target
+Wants=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dPRIVATE.device
+After=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dPRIVATE.device unlock-private-fs.service
+BindsTo=unlock-private-fs.service
+Before=\x2ebottlerocket.mount
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+Environment=PRIVATE_PARTITION_BLOCK_DEVICE=/dev/mapper/BOTTLEROCKET-PRIVATE
+# Relative to the ext4 defaults, we:
+# - adjust the inode ratio since we expect lots of small files
+# - retain the inode size to allow most settings to be stored inline
+# - retain the block size to handle worse-case alignment for hardware
+# - enable the ext4's native per-file encryption capability
+ExecStart=/usr/sbin/mkfs.ext4 -b 4096 -i 4096 -I 256 -F -O encrypt ${PRIVATE_PARTITION_BLOCK_DEVICE}
+
+RemainAfterExit=true
+StandardOutput=journal
+StandardError=journal+console
+
+[Install]
+RequiredBy=\x2ebottlerocket.mount

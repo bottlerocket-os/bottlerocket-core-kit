@@ -9,6 +9,7 @@ RefuseManualStop=true
 [Service]
 Type=oneshot
 Environment=DATASTORE_DIR=/.bottlerocket/datastore
+EnvironmentFile=/usr/share/bottlerocket/image-features.env
 
 ExecStart=/usr/bin/rottweiler unlock directory ${DATASTORE_DIR} datastore
 

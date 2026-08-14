@@ -13,6 +13,7 @@ RefuseManualStop=true
 [Service]
 Type=oneshot
 Environment=BOTTLEROCKET_DATA=/dev/disk/by-partlabel/BOTTLEROCKET-DATA
+EnvironmentFile=/usr/share/bottlerocket/image-features.env
 
 ExecStart=/usr/bin/rottweiler attach block-device ${BOTTLEROCKET_DATA} bottlerocket-data
 ExecStop=/usr/bin/rottweiler detach block-device ${BOTTLEROCKET_DATA}

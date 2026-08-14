@@ -1,0 +1,27 @@
+[Unit]
+Description=Encrypt Private Filesystem (/.bottlerocket)
+DefaultDependencies=no
+Conflicts=umount.target
+Wants=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dPRIVATE.device
+After=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dPRIVATE.device tpm2.target cryptsetup-pre.target
+Before=unlock-private-fs.service
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+Environment=BOTTLEROCKET_PRIVATE=/dev/disk/by-partlabel/BOTTLEROCKET-PRIVATE
+EnvironmentFile=/usr/share/bottlerocket/image-features.env
+
+# Generate the per-boot key into the /run keystore and LUKS2-format PRIVATE.
+ExecStart=/usr/bin/rottweiler generate-key bottlerocket-private
+ExecStart=/usr/bin/rottweiler encrypt block-device ${BOTTLEROCKET_PRIVATE} bottlerocket-private
+
+UMask=0077
+RemainAfterExit=true
+StandardOutput=journal+console
+StandardError=inherit
+
+[Install]
+RequiredBy=unlock-private-fs.service
