@@ -12,6 +12,7 @@ interface for encrypting and managing encrypted storage resources including:
 
 ### Key Management
 - `generate-key <key-id>` - Generate an encryption key
+- `delete-key <key-id>` - Delete an encryption key from the keystore
 
 ### Block Device Operations
 - `encrypt block-device <path> <key-id>` - Encrypt a block device using LUKS
@@ -92,6 +93,7 @@ fn main() -> Result<()> {
 
     match args.command {
         Command::GenerateKey(cmd) => key::generate(cmd.key_id),
+        Command::DeleteKey(cmd) => key::delete(cmd.key_id),
         Command::Encrypt(cmd) => match cmd.resource {
             EncryptResource::BlockDevice(cmd) => block_device::encrypt(cmd.path, cmd.key_id),
             EncryptResource::Directory(cmd) => directory::encrypt(cmd.path, cmd.key_id),
@@ -193,6 +195,7 @@ struct Args {
 #[argh(subcommand)]
 enum Command {
     GenerateKey(GenerateKeyCmd),
+    DeleteKey(DeleteKeyCmd),
     Encrypt(EncryptCmd),
     Attach(AttachCmd),
     Detach(DetachCmd),
@@ -207,6 +210,14 @@ enum Command {
 #[argh(subcommand, name = "generate-key")]
 /// Generate an encryption key
 struct GenerateKeyCmd {
+    #[argh(positional)]
+    key_id: String,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "delete-key")]
+/// Delete an encryption key from the keystore
+struct DeleteKeyCmd {
     #[argh(positional)]
     key_id: String,
 }
