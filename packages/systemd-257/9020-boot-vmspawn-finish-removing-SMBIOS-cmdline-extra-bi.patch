@@ -1,0 +1,92 @@
+From a21b5d6f051ce76245c8e509b09905a72fd077a6 Mon Sep 17 00:00:00 2001
+From: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+Date: Wed, 12 Aug 2026 19:01:30 +0000
+Subject: [PATCH] boot,vmspawn: finish removing SMBIOS cmdline-extra bits
+
+Follow-up to the removal of the SMBIOS Type 11 OEM string mechanism
+for kernel command line injection: two leftover references to the
+removed feature remained and are cleaned up here.
+
+- src/boot/stub.c: stop advertising EFI_STUB_FEATURE_CMDLINE_SMBIOS
+  in the StubFeatures EFI variable. The stub no longer reads the
+  SMBIOS Type 11 OEM string, so it must not claim to support it.
+
+- src/vmspawn/vmspawn.c: when booting a guest via a boot loader or
+  UKI (i.e. not a direct kernel boot), stop emitting the two
+  "-smbios type=11,value=io.systemd.{stub,boot}.kernel-cmdline-extra=..."
+  QEMU arguments. Since sd-boot and the UKI stub no longer read these
+  OEM strings, that code silently produced inert QEMU arguments and
+  gave no indication that the extra kernel command line was dropped.
+  A log_warning() is now emitted in that case instead. Direct kernel
+  boots are unaffected: they still pass the extra command line via
+  QEMU's -append, which does not rely on SMBIOS at all.
+
+Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+---
+ src/boot/stub.c       |  1 -
+ src/vmspawn/vmspawn.c | 30 +++++-------------------------
+ 2 files changed, 5 insertions(+), 26 deletions(-)
+
+diff --git a/src/boot/stub.c b/src/boot/stub.c
+index 6904d21fd8..98177b1741 100644
+--- a/src/boot/stub.c
++++ b/src/boot/stub.c
+@@ -146,7 +146,6 @@ static void export_stub_variables(EFI_LOADED_IMAGE_PROTOCOL *loaded_image, unsig
+                 EFI_STUB_FEATURE_THREE_PCRS |               /* We can measure kernel image, parameters and sysext */
+                 EFI_STUB_FEATURE_RANDOM_SEED |              /* We pass a random seed to the kernel */
+                 EFI_STUB_FEATURE_CMDLINE_ADDONS |           /* We pick up .cmdline addons */
+-                EFI_STUB_FEATURE_CMDLINE_SMBIOS |           /* We support extending kernel cmdline from SMBIOS Type #11 */
+                 EFI_STUB_FEATURE_DEVICETREE_ADDONS |        /* We pick up .dtb addons */
+                 EFI_STUB_FEATURE_MULTI_PROFILE_UKI |        /* We grok the "@1" profile command line argument */
+                 EFI_STUB_FEATURE_REPORT_STUB_PARTITION |    /* We set StubDevicePartUUID + StubImageIdentifier */
+diff --git a/src/vmspawn/vmspawn.c b/src/vmspawn/vmspawn.c
+index faac8775d4..650d8778f5 100644
+--- a/src/vmspawn/vmspawn.c
++++ b/src/vmspawn/vmspawn.c
+@@ -1860,7 +1860,7 @@ static int run_virtual_machine(int kvm_device_fd, int vhost_device_fd) {
+         }
+ 
+         if (ARCHITECTURE_SUPPORTS_SMBIOS) {
+-                _cleanup_free_ char *kcl = strv_join(arg_kernel_cmdline_extra, " "), *escaped_kcl = NULL;
++                _cleanup_free_ char *kcl = strv_join(arg_kernel_cmdline_extra, " ");
+                 if (!kcl)
+                         return log_oom();
+ 
+@@ -1868,30 +1868,10 @@ static int run_virtual_machine(int kvm_device_fd, int vhost_device_fd) {
+                         r = strv_extend_many(&cmdline, "-append", kcl);
+                         if (r < 0)
+                                 return log_oom();
+-                } else {
+-                        if (ARCHITECTURE_SUPPORTS_SMBIOS) {
+-                                escaped_kcl = escape_qemu_value(kcl);
+-                                if (!escaped_kcl)
+-                                        log_oom();
+-
+-                                r = strv_extend(&cmdline, "-smbios");
+-                                if (r < 0)
+-                                        return log_oom();
+-
+-                                r = strv_extendf(&cmdline, "type=11,value=io.systemd.stub.kernel-cmdline-extra=%s", escaped_kcl);
+-                                if (r < 0)
+-                                        return log_oom();
+-
+-                                r = strv_extend(&cmdline, "-smbios");
+-                                if (r < 0)
+-                                        return log_oom();
+-
+-                                r = strv_extendf(&cmdline, "type=11,value=io.systemd.boot.kernel-cmdline-extra=%s", escaped_kcl);
+-                                if (r < 0)
+-                                        return log_oom();
+-                        } else
+-                                log_warning("Cannot append extra args to kernel cmdline, native architecture doesn't support SMBIOS, ignoring");
+-                }
++                } else if (!strv_isempty(arg_kernel_cmdline_extra))
++                        log_warning("Cannot append extra args to kernel cmdline when booting via a boot loader or UKI, "
++                                     "the SMBIOS Type 11 OEM string mechanism previously used for this is no longer "
++                                     "supported by sd-boot/the UKI stub, ignoring");
+         } else
+                 log_warning("Cannot append extra args to kernel cmdline, native architecture doesn't support SMBIOS");
+ 
+-- 
+2.52.0
+

@@ -12,7 +12,8 @@ ConditionPathExists=!/etc/.fips-kernel-check-passed
 [Service]
 Type=oneshot
 WorkingDirectory=/boot
-ExecStart=/usr/bin/sha512hmac -q -c /boot/.vmlinuz.hmac
+EnvironmentFile=/etc/fips-hmac-path.env
+ExecStart=/usr/bin/sha512hmac -q -c ${HMAC_PATH}
 ExecStart=/usr/bin/touch /etc/.fips-kernel-check-passed
 RemainAfterExit=true
 StandardOutput=tty

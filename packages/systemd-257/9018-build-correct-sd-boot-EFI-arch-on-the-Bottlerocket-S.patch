@@ -1,0 +1,95 @@
+From 0bab5fb1dfe436727eecf531bcfa24b06ca72561 Mon Sep 17 00:00:00 2001
+From: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+Date: Tue, 4 Aug 2026 03:50:03 +0000
+Subject: [PATCH] build: correct sd-boot EFI arch on the Bottlerocket SDK
+
+The SDK cross sysroot mis-reports host_machine.cpu_family(), so systemd's
+efi_arch lookup resolves to the wrong EFI target: 'ia32' on x86_64 and 'arm' on
+aarch64. Correct both from host_machine.cpu(), and drop the IA-32 mixed-mode
+alternate build, which cannot link in this sysroot.
+
+Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+---
+ meson.build          | 40 ++++++++++++++++++++++++++++++++--------
+ src/boot/meson.build |  4 ++--
+ 2 files changed, 34 insertions(+), 10 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index b9d8d5266f..a928ed22cb 100644
+--- a/meson.build
++++ b/meson.build
+@@ -1942,6 +1942,36 @@ efi_arch = {
+         'x86'         : 'ia32',
+ }.get(host_machine.cpu_family(), '')
+ 
++# Bottlerocket SDK fix: the cross sysroot reports cpu_family 'x86' even for
++# x86_64 targets, which makes efi_arch resolve to 'ia32'. Force x64 when the
++# real target cpu is x86_64.
++if efi_arch == 'ia32' and host_machine.cpu() == 'x86_64'
++    efi_arch = 'x64'
++endif
++
++# The same SDK quirk applies on 64-bit ARM: cpu_family is reported as 'arm',
++# so efi_arch resolves to the 32-bit 'arm' EFI target and sd-boot is emitted as
++# systemd-bootarm.efi with EFI_MACHINE_TYPE_NAME=arm. Force aa64 when the real
++# target cpu is aarch64, so the binary is named and typed per the EFI spec and
++# matches the bootaa64.efi/grubaa64.efi convention used by shim and GRUB.
++# Note: efi_cpu_family is deliberately left resolving to 'arm' below, since the
++# 'arm' and 'aarch64' entries of efi_arch_c_args are identical
++# (-mgeneral-regs-only) and the extra 'arm' link arg
++# (-Wl,--no-wchar-size-warning) is harmless here.
++if efi_arch == 'arm' and host_machine.cpu() == 'aarch64'
++    efi_arch = 'aa64'
++endif
++
++# Single corrected arch key for all EFI flag lookups, so no flag site can
++# silently regress to the -m32 (ia32) path on this SDK.
++if efi_arch == 'x64'
++    efi_cpu_family = 'x86_64'
++elif efi_arch == 'ia32'
++    efi_cpu_family = 'x86'
++else
++    efi_cpu_family = host_machine.cpu_family()
++endif
++
+ pyelftools = pymod.find_installation('python3',
+                                      required : get_option('bootloader'),
+                                      modules : ['elftools'])
+@@ -1954,14 +1984,8 @@ conf.set_quoted('EFI_MACHINE_TYPE_NAME', have ? efi_arch : '')
+ 
+ efi_arch_alt = ''
+ efi_cpu_family_alt = ''
+-if have and efi_arch == 'x64' and cc.links('''
+-                #include <limits.h>
+-                int main(int argc, char *argv[]) {
+-                        return __builtin_popcount(argc - CHAR_MAX);
+-                }''', args : ['-m32', '-march=i686'], name : '32bit build possible')
+-        efi_arch_alt = 'ia32'
+-        efi_cpu_family_alt = 'x86'
+-endif
++# IA-32 mixed-mode alternate build disabled for Bottlerocket: the SDK cross
++# sysroot lacks 32-bit glibc headers (gnu/stubs-32.h), so -m32 cannot build.
+ 
+ pefile = pymod.find_installation('python3', required: false, modules : ['pefile'])
+ 
+diff --git a/src/boot/meson.build b/src/boot/meson.build
+index 632771777b..28089efed2 100644
+--- a/src/boot/meson.build
++++ b/src/boot/meson.build
+@@ -313,11 +313,11 @@ efi_archspecs = [
+                 'c_args' : [
+                         efi_c_args,
+                         '-DEFI_MACHINE_TYPE_NAME="' + efi_arch + '"',
+-                        efi_arch_c_args.get(host_machine.cpu_family(), []),
++                        efi_arch_c_args.get(efi_cpu_family, []),
+                 ],
+                 'link_args' : [
+                         efi_c_ld_args,
+-                        efi_arch_c_ld_args.get(host_machine.cpu_family(), []),
++                        efi_arch_c_ld_args.get(efi_cpu_family, []),
+                 ],
+         },
+ ]
+-- 
+2.52.0
+
