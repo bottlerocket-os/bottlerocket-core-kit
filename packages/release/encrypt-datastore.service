@@ -11,6 +11,7 @@ RefuseManualStop=true
 [Service]
 Type=oneshot
 Environment=DATASTORE_DIR=/.bottlerocket/datastore
+EnvironmentFile=/usr/share/bottlerocket/image-features.env
 
 # Only run if the directory is not yet encrypted.
 ExecCondition=/usr/bin/rottweiler check directory ${DATASTORE_DIR} unencrypted

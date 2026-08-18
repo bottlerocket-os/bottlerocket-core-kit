@@ -15,6 +15,7 @@ interface for encrypting and managing encrypted storage resources including:
 
 #### Key Management
 - `generate-key <key-id>` - Generate an encryption key
+- `delete-key <key-id>` - Delete an encryption key from the keystore
 
 #### Block Device Operations
 - `encrypt block-device <path> <key-id>` - Encrypt a block device using LUKS
