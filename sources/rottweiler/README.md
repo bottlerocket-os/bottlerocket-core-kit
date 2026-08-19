@@ -32,6 +32,7 @@ interface for encrypting and managing encrypted storage resources including:
 
 #### TPM Measurement Operations
 - `measure settings` - Measure OS settings into PCR 8
+- `measure user-data` - Measure EC2 IMDS user data into PCR 8
 - `measure kernel-command-line` - Measure kernel command line into PCR 9
 - `measure pcrphase <phase>` - Measure boot phase into PCR 11
   - Valid phases: `sysinit`, `preconfigured`, `configured`, `ready`, `shutdown`, `final`

@@ -11,12 +11,17 @@ bottlerocket-image-features.workspace = true
 envy.workspace = true
 hex.workspace = true
 hkdf = { workspace = true, features = ["std"] }
+imdsclient.workspace = true
 nix = { workspace = true, features = ["fs", "ioctl", "mount"] }
 serde = { workspace = true, features = ["derive"] }
 sha2.workspace = true
 snafu.workspace = true
+tokio = { workspace = true, features = ["macros", "rt"] }
 walkdir.workspace = true
 zeroize = { workspace = true, features = ["alloc", "derive"] }
+
+[dev-dependencies]
+reqwest.workspace = true
 
 [build-dependencies]
 generate-readme.workspace = true

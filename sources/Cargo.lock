@@ -5155,10 +5155,13 @@ dependencies = [
  "generate-readme",
  "hex",
  "hkdf",
+ "imdsclient",
  "nix",
+ "reqwest 0.12.28",
  "serde",
  "sha2 0.10.9",
  "snafu",
+ "tokio",
  "walkdir",
  "zeroize",
 ]
