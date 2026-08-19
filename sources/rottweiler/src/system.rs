@@ -193,11 +193,6 @@ pub fn tpm2_pcrextend(pcr: u32, sha256: &str, sha384: &str, sha512: &str) -> Res
 }
 
 /// Fetch EC2 IMDS user data, returning the raw bytes exactly as IMDS returns them.
-///
-/// Returns `Ok(None)` only when IMDS answers with HTTP 404 (no user data was supplied at
-/// launch, or the IMDS HTTP endpoint is disabled). Any other failure is returned as an error
-/// rather than treated as "absent", so a broken measurement is never mistaken for a successful
-/// one.
 pub async fn fetch_imds_userdata() -> Result<Option<Zeroizing<Vec<u8>>>> {
     let mut client = imdsclient::ImdsClient::new();
     client
@@ -208,14 +203,13 @@ pub async fn fetch_imds_userdata() -> Result<Option<Zeroizing<Vec<u8>>>> {
 }
 
 /// Convert an `imdsclient::Error` from the user-data fetch into a `snafu::Whatever` error
-/// message that is safe to print to stderr and the systemd journal.
+/// message that is safe to print.
 fn describe_imds_userdata_error(e: imdsclient::Error) -> snafu::Whatever {
     match e {
         imdsclient::Error::Response { code, .. } => snafu::Whatever::without_source(format!(
             "failed to fetch user data from IMDS: unexpected response status {}",
             code
         )),
-        // Skip the source to prevent leaking user data to the console
         _ => snafu::Whatever::without_source("failed to fetch user data from IMDS".to_string()),
     }
 }

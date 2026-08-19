@@ -22,7 +22,7 @@ const PCR_PHASE: u32 = 11;
 /// Domain-separation prefix for a present (possibly empty) EC2 IMDS user-data payload.
 ///
 /// The digest input is this prefix concatenated with the raw user-data bytes exactly as
-/// returned by IMDS (HTTP 200), with no decompression, decoding, or trimming applied.
+/// returned by IMDS with no decompression, decoding, or trimming applied.
 const USER_DATA_PRESENT_PREFIX: &[u8] = b"ec2-imds-user-data:v1:";
 
 /// Domain-separation marker for an absent EC2 IMDS user-data payload.
@@ -41,20 +41,13 @@ pub fn os_settings() -> Result<()> {
 /// Measure EC2 IMDS user data into PCR 8.
 ///
 /// This extends PCR 8 exactly once, regardless of whether user data is present, empty, or
-/// absent, so that PCR 8 receives a uniform, deterministic number of extends on every boot of
-/// every variant. The three cases are domain-separated so a verifier can tell them apart:
+/// absent. The three cases are domain-separated so a verifier can tell them apart:
 ///
-/// - Present (HTTP 200, non-empty body): `USER_DATA_PRESENT_PREFIX` followed by the raw bytes.
-/// - Present but empty (HTTP 200, empty body): `USER_DATA_PRESENT_PREFIX` followed by zero
+/// - Present: `USER_DATA_PRESENT_PREFIX` followed by the raw bytes.
+/// - Present but empty: `USER_DATA_PRESENT_PREFIX` followed by zero
 ///   bytes. This naturally yields a digest distinct from the absent marker below, since the
 ///   prefix bytes alone differ from `USER_DATA_ABSENT_MARKER`'s bytes.
-/// - Absent (HTTP 404 - no user data supplied, or IMDS disabled): `USER_DATA_ABSENT_MARKER`.
-///
-/// The bytes are measured exactly as IMDS returns them: no gzip decompression, base64
-/// handling, TOML parsing, or trimming is applied. A genuine IMDS failure (network error,
-/// token failure, throttling/5xx exhausting imdsclient's own retries) is propagated as an
-/// error rather than measured as a fallback value, so a broken fetch cannot be mistaken for a
-/// successful "absent" measurement.
+/// - Absent: `USER_DATA_ABSENT_MARKER`.
 pub async fn user_data() -> Result<()> {
     let user_data = system::fetch_imds_userdata().await?;
     let digest_input = frame_user_data(user_data.as_deref().map(|v| v.as_slice()));
@@ -62,10 +55,6 @@ pub async fn user_data() -> Result<()> {
 }
 
 /// Build the domain-separated digest input for a `user_data()` measurement.
-///
-/// `None` represents "absent" (IMDS HTTP 404); `Some(bytes)` represents "present", where
-/// `bytes` may be empty. See the doc comment on `user_data()` and the constants above for the
-/// exact framing rules.
 fn frame_user_data(user_data: Option<&[u8]>) -> Zeroizing<Vec<u8>> {
     match user_data {
         Some(raw) => {
