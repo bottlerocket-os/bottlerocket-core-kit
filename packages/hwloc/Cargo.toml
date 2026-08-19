@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://www.open-mpi.org/software/ompi/v5.0/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://download.open-mpi.org/release/hwloc/v2.13/hwloc-2.13.0.tar.bz2"
-sha512 = "88958a624211fbc3fd2f424de8eed2d6b47a0e3b3cf524725c9695d8a73929de71f3615d4f2e610678a8e1b169c7a592eae45464493f6288b16b0ce368015b28"
+url = "https://download.open-mpi.org/release/hwloc/v2.14/hwloc-2.14.0.tar.bz2"
+sha512 = "547a9ed3c6af399de9617fe675bd6d16db300cc98213d6c71b2f1b41dd4a1706c7f2cf0dd1feb0d9f8a546b1976740c7a959dca0c23a4f52eac0b25cc403d087"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

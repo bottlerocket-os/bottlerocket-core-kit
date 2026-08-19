@@ -1,10 +1,10 @@
 Name: %{_cross_os}hwloc
-Version: 2.13.0
+Version: 2.14.0
 Release: 1%{?dist}
 Summary: Portable hardware locality library
 URL: https://www.open-mpi.org/projects/hwloc/
 License: BSD-3-Clause
-Source0: https://download.open-mpi.org/release/hwloc/v2.13/hwloc-%{version}.tar.bz2
+Source0: https://download.open-mpi.org/release/hwloc/v2.14/hwloc-%{version}.tar.bz2
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}systemd-devel
