@@ -1,5 +1,11 @@
 # Unreleased
 
+# v15.1.1 (2026-08-20)
+## Third Party Package Updates
+* Update `containerd-2.2` ([#1017])
+
+[#1017]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1017
+
 # v15.1.0 (2026-08-10)
 ## OS Changes
 * Replace hardcoded ephemeral-storage bind-dir allowlist with package-contributed drop-in fragments in `/usr/lib/bottlerocket/ephemeral-storage.d/` ([#1001])
