@@ -101,7 +101,6 @@ Requires: %{_cross_os}certdog
 Requires: %{_cross_os}driverdog
 Requires: %{_cross_os}ghostdog
 Requires: %{_cross_os}logdog
-Requires: %{_cross_os}metricdog
 Requires: %{_cross_os}prairiedog
 Requires: %{_cross_os}schnauzer
 Requires: %{_cross_os}settings-committer
@@ -118,6 +117,7 @@ Requires: (%{_cross_os}bork or %{_cross_os}image-feature(no-in-place-updates))
 Requires: (%{_cross_os}migration or %{_cross_os}image-feature(no-in-place-updates))
 Requires: (%{_cross_os}thar-be-updates or %{_cross_os}image-feature(no-in-place-updates))
 Requires: (%{_cross_os}updog or %{_cross_os}image-feature(no-in-place-updates))
+Requires: (%{_cross_os}metricdog or %{_cross_os}image-feature(no-in-place-updates))
 
 Requires: (%{_cross_os}signpost or %{_cross_os}image-feature(uki-image))
 
