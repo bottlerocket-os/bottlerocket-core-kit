@@ -99,6 +99,8 @@ Patch9020: 9020-boot-vmspawn-finish-removing-SMBIOS-cmdline-extra-bi.patch
 # Correctly check the EFI_STATUS return of the measurement call in
 # tpm_log_tagged_event so early return only happens on failure
 Patch9021: 9021-measure-figure-success-of-measurement-correctly.patch
+# Backport patch to drop SystemdOptions support
+Patch9022: 9022-efivars-kill-SystemdOptions-efi-var-support.patch
 
 BuildRequires: gperf
 BuildRequires: intltool

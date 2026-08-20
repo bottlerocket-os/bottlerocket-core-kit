@@ -1,0 +1,556 @@
+From 38dda9b3bb0ef9aec6bf4a5540f545af0eca1942 Mon Sep 17 00:00:00 2001
+From: Lennart Poettering <lennart@poettering.net>
+Date: Thu, 20 Feb 2025 22:27:21 +0100
+Subject: [PATCH] efivars: kill SystemdOptions efi var support
+
+This has been depracted since v254 (2023). Let's kill it for
+good now, it has been long enough with 2y. Noone has shown up who wants
+to keep it. And given it doesn't work in SB world anyway, and is not
+measured is quite problematic security wise.
+
+(cherry picked from commit 14871a652925d08926c2d2d7cf2a95cd94454af4)
+Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
+---
+ docs/ENVIRONMENT.md                       |  3 -
+ man/kernel-command-line.xml               |  6 +-
+ man/systemd.xml                           |  5 +-
+ src/basic/efivars.c                       | 86 -----------------------
+ src/basic/efivars.h                       | 16 -----
+ src/basic/proc-cmdline.c                  | 82 +--------------------
+ src/basic/proc-cmdline.h                  |  3 +-
+ src/bootctl/bootctl-systemd-efi-options.c | 43 ------------
+ src/bootctl/bootctl-systemd-efi-options.h |  4 --
+ src/bootctl/bootctl.c                     |  2 -
+ src/bootctl/meson.build                   |  1 -
+ src/core/main.c                           |  4 --
+ src/test/test-proc-cmdline.c              | 38 ----------
+ src/udev/udev-rules.c                     |  2 +-
+ 14 files changed, 7 insertions(+), 288 deletions(-)
+ delete mode 100644 src/bootctl/bootctl-systemd-efi-options.c
+ delete mode 100644 src/bootctl/bootctl-systemd-efi-options.h
+
+diff --git a/docs/ENVIRONMENT.md b/docs/ENVIRONMENT.md
+index 5029a52fb9..523c65fb49 100644
+--- a/docs/ENVIRONMENT.md
++++ b/docs/ENVIRONMENT.md
+@@ -72,9 +72,6 @@ All tools:
+   `/etc/veritytab`. Only useful for debugging. Currently only supported by
+   `systemd-veritysetup-generator`.
+ 
+-* `$SYSTEMD_EFI_OPTIONS` — if set, used instead of the string in the
+-  `SystemdOptions` EFI variable. Analogous to `$SYSTEMD_PROC_CMDLINE`.
+-
+ * `$SYSTEMD_DEFAULT_HOSTNAME` — override the compiled-in fallback hostname
+   (relevant in particular for the system manager and `systemd-hostnamed`).
+   Must be a valid hostname (either a single label or a FQDN).
+diff --git a/man/kernel-command-line.xml b/man/kernel-command-line.xml
+index 84010ed41e..c6a902e75b 100644
+--- a/man/kernel-command-line.xml
++++ b/man/kernel-command-line.xml
+@@ -28,11 +28,7 @@
+     <title>Description</title>
+ 
+     <para>The kernel, the programs running in the initrd and in the host system may be configured at boot via
+-    kernel command line arguments. In addition, various systemd tools look at the EFI variable
+-    <literal>SystemdOptions</literal> (if available). Both sources are combined, but the kernel command line
+-    has higher priority. Please note that <emphasis>the EFI variable is only used by systemd tools, and is
+-    ignored by the kernel and other user space tools</emphasis>, so it is not a replacement for the kernel
+-    command line.</para>
++    kernel command line arguments.</para>
+ 
+     <para>For command line parameters understood by the kernel, please
+     see
+diff --git a/man/systemd.xml b/man/systemd.xml
+index b501b6f376..204f31ff29 100644
+--- a/man/systemd.xml
++++ b/man/systemd.xml
+@@ -792,10 +792,7 @@
+     environment in which systemd is executed. If run inside a Linux container, these options are parsed from
+     the command line arguments passed to systemd itself, next to any of the command line options listed in
+     the Options section above. If run outside of Linux containers, these arguments are parsed from
+-    <filename>/proc/cmdline</filename> and from the <literal>SystemdOptions</literal> EFI variable
+-    (on EFI systems) instead. Options from <filename>/proc/cmdline</filename> have higher priority.</para>
+-
+-    <para>Note: use of <literal>SystemdOptions</literal> is deprecated.</para>
++    <filename>/proc/cmdline</filename> instead.</para>
+ 
+     <para>The following variables are understood:</para>
+ 
+diff --git a/src/basic/efivars.c b/src/basic/efivars.c
+index be3297b8f4..1b2cfbf091 100644
+--- a/src/basic/efivars.c
++++ b/src/basic/efivars.c
+@@ -399,90 +399,4 @@ SecureBootMode efi_get_secure_boot_mode(void) {
+ 
+         return (cache = decode_secure_boot_mode(secure, audit > 0, deployed > 0, setup > 0));
+ }
+-
+-static int read_efi_options_variable(char **ret) {
+-        int r;
+-
+-        /* In SecureBoot mode this is probably not what you want. As your cmdline is cryptographically signed
+-         * like when using Type #2 EFI Unified Kernel Images (https://uapi-group.org/specifications/specs/boot_loader_specification)
+-         * The user's intention is then that the cmdline should not be modified. You want to make sure that
+-         * the system starts up as exactly specified in the signed artifact.
+-         *
+-         * (NB: For testing purposes, we still check the $SYSTEMD_EFI_OPTIONS env var before accessing this
+-         * cache, even when in SecureBoot mode.) */
+-        if (is_efi_secure_boot()) {
+-                /* Let's be helpful with the returned error and check if the variable exists at all. If it
+-                 * does, let's return a recognizable error (EPERM), and if not ENODATA. */
+-
+-                if (access(EFIVAR_PATH(EFI_SYSTEMD_VARIABLE_STR("SystemdOptions")), F_OK) < 0)
+-                        return errno == ENOENT ? -ENODATA : -errno;
+-
+-                return -EPERM;
+-        }
+-
+-        r = efi_get_variable_string(EFI_SYSTEMD_VARIABLE_STR("SystemdOptions"), ret);
+-        if (r == -ENOENT)
+-                return -ENODATA;
+-        return r;
+-}
+-
+-int cache_efi_options_variable(void) {
+-        _cleanup_free_ char *line = NULL;
+-        int r;
+-
+-        r = read_efi_options_variable(&line);
+-        if (r < 0)
+-                return r;
+-
+-        return write_string_file(EFIVAR_CACHE_PATH(EFI_SYSTEMD_VARIABLE_STR("SystemdOptions")), line,
+-                                 WRITE_STRING_FILE_ATOMIC|WRITE_STRING_FILE_CREATE|WRITE_STRING_FILE_MKDIR_0755);
+-}
+-
+-int systemd_efi_options_variable(char **ret) {
+-        const char *e;
+-        int r;
+-
+-        /* Returns the contents of the variable for current boot from the cache. */
+-
+-        assert(ret);
+-
+-        /* For testing purposes it is sometimes useful to be able to override this */
+-        e = secure_getenv("SYSTEMD_EFI_OPTIONS");
+-        if (e)
+-                return strdup_to(ret, e);
+-
+-        r = read_one_line_file(EFIVAR_CACHE_PATH(EFI_SYSTEMD_VARIABLE_STR("SystemdOptions")), ret);
+-        if (r == -ENOENT)
+-                return -ENODATA;
+-        return r;
+-}
+-
+-static int compare_stat_mtime(const struct stat *a, const struct stat *b) {
+-        return CMP(timespec_load(&a->st_mtim), timespec_load(&b->st_mtim));
+-}
+-
+-int systemd_efi_options_efivarfs_if_newer(char **ret) {
+-        struct stat a = {}, b;
+-        int r;
+-
+-        if (stat(EFIVAR_PATH(EFI_SYSTEMD_VARIABLE_STR("SystemdOptions")), &a) < 0 && errno != ENOENT)
+-                return log_debug_errno(errno, "Failed to stat EFI variable SystemdOptions: %m");
+-
+-        if (stat(EFIVAR_CACHE_PATH(EFI_SYSTEMD_VARIABLE_STR("SystemdOptions")), &b) < 0) {
+-                if (errno != ENOENT)
+-                        log_debug_errno(errno, "Failed to stat "EFIVAR_CACHE_PATH(EFI_SYSTEMD_VARIABLE_STR("SystemdOptions"))": %m");
+-        } else if (compare_stat_mtime(&a, &b) > 0)
+-                log_debug("Variable SystemdOptions in evifarfs is newer than in cache.");
+-        else {
+-                log_debug("Variable SystemdOptions in cache is up to date.");
+-                *ret = NULL;
+-                return 0;
+-        }
+-
+-        r = read_efi_options_variable(ret);
+-        if (r < 0)
+-                return log_debug_errno(r, "Failed to read SystemdOptions EFI variable: %m");
+-
+-        return 0;
+-}
+ #endif
+diff --git a/src/basic/efivars.h b/src/basic/efivars.h
+index f9167a2ee6..58878968c3 100644
+--- a/src/basic/efivars.h
++++ b/src/basic/efivars.h
+@@ -53,10 +53,6 @@ bool is_efi_boot(void);
+ bool is_efi_secure_boot(void);
+ SecureBootMode efi_get_secure_boot_mode(void);
+ 
+-int cache_efi_options_variable(void);
+-int systemd_efi_options_variable(char **ret);
+-int systemd_efi_options_efivarfs_if_newer(char **ret);
+-
+ #else
+ 
+ static inline int efi_get_variable(const char *variable, uint32_t *attribute, void **value, size_t *size) {
+@@ -90,18 +86,6 @@ static inline bool is_efi_secure_boot(void) {
+ static inline SecureBootMode efi_get_secure_boot_mode(void) {
+         return SECURE_BOOT_UNKNOWN;
+ }
+-
+-static inline int cache_efi_options_variable(void) {
+-        return -EOPNOTSUPP;
+-}
+-
+-static inline int systemd_efi_options_variable(char **line) {
+-        return -ENODATA;
+-}
+-
+-static inline int systemd_efi_options_efivarfs_if_newer(char **line) {
+-        return -ENODATA;
+-}
+ #endif
+ 
+ static inline char *efi_tilt_backslashes(char *s) {
+diff --git a/src/basic/proc-cmdline.c b/src/basic/proc-cmdline.c
+index de7b8f19ee..ed76a50266 100644
+--- a/src/basic/proc-cmdline.c
++++ b/src/basic/proc-cmdline.c
+@@ -218,28 +218,6 @@ int proc_cmdline_parse(proc_cmdline_parse_t parse_item, void *data, ProcCmdlineF
+          * for proc_cmdline_parse(), let's make this clear. */
+         assert(!(flags & (PROC_CMDLINE_VALUE_OPTIONAL|PROC_CMDLINE_TRUE_WHEN_MISSING)));
+ 
+-        /* We parse the EFI variable first, because later settings have higher priority. */
+-
+-        if (!FLAGS_SET(flags, PROC_CMDLINE_IGNORE_EFI_OPTIONS)) {
+-                _cleanup_free_ char *line = NULL;
+-
+-                r = systemd_efi_options_variable(&line);
+-                if (r < 0) {
+-                        if (r != -ENODATA)
+-                                log_debug_errno(r, "Failed to get SystemdOptions EFI variable, ignoring: %m");
+-                } else {
+-                        r = strv_split_full(&args, line, NULL, EXTRACT_UNQUOTE|EXTRACT_RELAX|EXTRACT_RETAIN_ESCAPE);
+-                        if (r < 0)
+-                                return r;
+-
+-                        r = proc_cmdline_parse_strv(args, parse_item, data, flags);
+-                        if (r < 0)
+-                                return r;
+-
+-                        args = strv_free(args);
+-                }
+-        }
+-
+         r = proc_cmdline_strv_internal(&args, /* filter_pid1_args = */ true);
+         if (r < 0)
+                 return r;
+@@ -326,11 +304,9 @@ static int cmdline_get_key(char **args, const char *key, ProcCmdlineFlags flags,
+ 
+ int proc_cmdline_get_key(const char *key, ProcCmdlineFlags flags, char **ret_value) {
+         _cleanup_strv_free_ char **args = NULL;
+-        _cleanup_free_ char *line = NULL, *v = NULL;
+         int r;
+ 
+-        /* Looks for a specific key on the kernel command line and (with lower priority) the EFI variable.
+-         * Supports three modes:
++        /* Looks for a specific key on the kernel command line. Supports three modes:
+          *
+          * a) The "ret_value" parameter is used. In this case a parameter beginning with the "key" string followed by
+          *    "=" is searched for, and the value following it is returned in "ret_value".
+@@ -356,34 +332,6 @@ int proc_cmdline_get_key(const char *key, ProcCmdlineFlags flags, char **ret_val
+         if (r < 0)
+                 return r;
+ 
+-        if (FLAGS_SET(flags, PROC_CMDLINE_IGNORE_EFI_OPTIONS)) /* Shortcut */
+-                return cmdline_get_key(args, key, flags, ret_value);
+-
+-        r = cmdline_get_key(args, key, flags, ret_value ? &v : NULL);
+-        if (r < 0)
+-                return r;
+-        if (r > 0) {
+-                if (ret_value)
+-                        *ret_value = TAKE_PTR(v);
+-
+-                return r;
+-        }
+-
+-        r = systemd_efi_options_variable(&line);
+-        if (r == -ENODATA) {
+-                if (ret_value)
+-                        *ret_value = NULL;
+-
+-                return false; /* Not found */
+-        }
+-        if (r < 0)
+-                return r;
+-
+-        args = strv_free(args);
+-        r = strv_split_full(&args, line, NULL, EXTRACT_UNQUOTE|EXTRACT_RELAX|EXTRACT_RETAIN_ESCAPE);
+-        if (r < 0)
+-                return r;
+-
+         return cmdline_get_key(args, key, flags, ret_value);
+ }
+ 
+@@ -448,7 +396,7 @@ static int cmdline_get_key_ap(ProcCmdlineFlags flags, char* const* args, va_list
+ 
+ int proc_cmdline_get_key_many_internal(ProcCmdlineFlags flags, ...) {
+         _cleanup_strv_free_ char **args = NULL;
+-        int r, ret = 0;
++        int r;
+         va_list ap;
+ 
+         /* The PROC_CMDLINE_VALUE_OPTIONAL and PROC_CMDLINE_TRUE_WHEN_MISSING flags don't really make sense
+@@ -457,28 +405,6 @@ int proc_cmdline_get_key_many_internal(ProcCmdlineFlags flags, ...) {
+ 
+         /* This call may clobber arguments on failure! */
+ 
+-        if (!FLAGS_SET(flags, PROC_CMDLINE_IGNORE_EFI_OPTIONS)) {
+-                _cleanup_free_ char *line = NULL;
+-
+-                r = systemd_efi_options_variable(&line);
+-                if (r < 0 && r != -ENODATA)
+-                        log_debug_errno(r, "Failed to get SystemdOptions EFI variable, ignoring: %m");
+-                if (r >= 0) {
+-                        r = strv_split_full(&args, line, NULL, EXTRACT_UNQUOTE|EXTRACT_RELAX|EXTRACT_RETAIN_ESCAPE);
+-                        if (r < 0)
+-                                return r;
+-
+-                        va_start(ap, flags);
+-                        r = cmdline_get_key_ap(flags, args, ap);
+-                        va_end(ap);
+-                        if (r < 0)
+-                                return r;
+-
+-                        ret = r;
+-                        args = strv_free(args);
+-                }
+-        }
+-
+         r = proc_cmdline_strv(&args);
+         if (r < 0)
+                 return r;
+@@ -486,8 +412,6 @@ int proc_cmdline_get_key_many_internal(ProcCmdlineFlags flags, ...) {
+         va_start(ap, flags);
+         r = cmdline_get_key_ap(flags, args, ap);
+         va_end(ap);
+-        if (r < 0)
+-                return r;
+ 
+-        return ret + r;
++        return r;
+ }
+diff --git a/src/basic/proc-cmdline.h b/src/basic/proc-cmdline.h
+index 7359d5c275..2964df0ef2 100644
+--- a/src/basic/proc-cmdline.h
++++ b/src/basic/proc-cmdline.h
+@@ -9,8 +9,7 @@ typedef enum ProcCmdlineFlags {
+         PROC_CMDLINE_STRIP_RD_PREFIX    = 1 << 0, /* automatically strip "rd." prefix if it is set (and we are in the initrd, since otherwise we'd not consider it anyway) */
+         PROC_CMDLINE_VALUE_OPTIONAL     = 1 << 1, /* the value is optional (for boolean switches that can omit the value) */
+         PROC_CMDLINE_RD_STRICT          = 1 << 2, /* ignore this in the initrd */
+-        PROC_CMDLINE_IGNORE_EFI_OPTIONS = 1 << 3, /* don't check systemd's private EFI variable */
+-        PROC_CMDLINE_TRUE_WHEN_MISSING  = 1 << 4, /* default to true when the key is missing for bool */
++        PROC_CMDLINE_TRUE_WHEN_MISSING  = 1 << 3, /* default to true when the key is missing for bool */
+ } ProcCmdlineFlags;
+ 
+ typedef int (*proc_cmdline_parse_t)(const char *key, const char *value, void *data);
+diff --git a/src/bootctl/bootctl-systemd-efi-options.c b/src/bootctl/bootctl-systemd-efi-options.c
+deleted file mode 100644
+index d626d87abc..0000000000
+--- a/src/bootctl/bootctl-systemd-efi-options.c
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/* SPDX-License-Identifier: LGPL-2.1-or-later */
+-
+-#include "alloc-util.h"
+-#include "bootctl.h"
+-#include "bootctl-systemd-efi-options.h"
+-#include "efi-loader.h"
+-
+-int verb_systemd_efi_options(int argc, char *argv[], void *userdata) {
+-        int r;
+-
+-        /* This is obsolete and subject to removal */
+-
+-        if (!arg_quiet)
+-                log_notice("Use of the SystemdOptions EFI variable is deprecated.");
+-
+-        if (argc == 1) {
+-                _cleanup_free_ char *line = NULL, *new = NULL;
+-
+-                r = systemd_efi_options_variable(&line);
+-                if (r == -ENODATA)
+-                        log_debug("No SystemdOptions EFI variable present in cache.");
+-                else if (r < 0)
+-                        return log_error_errno(r, "Failed to read SystemdOptions EFI variable from cache: %m");
+-                else
+-                        puts(line);
+-
+-                r = systemd_efi_options_efivarfs_if_newer(&new);
+-                if (r == -ENODATA) {
+-                        if (line)
+-                                log_notice("Note: SystemdOptions EFI variable has been removed since boot.");
+-                } else if (r < 0)
+-                        log_warning_errno(r, "Failed to check SystemdOptions EFI variable in efivarfs, ignoring: %m");
+-                else if (new && !streq_ptr(line, new))
+-                        log_notice("Note: SystemdOptions EFI variable has been modified since boot. New value: %s",
+-                                   new);
+-        } else {
+-                r = efi_set_variable_string(EFI_SYSTEMD_VARIABLE_STR("SystemdOptions"), argv[1]);
+-                if (r < 0)
+-                        return log_error_errno(r, "Failed to set SystemdOptions EFI variable: %m");
+-        }
+-
+-        return 0;
+-}
+diff --git a/src/bootctl/bootctl-systemd-efi-options.h b/src/bootctl/bootctl-systemd-efi-options.h
+deleted file mode 100644
+index d0243eb178..0000000000
+--- a/src/bootctl/bootctl-systemd-efi-options.h
++++ /dev/null
+@@ -1,4 +0,0 @@
+-/* SPDX-License-Identifier: LGPL-2.1-or-later */
+-#pragma once
+-
+-int verb_systemd_efi_options(int argc, char *argv[], void *userdata);
+diff --git a/src/bootctl/bootctl.c b/src/bootctl/bootctl.c
+index 2e4255c3ab..5410e3387f 100644
+--- a/src/bootctl/bootctl.c
++++ b/src/bootctl/bootctl.c
+@@ -11,7 +11,6 @@
+ #include "bootctl-reboot-to-firmware.h"
+ #include "bootctl-set-efivar.h"
+ #include "bootctl-status.h"
+-#include "bootctl-systemd-efi-options.h"
+ #include "bootctl-uki.h"
+ #include "build.h"
+ #include "devnum-util.h"
+@@ -631,7 +630,6 @@ static int bootctl_main(int argc, char *argv[]) {
+                 { "set-timeout",         2,        2,        0,            verb_set_efivar          },
+                 { "set-timeout-oneshot", 2,        2,        0,            verb_set_efivar          },
+                 { "random-seed",         VERB_ANY, 1,        0,            verb_random_seed         },
+-                { "systemd-efi-options", VERB_ANY, 2,        0,            verb_systemd_efi_options },
+                 { "reboot-to-firmware",  VERB_ANY, 2,        0,            verb_reboot_to_firmware  },
+                 {}
+         };
+diff --git a/src/bootctl/meson.build b/src/bootctl/meson.build
+index bcd12a2f61..ae1f32292b 100644
+--- a/src/bootctl/meson.build
++++ b/src/bootctl/meson.build
+@@ -6,7 +6,6 @@ bootctl_sources = files(
+         'bootctl-reboot-to-firmware.c',
+         'bootctl-set-efivar.c',
+         'bootctl-status.c',
+-        'bootctl-systemd-efi-options.c',
+         'bootctl-uki.c',
+         'bootctl-util.c',
+         'bootctl.c',
+diff --git a/src/core/main.c b/src/core/main.c
+index 1e105cac27..687504db11 100644
+--- a/src/core/main.c
++++ b/src/core/main.c
+@@ -3206,10 +3206,6 @@ int main(int argc, char *argv[]) {
+ 
+                 /* The efivarfs is now mounted, let's lock down the system token. */
+                 lock_down_efi_variables();
+-
+-                /* Cache command-line options passed from EFI variables */
+-                if (!skip_setup)
+-                        (void) cache_efi_options_variable();
+         } else {
+                 /* Running as user instance */
+                 arg_runtime_scope = RUNTIME_SCOPE_USER;
+diff --git a/src/test/test-proc-cmdline.c b/src/test/test-proc-cmdline.c
+index 420f312636..7f0540e01c 100644
+--- a/src/test/test-proc-cmdline.c
++++ b/src/test/test-proc-cmdline.c
+@@ -33,7 +33,6 @@ TEST(proc_cmdline_override) {
+         _cleanup_strv_free_ char **args = NULL;
+ 
+         assert_se(putenv((char*) "SYSTEMD_PROC_CMDLINE=foo_bar=quux wuff-piep=tuet zumm some_arg_with_space='foo bar' and_one_more=\"zzz aaa\"") == 0);
+-        assert_se(putenv((char*) "SYSTEMD_EFI_OPTIONS=different") == 0);
+ 
+         /* First test if the overrides for /proc/cmdline still work */
+         assert_se(proc_cmdline(&line) >= 0);
+@@ -54,7 +53,6 @@ TEST(proc_cmdline_override) {
+         value = mfree(value);
+ 
+         assert_se(putenv((char*) "SYSTEMD_PROC_CMDLINE=hoge") == 0);
+-        assert_se(putenv((char*) "SYSTEMD_EFI_OPTIONS=foo_bar=quux wuff-piep=tuet zumm some_arg_with_space='foo bar' and_one_more=\"zzz aaa\"") == 0);
+ 
+         assert_se(proc_cmdline(&line) >= 0);
+         ASSERT_STREQ(line, "hoge");
+@@ -62,17 +60,6 @@ TEST(proc_cmdline_override) {
+         assert_se(proc_cmdline_strv(&args) >= 0);
+         assert_se(strv_equal(args, STRV_MAKE("hoge")));
+         args = strv_free(args);
+-
+-#if ENABLE_EFI
+-        assert_se(proc_cmdline_get_key("foo_bar", 0, &value) > 0 && streq_ptr(value, "quux"));
+-        value = mfree(value);
+-
+-        assert_se(proc_cmdline_get_key("some_arg_with_space", 0, &value) > 0 && streq_ptr(value, "foo bar"));
+-        value = mfree(value);
+-
+-        assert_se(proc_cmdline_get_key("and_one_more", 0, &value) > 0 && streq_ptr(value, "zzz aaa"));
+-        value = mfree(value);
+-#endif
+ }
+ 
+ static int parse_item_given(const char *key, const char *value, void *data) {
+@@ -116,7 +103,6 @@ static void test_proc_cmdline_given_one(bool flip_initrd) {
+ 
+ TEST(proc_cmdline_given) {
+         assert_se(putenv((char*) "SYSTEMD_PROC_CMDLINE=foo_bar=quux wuff-piep=\"tuet \" rd.zumm space='x y z' miepf=\"uuu\"") == 0);
+-        assert_se(putenv((char*) "SYSTEMD_EFI_OPTIONS=miepf=\"uuu\"") == 0);
+ 
+         test_proc_cmdline_given_one(false);
+         /* Repeat the same thing, but now flip our ininitrdness */
+@@ -176,7 +162,6 @@ TEST(proc_cmdline_get_bool) {
+         bool value = false;
+ 
+         assert_se(putenv((char*) "SYSTEMD_PROC_CMDLINE=foo_bar bar-waldo=1 x_y-z=0 quux=miep\nda=yes\nthe=1") == 0);
+-        assert_se(putenv((char*) "SYSTEMD_EFI_OPTIONS=") == 0);
+ 
+         assert_se(proc_cmdline_get_bool("", /* flags = */ 0, &value) == -EINVAL);
+         assert_se(proc_cmdline_get_bool("abc", /* flags = */ 0, &value) == 0 && value == false);
+@@ -194,29 +179,6 @@ TEST(proc_cmdline_get_bool) {
+         assert_se(proc_cmdline_get_bool("the", /* flags = */ 0, &value) > 0 && value == true);
+ }
+ 
+-#if ENABLE_EFI
+-TEST(proc_cmdline_get_bool_efi) {
+-        bool value = false;
+-
+-        assert_se(putenv((char*) "SYSTEMD_PROC_CMDLINE=") == 0);
+-        assert_se(putenv((char*) "SYSTEMD_EFI_OPTIONS=foo_bar bar-waldo=1 x_y-z=0 quux=miep\nda=yes\nthe=1") == 0);
+-
+-        assert_se(proc_cmdline_get_bool("", /* flags = */ 0, &value) == -EINVAL);
+-        assert_se(proc_cmdline_get_bool("abc", /* flags = */ 0, &value) == 0 && value == false);
+-        assert_se(proc_cmdline_get_bool("foo_bar", /* flags = */ 0, &value) > 0 && value == true);
+-        assert_se(proc_cmdline_get_bool("foo-bar", /* flags = */ 0, &value) > 0 && value == true);
+-        assert_se(proc_cmdline_get_bool("bar-waldo", /* flags = */ 0, &value) > 0 && value == true);
+-        assert_se(proc_cmdline_get_bool("bar_waldo", /* flags = */ 0, &value) > 0 && value == true);
+-        assert_se(proc_cmdline_get_bool("x_y-z", /* flags = */ 0, &value) > 0 && value == false);
+-        assert_se(proc_cmdline_get_bool("x-y-z", /* flags = */ 0, &value) > 0 && value == false);
+-        assert_se(proc_cmdline_get_bool("x-y_z", /* flags = */ 0, &value) > 0 && value == false);
+-        assert_se(proc_cmdline_get_bool("x_y_z", /* flags = */ 0, &value) > 0 && value == false);
+-        assert_se(proc_cmdline_get_bool("quux", /* flags = */ 0, &value) == -EINVAL && value == false);
+-        assert_se(proc_cmdline_get_bool("da", /* flags = */ 0, &value) > 0 && value == true);
+-        assert_se(proc_cmdline_get_bool("the", /* flags = */ 0, &value) > 0 && value == true);
+-}
+-#endif
+-
+ TEST(proc_cmdline_get_key_many) {
+         _cleanup_free_ char *value1 = NULL, *value2 = NULL, *value3 = NULL, *value4 = NULL, *value5 = NULL, *value6 = NULL, *value7 = NULL;
+ 
+diff --git a/src/udev/udev-rules.c b/src/udev/udev-rules.c
+index 85ae1c2163..05ccee53f5 100644
+--- a/src/udev/udev-rules.c
++++ b/src/udev/udev-rules.c
+@@ -2335,7 +2335,7 @@ static int udev_rule_apply_token_to_event(
+         case TK_M_IMPORT_CMDLINE: {
+                 _cleanup_free_ char *value = NULL;
+ 
+-                r = proc_cmdline_get_key(token->value, PROC_CMDLINE_VALUE_OPTIONAL|PROC_CMDLINE_IGNORE_EFI_OPTIONS, &value);
++                r = proc_cmdline_get_key(token->value, PROC_CMDLINE_VALUE_OPTIONAL, &value);
+                 if (r < 0)
+                         return log_event_error_errno(dev, token, r,
+                                                      "Failed to read '%s' option from /proc/cmdline: %m",
+-- 
+2.52.0
+
