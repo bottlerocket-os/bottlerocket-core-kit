@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/moby/moby/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/moby/moby/archive/v25.0.13/moby-25.0.13.tar.gz"
-sha512 = "bf7254b2977e085eae717b09965f8f8865a89323c2f160d26fdceb8ef74d6871d24be391e4950683c4867bb68b728d9cd822165934c6abbf4ea67a7b24877287"
+url = "https://github.com/moby/moby/archive/v25.0.17/moby-25.0.17.tar.gz"
+sha512 = "dd52266db3cda52bb68d031acae9b77215c339706fb4a8bd30d1008987409f67fc0bccc8327e239db9232959f777672fa6f69420432548976c769a7c32f61529"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
