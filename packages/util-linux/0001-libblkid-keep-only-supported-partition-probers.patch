@@ -1,0 +1,120 @@
+From a2eec0e376ad0c81aae91cc35d1a46aab5f7d069 Mon Sep 17 00:00:00 2001
+From: Craig Qian <qianxj@amazon.com>
+Date: Mon, 10 Aug 2026 20:43:17 +0000
+Subject: [PATCH] libblkid: only probe supported partition tables
+
+Our kernel configuration only enables MSDOS and EFI partition tables,
+so we do not need libblkid's probers for the other formats.
+
+Remove them from idinfos[] and drop the sources that no longer have any
+references. bsd, unixware, solaris_x86 and minix are still built since
+dos.c probes them for MBR partition types.
+
+Signed-off-by: Craig Qian <qianxj@amazon.com>
+---
+ libblkid/meson.build                 |  6 ------
+ libblkid/src/Makemodule.am           |  6 ------
+ libblkid/src/partitions/partitions.c | 10 ----------
+ libblkid/src/partitions/partitions.h |  6 ------
+ 4 files changed, 28 deletions(-)
+
+diff --git a/libblkid/meson.build b/libblkid/meson.build
+index 72d8f2b..ad61215 100644
+--- a/libblkid/meson.build
++++ b/libblkid/meson.build
+@@ -39,20 +39,14 @@ lib_blkid_sources = '''
+   src/verify.c
+   src/version.c
+ 
+-  src/partitions/aix.c
+   src/partitions/aix.h
+-  src/partitions/atari.c
+   src/partitions/bsd.c
+   src/partitions/dos.c
+   src/partitions/gpt.c
+-  src/partitions/mac.c
+   src/partitions/minix.c
+   src/partitions/partitions.c
+   src/partitions/partitions.h
+-  src/partitions/sgi.c
+   src/partitions/solaris_x86.c
+-  src/partitions/sun.c
+-  src/partitions/ultrix.c
+   src/partitions/unixware.c
+ 
+   src/superblocks/adaptec_raid.c
+diff --git a/libblkid/src/Makemodule.am b/libblkid/src/Makemodule.am
+index ce65d50..461efc6 100644
+--- a/libblkid/src/Makemodule.am
++++ b/libblkid/src/Makemodule.am
+@@ -26,20 +26,14 @@ libblkid_la_SOURCES = \
+ 	libblkid/src/verify.c \
+ 	libblkid/src/version.c \
+ 	\
+-	libblkid/src/partitions/aix.c \
+ 	libblkid/src/partitions/aix.h \
+-	libblkid/src/partitions/atari.c \
+ 	libblkid/src/partitions/bsd.c \
+ 	libblkid/src/partitions/dos.c \
+ 	libblkid/src/partitions/gpt.c \
+-	libblkid/src/partitions/mac.c \
+ 	libblkid/src/partitions/minix.c \
+ 	libblkid/src/partitions/partitions.c \
+ 	libblkid/src/partitions/partitions.h \
+-	libblkid/src/partitions/sgi.c \
+ 	libblkid/src/partitions/solaris_x86.c \
+-	libblkid/src/partitions/sun.c \
+-	libblkid/src/partitions/ultrix.c \
+ 	libblkid/src/partitions/unixware.c \
+ 	\
+ 	libblkid/src/superblocks/adaptec_raid.c \
+diff --git a/libblkid/src/partitions/partitions.c b/libblkid/src/partitions/partitions.c
+index 2276437..781a4d5 100644
+--- a/libblkid/src/partitions/partitions.c
++++ b/libblkid/src/partitions/partitions.c
+@@ -124,19 +124,9 @@ static void partitions_free_data(blkid_probe pr, void *data);
+  */
+ static const struct blkid_idinfo *idinfos[] =
+ {
+-	&aix_pt_idinfo,
+-	&sgi_pt_idinfo,
+-	&sun_pt_idinfo,
+ 	&dos_pt_idinfo,
+ 	&gpt_pt_idinfo,
+ 	&pmbr_pt_idinfo,	/* always after GPT */
+-	&mac_pt_idinfo,
+-	&ultrix_pt_idinfo,
+-	&bsd_pt_idinfo,
+-	&unixware_pt_idinfo,
+-	&solaris_x86_pt_idinfo,
+-	&minix_pt_idinfo,
+-	&atari_pt_idinfo
+ };
+ 
+ /*
+diff --git a/libblkid/src/partitions/partitions.h b/libblkid/src/partitions/partitions.h
+index 784e0c0..f77dd65 100644
+--- a/libblkid/src/partitions/partitions.h
++++ b/libblkid/src/partitions/partitions.h
+@@ -57,18 +57,12 @@ extern int blkid_partition_set_flags(blkid_partition par, unsigned long long fla
+ /*
+  * partition probers
+  */
+-extern const struct blkid_idinfo aix_pt_idinfo;
+ extern const struct blkid_idinfo bsd_pt_idinfo;
+ extern const struct blkid_idinfo unixware_pt_idinfo;
+ extern const struct blkid_idinfo solaris_x86_pt_idinfo;
+-extern const struct blkid_idinfo sun_pt_idinfo;
+-extern const struct blkid_idinfo sgi_pt_idinfo;
+-extern const struct blkid_idinfo mac_pt_idinfo;
+ extern const struct blkid_idinfo dos_pt_idinfo;
+ extern const struct blkid_idinfo minix_pt_idinfo;
+ extern const struct blkid_idinfo gpt_pt_idinfo;
+ extern const struct blkid_idinfo pmbr_pt_idinfo;
+-extern const struct blkid_idinfo ultrix_pt_idinfo;
+-extern const struct blkid_idinfo atari_pt_idinfo;
+ 
+ #endif /* BLKID_PARTITIONS_H */
+-- 
+2.47.3
+
