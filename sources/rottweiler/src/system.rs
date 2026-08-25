@@ -1,3 +1,4 @@
+use snafu::FromString;
 use snafu::prelude::*;
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -189,4 +190,64 @@ pub fn tpm2_pcrextend(pcr: u32, sha256: &str, sha384: &str, sha512: &str) -> Res
         None,
     )?;
     Ok(())
+}
+
+/// Fetch EC2 IMDS user data, returning the raw bytes exactly as IMDS returns them.
+pub async fn fetch_imds_userdata() -> Result<Option<Zeroizing<Vec<u8>>>> {
+    let mut client = imdsclient::ImdsClient::new();
+    client
+        .fetch_userdata()
+        .await
+        .map(|opt| opt.map(Zeroizing::new))
+        .map_err(describe_imds_userdata_error)
+}
+
+/// Convert an `imdsclient::Error` from the user-data fetch into a `snafu::Whatever` error
+/// message that is safe to print.
+fn describe_imds_userdata_error(e: imdsclient::Error) -> snafu::Whatever {
+    match e {
+        imdsclient::Error::Response { code, .. } => snafu::Whatever::without_source(format!(
+            "failed to fetch user data from IMDS: unexpected response status {}",
+            code
+        )),
+        _ => snafu::Whatever::without_source("failed to fetch user data from IMDS".to_string()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A response body standing in for secret-bearing user data, used only to assert it never
+    /// appears in the sanitized error message.
+    const SECRET_USER_DATA: &str = "super-secret-bootstrap-token=abc123";
+
+    #[test]
+    fn response_error_surfaces_status_code_but_not_body() {
+        let err = imdsclient::Error::Response {
+            method: "GET".to_string(),
+            uri: "http://169.254.169.254/latest/user-data".to_string(),
+            code: reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            response_body: SECRET_USER_DATA.to_string(),
+        };
+        let message = describe_imds_userdata_error(err).to_string();
+        assert!(
+            !message.contains(SECRET_USER_DATA),
+            "sanitized error message must never contain the IMDS response body: {}",
+            message
+        );
+        assert!(
+            message.contains("500"),
+            "sanitized error message should surface the HTTP status code: {}",
+            message
+        );
+    }
+
+    #[test]
+    fn other_errors_fall_back_to_a_fixed_opaque_message() {
+        let err = imdsclient::Error::FailedFetchToken;
+        let message = describe_imds_userdata_error(err).to_string();
+        assert!(!message.contains(SECRET_USER_DATA));
+        assert_eq!(message, "failed to fetch user data from IMDS");
+    }
 }

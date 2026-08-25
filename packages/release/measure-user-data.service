@@ -1,0 +1,15 @@
+[Unit]
+Description=Measure EC2 IMDS User Data into PCR 8
+Before=settings-applier.service early-boot-config.service
+After=tpm2.target
+ConditionSecurity=tpm2
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/rottweiler measure user-data
+
+[Install]
+RequiredBy=settings-applier.service

@@ -29,6 +29,7 @@ interface for encrypting and managing encrypted storage resources including:
 
 ### TPM Measurement Operations
 - `measure settings` - Measure OS settings into PCR 8
+- `measure user-data` - Measure EC2 IMDS user data into PCR 8
 - `measure kernel-command-line` - Measure kernel command line into PCR 9
 - `measure pcrphase <phase>` - Measure boot phase into PCR 11
   - Valid phases: `sysinit`, `preconfigured`, `configured`, `ready`, `shutdown`, `final`
@@ -54,8 +55,9 @@ mod system;
 
 type Result<T> = std::result::Result<T, Whatever>;
 
+#[tokio::main(flavor = "current_thread")]
 #[snafu::report]
-fn main() -> Result<()> {
+async fn main() -> Result<()> {
     // Support aliases: "dir" -> "directory", "bdev" -> "block-device"
     // Only replace in resource-type subcommand positions
     let mut args: Vec<String> = std::env::args().collect();
@@ -155,6 +157,7 @@ fn main() -> Result<()> {
         },
         Command::Measure(cmd) => match cmd.resource {
             MeasureResource::Settings(_) => measure::os_settings(),
+            MeasureResource::UserData(_) => measure::user_data().await,
             MeasureResource::KernelCommandLine(_) => measure::kernel_command_line(),
             MeasureResource::Pcrphase(cmd) => measure::pcrphase(&cmd.phase.to_string()),
         },
@@ -461,6 +464,7 @@ struct MeasureCmd {
 #[argh(subcommand)]
 enum MeasureResource {
     Settings(MeasureSettingsCmd),
+    UserData(MeasureUserDataCmd),
     KernelCommandLine(MeasureKernelCommandLineCmd),
     Pcrphase(MeasurePcrphaseCmd),
 }
@@ -469,6 +473,11 @@ enum MeasureResource {
 #[argh(subcommand, name = "settings")]
 /// Measure OS settings into PCR
 struct MeasureSettingsCmd {}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "user-data")]
+/// Measure EC2 IMDS user data into PCR
+struct MeasureUserDataCmd {}
 
 #[derive(FromArgs)]
 #[argh(subcommand, name = "kernel-command-line")]
