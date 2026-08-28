@@ -1,7 +1,7 @@
 [Unit]
 Description=Activate multi-user.target
-After=configured.target reboot-if-required.service
-Requires=configured.target reboot-if-required.service
+After=configured.target
+Requires=configured.target
 
 [Service]
 Type=oneshot
