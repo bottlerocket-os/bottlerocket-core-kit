@@ -1,5 +1,38 @@
 # Unreleased
 
+# v16.0.0 (2026-08-27)
+
+## OS Changes
+* Add support for Unified Kernel Images ([#1007])
+* Add support for ephemeral encryption keys ([#999])
+* Add service to measure raw IMDS user data ([#1010])
+* Drop support for `SystemdOptions` ([#1009])
+* Disable metricdog if in-place-updates is false ([#1014])
+* Only probe supported partition tables in `util-linux` ([#1006])
+* Add managed subpackage to `release` for standalone image support ([#944])
+
+## Third Party Package Updates
+* Update `ecs-agent` to v1.106.1 ([#1015])
+* Update `docker-engine-25` to v25.0.17 ([#1015])
+* Update `amazon-ssm-agent` to v3.3.5068.0 ([#1015])
+* Update `hwloc` to 2.14 ([#1012])
+
+## Build Changes
+* Update Twoliter to `0.23.0` ([#1018])
+* Lock GitHub Actions to commit hashes ([#439])
+
+[#439]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/439
+[#944]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/944
+[#999]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/999
+[#1006]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1006
+[#1007]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1007
+[#1009]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1009
+[#1010]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1010
+[#1012]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1012
+[#1014]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1014
+[#1015]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1015
+[#1018]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1018
+
 # v15.1.1 (2026-08-20)
 ## Third Party Package Updates
 * Update `containerd-2.2` ([#1017])
