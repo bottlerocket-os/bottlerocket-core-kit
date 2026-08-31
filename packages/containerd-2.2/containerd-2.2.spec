@@ -4,7 +4,7 @@
 
 %global gover 2.2.7
 %global rpmver %{gover}
-%global gitrev e53c7c1516c3b2bff98eb76f1f4117477e6f4e66
+%global gitrev 7835c8dfefceee63b1a4f9e84e015ddc8434fdc3
 
 %global package_priority_epoch 0
 %global _dwz_low_mem_die_limit 0

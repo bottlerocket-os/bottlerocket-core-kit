@@ -10,7 +10,7 @@
 %global gorepo kubernetes
 %global goimport %{goproject}/%{gorepo}
 
-%global releasever 5
+%global releasever 7
 %global gover 1.36.2
 %global rpmver %{gover}
 
@@ -68,7 +68,6 @@ Source100: pause-config.json
 Source101: pause-manifest.json
 Source102: pod-infra-container-image
 
-Patch0001: 0001-kubelet-startPodSync-reuse-the-previous-context-to-f.patch
 
 Source1000: clarify.toml
 
