@@ -175,6 +175,7 @@ dependencies = [
  "nftables",
  "notation",
  "nvidia-container-toolkit",
+ "nvidia-dra-driver-gpu",
  "nvidia-k8s-device-plugin",
  "nvme-cli",
  "open-vm-tools",
@@ -949,6 +950,13 @@ version = "0.1.0"
 dependencies = [
  "glibc",
  "libnvidia-container",
+]
+
+[[package]]
+name = "nvidia-dra-driver-gpu"
+version = "0.1.0"
+dependencies = [
+ "glibc",
 ]
 
 [[package]]

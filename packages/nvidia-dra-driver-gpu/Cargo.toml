@@ -1,0 +1,23 @@
+[package]
+name = "nvidia-dra-driver-gpu"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[lib]
+path = "../packages.rs"
+
+[package.metadata.build-package]
+releases-url = "https://github.com/kubernetes-sigs/dra-driver-nvidia-gpu/releases"
+
+# Upstream moved from NVIDIA/k8s-dra-driver-gpu to kubernetes-sigs/dra-driver-nvidia-gpu.
+# The Go module path is still github.com/NVIDIA/k8s-dra-driver-gpu (see go.mod); the
+# archive top-level directory and release artifacts use the new repo name.
+[[package.metadata.build-package.external-files]]
+url = "https://github.com/kubernetes-sigs/dra-driver-nvidia-gpu/archive/refs/tags/v25.8.1.tar.gz"
+path = "dra-driver-nvidia-gpu-25.8.1.tar.gz"
+sha512 = "8d7f1b4c00acb303cf61d41d55fef177e592dd7380ecedee68a6176345a386dd73bc4a4909aec1634c3a569c2f2043a2d88da52f41c3d81e06a405eb85528829"
+
+[build-dependencies]
+glibc = { path = "../glibc" }
