@@ -590,6 +590,16 @@ fn should_encrypt() -> Result<bool> {
     Ok(features.encrypted_storage)
 }
 
+/// Returns true when ephemeral-encryption-keys image feature is enabled.
+fn ephemeral_encryption_keys_enabled() -> Result<bool> {
+    let features = bottlerocket_image_features::parse_image_features().map_err(|e| {
+        error::Error::LoadImageFeatures {
+            message: e.to_string(),
+        }
+    })?;
+    Ok(features.ephemeral_encryption_keys)
+}
+
 /// Encrypt ephemeral device using rottweiler
 fn encrypt_ephemeral_device(device: &str) -> Result<String> {
     info!("encrypting ephemeral device {device:?}");
@@ -604,19 +614,53 @@ fn encrypt_ephemeral_device(device: &str) -> Result<String> {
     std::os::unix::fs::symlink(device, EPHEMERAL_DATA_LINK)
         .context(error::DiskSymlinkFailureSnafu {})?;
 
-    let is_encrypted =
-        run_rottweiler(&["check", "block-device", EPHEMERAL_DATA_LINK, "encrypted"])?
-            .status
-            .success();
-
-    if !is_encrypted {
+    if ephemeral_encryption_keys_enabled()? {
+        // No format or encrypted-check needed: a fresh key makes all prior contents unreadable.
         run_rottweiler_checked(
             &["generate-key", EPHEMERAL_STORAGE_KEY_ID],
             EPHEMERAL_DATA_LINK,
         )?;
+
         run_rottweiler_checked(
             &[
-                "encrypt",
+                "encrypt-and-attach",
+                "block-device",
+                EPHEMERAL_DATA_LINK,
+                EPHEMERAL_STORAGE_KEY_ID,
+            ],
+            EPHEMERAL_DATA_LINK,
+        )?;
+
+        run_rottweiler_checked(
+            &["delete-key", EPHEMERAL_STORAGE_KEY_ID],
+            EPHEMERAL_DATA_LINK,
+        )?;
+    } else {
+        let is_encrypted =
+            run_rottweiler(&["check", "block-device", EPHEMERAL_DATA_LINK, "encrypted"])?
+                .status
+                .success();
+
+        if !is_encrypted {
+            run_rottweiler_checked(
+                &["generate-key", EPHEMERAL_STORAGE_KEY_ID],
+                EPHEMERAL_DATA_LINK,
+            )?;
+
+            run_rottweiler_checked(
+                &[
+                    "encrypt",
+                    "block-device",
+                    EPHEMERAL_DATA_LINK,
+                    EPHEMERAL_STORAGE_KEY_ID,
+                ],
+                EPHEMERAL_DATA_LINK,
+            )?;
+        }
+
+        run_rottweiler_checked(
+            &[
+                "attach",
                 "block-device",
                 EPHEMERAL_DATA_LINK,
                 EPHEMERAL_STORAGE_KEY_ID,
@@ -624,16 +668,6 @@ fn encrypt_ephemeral_device(device: &str) -> Result<String> {
             EPHEMERAL_DATA_LINK,
         )?;
     }
-
-    run_rottweiler_checked(
-        &[
-            "attach",
-            "block-device",
-            EPHEMERAL_DATA_LINK,
-            EPHEMERAL_STORAGE_KEY_ID,
-        ],
-        EPHEMERAL_DATA_LINK,
-    )?;
 
     Ok(EPHEMERAL_MAPPER_DEVICE.to_string())
 }
