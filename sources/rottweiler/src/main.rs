@@ -4,7 +4,7 @@
 *rottweiler* is Bottlerocket's storage encryption helper. It provides a unified
 interface for encrypting and managing encrypted storage resources including:
 
-- Block devices (using LUKS)
+- Block devices (using LUKS or plain mode encryption)
 - Directories (using fscrypt)
 - TPM PCR measurements
 
@@ -16,9 +16,10 @@ interface for encrypting and managing encrypted storage resources including:
 
 ### Block Device Operations
 - `encrypt block-device <path> <key-id>` - Encrypt a block device using LUKS
+- `encrypt-and-attach block-device <path> <key-id>` - Encrypt (plain mode) and attach a block device in one step
 - `attach block-device <path> <key-id>` - Attach an encrypted block device
 - `detach block-device <path>` - Detach an encrypted block device
-- `resize block-device <path> <key-id>` - Resize a LUKS block device
+- `resize block-device <path> <key-id>` - Resize an encrypted block device to match the underlying device size
 - `check block-device <path> encrypted|unencrypted` - Check block device encryption state
 
 ### Directory Operations
@@ -64,9 +65,10 @@ async fn main() -> Result<()> {
     if args.len() >= 3 {
         let verb = args.get(1).map(|s| s.as_str());
         let resource_pos = match verb {
-            Some("encrypt" | "attach" | "detach" | "resize" | "lock" | "unlock" | "check") => {
-                Some(2)
-            }
+            Some(
+                "encrypt" | "encrypt-and-attach" | "attach" | "detach" | "resize" | "lock"
+                | "unlock" | "check",
+            ) => Some(2),
             _ => None,
         };
         if let Some(pos) = resource_pos
@@ -99,6 +101,11 @@ async fn main() -> Result<()> {
         Command::Encrypt(cmd) => match cmd.resource {
             EncryptResource::BlockDevice(cmd) => block_device::encrypt(cmd.path, cmd.key_id),
             EncryptResource::Directory(cmd) => directory::encrypt(cmd.path, cmd.key_id),
+        },
+        Command::EncryptAndAttach(cmd) => match cmd.resource {
+            EncryptAndAttachResource::BlockDevice(cmd) => {
+                block_device::encrypt_and_attach(cmd.path, cmd.key_id)
+            }
         },
         Command::Attach(cmd) => match cmd.resource {
             AttachResource::BlockDevice(cmd) => block_device::attach(cmd.path, cmd.key_id),
@@ -200,6 +207,7 @@ enum Command {
     GenerateKey(GenerateKeyCmd),
     DeleteKey(DeleteKeyCmd),
     Encrypt(EncryptCmd),
+    EncryptAndAttach(EncryptAndAttachCmd),
     Attach(AttachCmd),
     Detach(DetachCmd),
     Resize(ResizeCmd),
@@ -255,6 +263,31 @@ struct EncryptBlockDeviceCmd {
 #[argh(subcommand, name = "directory")]
 /// Encrypt a directory using fscrypt
 struct EncryptDirectoryCmd {
+    #[argh(positional)]
+    path: PathBuf,
+
+    #[argh(positional)]
+    key_id: String,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "encrypt-and-attach")]
+/// Encrypt using dm-crypt in plain mode and attach a resource
+struct EncryptAndAttachCmd {
+    #[argh(subcommand)]
+    resource: EncryptAndAttachResource,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand)]
+enum EncryptAndAttachResource {
+    BlockDevice(EncryptAndAttachBlockDeviceCmd),
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "block-device")]
+/// Encrypt using dm-crypt in plain mode and attach a block device
+struct EncryptAndAttachBlockDeviceCmd {
     #[argh(positional)]
     path: PathBuf,
 
@@ -325,7 +358,7 @@ enum ResizeResource {
 
 #[derive(FromArgs)]
 #[argh(subcommand, name = "block-device")]
-/// Resize a LUKS block device
+/// Resize an encrypted block device
 struct ResizeBlockDeviceCmd {
     #[argh(positional)]
     path: PathBuf,

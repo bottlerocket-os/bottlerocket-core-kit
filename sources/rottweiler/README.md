@@ -7,7 +7,7 @@ Current version: 0.1.0
 *rottweiler* is Bottlerocket's storage encryption helper. It provides a unified
 interface for encrypting and managing encrypted storage resources including:
 
-- Block devices (using LUKS)
+- Block devices (using LUKS or plain mode encryption)
 - Directories (using fscrypt)
 - TPM PCR measurements
 
@@ -19,9 +19,10 @@ interface for encrypting and managing encrypted storage resources including:
 
 #### Block Device Operations
 - `encrypt block-device <path> <key-id>` - Encrypt a block device using LUKS
+- `encrypt-and-attach block-device <path> <key-id>` - Encrypt (plain mode) and attach a block device in one step
 - `attach block-device <path> <key-id>` - Attach an encrypted block device
 - `detach block-device <path>` - Detach an encrypted block device
-- `resize block-device <path> <key-id>` - Resize a LUKS block device
+- `resize block-device <path> <key-id>` - Resize an encrypted block device to match the underlying device size
 - `check block-device <path> encrypted|unencrypted` - Check block device encryption state
 
 #### Directory Operations
