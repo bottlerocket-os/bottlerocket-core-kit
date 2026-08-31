@@ -1,0 +1,39 @@
+[required-extensions]
+kubernetes = "v1"
+kubelet-dra-drivers = "v1"
+std = { version = "v1", helpers = ["if_not_null", "default"] }
++++
+{{#if_not_null settings.kubelet-dra-drivers.nvidia}}
+{{#if (eq (default "false" settings.kubelet-dra-drivers.nvidia.enabled) "true")}}
+[Service]
+ExecStartPre=
+ExecStart=
+# A brief sleep is needed to avoid the `test` failing its first check.
+ExecStartPre=/usr/bin/sleep 0.1
+ExecStartPre=/usr/bin/test -d /var/lib/kubelet/plugins_registry
+# --node-name is the name the kubelet registers this node under
+# (settings.kubernetes.hostname-override), falling back to the host name.
+# --image-name is only used to render MPS control-daemon pods; MPS is alpha and
+# disabled by default, and an empty string satisfies the required flag.
+#
+# --healthcheck-port -1 disables the gRPC healthcheck: any negative value
+# short-circuits startHealthcheck before it creates a listener.
+#
+# ExecStart is rendered here to inject the node name from settings
+# (hostname-override) so it matches the name the kubelet registers. When DRA is
+# disabled the unit is skipped via the base-unit ConditionFileNotEmpty marker, so
+# this branch only needs to handle the enabled case; the unset (null) case falls
+# through to the base unit's `--node-name %H` daemon.
+ExecStart=/usr/bin/gpu-kubelet-plugin \
+    --node-name {{#if_not_null settings.kubernetes.hostname-override}}{{settings.kubernetes.hostname-override}}{{else}}%H{{/if_not_null}} \
+    --namespace kube-system \
+    --nvidia-driver-root / \
+    --container-driver-root / \
+    --cdi-root /etc/cdi \
+    --nvidia-cdi-hook-path /usr/bin/nvidia-cdi-hook \
+    --kubeconfig /etc/kubernetes/kubelet/kubeconfig \
+    --image-name "" \
+    --healthcheck-port -1
+RemainAfterExit=true
+{{/if}}
+{{/if_not_null}}
