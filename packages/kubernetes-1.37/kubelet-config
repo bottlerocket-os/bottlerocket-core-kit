@@ -199,6 +199,12 @@ reservedMemory:
 {{/each}}
 {{/if}}
 {{/if}}
+{{#if settings.kubernetes.memory-reservation-policy}}
+memoryReservationPolicy: {{settings.kubernetes.memory-reservation-policy}}
+{{/if}}
+{{#if settings.kubernetes.memory-throttling-factor}}
+memoryThrottlingFactor: {{settings.kubernetes.memory-throttling-factor}}
+{{/if}}
 {{#if settings.kubernetes.reserved-cpus}}
 reservedSystemCPUs: {{settings.kubernetes.reserved-cpus}}
 {{/if}}
