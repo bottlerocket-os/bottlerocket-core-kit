@@ -357,6 +357,16 @@ mod error {
             source: serde_json::Error,
             template: String,
         },
+
+        #[snafu(display(
+            "Unable to serialize string as JSON in template '{}': {}",
+            template,
+            source
+        ))]
+        JsonSerialize {
+            source: serde_json::Error,
+            template: String,
+        },
     }
 
     // Handlebars helpers are required to return a RenderError.
