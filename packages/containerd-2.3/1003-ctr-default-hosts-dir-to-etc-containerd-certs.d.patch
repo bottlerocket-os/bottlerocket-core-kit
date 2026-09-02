@@ -1,0 +1,25 @@
+From 5996f17f4b3287148255c0cd89dee981f83dc0c2 Mon Sep 17 00:00:00 2001
+From: Ben Cressey <bcressey@amazon.com>
+Date: Fri, 30 Jan 2026 19:08:27 +0000
+Subject: [PATCH] ctr: default hosts-dir to /etc/containerd/certs.d
+
+Signed-off-by: Ben Cressey <bcressey@amazon.com>
+---
+ cmd/ctr/commands/commands.go | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cmd/ctr/commands/commands.go b/cmd/ctr/commands/commands.go
+index 946da78ed..d4b7a3a87 100644
+--- a/cmd/ctr/commands/commands.go
++++ b/cmd/ctr/commands/commands.go
+@@ -72,8 +72,8 @@ var (
+ 			Usage: "Refresh token for authorization server",
+ 		},
+ 		&cli.StringFlag{
+-			Name: "hosts-dir",
+-			// compatible with "/etc/docker/certs.d"
++			Name:  "hosts-dir",
++			Value: "/etc/containerd/certs.d",
+ 			Usage: "Custom hosts configuration directory",
+ 		},
+ 		&cli.StringFlag{
