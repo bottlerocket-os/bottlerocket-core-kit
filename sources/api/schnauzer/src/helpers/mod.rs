@@ -69,6 +69,7 @@ lazy_static! {
         m.insert("me-south-1", "509306038620");
         m.insert("mx-central-1", "590183770263");
         m.insert("sa-east-1", "328549459982");
+        m.insert("sa-west-1", "954690186344");
         m.insert("us-east-1", "328549459982");
         m.insert("us-east-2", "328549459982");
         m.insert("us-gov-east-1", "388230364387");
