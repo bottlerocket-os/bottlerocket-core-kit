@@ -65,6 +65,7 @@ lazy_static! {
         m.insert("eusc-de-east-1", "587143065468");
         m.insert("il-central-1", "288123944683");
         m.insert("me-central-1", "553577323255");
+        m.insert("me-west-1", "276983943033");
         m.insert("me-south-1", "509306038620");
         m.insert("mx-central-1", "590183770263");
         m.insert("sa-east-1", "328549459982");
