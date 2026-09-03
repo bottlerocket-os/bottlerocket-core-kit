@@ -32,7 +32,7 @@ impl WarmPoolWait {
 
         fs::write(&marker_file_path, "").unwrap_or_else(|e| {
             log::warn!("Failed to create marker file '{}', warm-pool-wait service may unexpectedly run again: '{}'",
-            &marker_file_path, e);
+            marker_file_path, e);
         });
         println!("Marker file path is {marker_file_path}");
 

@@ -175,7 +175,7 @@ pub fn base64_decode(
     // To give context to our errors, get the template name, if available.
     trace!("Starting base64_decode helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     // Check number of parameters, must be exactly one
     trace!("Number of params: {}", helper.params().len());
@@ -298,7 +298,7 @@ pub fn join_map(
 ) -> Result<(), RenderError> {
     trace!("Starting join_map helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     trace!("Number of params: {}", helper.params().len());
     check_param_count(helper, template_name, 4)?;
@@ -523,7 +523,7 @@ pub fn default(
 ) -> Result<(), RenderError> {
     trace!("Starting default helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     trace!("Number of params: {}", helper.params().len());
     check_param_count(helper, template_name, 2)?;
@@ -685,7 +685,7 @@ impl HelperDef for IfNotNullHelper {
     ) -> Result<(), RenderError> {
         trace!("Starting if_not_null helper");
         let template_name = template_name(renderctx);
-        trace!("Template name: {}", &template_name);
+        trace!("Template name: {}", template_name);
 
         trace!("Number of params: {}", helper.params().len());
         check_param_count(helper, template_name, 1)?;
@@ -1033,7 +1033,7 @@ pub fn negate_or_else(
     // To give context to our errors, get the template name, if available.
     trace!("Starting negate_or_else helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     // Check number of parameters, must be exactly two (the value to negate and the default value)
     trace!("Number of params: {}", helper.params().len());

@@ -220,10 +220,10 @@ async fn run() -> Result<()> {
             })?
             .trim()
             .to_string();
-        trace!("Provider '{}' output: {}", &provider.display(), &output_raw);
+        trace!("Provider '{}' output: {}", provider.display(), output_raw);
 
         if output_raw.is_empty() {
-            info!("No user data found via {}", &provider.display());
+            info!("No user data found via {}", provider.display());
             continue;
         }
 

@@ -77,7 +77,7 @@ async fn check_pending_settings<S: AsRef<str>>(socket_path: S, transaction: &str
         serde_json::from_str(&response_body);
     match pending_result {
         Ok(pending) => {
-            debug!("Pending settings for tx {}: {:?}", transaction, &pending);
+            debug!("Pending settings for tx {}: {:?}", transaction, pending);
         }
         Err(err) => {
             warn!("Failed to parse response from {uri}: {err}");

@@ -154,7 +154,7 @@ async fn run() -> Result<()> {
     };
     info!(
         "Starting server at {} with {} thread{} and datastore at {}",
-        &args.socket_path, threads, threads_suffix, &args.datastore_path,
+        args.socket_path, threads, threads_suffix, args.datastore_path,
     );
 
     serve(

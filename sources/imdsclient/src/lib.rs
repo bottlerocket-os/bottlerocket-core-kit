@@ -189,7 +189,7 @@ impl ImdsClient {
         // Returns a list of available public keys as '0=my-public-key'.
         let public_key_list = match self.fetch_string("meta-data/public-keys").await? {
             Some(public_key_list) => {
-                debug!("available public keys '{}'", &public_key_list);
+                debug!("available public keys '{}'", public_key_list);
                 public_key_list
             }
             None => {
@@ -198,7 +198,7 @@ impl ImdsClient {
             }
         };
 
-        debug!("available public keys '{}'", &public_key_list);
+        debug!("available public keys '{}'", public_key_list);
         info!("Generating targets to fetch text of available public keys");
         let public_key_targets = build_public_key_targets(&public_key_list);
 
@@ -209,7 +209,7 @@ impl ImdsClient {
             info!(
                 "Fetching public key ({}/{})",
                 target_count,
-                &public_key_targets.len()
+                public_key_targets.len()
             );
 
             let public_key_text = self
@@ -219,12 +219,12 @@ impl ImdsClient {
             let public_key = public_key_text.trim_end();
             // Simple check to see if the text is probably an ssh key.
             if public_key.starts_with("ssh") {
-                debug!("{}", &public_key);
+                debug!("{}", public_key);
                 public_keys.push(public_key.to_string())
             } else {
                 warn!(
                     "'{}' does not appear to be a valid key. Skipping...",
-                    &public_key
+                    public_key
                 );
                 continue;
             }
@@ -284,7 +284,7 @@ impl ImdsClient {
             schema_version.as_ref(),
             target.as_ref()
         );
-        debug!("Requesting {}", &uri);
+        debug!("Requesting {}", uri);
         timeout(
             self.retry_timeout,
             Retry::start(retry_strategy(), || async {
@@ -302,7 +302,7 @@ impl ImdsClient {
                         method: "GET",
                         uri: &uri,
                     })?;
-                trace!("IMDS response: {:?}", &response);
+                trace!("IMDS response: {:?}", response);
 
                 match response.status() {
                     code @ StatusCode::OK => {
@@ -428,7 +428,7 @@ fn build_public_key_targets(public_key_list: &str) -> Vec<String> {
         } else {
             warn!(
                 "'{}' does not appear to be a valid index. Skipping...",
-                &f[0]
+                f[0]
             );
             continue;
         }

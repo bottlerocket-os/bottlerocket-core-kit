@@ -384,7 +384,7 @@ pub fn join_node_taints(
 ) -> Result<(), RenderError> {
     trace!("Starting join_node_taints helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     trace!("Number of params: {}", helper.params().len());
     check_param_count(helper, template_name, 1)?;
@@ -854,7 +854,7 @@ pub fn kube_reserve_memory(
 ) -> Result<(), RenderError> {
     trace!("Starting kube_reserve_memory helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     trace!("Number of params: {}", helper.params().len());
     check_param_count(helper, template_name, 2)?;
@@ -921,7 +921,7 @@ pub fn kube_reserve_cpu(
 ) -> Result<(), RenderError> {
     trace!("Starting kube_reserve_cpu helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     trace!("Number of params: {}", helper.params().len());
     check_param_count(helper, template_name, 1)?;
@@ -973,7 +973,7 @@ pub fn localhost_aliases(
     // To give context to our errors, get the template name, if available.
     trace!("Starting localhost_aliases helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     // Check number of parameters, must be exactly three (IP version, hostname, hosts overrides)
     trace!("Number of params: {}", helper.params().len());
@@ -1091,7 +1091,7 @@ pub fn etc_hosts_entries(
     // To give context to our errors, get the template name, if available.
     trace!("Starting etc_hosts_entries helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     // Check number of parameters, must be exactly one (hosts overrides)
     trace!("Number of params: {}", helper.params().len());
@@ -1156,7 +1156,7 @@ pub fn ecs_metadata_service_limits(
     // To give context to our errors, get the template name, if available.
     trace!("Starting ecs_metadata_service_limits helper");
     let template_name = template_name(renderctx);
-    trace!("Template name: {}", &template_name);
+    trace!("Template name: {}", template_name);
 
     // Check number of parameters, must be exactly two (metadata_service_rps and
     // metadata_service_burst)
@@ -1337,7 +1337,7 @@ pub fn oci_defaults(
     // To give context to our errors, get the template name (e.g. what file we are rendering), if available.
     debug!("Starting oci_defaults helper");
     let template_name = template_name(renderctx);
-    debug!("Template name: {}", &template_name);
+    debug!("Template name: {}", template_name);
 
     // Check number of parameters, must be exactly two (OCI spec section to render and settings values for the section)
     debug!("Number of params: {}", helper.params().len());

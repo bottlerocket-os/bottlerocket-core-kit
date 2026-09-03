@@ -159,7 +159,7 @@ fn run() -> Result<()> {
             // Continue to handle other static pods if we fail one
             if let Err(e) = handle_static_pod(name, pod) {
                 failed += 1;
-                error!("Failed to handle static pod '{}': {}", &name, e);
+                error!("Failed to handle static pod '{}': {}", name, e);
             }
         }
 

@@ -32,7 +32,7 @@ impl Endpoint {
         }
 
         // Parse bare hostname with https:// prefix (handles registry:5000/v2/path)
-        if let Ok(url) = Url::parse(&format!("https://{}", &self.0)) {
+        if let Ok(url) = Url::parse(&format!("https://{}", self.0)) {
             if let Some(_host) = url.host_str() {
                 return !url.path().is_empty() && url.path() != "/";
             }

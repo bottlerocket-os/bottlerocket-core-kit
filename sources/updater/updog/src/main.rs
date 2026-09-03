@@ -365,7 +365,7 @@ fn list_updates(
         );
     } else {
         for u in updates {
-            eprintln!("{}", &fmt_full_version(u));
+            eprintln!("{}", fmt_full_version(u));
         }
     }
     Ok(())

@@ -480,7 +480,7 @@ fn run() -> Result<()> {
         if is_container_affected(&changed_settings, name.as_ref()) {
             if let Err(e) = handle_host_container(name, image_details) {
                 failed += 1;
-                error!("Failed to handle host container '{}': {}", &name, e);
+                error!("Failed to handle host container '{}': {}", name, e);
             }
         }
     }
