@@ -1,4 +1,13 @@
-# Unreleased
+# v16.2.0 (2026-09-03)
+
+## OS Changes
+* Adjust `join_array` helper to properly escape characters in `schnauzer` ([#1031])
+
+## Build Changes
+* Bump `bottlerocket-sdk` to v0.79.0 ([#1032])
+
+[#1031]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1031
+[#1032]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1032
 
 # v16.1.0 (2026-09-03)
 
