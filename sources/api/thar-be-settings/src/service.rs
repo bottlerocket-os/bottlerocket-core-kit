@@ -42,6 +42,98 @@ impl Services {
         }
         Self(output)
     }
+
+    /// Restart all systemd units across all services with a single systemctl call.
+    fn restart_systemd(&self) -> Result<()> {
+        // Collect systemd unit names from all services' restart commands.
+        // e.g. "/bin/systemctl try-restart foo.service" -> "foo.service"
+        let units: Vec<&str> = self
+            .0
+            .values()
+            .flat_map(|s| s.model.restart_commands.iter())
+            .filter(|cmd| cmd.contains("systemctl"))
+            .filter_map(|cmd| cmd.split_whitespace().last())
+            .collect();
+
+        if units.is_empty() {
+            return Ok(());
+        }
+
+        debug!("Restarting systemd units: {:?}", &units);
+        let mut cmd = Command::new("/bin/systemctl");
+        cmd.arg("try-reload-or-restart");
+        cmd.args(&units);
+
+        let result = cmd.output().context(error::CommandExecutionFailureSnafu {
+            command: "systemctl try-reload-or-restart",
+        })?;
+
+        ensure!(
+            result.status.success(),
+            error::FailedRestartCommandSnafu {
+                command: format!("systemctl try-reload-or-restart {}", units.join(" ")),
+                stderr: String::from_utf8_lossy(&result.stderr),
+            }
+        );
+
+        Ok(())
+    }
+}
+
+impl Service {
+    /// Execute non-systemd restart commands for this service.
+    fn restart_non_systemd(&self) -> Result<()> {
+        for restart_command in &self.model.restart_commands {
+            // Skip systemd commands - handled by Services::restart_systemd()
+            if restart_command.contains("systemctl") {
+                continue;
+            }
+
+            // Split on space, assume the first item is the command
+            // and the rest are args.
+            debug!("Restart command: {:?}", &restart_command);
+            let mut command_strings = restart_command.split(' ');
+            let command = command_strings
+                .next()
+                .context(error::InvalidRestartCommandSnafu {
+                    command: restart_command.as_str(),
+                })?;
+            trace!("Command: {}", &command);
+            trace!("Args: {:?}", &command_strings);
+
+            // Go execute the restart command
+            let mut process_command = Command::new(command);
+            process_command.args(command_strings);
+            if let Some(ref changed_settings) = self.changed_settings {
+                if !changed_settings.is_empty() {
+                    process_command.env("CHANGED_SETTINGS", join(changed_settings, " "));
+                }
+            }
+            let result = process_command
+                .output()
+                .context(error::CommandExecutionFailureSnafu {
+                    command: restart_command.as_str(),
+                })?;
+
+            // If the restart command exited nonzero, call it a failure
+            ensure!(
+                result.status.success(),
+                error::FailedRestartCommandSnafu {
+                    command: restart_command.as_str(),
+                    stderr: String::from_utf8_lossy(&result.stderr),
+                }
+            );
+            trace!(
+                "Command stdout: {}",
+                String::from_utf8_lossy(&result.stdout)
+            );
+            trace!(
+                "Command stderr: {}",
+                String::from_utf8_lossy(&result.stderr)
+            );
+        }
+        Ok(())
+    }
 }
 
 /// Returns a `Services` reflecting the set of services affected by the given changed settings in
@@ -133,70 +225,26 @@ where
     Ok(service_map)
 }
 
-/// Call the `restart()` method on each Service in a Services object
+/// Restart services, batching systemd services together and then iterating non-systemd services.
+/// Does not bail early on failure; attempts all restarts and reports any failures at the end.
 pub fn restart_services(services: Services) -> Result<()> {
-    for (name, service) in services.0 {
-        debug!("Checking for restart-commands for {name}");
-        service.restart()?;
+    let mut restart_failed = false;
+
+    if let Err(e) = services.restart_systemd() {
+        error!("systemctl restart failed: {}", e);
+        restart_failed = true;
     }
-    Ok(())
-}
 
-/// This trait is primarily meant to extend the Service model.  It uses the metadata
-/// inside the Service struct to restart the service.
-trait ServiceRestart {
-    /// Restart the service
-    fn restart(&self) -> Result<()>;
-}
-
-impl ServiceRestart for Service {
-    fn restart(&self) -> Result<()> {
-        let restart_commands = &self.model.restart_commands;
-        info!("restart commands {restart_commands:?}");
-        for restart_command in restart_commands {
-            // Split on space, assume the first item is the command
-            // and the rest are args.
-            debug!("Restart command: {:?}", &restart_command);
-            let mut command_strings = restart_command.split(' ');
-            let command = command_strings
-                .next()
-                .context(error::InvalidRestartCommandSnafu {
-                    command: restart_command.as_str(),
-                })?;
-            trace!("Command: {}", &command);
-            trace!("Args: {:?}", &command_strings);
-
-            // Go execute the restart command
-            let mut process_command = Command::new(command);
-            process_command.args(command_strings);
-            if let Some(ref changed_settings) = self.changed_settings {
-                if !changed_settings.is_empty() {
-                    process_command.env("CHANGED_SETTINGS", join(changed_settings, " "));
-                }
-            }
-            let result = process_command
-                .output()
-                .context(error::CommandExecutionFailureSnafu {
-                    command: restart_command.as_str(),
-                })?;
-
-            // If the restart command exited nonzero, call it a failure
-            ensure!(
-                result.status.success(),
-                error::FailedRestartCommandSnafu {
-                    command: restart_command.as_str(),
-                    stderr: String::from_utf8_lossy(&result.stderr),
-                }
-            );
-            trace!(
-                "Command stdout: {}",
-                String::from_utf8_lossy(&result.stdout)
-            );
-            trace!(
-                "Command stderr: {}",
-                String::from_utf8_lossy(&result.stderr)
-            );
+    for (name, service) in &services.0 {
+        if let Err(e) = service.restart_non_systemd() {
+            error!("Failed to restart {}: {}", name, e);
+            restart_failed = true;
         }
+    }
+
+    if restart_failed {
+        error::ServiceRestartsFailedSnafu.fail()
+    } else {
         Ok(())
     }
 }

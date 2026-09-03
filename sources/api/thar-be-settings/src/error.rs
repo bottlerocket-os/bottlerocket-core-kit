@@ -87,4 +87,7 @@ pub enum Error {
         uri: String,
         source: schnauzer::v1::Error,
     },
+
+    #[snafu(display("One or more service restarts failed"))]
+    ServiceRestartsFailed,
 }
