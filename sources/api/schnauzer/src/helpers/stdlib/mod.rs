@@ -838,17 +838,18 @@ pub fn join_array(
         if i > 0 {
             result.push_str(delimiter);
         }
-        result.push_str(
-            format!(
-                "\"{}\"",
-                value.as_str().context(error::JoinStringsWrongTypeSnafu {
-                    expected_type: "string",
-                    value: array.to_owned(),
-                    template: template_name,
-                })?
-            )
-            .as_str(),
-        );
+        let s = value.as_str().context(error::JoinStringsWrongTypeSnafu {
+            expected_type: "string",
+            value: array.to_owned(),
+            template: template_name,
+        })?;
+        // JSON-encode: output is valid JSON *and* a valid TOML basic string.
+        // Do not switch to `toml::Value::String` — it may emit literal
+        // (`'…'`) or multi-line (`"""…"""`) strings that are not valid JSON.
+        let encoded = serde_json::to_string(s).context(error::JsonSerializeSnafu {
+            template: template_name,
+        })?;
+        result.push_str(&encoded);
     }
 
     // write it to the template
@@ -925,6 +926,69 @@ mod test_join_array {
                 .unwrap();
         let expected = r#""a", "", "c""#;
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn join_array_escapes_double_quote() {
+        let data = json!({"settings": {"foo-list": ["a\"b"]}});
+        let result = setup_and_render_template(TEMPLATE, &data).unwrap();
+        assert_eq!(result, r#""a\"b""#);
+    }
+
+    #[test]
+    fn join_array_output_is_valid_json() {
+        let data = json!({"settings": {"foo-list": ["a\"b", "a\\b", "a\nb", "a\tb", "plain", ""]}});
+        let result = setup_and_render_template(TEMPLATE, &data).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&format!("[{}]", result)).unwrap();
+        let arr = parsed.as_array().unwrap();
+        assert_eq!(arr.len(), 6);
+        assert_eq!(arr[0].as_str().unwrap(), "a\"b");
+        assert_eq!(arr[1].as_str().unwrap(), "a\\b");
+        assert_eq!(arr[2].as_str().unwrap(), "a\nb");
+        assert_eq!(arr[3].as_str().unwrap(), "a\tb");
+        assert_eq!(arr[4].as_str().unwrap(), "plain");
+        assert_eq!(arr[5].as_str().unwrap(), "");
+    }
+
+    #[test]
+    fn join_array_escapes_newline_and_control() {
+        let data = json!({"settings": {"foo-list": ["a\n\r\tb"]}});
+        let result = setup_and_render_template(TEMPLATE, &data).unwrap();
+        let parsed: toml::Value = toml::from_str(&format!("v = [{}]", result)).unwrap();
+        assert_eq!(parsed["v"][0].as_str().unwrap(), "a\n\r\tb");
+    }
+
+    #[test]
+    fn join_array_backslash_roundtrips() {
+        let data = json!({"settings": {"foo-list": ["a\\b"]}});
+        let result = setup_and_render_template(TEMPLATE, &data).unwrap();
+        let parsed: toml::Value = toml::from_str(&format!("v = [{}]", result)).unwrap();
+        assert_eq!(parsed["v"][0].as_str().unwrap(), "a\\b");
+    }
+
+    #[test]
+    fn join_array_payload_from_security_finding_is_neutralized() {
+        let payload = "https://mirror.example.com/\"]\n\n[stream_processors.\"pwn\"]\naccepts = [\"application/vnd.oci.image.layer.v1.tar+evil\"]\npath = \"/usr/bin/cp\"\nargs = [\"/etc/os-release\", \"/local/pwned\"]\n\n[metrics]\naddress = \"0.0.0.0:9099\"\n# trailer: ";
+        let data = json!({"settings": {"foo-list": [payload]}});
+        let result = setup_and_render_template(TEMPLATE, &data).unwrap();
+        let doc = format!("endpoint = [{}]", result);
+        let parsed: toml::Value = toml::from_str(&doc).unwrap();
+        assert_eq!(parsed["endpoint"].as_array().unwrap().len(), 1);
+        assert_eq!(parsed["endpoint"][0].as_str().unwrap(), payload);
+        assert!(parsed.get("stream_processors").is_none());
+        assert!(parsed.get("metrics").is_none());
+    }
+
+    #[test]
+    fn join_array_multiple_items_with_special_chars() {
+        let data = json!({"settings": {"foo-list": ["a\"b", "c\nd", "plain"]}});
+        let result = setup_and_render_template(TEMPLATE, &data).unwrap();
+        let parsed: toml::Value = toml::from_str(&format!("v = [{}]", result)).unwrap();
+        let arr = parsed["v"].as_array().unwrap();
+        assert_eq!(arr.len(), 3);
+        assert_eq!(arr[0].as_str().unwrap(), "a\"b");
+        assert_eq!(arr[1].as_str().unwrap(), "c\nd");
+        assert_eq!(arr[2].as_str().unwrap(), "plain");
     }
 }
 
