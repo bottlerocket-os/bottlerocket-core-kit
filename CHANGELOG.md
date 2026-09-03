@@ -1,5 +1,30 @@
 # Unreleased
 
+# v16.1.0 (2026-09-03)
+
+## OS Changes
+* Capture `systemd-pstore` kernel dumps with `logdog` ([#1028])
+
+### Third Party Package Updates
+* Update `kubernetes-1.31`, `kubernetes-1.32`, `kubernetes-1.33`, `kubernetes-1.34`, `kubernetes-1.35`, `kubernetes-1.36`, `containerd-2.2`, `ecr-credential-provider-1.36`, `aws-otel-collector` ([#1021])
+
+## Build Changes
+* Bump `bottlerocket-settings-models` to 0.27.0 ([#1029])
+* Update Twoliter to `0.24.0` ([#1026])
+
+## Orchestrator Changes
+
+### Kubernetes
+* Add `kubernetes-1.37` and `ecr-credential-provider-1.37` packages ([#1029])
+* Add `containerd-2.3` package ([#1023])
+* Add `memory-reservation-policy` and `memory-throttling-factor` settings for `kubernetes-1.37` ([#1029])
+
+[#1021]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1021
+[#1023]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1023
+[#1026]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1026
+[#1028]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1028
+[#1029]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1029
+
 # v16.0.0 (2026-08-27)
 
 ## OS Changes
