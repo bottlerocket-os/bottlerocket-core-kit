@@ -105,7 +105,7 @@ where
         schnauzer::v1::get_json(socket_path, uri, Some(query))
             .await
             .context(error::GetJsonSnafu { uri })?;
-    trace!("API response: {:?}", &setting_to_services_map);
+    trace!("API response: {:?}", setting_to_services_map);
 
     Ok(setting_to_services_map)
 }
@@ -128,7 +128,7 @@ where
     let service_map: model::Services = schnauzer::v1::get_json(socket_path, uri, query)
         .await
         .context(error::GetJsonSnafu { uri })?;
-    trace!("Service metadata: {:?}", &service_map);
+    trace!("Service metadata: {:?}", service_map);
 
     Ok(service_map)
 }
@@ -156,15 +156,15 @@ impl ServiceRestart for Service {
         for restart_command in restart_commands {
             // Split on space, assume the first item is the command
             // and the rest are args.
-            debug!("Restart command: {:?}", &restart_command);
+            debug!("Restart command: {:?}", restart_command);
             let mut command_strings = restart_command.split(' ');
             let command = command_strings
                 .next()
                 .context(error::InvalidRestartCommandSnafu {
                     command: restart_command.as_str(),
                 })?;
-            trace!("Command: {}", &command);
-            trace!("Args: {:?}", &command_strings);
+            trace!("Command: {}", command);
+            trace!("Args: {:?}", command_strings);
 
             // Go execute the restart command
             let mut process_command = Command::new(command);

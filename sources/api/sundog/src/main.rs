@@ -193,7 +193,7 @@ where
     let generators: HashMap<String, SettingsGenerator> = serde_json::from_str(&response_body)
         .context(error::ResponseJsonSnafu { method: "GET", uri })?;
 
-    trace!("Generators: {:?}", &generators);
+    trace!("Generators: {:?}", generators);
 
     Ok(generators)
 }
@@ -231,7 +231,7 @@ where
         populated_settings.insert(k);
     }
 
-    trace!("Found populated settings: {:#?}", &populated_settings);
+    trace!("Found populated settings: {:#?}", populated_settings);
     Ok(populated_settings)
 }
 
@@ -349,7 +349,7 @@ where
             continue;
         }
 
-        debug!("Running generator: '{}'", &generator);
+        debug!("Running generator: '{}'", generator);
 
         // Split on space, assume the first item is the command
         // and the rest are args.
@@ -431,7 +431,7 @@ where
             })?
             .trim()
             .to_string();
-        trace!("Generator '{}' output: {}", &generator, &output_raw);
+        trace!("Generator '{}' output: {}", generator, output_raw);
 
         // Next, we deserialize the text into a Value that can represent any JSON type.
         let output_value: serde_json::Value =
@@ -449,7 +449,7 @@ where
             datastore::serialize_scalar(&output_value).context(error::SerializeScalarSnafu {
                 value: output_value,
             })?;
-        trace!("Serialized output: {}", &serialized_output);
+        trace!("Serialized output: {}", serialized_output);
 
         // Add the setting to the appropriate map
         if generator_object.strength == Strength::Strong {
@@ -489,7 +489,7 @@ where
         strength
     );
     let method = "PATCH";
-    trace!("Settings to {} to {}: {}", method, uri, &request_body);
+    trace!("Settings to {} to {}: {}", method, uri, request_body);
     let (code, response_body) =
         apiclient::raw_request(socket_path.as_ref(), uri, method, Some(request_body))
             .await

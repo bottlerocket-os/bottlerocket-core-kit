@@ -34,7 +34,7 @@ pub fn get_changed_settings() -> Result<HashSet<String>> {
     io::stdin()
         .read_to_string(&mut input)
         .context(error::ReadInputSnafu { from: "stdin" })?;
-    trace!("Raw input from stdin: {}", &input);
+    trace!("Raw input from stdin: {}", input);
 
     // Settings should be a vec of strings
     debug!("Parsing stdin as JSON");
@@ -43,7 +43,7 @@ pub fn get_changed_settings() -> Result<HashSet<String>> {
             reason: "Input must be a JSON array of strings",
             input,
         })?;
-    trace!("Parsed input: {:?}", &changed_settings);
+    trace!("Parsed input: {:?}", changed_settings);
 
     Ok(changed_settings)
 }

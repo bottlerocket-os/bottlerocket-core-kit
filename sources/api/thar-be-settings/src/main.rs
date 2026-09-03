@@ -164,7 +164,7 @@ async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             // Create a HashSet of affected services
             info!(
                 "Requesting affected services for settings: {:?}",
-                &changed_settings
+                changed_settings
             );
             let services =
                 service::get_affected_services(&args.socket_path, Some(changed_settings)).await?;

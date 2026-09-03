@@ -22,7 +22,7 @@ impl GenerateAdminUserdata {
         // Serialize user_data to a JSON string that can be read by the admin container.
         let user_data_json =
             serde_json::to_string(&user_data).context(error::SerializeJsonSnafu)?;
-        log::debug!("{}", &user_data_json);
+        log::debug!("{}", user_data_json);
 
         log::info!("Encoding user-data");
         // admin container user-data must be base64-encoded to be passed through to the admin container

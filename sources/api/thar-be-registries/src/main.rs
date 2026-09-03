@@ -136,7 +136,7 @@ fn write_hosts_toml(base_dir: &Path, mirror: &Mirror) -> Result<()> {
     let server = match host.as_str() {
         "*" => None,
         DOCKER_HUB_HOST => Some(format!("https://{}", DOCKER_HUB_REGISTRY)),
-        _ => Some(format!("{}://{}", &scheme, host)),
+        _ => Some(format!("{}://{}", scheme, host)),
     };
 
     let mut ns = HostNamespace {

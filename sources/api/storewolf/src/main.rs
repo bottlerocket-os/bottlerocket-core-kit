@@ -181,14 +181,14 @@ fn parse_metadata_toml(md_toml_val: toml::Value) -> Result<Vec<model::Metadata>>
     let mut to_process = vec![(Vec::new(), md_toml_val)];
 
     while let Some((mut path, toml_value)) = to_process.pop() {
-        trace!("Current metadata table path: {:#?}", &path);
+        trace!("Current metadata table path: {:#?}", path);
 
         match toml_value {
             // A table means there is more processing to do. Add the current
             // key and value to the Vec to be processed further.
             toml::Value::Table(table) => {
                 for (key, val) in table {
-                    trace!("Found table for key '{}'", &key);
+                    trace!("Found table for key '{}'", key);
                     let mut path = path.clone();
                     if key == "setting-generator" {
                         match val {
@@ -203,8 +203,8 @@ fn parse_metadata_toml(md_toml_val: toml::Value) -> Result<Vec<model::Metadata>>
 
                                 trace!(
                                     "Found metadata key '{}' for data key '{}'",
-                                    &md_key,
-                                    &data_key
+                                    md_key,
+                                    data_key
                                 );
 
                                 // Ensure the metadata/data keys don't contain newline chars
@@ -245,8 +245,8 @@ fn parse_metadata_toml(md_toml_val: toml::Value) -> Result<Vec<model::Metadata>>
 
                 trace!(
                     "Found metadata key '{}' for data key '{}'",
-                    &md_key,
-                    &data_key
+                    md_key,
+                    data_key
                 );
 
                 // Ensure the metadata/data keys don't contain newline chars
@@ -297,7 +297,7 @@ fn populate_default_datastore<P: AsRef<Path>>(
             .list_populated_keys("", &Committed::Live)
             .context(error::QueryDataSnafu)?;
     } else {
-        info!("Creating datastore at: {}", &live_path.display());
+        info!("Creating datastore at: {}", live_path.display());
         create_new_datastore(&base_path, version).context(error::DatastoreCreationSnafu)?;
     }
 
@@ -345,7 +345,7 @@ fn populate_default_datastore<P: AsRef<Path>>(
 
         trace!(
             "Writing other default data to datastore: {:#?}",
-            &other_defaults_to_write
+            other_defaults_to_write
         );
         datastore
             .set_keys(&other_defaults_to_write, &datastore::Committed::Live)
@@ -392,7 +392,7 @@ fn populate_default_data(
 
         trace!(
             "Writing default settings to datastore: {:#?}",
-            &settings_to_write
+            settings_to_write
         );
         let pending = datastore::Committed::Pending {
             tx: constants::LAUNCH_TRANSACTION.to_string(),
@@ -614,14 +614,14 @@ fn run() -> Result<()> {
     }
 
     // Create the datastore if it doesn't exist
-    info!("Populating datastore at: {}", &args.data_store_base_path);
+    info!("Populating datastore at: {}", args.data_store_base_path);
     populate_default_datastore(&args.data_store_base_path, args.version)?;
     info!("Datastore populated");
 
     // Create the inventory file symlink and any necessary parent directories
     info!(
         "Creating inventory file symlink at: {}",
-        &args.inventory_symlink_path
+        args.inventory_symlink_path
     );
     create_inventory_symlink(&args.inventory_file_path, &args.inventory_symlink_path)?;
     info!("Inventory symlink created");

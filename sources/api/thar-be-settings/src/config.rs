@@ -64,11 +64,11 @@ pub async fn render_config_files(
         if !metadata.should_render() {
             info!(
                 "File {} already exists and overwrite-path-if-present=false, skipping render of config file",
-                &metadata.path,
+                metadata.path,
             );
             continue;
         }
-        debug!("Rendering {}", &name);
+        debug!("Rendering {}", name);
 
         let try_rendered =
             schnauzer::render_template_file(template_importer, &metadata.template_path.as_ref())
@@ -88,18 +88,18 @@ pub async fn render_config_files(
                     rendered,
                     &metadata.mode,
                 )),
-                Err(err) => warn!("Unable to render template '{}': {}", &name, err),
+                Err(err) => warn!("Unable to render template '{}': {}", name, err),
             }
         }
     }
-    trace!("Rendered configs: {:?}", &rendered_configs);
+    trace!("Rendered configs: {:?}", rendered_configs);
     Ok(rendered_configs)
 }
 
 /// Write all the configuration files to disk
 pub fn write_config_files(rendered_configs: &[RenderedConfigFile]) -> Result<()> {
     for cfg in rendered_configs {
-        debug!("Writing {:?}", &cfg.path);
+        debug!("Writing {:?}", cfg.path);
         cfg.write_to_disk()?;
     }
     Ok(())
@@ -113,8 +113,8 @@ pub fn reload_config_files(rendered_configs: &[RenderedConfigFile]) -> Result<()
     {
         let mut args = SYSTEMCTL_DAEMON_RELOAD.split(' ');
         let program = args.next().expect("failed to split on space");
-        trace!("Command: {}", &program);
-        trace!("Args: {:?}", &args);
+        trace!("Command: {}", program);
+        trace!("Args: {:?}", args);
 
         let result = Command::new(program).args(args).output().context(
             error::CommandExecutionFailureSnafu {

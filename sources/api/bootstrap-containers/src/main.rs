@@ -518,7 +518,7 @@ where
         // Continue to handle other bootstrap containers if we fail one
         if let Err(e) = handle_bootstrap_container(name, container_details) {
             failed += 1;
-            error!("Failed to handle bootstrap container '{}': {}", &name, e);
+            error!("Failed to handle bootstrap container '{}': {}", name, e);
         }
     }
 
