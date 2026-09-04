@@ -1,5 +1,5 @@
 schema-version = 2
-release-version = "16.2.0"
+release-version = "16.3.0"
 project-vendor = "Bottlerocket"
 
 [vendor.bottlerocket]
