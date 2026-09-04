@@ -1,3 +1,11 @@
+# v16.3.0 (2026-09-04)
+
+## OS Changes
+* Add support for plain-mode encryption with `dm-crypt` in `rottweiler` ([#1024])
+* Support `ephemeral-encryption-keys` with plain-mode encryption in `ephemeral-storage` ([#1024])
+
+[#1024]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1024
+
 # v16.2.0 (2026-09-03)
 
 ## OS Changes
