@@ -4,6 +4,26 @@ ntp = "v1"
 {{#each settings.ntp.time-servers}}
 pool {{this}}{{#each ../settings.ntp.options}} {{this}}{{/each}}
 {{/each}}
+{{#if settings.ntp.refclocks}}
+{{#each settings.ntp.refclocks}}
+refclock {{this.driver}} {{this.parameter}}{{#if this.options}}{{#each this.options}} {{this}}{{/each}}{{/if}}
+{{/each}}
+{{/if}}
+{{#if settings.ntp.allow}}
+{{#each settings.ntp.allow}}
+allow {{this}}
+{{/each}}
+{{/if}}
+{{#if settings.ntp.cmdallow}}
+{{#each settings.ntp.cmdallow}}
+cmdallow {{this}}
+{{/each}}
+{{/if}}
+{{#if settings.ntp.bindcmdaddress}}
+{{#each settings.ntp.bindcmdaddress}}
+bindcmdaddress {{this}}
+{{/each}}
+{{/if}}
 driftfile /var/lib/chrony/drift
 makestep 1.0 3
 dumponexit
