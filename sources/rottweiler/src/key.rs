@@ -13,20 +13,12 @@ const KEYSTORE_PERMANENT: &str = "/.bottlerocket/keystore";
 const KEYSTORE_EPHEMERAL: &str = "/run/rottweiler";
 const KEY_SIZE: usize = 64;
 
-/// Checks if ephemeral encryption keys feature is enabled via image features
-fn ephemeral_encryption_keys_enabled() -> Result<bool> {
-    let features = bottlerocket_image_features::parse_image_features()
-        .with_whatever_context(|_| "failed to load image features")?;
-    Ok(features.ephemeral_encryption_keys)
-}
-
-fn keystore_dir() -> PathBuf {
-    let is_ephemeral_encryption_keys_enabled = ephemeral_encryption_keys_enabled().unwrap_or(false);
+fn keystore_dir() -> Result<PathBuf> {
     // If ephemeral encryption keys are enabled, we store the keys in tmpfs rather than the disk
-    if is_ephemeral_encryption_keys_enabled {
-        PathBuf::from(KEYSTORE_EPHEMERAL)
+    if system::ephemeral_encryption_keys_enabled()? {
+        Ok(PathBuf::from(KEYSTORE_EPHEMERAL))
     } else {
-        PathBuf::from(KEYSTORE_PERMANENT)
+        Ok(PathBuf::from(KEYSTORE_PERMANENT))
     }
 }
 
@@ -42,19 +34,8 @@ fn validate_key_id(key_id: &str) -> Result<()> {
     Ok(())
 }
 
-/// Generate a random encryption key and encrypt it with TPM2 PCRs 7+14
-pub fn generate(key_id: String) -> Result<()> {
-    validate_key_id(&key_id)?;
-    let keystore = keystore_dir();
-    let key_path = keystore.join(&key_id);
-
-    // Skip generation if key already exists
-    if key_path.exists() {
-        return Ok(());
-    }
-
+fn random_bytes() -> Result<Zeroizing<Vec<u8>>> {
     let mut random_bytes = Zeroizing::new(vec![0u8; KEY_SIZE]);
-
     let mut random = fs::File::open(DEV_RANDOM)
         .with_whatever_context(|_| format!("failed to open {}", DEV_RANDOM))?;
 
@@ -62,6 +43,21 @@ pub fn generate(key_id: String) -> Result<()> {
         .read_exact(&mut random_bytes)
         .with_whatever_context(|_| "failed to read random bytes")?;
 
+    Ok(random_bytes)
+}
+
+/// Generate a random encryption key and encrypt it with TPM2 PCRs 7+14
+pub fn generate(key_id: String) -> Result<()> {
+    validate_key_id(&key_id)?;
+    let keystore = keystore_dir()?;
+    let key_path = keystore.join(&key_id);
+
+    // Skip generation if key already exists
+    if key_path.exists() {
+        return Ok(());
+    }
+
+    let random_bytes = random_bytes()?;
     let encrypted = system::systemd_creds_encrypt(&key_id, &random_bytes)?;
 
     fs::create_dir_all(&keystore).with_whatever_context(|_| {
@@ -80,7 +76,7 @@ pub fn generate(key_id: String) -> Result<()> {
 /// Delete a sealed key from the keystore.
 pub fn delete(key_id: String) -> Result<()> {
     validate_key_id(&key_id)?;
-    let key_path = keystore_dir().join(&key_id);
+    let key_path = keystore_dir()?.join(&key_id);
 
     // Skip deletion if key doesn't exists
     if !key_path.exists() {
@@ -98,7 +94,7 @@ pub fn delete(key_id: String) -> Result<()> {
 /// Load and decrypt a TPM2-encrypted key from the keystore
 pub fn load(key_id: String) -> Result<Zeroizing<Vec<u8>>> {
     validate_key_id(&key_id)?;
-    let key_path = keystore_dir().join(&key_id);
+    let key_path = keystore_dir()?.join(&key_id);
 
     let encrypted = fs::read(&key_path)
         .with_whatever_context(|_| format!("failed to read key from '{}'", key_path.display()))?;

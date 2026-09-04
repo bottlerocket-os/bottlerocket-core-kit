@@ -1,0 +1,43 @@
+[Unit]
+Description=Encrypt and Unlock Local Filesystem (/local)
+DefaultDependencies=no
+Conflicts=umount.target
+IgnoreOnIsolate=true
+Wants=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dDATA.device blockdev@dev-mapper-BOTTLEROCKET\x2dDATA.target
+After=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dDATA.device cryptsetup-pre.target systemd-udevd-kernel.socket
+After=tpm2.target
+ConditionSecurity=tpm2
+Before=cryptsetup.target blockdev@dev-mapper-BOTTLEROCKET\x2dDATA.target
+RequiresMountsFor=/run/rottweiler
+RefuseManualStart=true
+RefuseManualStop=true
+
+[Service]
+Type=oneshot
+Environment=BOTTLEROCKET_DATA=/dev/disk/by-partlabel/BOTTLEROCKET-DATA
+Environment=DATA_PARTITION_BLOCK_DEVICE=/dev/mapper/BOTTLEROCKET-DATA
+EnvironmentFile=/usr/share/bottlerocket/image-features.env
+
+ExecStart=/usr/bin/rottweiler generate-key bottlerocket-data
+ExecStart=/usr/bin/rottweiler encrypt-and-attach block-device ${BOTTLEROCKET_DATA} bottlerocket-data
+ExecStart=/usr/lib/systemd/systemd-makefs ${DATA_PARTITION_FILESYSTEM} ${DATA_PARTITION_BLOCK_DEVICE}
+
+# Mask repart-data-* so they don't block waiting for a partition this service already owns.
+ExecStart=/usr/bin/systemctl stop repart-data-preferred repart-data-fallback --no-block
+ExecStart=/usr/bin/ln -s /dev/null /etc/systemd/system/repart-data-preferred.service
+ExecStart=/usr/bin/ln -s /dev/null /etc/systemd/system/repart-data-fallback.service
+
+# Pass the device directly so systemd-repart resizes regardless of which disk / lives on.
+ExecStart=-/usr/bin/systemd-repart --dry-run=no ${BOTTLEROCKET_DATA}
+ExecStart=/usr/bin/rottweiler resize block-device /dev/disk/by-partlabel/BOTTLEROCKET-DATA bottlerocket-data
+ExecStartPost=/usr/bin/rottweiler delete-key bottlerocket-data
+
+ExecStop=/usr/bin/rottweiler detach block-device ${BOTTLEROCKET_DATA}
+
+UMask=0077
+RemainAfterExit=yes
+StandardOutput=journal+console
+StandardError=inherit
+
+[Install]
+RequiredBy=local-fs.target

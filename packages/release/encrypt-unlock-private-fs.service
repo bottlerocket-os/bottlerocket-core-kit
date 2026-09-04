@@ -1,12 +1,14 @@
 [Unit]
-Description=Unlock Private Filesystem (/.bottlerocket)
+Description=Encrypt and Unlock Private Filesystem (/.bottlerocket)
 DefaultDependencies=no
 Conflicts=umount.target
 IgnoreOnIsolate=true
-After=cryptsetup-pre.target systemd-udevd-kernel.socket dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dPRIVATE.device
 Wants=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dPRIVATE.device blockdev@dev-mapper-BOTTLEROCKET\x2dPRIVATE.target
-Before=cryptsetup.target blockdev@dev-mapper-BOTTLEROCKET\x2dPRIVATE.target
+After=dev-disk-by\x2dpartlabel-BOTTLEROCKET\x2dPRIVATE.device cryptsetup-pre.target systemd-udevd-kernel.socket
+After=tpm2.target
 ConditionSecurity=tpm2
+Before=cryptsetup.target blockdev@dev-mapper-BOTTLEROCKET\x2dPRIVATE.target
+RequiresMountsFor=/run/rottweiler
 RefuseManualStart=true
 RefuseManualStop=true
 
@@ -15,12 +17,12 @@ Type=oneshot
 Environment=BOTTLEROCKET_PRIVATE=/dev/disk/by-partlabel/BOTTLEROCKET-PRIVATE
 EnvironmentFile=/usr/share/bottlerocket/image-features.env
 
-ExecStart=/usr/bin/rottweiler attach block-device ${BOTTLEROCKET_PRIVATE} bottlerocket-private
-# Delete the private-partition encryption key from the tmpfs keystore after it has
-# been used to unlock the volume, so a fresh key is generated on the next boot.
+ExecStart=/usr/bin/rottweiler generate-key bottlerocket-private
+ExecStart=/usr/bin/rottweiler encrypt-and-attach block-device ${BOTTLEROCKET_PRIVATE} bottlerocket-private
 ExecStartPost=/usr/bin/rottweiler delete-key bottlerocket-private
 ExecStop=/usr/bin/rottweiler detach block-device ${BOTTLEROCKET_PRIVATE}
 
+UMask=0077
 RemainAfterExit=yes
 StandardOutput=journal
 StandardError=journal+console

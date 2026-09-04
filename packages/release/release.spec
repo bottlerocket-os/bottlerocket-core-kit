@@ -142,23 +142,21 @@ Source1608: measure-settings.service
 Source1609: measure-cmdline.service
 Source1610: measure-user-data.service
 
+# Ephemeral encryption keys combines encrypt+unlock in one unit
+Source1611: encrypt-unlock-local-fs.service
+Source1612: encrypt-unlock-private-fs.service
+Source1613: encrypt-unlock-datastore.service
+
 # TPM2-related drop-ins.
 Source1650: prepare-local-fs-encrypted.conf
 Source1651: local-mount-encrypted.conf
 Source1652: repart-local-encrypted.conf
 
-# Ephemeral (per-boot) encryption key drop-ins.
-Source1661: encrypt-datastore-ephemeral.conf
-Source1662: unlock-datastore-ephemeral.conf
-Source1663: encrypt-local-fs-ephemeral.conf
-Source1664: repart-local-ephemeral.conf
+Source1661: prepare-local-fs-ephemeral.conf
+Source1662: repart-local-ephemeral.conf
 
-# Full private-partition LUKS encryption units (ephemeral-encryption-keys).
-Source1670: encrypt-private-fs.service
-Source1671: unlock-private-fs.service
 Source1672: prepare-private-fs.service
-Source1673: bottlerocket-mount-encrypted.conf
-Source1674: encrypt-datastore-private-luks.conf
+Source1673: bottlerocket-mount-ephemeral.conf
 
 # Runtime FIPS activation sources.
 # These are always installed but only activate when fips=1 is on the kernel command line.
@@ -222,6 +220,8 @@ Requires: %{_cross_os}pciutils
 Requires: (%{_cross_os}rdma-core if %{_cross_os}variant-platform(aws))
 Requires: %{_cross_os}shim
 Requires: (%{name}-crypt if %{_cross_os}image-feature(encrypted-storage))
+Requires: ((%{name}-crypt-luks or %{_cross_os}image-feature(ephemeral-encryption-keys)) if %{_cross_os}image-feature(encrypted-storage))
+Requires: (%{name}-ephemeral-crypt if %{_cross_os}image-feature(ephemeral-encryption-keys))
 
 
 %description managed
@@ -241,6 +241,15 @@ Requires: (%{_cross_os}image-feature(encrypted-storage) and %{name}-managed)
 Requires: %{_cross_os}rottweiler
 
 %description crypt
+%{summary}.
+
+%package crypt-luks
+Summary: Bottlerocket release, with LUKS block-device encryption
+Requires: (%{_cross_os}image-feature(encrypted-storage) and %{name}-crypt)
+Conflicts: %{_cross_os}image-feature(ephemeral-encryption-keys)
+Requires: %{_cross_os}rottweiler
+
+%description crypt-luks
 %{summary}.
 
 %package ephemeral-crypt
@@ -427,36 +436,25 @@ install -d %{buildroot}%{_cross_datadir}/bottlerocket
 install -p -m 0644 %{S:1702} %{buildroot}%{_cross_datadir}/bottlerocket/fips-go.env
 
 install -d %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d
+install -d %{buildroot}%{_cross_unitdir}/local.mount.d
+install -d %{buildroot}%{_cross_unitdir}/repart-local.service.d
+
 install -p -m 0644 %{S:1752} \
   %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d/10-managed.conf
 install -p -m 0644 %{S:1650} %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d/10-encrypted.conf
-
-install -d %{buildroot}%{_cross_unitdir}/local.mount.d
 install -p -m 0644 %{S:1651} %{buildroot}%{_cross_unitdir}/local.mount.d/10-encrypted.conf
-
-install -d %{buildroot}%{_cross_unitdir}/repart-local.service.d
 install -p -m 0644 %{S:1652} %{buildroot}%{_cross_unitdir}/repart-local.service.d/10-encrypted.conf
 
-install -d %{buildroot}%{_cross_unitdir}/encrypt-datastore.service.d
-install -p -m 0644 %{S:1661} %{buildroot}%{_cross_unitdir}/encrypt-datastore.service.d/20-ephemeral.conf
+install -p -m 0644 %{S:1651} %{buildroot}%{_cross_unitdir}/local.mount.d/10-ephemeral.conf
+install -p -m 0644 %{S:1661} %{buildroot}%{_cross_unitdir}/prepare-local-fs.service.d/20-ephemeral.conf
+install -p -m 0644 %{S:1662} %{buildroot}%{_cross_unitdir}/repart-local.service.d/10-ephemeral.conf
 
-install -d %{buildroot}%{_cross_unitdir}/unlock-datastore.service.d
-install -p -m 0644 %{S:1662} %{buildroot}%{_cross_unitdir}/unlock-datastore.service.d/20-ephemeral.conf
-
-install -d %{buildroot}%{_cross_unitdir}/encrypt-local-fs.service.d
-install -p -m 0644 %{S:1663} %{buildroot}%{_cross_unitdir}/encrypt-local-fs.service.d/20-ephemeral.conf
-
-install -d %{buildroot}%{_cross_unitdir}/repart-local.service.d
-install -p -m 0644 %{S:1664} %{buildroot}%{_cross_unitdir}/repart-local.service.d/20-ephemeral.conf
-
-# Full private-partition LUKS encryption units (ephemeral-encryption-keys).
-install -p -m 0644 %{S:1670} %{S:1671} %{S:1672} %{buildroot}%{_cross_unitdir}
+install -p -m 0644 %{S:1611} %{S:1612} %{S:1613} %{buildroot}%{_cross_unitdir}
+install -p -m 0644 %{S:1672} %{buildroot}%{_cross_unitdir}
 
 BOTTLEROCKET_PATH=$(systemd-escape --path /.bottlerocket)
 install -d %{buildroot}%{_cross_unitdir}/${BOTTLEROCKET_PATH}.mount.d
-install -p -m 0644 %{S:1673} %{buildroot}%{_cross_unitdir}/${BOTTLEROCKET_PATH}.mount.d/10-encrypted.conf
-
-install -p -m 0644 %{S:1674} %{buildroot}%{_cross_unitdir}/encrypt-datastore.service.d/30-private-luks.conf
+install -p -m 0644 %{S:1673} %{buildroot}%{_cross_unitdir}/${BOTTLEROCKET_PATH}.mount.d/20-ephemeral.conf
 
 ln -s preconfigured.target %{buildroot}%{_cross_unitdir}/default.target
 
@@ -492,10 +490,12 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %{_cross_unitdir}/activate-multi-user.service
 %{_cross_unitdir}/prepare-opt.service
 %{_cross_unitdir}/prepare-var.service
+%dir %{_cross_unitdir}/repart-local.service.d
 %{_cross_unitdir}/repart-local.service
 %{_cross_unitdir}/var.mount
 %{_cross_unitdir}/opt.mount
 %{_cross_unitdir}/mnt.mount
+%dir %{_cross_unitdir}/local.mount.d
 %{_cross_unitdir}/local.mount
 %{_cross_unitdir}/*-licenses.mount
 %{_cross_unitdir}/*-modules.mount
@@ -505,6 +505,7 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %{_cross_unitdir}/mask-local-var.service
 %dir %{_cross_unitdir}/network-pre.target.d
 %{_cross_unitdir}/network-pre.target.d/00-dbus-dep.conf
+%dir %{_cross_unitdir}/prepare-local-fs.service.d
 %{_cross_unitdir}/prepare-local-fs.service
 %{_cross_unitdir}/service.d/00-aws-config.conf
 %{_cross_unitdir}/service.d/10-requires-tmp.conf
@@ -591,10 +592,6 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %{_cross_bootconfigdir}/10-fips.conf
 
 %files crypt
-%{_cross_unitdir}/encrypt-datastore.service
-%dir %{_cross_unitdir}/encrypt-datastore.service.d
-%{_cross_unitdir}/encrypt-local-fs.service
-%dir %{_cross_unitdir}/encrypt-local-fs.service.d
 %{_cross_unitdir}/measure-cmdline.service
 %{_cross_unitdir}/measure-settings.service
 %{_cross_unitdir}/measure-user-data.service
@@ -602,23 +599,25 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %{_cross_unitdir}/systemd-pcrphase-multi-user.service
 %{_cross_unitdir}/systemd-pcrphase-preconfigured.service
 %{_cross_unitdir}/systemd-pcrphase-sysinit.service
+
+%files crypt-luks
+%{_cross_unitdir}/encrypt-datastore.service
 %{_cross_unitdir}/unlock-datastore.service
-%dir %{_cross_unitdir}/unlock-datastore.service.d
+%{_cross_unitdir}/encrypt-local-fs.service
 %{_cross_unitdir}/unlock-local-fs.service
 %{_cross_unitdir}/local.mount.d/10-encrypted.conf
 %{_cross_unitdir}/prepare-local-fs.service.d/10-encrypted.conf
 %{_cross_unitdir}/repart-local.service.d/10-encrypted.conf
 
 %files ephemeral-crypt
-%{_cross_unitdir}/encrypt-datastore.service.d/20-ephemeral.conf
-%{_cross_unitdir}/encrypt-datastore.service.d/30-private-luks.conf
-%{_cross_unitdir}/unlock-datastore.service.d/20-ephemeral.conf
-%{_cross_unitdir}/encrypt-local-fs.service.d/20-ephemeral.conf
-%{_cross_unitdir}/repart-local.service.d/20-ephemeral.conf
-%{_cross_unitdir}/encrypt-private-fs.service
-%{_cross_unitdir}/unlock-private-fs.service
+%{_cross_unitdir}/encrypt-unlock-local-fs.service
+%{_cross_unitdir}/encrypt-unlock-private-fs.service
+%{_cross_unitdir}/encrypt-unlock-datastore.service
+%{_cross_unitdir}/local.mount.d/10-ephemeral.conf
+%{_cross_unitdir}/prepare-local-fs.service.d/20-ephemeral.conf
+%{_cross_unitdir}/repart-local.service.d/10-ephemeral.conf
 %{_cross_unitdir}/prepare-private-fs.service
-%{_cross_unitdir}/\x2ebottlerocket.mount.d/10-encrypted.conf
+%{_cross_unitdir}/\x2ebottlerocket.mount.d/20-ephemeral.conf
 %{_cross_unitdir}/run-rottweiler.mount
 
 %files swap
