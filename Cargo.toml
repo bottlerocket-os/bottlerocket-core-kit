@@ -107,6 +107,7 @@ members = [
   "packages/nftables",
   "packages/notation",
   "packages/nvidia-container-toolkit",
+  "packages/nvidia-dra-driver-gpu",
   "packages/nvidia-k8s-device-plugin",
   "packages/nvme-cli",
   "packages/open-vm-tools",

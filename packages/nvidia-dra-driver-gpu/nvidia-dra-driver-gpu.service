@@ -1,0 +1,23 @@
+[Unit]
+Description=NVIDIA DRA driver GPU kubelet plugin
+After=kubelet.service
+Wants=kubelet.service
+# Only meaningful on a node that actually has an NVIDIA GPU present.
+ConditionPathExists=/dev/nvidiactl
+
+[Service]
+# The real ExecStart is rendered from Bottlerocket settings into
+# nvidia-dra-driver-gpu.service.d/exec-start.conf (it needs the node name from
+# settings.kubernetes.hostname-override). This default is a safe placeholder
+# that keeps the unit valid before settings render.
+ExecStartPre=/usr/bin/sleep 0.1
+ExecStartPre=/usr/bin/test -d /var/lib/kubelet/plugins_registry
+ExecStart=/usr/bin/false
+Type=simple
+TimeoutSec=0
+RestartSec=5
+Restart=always
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,32 @@
+[required-extensions]
+kubernetes = "v1"
+kubelet-dra-drivers = "v1"
+std = { version = "v1", helpers = ["if_not_null", "default"] }
++++
+[Service]
+ExecStartPre=
+ExecStart=
+{{#if (eq (default "false" settings.kubelet-dra-drivers.nvidia.enabled) "true")}}
+ExecStartPre=/usr/bin/sleep 0.1
+ExecStartPre=/usr/bin/test -d /var/lib/kubelet/plugins_registry
+# NVIDIA DRA GPU kubelet plugin. It registers with the local kubelet, discovers
+# GPUs via NVML on the host (driver root is "/" on Bottlerocket), writes CDI
+# specs into /etc/cdi (a containerd CDI spec dir), and publishes ResourceSlices
+# to the API server using the node's own kubeconfig identity.
+ExecStart=/usr/bin/gpu-kubelet-plugin \
+    --node-name {{settings.kubernetes.hostname-override}} \
+    --namespace kube-system \
+    --nvidia-driver-root / \
+    --container-driver-root / \
+    --cdi-root /etc/cdi \
+    --nvidia-cdi-hook-path /usr/bin/nvidia-cdi-hook \
+    --kubeconfig /etc/kubernetes/kubelet/kubeconfig \
+    --image-name nvcr.io/nvidia/k8s-dra-driver-gpu:v25.8.1 \
+    --healthcheck-port -1
+RemainAfterExit=false
+{{else}}
+Restart=no
+ExecStart=/usr/bin/true
+Type=oneshot
+RemainAfterExit=true
+{{/if}}
