@@ -78,6 +78,20 @@ pub(super) enum Error {
     NoInf1Present,
     #[snafu(display("Did not detect inf2+ hardware"))]
     NoInf2Present,
+    #[snafu(display("Failed to create marker directory '{}': {}", path.display(), source))]
+    CreateMarkerDir {
+        path: std::path::PathBuf,
+        source: std::io::Error,
+    },
+    #[snafu(display("Failed to write branch marker file '{}': {}", path.display(), source))]
+    WriteMarkerFile {
+        path: std::path::PathBuf,
+        source: std::io::Error,
+    },
+    #[snafu(display("Failed to create tokio runtime: {}", source))]
+    TokioRuntime { source: std::io::Error },
+    #[snafu(display("Failed to read NVIDIA branch setting from API: {}", source))]
+    ReadBranchSetting { source: apiclient::get::Error },
     #[snafu(display("Failed to read /proc/devices: {}", source))]
     ReadProcDevices { source: std::io::Error },
     #[snafu(display("Failed to parse /proc/devices line: {}", line))]
@@ -96,6 +110,8 @@ pub(super) enum Error {
         path: std::path::PathBuf,
         stderr: String,
     },
+    #[snafu(display("Failed to setup logger: {}", source))]
+    Logger { source: log::SetLoggerError },
 }
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;
