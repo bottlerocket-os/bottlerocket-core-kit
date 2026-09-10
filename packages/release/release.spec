@@ -218,7 +218,7 @@ Requires: %{_cross_os}netdog
 Requires: %{_cross_os}os
 Requires: %{_cross_os}pciutils
 Requires: (%{_cross_os}rdma-core if %{_cross_os}variant-platform(aws))
-Requires: %{_cross_os}shim
+Requires: (%{_cross_os}shim or %{_cross_os}image-feature(uki-image))
 Requires: (%{name}-crypt if %{_cross_os}image-feature(encrypted-storage))
 Requires: ((%{name}-crypt-luks or %{_cross_os}image-feature(ephemeral-encryption-keys)) if %{_cross_os}image-feature(encrypted-storage))
 Requires: (%{name}-ephemeral-crypt if %{_cross_os}image-feature(ephemeral-encryption-keys))
