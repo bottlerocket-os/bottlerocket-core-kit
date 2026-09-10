@@ -75,8 +75,8 @@ pub enum Error {
         partitions: Vec<PathBuf>,
     },
 
-    #[snafu(display("No XBOOTLDR partition found on the OS disk"))]
-    NoXbootldrPartition,
+    #[snafu(display("No EFI System Partition found on the OS disk"))]
+    NoEspPartition,
 
     #[snafu(display("Failed to open {} for {}: {}", path.display(), what, source))]
     Open {
