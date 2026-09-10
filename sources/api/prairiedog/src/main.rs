@@ -207,16 +207,15 @@ fn capture_dump() -> Result<()> {
     Ok(())
 }
 
-// Mounts the boot partition of the active partition set, or the XBOOTLDR partition on UKI images
+// Mounts the boot partition of the active partition set, or the EFI System Partition on UKI images
 fn prepare_boot() -> Result<()> {
     let layout = signpost::DiskLayout::scan().context(error::ScanDiskLayoutSnafu)?;
 
     if uki_image_from_env() {
-        let boot_partition_path = layout
-            .xbootldr()
-            .context(error::ScanForXbootldrPartitionSnafu)?;
+        // Direct-boot UKI images are booted directly from the ESP by the firmware
+        let boot_partition_path = layout.esp().context(error::ScanForEspPartitionSnafu)?;
         info!(
-            "UKI image detected (XBOOTLDR partition '{}')",
+            "UKI image detected (EFI System Partition '{}')",
             boot_partition_path.display()
         );
         mount_boot_partition(&boot_partition_path, BOOT_FS_VFAT, Some(VFAT_MOUNT_DATA))
