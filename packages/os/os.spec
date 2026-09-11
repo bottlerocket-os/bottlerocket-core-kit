@@ -91,6 +91,11 @@ Source400: COPYRIGHT
 Source401: LICENSE-MIT
 Source402: LICENSE-APACHE
 
+# 5xx sources: NVIDIA dual-branch activation assets (shipped by ghostdog-nvidia)
+Source500: nvidia-select-branch.service
+Source501: nvidia-branch-gate.conf.in
+Source502: nvidia-select-branch-ordering.conf
+
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}apiclient
 Requires: %{_cross_os}apiserver
@@ -235,7 +240,19 @@ Summary: Commits settings from user data, defaults, and generators at boot
 %package -n %{_cross_os}ghostdog
 Summary: Tool to manage ephemeral disks
 Requires: %{_cross_os}nvme-cli
+Requires: (%{_cross_os}ghostdog-nvidia if %{_cross_os}image-feature(nvidia-dual-branch))
 %description -n %{_cross_os}ghostdog
+%{summary}.
+
+%package -n %{_cross_os}ghostdog-nvidia
+Summary: Activation assets for co-installed NVIDIA lts and pb driver branches
+Requires: %{_cross_os}nvidia-lts
+Requires: %{_cross_os}nvidia-pb
+# Fail closed: this package only makes sense on a dual-branch image. Without
+# this, a force-install on a non-feature image fails
+Requires: %{_cross_os}image-feature(nvidia-dual-branch)
+Requires: (%{_cross_os}variant-flavor(nvidia) or %{_cross_os}variant-flavor(nvidia-fips))
+%description -n %{_cross_os}ghostdog-nvidia
 %{summary}.
 
 %package -n %{_cross_os}signpost
@@ -797,6 +814,22 @@ install -p -m 0644 %{S:301} %{buildroot}%{_cross_udevrulesdir}/81-ebs-volumes.ru
 install -p -m 0644 %{S:302} %{buildroot}%{_cross_udevrulesdir}/82-ephemeral-ebs-storage.rules
 install -p -m 0644 %{S:303} %{buildroot}%{_cross_udevrulesdir}/83-supplemental-storage.rules
 
+# NVIDIA dual-branch activation assets (shipped by ghostdog-nvidia).
+# Branch selection oneshot.
+install -p -m 0644 %{S:500} %{buildroot}%{_cross_unitdir}/nvidia-select-branch.service
+
+# Marker file drop-in gate per branch
+for branch in lts pb; do
+  install -d %{buildroot}%{_cross_unitdir}/nvidia-${branch}-.service.d
+  sed -e "s|__BRANCH__|${branch}|g" %{S:501} > \
+    %{buildroot}%{_cross_unitdir}/nvidia-${branch}-.service.d/10-branch-gate.conf
+  chmod 0644 %{buildroot}%{_cross_unitdir}/nvidia-${branch}-.service.d/10-branch-gate.conf
+done
+
+# drivers.target ordering drop-in.
+install -d %{buildroot}%{_cross_unitdir}/drivers.target.d
+install -p -m 0644 %{S:502} %{buildroot}%{_cross_unitdir}/drivers.target.d/10-nvidia-select-branch.conf
+
 install -d %{buildroot}%{_cross_datadir}/whippet/
 install -p -m 0644 %{S:22} %{buildroot}%{_cross_datadir}/whippet/system.toml
 
@@ -888,6 +921,15 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 %{_cross_udevrulesdir}/81-ebs-volumes.rules
 %{_cross_udevrulesdir}/82-ephemeral-ebs-storage.rules
 %{_cross_udevrulesdir}/83-supplemental-storage.rules
+
+%files -n %{_cross_os}ghostdog-nvidia
+%{_cross_unitdir}/nvidia-select-branch.service
+%dir %{_cross_unitdir}/nvidia-lts-.service.d
+%{_cross_unitdir}/nvidia-lts-.service.d/10-branch-gate.conf
+%dir %{_cross_unitdir}/nvidia-pb-.service.d
+%{_cross_unitdir}/nvidia-pb-.service.d/10-branch-gate.conf
+%dir %{_cross_unitdir}/drivers.target.d
+%{_cross_unitdir}/drivers.target.d/10-nvidia-select-branch.conf
 
 %files -n %{_cross_os}signpost
 %{_cross_bindir}/signpost

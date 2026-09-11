@@ -1,0 +1,18 @@
+[Unit]
+DefaultDependencies=no
+Description=Select NVIDIA driver branch for multi-driver activation
+# Order after the settings stack so the branch setting is readable
+After=apiserver.service early-boot-config.service sundog.service storewolf.service
+Requires=storewolf.service sundog.service early-boot-config.service
+# Not Requires since this service doesn't need to restart if apiserver does
+Wants=apiserver.service
+Before=drivers.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/bin/ghostdog match-nvidia-branch
+StandardError=journal+console
+
+[Install]
+WantedBy=drivers.target

@@ -1,0 +1,6 @@
+# This is a systemd prefix drop-in installed to "nvidia-__BRANCH__-.service.d"
+# and applies to every unit whose name begins with "nvidia-__BRANCH__-".
+[Unit]
+After=nvidia-select-branch.service
+Requires=nvidia-select-branch.service
+ConditionPathExists=/run/nvidia/branch-__BRANCH__
