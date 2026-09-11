@@ -11,11 +11,7 @@ ExecStart=
 # A brief sleep is needed to avoid the `test` failing its first check
 ExecStartPre=/usr/bin/sleep 0.1
 ExecStartPre=/usr/bin/test -S /var/lib/kubelet/device-plugins/kubelet.sock
-# NOTE: default template for EKS k8s 1.37+ nvidia variants. It omits
-# `--cdi-enabled-hooks create-lib-symlinks`, so the legacy
-# /usr/lib/nvidia/tesla symlinks are not created inside containers. Variants for
-# k8s 1.36 and below must use nvidia-k8s-device-plugin-exec-start-conf-compat.
-ExecStart=/usr/bin/nvidia-device-plugin --config-file=/etc/nvidia-k8s-device-plugin/settings.yaml
+ExecStart=/usr/bin/nvidia-device-plugin --config-file=/etc/nvidia-k8s-device-plugin/settings.yaml --cdi-enabled-hooks create-lib-symlinks
 RemainAfterExit=true
 {{else}}
 Restart=no

@@ -19,6 +19,13 @@ Source3: nvidia-k8s-device-plugin-exec-start-conf
 Source4: nvidia-k8s-device-plugin-mig-conf
 Source5: nvidia-mps-control-daemon.service
 Source6: nvidia-mps-control-daemon-exec-start-conf
+# Source3 is the default device-plugin exec-start template (no backwards-compat
+# symlinks), used by EKS k8s 1.37+ nvidia variants. Source7 is the compat template
+# that keeps the legacy /usr/lib/nvidia/tesla symlinks (via
+# `--cdi-enabled-hooks create-lib-symlinks`); k8s 1.36 and below render it in place
+# of Source3. The device plugin's ExecStart always comes from this rendered
+# drop-in, so no separate compat base unit is needed.
+Source7: nvidia-k8s-device-plugin-exec-start-conf-compat
 
 Patch0001: 0001-Update-MPS-roots-for-immutable-host-OS.patch
 Patch1001: 1001-Ensure-that-generated-CDI-specs-do-not-contain-enabl.patch
@@ -58,6 +65,7 @@ install -d %{buildroot}%{_cross_unitdir}/nvidia-mps-control-daemon.service.d
 sed -e 's|__PREFIX__|/%{_cross_arch}-bottlerocket-linux-gnu/sys-root|g' %{S:2} > nvidia-k8s-device-plugin-conf
 install -D -m 0644 nvidia-k8s-device-plugin-conf %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-conf
 install -D -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf
+install -D -m 0644 %{S:7} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf-compat
 install -D -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-mig-conf
 install -D -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-mps-control-daemon-exec-start-conf
 
@@ -72,6 +80,7 @@ install -D -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-mps-control-d
 %dir %{_cross_unitdir}/nvidia-mps-control-daemon.service.d
 %{_cross_templatedir}/nvidia-k8s-device-plugin-conf
 %{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf
+%{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf-compat
 %{_cross_templatedir}/nvidia-k8s-device-plugin-mig-conf
 %{_cross_templatedir}/nvidia-mps-control-daemon-exec-start-conf
 

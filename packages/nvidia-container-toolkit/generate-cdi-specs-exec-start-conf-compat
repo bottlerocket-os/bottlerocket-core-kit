@@ -1,0 +1,15 @@
+[required-extensions]
+std = { version = "v1" }
++++
+[Service]
+# Backwards-compatibility drop-in for EKS k8s 1.36 and below nvidia variants.
+# Overrides the clean default ExecStart to add
+# `--additional-symlinks /usr/lib/nvidia/tesla`, so the generated CDI spec
+# (/etc/cdi/nvidia.json) recreates the legacy library path inside containers.
+# 1.37+ variants do not render this drop-in and keep the clean default.
+ExecStart=
+ExecStart=/usr/bin/nvidia-ctk cdi generate --format json \
+  --additional-symlinks /usr/lib/nvidia/tesla \
+  --mode nvml \
+  --device-name-strategy uuid \
+  --output /etc/cdi/nvidia.json

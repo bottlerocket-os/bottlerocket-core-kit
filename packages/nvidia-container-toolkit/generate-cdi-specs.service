@@ -16,6 +16,10 @@ After=nvidia-persistenced.service
 Requires=nvidia-migmanager.service
 After=nvidia-migmanager.service
 ConditionPathExists=!/run/nvidia-migmanager/reboot-required
+# Run after settings have been applied so that, on variants that render the
+# backwards-compatibility drop-in, exec-start.conf exists before this unit
+# starts. Without a drop-in (the default), the ExecStart below is used as-is.
+After=settings-applier.service
 # Block manual interactions with this service. It doesn't
 # make sense to regenerate CDI specifications as features
 # that might change the GPU (e.g. MIG) are not supported in
@@ -27,15 +31,18 @@ RefuseManualStop=true
 Type=oneshot
 # Explanation of the options:
 # --format json: to be consistent across Bottlerocket's variants
-# --additional-symlinks: create backwards-compat symlinks at this path so
-#                        libraries appear in containers
 # --mode nvml: the default mode ("auto") resolves to this already, make it explicit
 # --device-name-strategy uuid: the ECS agent only supports device UUIDs; for k8s
 #                              this is irrelevant because these specs will be used
 #                              only when NVIDIA_VISIBLE_DEVICES is "all"
 # --output /etc/cdi/nvidia.json: store the CDI specifications at this location
+#
+# NOTE: This is the default (clean) ExecStart, used by EKS k8s 1.37+ nvidia
+# variants. It does NOT create the legacy /usr/lib/nvidia/tesla backwards-compat
+# symlinks. Variants for k8s 1.36 and below render a drop-in from the
+# generate-cdi-specs-exec-start-conf-compat template that overrides this
+# ExecStart to add `--additional-symlinks /usr/lib/nvidia/tesla`.
 ExecStart=/usr/bin/nvidia-ctk cdi generate --format json \
-  --additional-symlinks /usr/lib/nvidia/tesla \
   --mode nvml \
   --device-name-strategy uuid \
   --output /etc/cdi/nvidia.json

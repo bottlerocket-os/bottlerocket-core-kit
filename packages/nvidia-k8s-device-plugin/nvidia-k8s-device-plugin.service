@@ -8,13 +8,16 @@ Wants=kubelet.service
 # A brief sleep is needed to avoid the `test` failing its first check
 ExecStartPre=/usr/bin/sleep 0.1
 ExecStartPre=/usr/bin/test -S /var/lib/kubelet/device-plugins/kubelet.sock
-# --cdi-enabled-hooks create-lib-symlinks: enable backwards-compatibility
-# symlinks so libraries appear at both /usr/lib/ and /usr/lib/nvidia/tesla/
+# NOTE: On Bottlerocket this ExecStart is always overridden by the rendered
+# drop-in at nvidia-k8s-device-plugin.service.d/exec-start.conf (from the
+# nvidia-k8s-device-plugin-exec-start-conf template). The backwards-compat
+# `--cdi-enabled-hooks create-lib-symlinks` flag is controlled there: the default
+# template omits it (k8s 1.37+); the -compat template keeps it (k8s 1.36 and
+# below). This fallback ExecStart is kept clean to match the default.
 ExecStart=/usr/bin/nvidia-device-plugin \
     --device-list-strategy volume-mounts \
     --device-id-strategy index \
-    --pass-device-specs=true \
-    --cdi-enabled-hooks create-lib-symlinks
+    --pass-device-specs=true
 Type=simple
 TimeoutSec=0
 RestartSec=2
