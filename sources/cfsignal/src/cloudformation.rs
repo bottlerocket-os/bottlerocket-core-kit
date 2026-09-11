@@ -1,7 +1,7 @@
 use crate::error::{self, Result};
-
 use aws_config::BehaviorVersion;
-use aws_smithy_experimental::hyper_1_0::{CryptoMode, HyperClientBuilder};
+use aws_smithy_http_client::tls::rustls_provider::CryptoMode;
+use aws_smithy_http_client::{proxy::ProxyConfig, tls, Builder as HttpClientBuilder, Connector};
 use aws_types::region::Region;
 use imdsclient::ImdsClient;
 use log::info;
@@ -45,13 +45,20 @@ pub async fn signal_resource(
     };
 
     let http_client = if let Some(https_proxy) = https_proxy {
-        let no_proxy = no_proxy.as_deref();
-        HyperClientBuilder::new()
-            .crypto_mode(crypto_mode)
-            .build_with_proxy(https_proxy, no_proxy)
+        let mut proxy = ProxyConfig::https(&https_proxy).context(error::ProxyConfigSnafu)?;
+        if let Some(ref no_proxy) = no_proxy {
+            proxy = proxy.no_proxy(no_proxy.join(","));
+        }
+        HttpClientBuilder::new().build_with_connector_fn(move |settings, _runtime_components| {
+            let mut builder = Connector::builder()
+                .proxy_config(proxy.clone())
+                .tls_provider(tls::Provider::Rustls(crypto_mode.clone()));
+            builder.set_connector_settings(settings.cloned());
+            builder.build()
+        })
     } else {
-        HyperClientBuilder::new()
-            .crypto_mode(crypto_mode)
+        HttpClientBuilder::new()
+            .tls_provider(tls::Provider::Rustls(crypto_mode))
             .build_https()
     };
 
