@@ -1,3 +1,39 @@
+# v17.0.0 (2026-09-18)
+
+## OS Changes
+* Add me-west-1 and sa-west-1 to the `schnauzer` account map ([#1034])
+* Fix boot helpers to handle direct-boot UKIs in `signpost`, `prairiedog`, and `release` ([#1042])
+* Add support for NVIDIA driver branch selection at boot time ([#1041])
+
+### Third Party Package Updates
+* Update `containerd-1.7` to v1.7.35 ([#1048])
+* Update `containerd-2.2` to v2.2.8 ([#1048])
+* Update `nvidia-k8s-device-plugin` to v0.19.3 ([#1022])
+
+## Build Changes
+* Update Rust and Go dependencies for first-party sources ([#1043])
+* Bump `bottlerocket-settings-models` to 0.28.0 ([#1035])
+* Update Twoliter to `0.25.0` ([#1052])
+
+## Orchestrator Changes
+
+### Kubernetes
+* Add `nvidia-dra-driver-gpu` package ([#1035])
+* Remove `rocm-container-toolkit` and `rocm-kubelet-device-plugin` packages ([#1046], [#1047])
+* Gate NVIDIA Tesla compatibility symlinks behind drop-ins ([#1044])
+
+[#1022]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1022
+[#1034]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1034
+[#1035]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1035
+[#1041]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1041
+[#1042]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1042
+[#1043]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1043
+[#1044]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1044
+[#1046]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1046
+[#1047]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1047
+[#1048]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1048
+[#1052]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1052
+
 # v16.3.0 (2026-09-04)
 
 ## OS Changes
