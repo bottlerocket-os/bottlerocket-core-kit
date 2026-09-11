@@ -19,6 +19,12 @@ Source3: nvidia-k8s-device-plugin-exec-start-conf
 Source4: nvidia-k8s-device-plugin-mig-conf
 Source5: nvidia-mps-control-daemon.service
 Source6: nvidia-mps-control-daemon-exec-start-conf
+# Compat device-plugin exec-start template that keeps the legacy
+# /usr/lib/nvidia/tesla symlinks (via `--cdi-enabled-hooks create-lib-symlinks`).
+# Variants that still need those symlinks render it in place of Source3, the
+# default (no-symlink) template. The device plugin's ExecStart always comes from
+# this rendered drop-in, so no separate compat base unit is needed.
+Source7: nvidia-k8s-device-plugin-exec-start-conf-compat
 
 Patch0001: 0001-Update-MPS-roots-for-immutable-host-OS.patch
 Patch1001: 1001-Ensure-that-generated-CDI-specs-do-not-contain-enabl.patch
@@ -60,6 +66,7 @@ install -D -m 0644 nvidia-k8s-device-plugin-conf %{buildroot}%{_cross_templatedi
 install -D -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf
 install -D -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-mig-conf
 install -D -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-mps-control-daemon-exec-start-conf
+install -D -m 0644 %{S:7} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf-compat
 
 %files
 %license LICENSE
@@ -72,6 +79,7 @@ install -D -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-mps-control-d
 %dir %{_cross_unitdir}/nvidia-mps-control-daemon.service.d
 %{_cross_templatedir}/nvidia-k8s-device-plugin-conf
 %{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf
+%{_cross_templatedir}/nvidia-k8s-device-plugin-exec-start-conf-compat
 %{_cross_templatedir}/nvidia-k8s-device-plugin-mig-conf
 %{_cross_templatedir}/nvidia-mps-control-daemon-exec-start-conf
 
