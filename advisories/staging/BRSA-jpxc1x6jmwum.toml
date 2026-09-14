@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-jpxc1x6jmwum"
+title = "rocm-container-toolkit support ended"
+severity = "low"
+end-of-life = true
+description = "rocm-container-toolkit is no longer included in Bottlerocket. All users must upgrade to a version of the OS that does not include this package."
+
+[[advisory.products]]
+package-name = "rocm-container-toolkit"
+patched-version = "1.2.0"
+patched-epoch = "1"
+
+[updateinfo]
+author = "shijiao"
+issue-date = 2026-09-14T21:29:33Z
+arches = ["aarch64", "x86_64"]
+version = "staging"
