@@ -118,7 +118,6 @@ members = [
   "packages/rdma-core",
   "packages/readline",
   "packages/release",
-  "packages/rocm-container-toolkit",
   "packages/runc",
   "packages/selinux-policy",
   "packages/soci-snapshotter",
