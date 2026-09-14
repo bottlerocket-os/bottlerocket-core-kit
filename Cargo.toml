@@ -118,8 +118,6 @@ members = [
   "packages/rdma-core",
   "packages/readline",
   "packages/release",
-  "packages/rocm-container-toolkit",
-  "packages/rocm-k8s-device-plugin",
   "packages/runc",
   "packages/selinux-policy",
   "packages/soci-snapshotter",
