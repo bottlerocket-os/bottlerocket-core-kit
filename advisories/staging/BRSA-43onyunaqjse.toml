@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-43onyunaqjse"
+title = "rocm-k8s-device-plugin support ended"
+severity = "low"
+end-of-life = true
+description = "rocm-k8s-device-plugin is no longer included in Bottlerocket. All users must upgrade to a version of the OS that does not include this package."
+
+[[advisory.products]]
+package-name = "rocm-k8s-device-plugin"
+patched-version = "1.31.0.9"
+patched-epoch = "1"
+
+[updateinfo]
+author = "shijiao"
+issue-date = 2026-09-14T21:29:49Z
+arches = ["aarch64", "x86_64"]
+version = "staging"
