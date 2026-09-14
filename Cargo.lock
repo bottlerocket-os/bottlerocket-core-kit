@@ -191,7 +191,6 @@ dependencies = [
  "readline",
  "release",
  "rocm-container-toolkit",
- "rocm-k8s-device-plugin",
  "rottweiler",
  "runc",
  "selinux-policy",
@@ -1074,15 +1073,6 @@ name = "rocm-container-toolkit"
 version = "0.1.0"
 dependencies = [
  "glibc",
-]
-
-[[package]]
-name = "rocm-k8s-device-plugin"
-version = "0.1.0"
-dependencies = [
- "glibc",
- "hwloc",
- "libdrm",
 ]
 
 [[package]]
