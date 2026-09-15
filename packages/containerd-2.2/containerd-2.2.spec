@@ -2,9 +2,9 @@
 %global gorepo containerd
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 2.2.7
+%global gover 2.2.8
 %global rpmver %{gover}
-%global gitrev 7835c8dfefceee63b1a4f9e84e015ddc8434fdc3
+%global gitrev 941d3ed89ad60ad91cac377a16ecde23e2143083
 
 %global package_priority_epoch 0
 %global _dwz_low_mem_die_limit 0
