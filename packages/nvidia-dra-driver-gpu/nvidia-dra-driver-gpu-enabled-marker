@@ -1,0 +1,10 @@
+[required-extensions]
+kubelet-dra-drivers = "v1"
+kubelet-device-plugins = "v1"
+std = { version = "v1", helpers = ["if_not_null", "default"] }
++++
+{{~#if_not_null settings.kubelet-dra-drivers.nvidia~}}
+{{~#if (eq (default "false" settings.kubelet-dra-drivers.nvidia.enabled) "true")~}}
+{{~#if (eq (default "true" settings.kubelet-device-plugins.nvidia.enabled) "true")~}}{{~else~}}run{{~/if~}}
+{{~/if~}}
+{{~/if_not_null~}}

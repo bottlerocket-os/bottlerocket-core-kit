@@ -118,6 +118,7 @@ netdog = {path = "../../packages/netdog" }
 nftables = {path = "../../packages/nftables" }
 notation = { path = "../../packages/notation" }
 nvidia-container-toolkit = { path = "../../packages/nvidia-container-toolkit" }
+nvidia-dra-driver-gpu = { path = "../../packages/nvidia-dra-driver-gpu" }
 nvidia-k8s-device-plugin = { path = "../../packages/nvidia-k8s-device-plugin" }
 nvme-cli = { path = "../../packages/nvme-cli" }
 open-vm-tools = { path = "../../packages/open-vm-tools" }
