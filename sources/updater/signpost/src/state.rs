@@ -15,11 +15,11 @@ const BOTTLEROCKET_ROOT: [u8; 16] = uuid_to_guid(hex!("5526016a 1a97 4ea4 b39a b
 const BOTTLEROCKET_HASH: [u8; 16] = uuid_to_guid(hex!("598f10af c955 4456 6a99 7720068a6cea"));
 const BOTTLEROCKET_PRIVATE: [u8; 16] = uuid_to_guid(hex!("440408bb eb0b 4328 a6e5 a29038fad706"));
 
-/// The extended boot loader partition, as defined by the Discoverable Partitions Specification.
+/// The EFI System Partition type GUID.
 ///
-/// UKI images tag their FAT boot partition with this type so systemd-boot can find it; GRUB
-/// images have no partition of this type, so its presence identifies a UKI layout at runtime.
-const XBOOTLDR: [u8; 16] = uuid_to_guid(hex!("bc13c2ff 59e6 4262 a352 b275fd6f7172"));
+/// With direct-boot UKI images, firmware boots the UKI directly from ESP. GRUB images also have
+/// exactly one partition of this type (EFI-A)
+const EFI_SYSTEM: [u8; 16] = uuid_to_guid(hex!("c12a7328 f81f 11d2 ba4b 00a0c93ec93b"));
 
 #[derive(Debug, Clone)]
 pub struct State {
@@ -38,8 +38,8 @@ pub struct State {
 /// The OS disk backing the running root filesystem, and its parsed partition table.
 ///
 /// [`DiskLayout::scan`] does the disk open and GPT parse once, shared by both
-/// [`DiskLayout::into_state`] (A/B partition state) and [`DiskLayout::xbootldr`] (XBOOTLDR
-/// discovery).
+/// [`DiskLayout::into_state`] (A/B partition state) and [`DiskLayout::esp`] (EFI System
+/// Partition discovery for the merged direct-UKI layout).
 pub struct DiskLayout {
     os_disk: BlockDevice,
     active_partition: PathBuf,
@@ -90,12 +90,9 @@ impl DiskLayout {
         })
     }
 
-    /// Returns the device path of the XBOOTLDR partition on the OS disk.
-    ///
-    /// Fails if the disk has no partition of that type (the case on GRUB images) or more than
-    /// one.
-    pub fn xbootldr(&self) -> Result<PathBuf, Error> {
-        resolve_xbootldr_partition(&self.os_disk, &self.table)
+    /// Returns the device path of the EFI System Partition on the OS disk.
+    pub fn esp(&self) -> Result<PathBuf, Error> {
+        resolve_esp_partition(&self.os_disk, &self.table)
     }
 
     /// Interprets the scanned table as a GRUB-era A/B partition layout, using the partition
@@ -191,19 +188,6 @@ impl DiskLayout {
     }
 }
 
-/// Finds the partition numbers of every XBOOTLDR-typed partition on `table`, in ascending
-/// order. UKI images tag their boot partition with this type GUID; GRUB images have none.
-///
-/// Takes an already-parsed `&GPT` so this filter is unit-testable without a real block device;
-/// returns bare numbers since resolving them to paths needs the caller's `BlockDevice` handle.
-fn xbootldr_partition_nums(table: &GPT) -> Vec<u32> {
-    table
-        .iter()
-        .filter(|(_, p)| p.is_used() && p.partition_type_guid == XBOOTLDR)
-        .map(|(num, _)| num)
-        .collect()
-}
-
 /// Loads the path to partition number `num` on `os_disk`.
 fn device_from_part_num(os_disk: &BlockDevice, num: u32) -> Result<PathBuf, Error> {
     Ok(os_disk
@@ -218,26 +202,36 @@ fn device_from_part_num(os_disk: &BlockDevice, num: u32) -> Result<PathBuf, Erro
         .path())
 }
 
-/// Resolves the XBOOTLDR partition on `table` to a device path on `os_disk`. Fails if no
-/// XBOOTLDR partition is found, or if more than one is found, since there would be no way to
-/// choose between them.
-fn resolve_xbootldr_partition(os_disk: &BlockDevice, table: &GPT) -> Result<PathBuf, Error> {
-    let xbootldr_nums = xbootldr_partition_nums(table);
+/// Finds the partition numbers of every EFI-System-typed partition on `table`, in ascending
+/// order. A direct-boot UKI image has exactly one; a GRUB image has one (EFI-A).
+fn esp_partition_nums(table: &GPT) -> Vec<u32> {
+    table
+        .iter()
+        .filter(|(_, p)| p.is_used() && p.partition_type_guid == EFI_SYSTEM)
+        .map(|(num, _)| num)
+        .collect()
+}
+
+/// Resolves the EFI System Partition on `table` to a device path on `os_disk`. Fails if no EFI
+/// System Partition is found, or if more than one is found, since there would be no way to choose
+/// between them.
+fn resolve_esp_partition(os_disk: &BlockDevice, table: &GPT) -> Result<PathBuf, Error> {
+    let esp_nums = esp_partition_nums(table);
     ensure!(
-        xbootldr_nums.len() <= 1,
+        esp_nums.len() <= 1,
         error::MultiplePartitionsOfTypeSnafu {
-            partition_type: guid_to_string(XBOOTLDR),
-            partitions: xbootldr_nums
+            partition_type: guid_to_string(EFI_SYSTEM),
+            partitions: esp_nums
                 .iter()
                 .copied()
                 .map(|num| device_from_part_num(os_disk, num))
                 .collect::<Result<Vec<_>, Error>>()?,
         }
     );
-    let num = xbootldr_nums
+    let num = esp_nums
         .first()
         .copied()
-        .context(error::NoXbootldrPartitionSnafu)?;
+        .context(error::NoEspPartitionSnafu)?;
     device_from_part_num(os_disk, num)
 }
 
@@ -544,8 +538,8 @@ impl fmt::Display for State {
 #[cfg(test)]
 mod tests {
     use super::{
-        guid_to_string, xbootldr_partition_nums, BOTTLEROCKET_BOOT, BOTTLEROCKET_HASH,
-        BOTTLEROCKET_PRIVATE, BOTTLEROCKET_ROOT, XBOOTLDR,
+        esp_partition_nums, guid_to_string, BOTTLEROCKET_BOOT, BOTTLEROCKET_HASH,
+        BOTTLEROCKET_PRIVATE, BOTTLEROCKET_ROOT, EFI_SYSTEM,
     };
     use crate::error::{self, Error};
     use gptman::{GPTPartitionEntry, GPT};
@@ -605,13 +599,13 @@ mod tests {
 
     #[test]
     fn ignores_unused_and_other_types() {
-        // A UKI layout: one XBOOTLDR boot partition and the private partition. The rest of the
-        // partition array is unused, i.e. has an all-zero type GUID.
-        let table = table_with_types(&[XBOOTLDR, BOTTLEROCKET_PRIVATE]);
+        // A merged UKI layout: one EFI System (ESP) boot partition and the private partition. The
+        // rest of the partition array is unused, i.e. has an all-zero type GUID.
+        let table = table_with_types(&[EFI_SYSTEM, BOTTLEROCKET_PRIVATE]);
 
-        assert_eq!(partition_nums_with_type(&table, XBOOTLDR), vec![1]);
-        // The GRUB boot type must not match the XBOOTLDR partition, which is what tells the two
-        // layouts apart.
+        assert_eq!(partition_nums_with_type(&table, EFI_SYSTEM), vec![1]);
+        // The GRUB boot type must not match the ESP partition; on the merged UKI layout the ESP
+        // is the boot partition and there is no BOTTLEROCKET_BOOT partition at all.
         assert!(partition_nums_with_type(&table, BOTTLEROCKET_BOOT).is_empty());
         assert!(partition_nums_with_type(&table, [0u8; 16]).is_empty());
     }
@@ -621,13 +615,13 @@ mod tests {
         // gptman's `is_used()` is defined purely in terms of the type GUID being non-zero
         // (`is_used() == (partition_type_guid != [0; 16])`). Confirm that equivalence holds, so
         // a future gptman upgrade that changes `is_used()`'s definition is caught here instead
-        // of silently changing which partitions `DiskLayout::into_state` and the XBOOTLDR scan
+        // of silently changing which partitions `DiskLayout::into_state` and the ESP scan
         // consider.
         let mut disk = Cursor::new(vec![0u8; 1024 * SECTOR_SIZE as usize]);
         let mut table =
             GPT::new_from(&mut disk, SECTOR_SIZE, [0xff; 16]).expect("could not build a GPT");
         table[1] = GPTPartitionEntry {
-            partition_type_guid: XBOOTLDR,
+            partition_type_guid: EFI_SYSTEM,
             unique_partition_guid: [1u8; 16],
             starting_lba: 2048,
             ending_lba: 2048 + 63,
@@ -641,28 +635,29 @@ mod tests {
     }
 
     #[test]
-    fn xbootldr_guid_byte_order() {
-        // The canonical form, from `partyplanner`, is "bc13c2ff-59e6-4262-a352-b275fd6f7172". On
-        // disk the first three fields are little-endian and the last two are big-endian, so the
-        // raw bytes are the first three fields reversed followed by the rest unchanged.
+    fn efi_system_guid_byte_order() {
+        // The canonical form of the EFI System Partition type is
+        // "c12a7328-f81f-11d2-ba4b-00a0c93ec93b". On disk the first three fields are
+        // little-endian and the last two are big-endian, so the raw bytes are the first three
+        // fields reversed followed by the rest unchanged.
         assert_eq!(
-            XBOOTLDR,
+            EFI_SYSTEM,
             [
-                0xff, 0xc2, 0x13, 0xbc, // bc13c2ff, little-endian
-                0xe6, 0x59, // 59e6, little-endian
-                0x62, 0x42, // 4262, little-endian
-                0xa3, 0x52, // a352, big-endian
-                0xb2, 0x75, 0xfd, 0x6f, 0x71, 0x72, // b275fd6f7172, big-endian
+                0x28, 0x73, 0x2a, 0xc1, // c12a7328, little-endian
+                0x1f, 0xf8, // f81f, little-endian
+                0xd2, 0x11, // 11d2, little-endian
+                0xba, 0x4b, // ba4b, big-endian
+                0x00, 0xa0, 0xc9, 0x3e, 0xc9, 0x3b, // 00a0c93ec93b, big-endian
             ]
         );
     }
 
     #[test]
-    fn guid_to_string_matches_canonical_xbootldr_form() {
-        // Checked against the same canonical form documented in `xbootldr_guid_byte_order` above.
+    fn guid_to_string_matches_canonical_efi_system_form() {
+        // Checked against the same canonical form documented in `efi_system_guid_byte_order`.
         assert_eq!(
-            guid_to_string(XBOOTLDR),
-            "bc13c2ff-59e6-4262-a352-b275fd6f7172"
+            guid_to_string(EFI_SYSTEM),
+            "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
         );
     }
 
@@ -673,25 +668,28 @@ mod tests {
     }
 
     #[test]
-    fn xbootldr_partition_nums_finds_uki_partition_without_bottlerocket_boot() {
-        // A UKI layout has no BOTTLEROCKET_BOOT partition at all; `xbootldr_partition_nums` must
-        // find the XBOOTLDR partition without requiring BOTTLEROCKET_BOOT to be present.
+    fn esp_partition_nums_finds_merged_uki_partition_without_bottlerocket_boot() {
+        // A direct boot UKI layout has no BOTTLEROCKET_BOOT partition at all; the ESP (EFI-A) is the
+        // boot partition. `esp_partition_nums` must find it without requiring BOTTLEROCKET_BOOT
+        // to be present. ROOT/HASH sit immediately after the ESP (ESP+1 / ESP+2).
         let table = table_with_types(&[
-            XBOOTLDR,
+            EFI_SYSTEM,
             BOTTLEROCKET_ROOT,
             BOTTLEROCKET_HASH,
             BOTTLEROCKET_PRIVATE,
         ]);
 
-        assert_eq!(xbootldr_partition_nums(&table), vec![1]);
+        assert_eq!(esp_partition_nums(&table), vec![1]);
         assert!(partition_nums_with_type(&table, BOTTLEROCKET_BOOT).is_empty());
     }
 
     #[test]
-    fn xbootldr_partition_nums_is_empty_on_a_grub_layout() {
-        // A GRUB layout has no XBOOTLDR partition; `xbootldr_partition_nums` must return no
-        // matches, while the GRUB-era boot/root/hash/private partitions are still found normally.
+    fn esp_partition_nums_finds_the_single_esp_on_a_grub_layout() {
+        // A GRUB layout also has exactly one EFI System Partition (EFI-A), ahead of its A/B
+        // boot/root/hash partitions and the private partition. `esp_partition_nums` must find
+        // that single ESP, while the GRUB-era partitions are still found normally.
         let table = table_with_types(&[
+            EFI_SYSTEM,
             BOTTLEROCKET_BOOT,
             BOTTLEROCKET_ROOT,
             BOTTLEROCKET_HASH,
@@ -701,30 +699,28 @@ mod tests {
             BOTTLEROCKET_PRIVATE,
         ]);
 
-        assert!(xbootldr_partition_nums(&table).is_empty());
+        assert_eq!(esp_partition_nums(&table), vec![1]);
         assert_eq!(
             partition_nums_with_type(&table, BOTTLEROCKET_BOOT),
-            vec![1, 4]
-        );
-        assert_eq!(
-            partition_nums_with_type(&table, BOTTLEROCKET_ROOT),
             vec![2, 5]
         );
         assert_eq!(
-            partition_nums_with_type(&table, BOTTLEROCKET_HASH),
+            partition_nums_with_type(&table, BOTTLEROCKET_ROOT),
             vec![3, 6]
         );
         assert_eq!(
+            partition_nums_with_type(&table, BOTTLEROCKET_HASH),
+            vec![4, 7]
+        );
+        assert_eq!(
             partition_nums_with_type(&table, BOTTLEROCKET_PRIVATE),
-            vec![7]
+            vec![8]
         );
     }
 
     #[test]
-    fn missing_xbootldr_partition_is_an_error() {
-        // Exercises the same `.first().copied().context(...)` lookup that
-        // `resolve_xbootldr_partition` uses, since that function takes a `&BlockDevice` and
-        // can't be constructed from a synthetic table in a unit test.
+    fn missing_esp_partition_is_an_error() {
+        // A disk with no EFI System Partition must map to `NoEspPartition`.
         let table = table_with_types(&[
             BOTTLEROCKET_BOOT,
             BOTTLEROCKET_ROOT,
@@ -732,11 +728,11 @@ mod tests {
             BOTTLEROCKET_PRIVATE,
         ]);
 
-        let result: Result<u32, Error> = xbootldr_partition_nums(&table)
+        let result: Result<u32, Error> = esp_partition_nums(&table)
             .first()
             .copied()
-            .context(error::NoXbootldrPartitionSnafu);
+            .context(error::NoEspPartitionSnafu);
 
-        assert!(matches!(result, Err(Error::NoXbootldrPartition)));
+        assert!(matches!(result, Err(Error::NoEspPartition)));
     }
 }

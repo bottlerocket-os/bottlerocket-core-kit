@@ -11,7 +11,7 @@ Type=oneshot
 EnvironmentFile=-/usr/share/bottlerocket/image-format.env
 # Only run on UKI images; the vmlinuz producer handles the other case.
 ExecCondition=[ "${UKI_IMAGE}" = "true" ]
-ExecStart=/usr/bin/echo "HMAC_PATH=/boot/EFI/Linux/.bottlerocket.efi.hmac"
+ExecStart=/usr/bin/echo "HMAC_PATH=/boot/EFI/BOOT/.bottlerocket.efi.hmac"
 RemainAfterExit=true
 StandardOutput=file:/etc/fips-hmac-path.env
 StandardError=journal+console
