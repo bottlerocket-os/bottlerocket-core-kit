@@ -1,5 +1,5 @@
 Name: %{_cross_os}libacl
-Version: 2.3.2
+Version: 2.4.0
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for access control list support
@@ -7,7 +7,7 @@ License: LGPL-2.1-or-later
 URL: https://savannah.nongnu.org/projects/acl
 Source0: https://download-mirror.savannah.gnu.org/releases/acl/acl-%{version}.tar.gz
 Source1: https://download-mirror.savannah.gnu.org/releases/acl/acl-%{version}.tar.gz.sig
-Source2: gpgkey-B902B5271325F892AC251AD441633B9FE837F581.asc
+Source2: gpgkey-259B3792B3D6D319212CC4DCD5BF9FEB0313653A.asc
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libattr-devel
 Requires: %{_cross_os}libattr
