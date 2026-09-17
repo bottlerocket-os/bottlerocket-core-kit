@@ -1,5 +1,5 @@
 Name: %{_cross_os}libelf
-Version: 0.195
+Version: 0.196
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for ELF files
@@ -9,6 +9,7 @@ Source0: https://sourceware.org/elfutils/ftp/%{version}/elfutils-%{version}.tar.
 Source1: https://sourceware.org/elfutils/ftp/%{version}/elfutils-%{version}.tar.bz2.sig
 Source2: gpgkey-6C2B631563B8D330578D3CB474FD3FA2779E7073.asc
 Patch0001: 0001-fix-const-correctness-for-C23-compatibility-as-implemented-in-glibc-2.43.patch
+Patch0002: 0002-backends-use-sys-uio.h-instead-of-linux-uio.h.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libz-devel
@@ -36,6 +37,7 @@ Requires: %{_cross_os}libz-devel
   --disable-symbol-versioning \
   --disable-nls \
   --disable-progs \
+  --disable-stackprof \
   --disable-debuginfod \
   --disable-libdebuginfod \
 
