@@ -31,6 +31,18 @@ sha512 = "e45ad6443bd4e271ec8e8ab883de561b6420aec362b0b7f0256086cb5a023d946df559
 url = "https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-003"
 sha512 = "6b3ebffe994d0cd4d3466b15e3aee9a73613109283a4442f3bf10e28edcd1204df824c71356d66d01ac21014a806023a101fedf94526a19f6f590d9ffdc864cd"
 
+[[package.metadata.build-package.external-files]]
+url = "https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-004"
+sha512 = "406ec17b77389f9416c2bed824fea29b6661cde8892437a08067214c9ba92ae64083d79cee7ebef90bbccf0be94d0e43012a21d74c8b8bb36024ff4d353a3a9d"
+
+[[package.metadata.build-package.external-files]]
+url = "https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-005"
+sha512 = "2a4992bab4382e55456d33328c003c16e94da0c7dbad38b5064d570181823338d37ef756f422413f18a702a93f0ae0606f34ecb8ceaf35c89affac7aefb73265"
+
+[[package.metadata.build-package.external-files]]
+url = "https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-006"
+sha512 = "f3fb51f24c0d635a4b23e3b23ef6ade5c20adbc7a47dd42a2a5c020ae5ee694a662102af2aeb61895625477342fa4d8832dce3ad7ee4e8e5ee422caea8ed36c8"
+
 [build-dependencies]
 glibc = { path = "../glibc" }
 libncurses = { path = "../libncurses" }

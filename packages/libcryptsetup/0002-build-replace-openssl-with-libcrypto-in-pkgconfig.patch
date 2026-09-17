@@ -12,7 +12,7 @@ diff --git a/configure.ac b/configure.ac
 index 6a6c4df..a00dcc7 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -717,7 +717,7 @@ dnl pwquality is used only by tools
+@@ -738,7 +738,7 @@ dnl pwquality is used only by tools
  PKGMODULES="uuid devmapper json-c"
  case $with_crypto_backend in
  	gcrypt)  PKGMODULES="$PKGMODULES libgcrypt" ;;
@@ -20,4 +20,4 @@ index 6a6c4df..a00dcc7 100644
 +	openssl) PKGMODULES="$PKGMODULES libcrypto" ;;
  	nss)     PKGMODULES="$PKGMODULES nss" ;;
  	nettle)  PKGMODULES="$PKGMODULES nettle" ;;
- esac
+ 	mbedtls) PKGMODULES="$PKGMODULES mbedtls" ;;
