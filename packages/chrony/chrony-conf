@@ -1,12 +1,35 @@
 [required-extensions]
 ntp = "v1"
+# schnauzer v2 renders in strict mode: helpers must be declared or the render
+# fails. `is_array` lives in the std extension and is used below to tell a plain
+# URL list apart from a named-server map.
+std = { version = "v1", helpers = ["is_array"] }
 +++
+{{#if (is_array settings.ntp.time-servers)}}
+{{!-- A plain URL list: shared options apply to every server. --}}
 {{#each settings.ntp.time-servers}}
 pool {{this}}{{#each ../settings.ntp.options}} {{this}}{{/each}}
 {{/each}}
+{{else}}
+{{!-- A named map, each server carries its own directive/options. The model macro
+makes address/directive/options optional (dropped from the JSON when unset), and
+schnauzer renders in strict mode, so a name-only path or a `#each` over a missing
+key would be a RenderError. Guard each field: skip a server with no address (a bare
+directive line is meaningless), default a missing directive to `server`
+(NtpDirective's own default), and only emit options when present. --}}
+{{#each settings.ntp.time-servers}}
+{{#if this.address}}
+{{#if this.directive}}{{this.directive}}{{else}}server{{/if}} {{this.address}}{{#if this.options}}{{#each this.options}} {{this}}{{/each}}{{/if}}
+{{/if}}
+{{/each}}
+{{/if}}
 driftfile /var/lib/chrony/drift
 makestep 1.0 3
 dumponexit
 dumpdir /var/lib/chrony
+logdir /var/log/chrony
+{{#if settings.ntp.logging}}
+log{{#each settings.ntp.logging}} {{this}}{{/each}}
+{{/if}}
 user chrony
 rtcsync
