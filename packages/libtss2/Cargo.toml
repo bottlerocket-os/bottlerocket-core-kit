@@ -13,12 +13,12 @@ package-name = "libtss2"
 releases-url = "https://github.com/tpm2-software/tpm2-tss/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/tpm2-software/tpm2-tss/releases/download/4.1.3/tpm2-tss-4.1.3.tar.gz"
-sha512 = "c9a5e1e90f6545a466d43790ab2d67c52c4b788a0b21f8212575e27e04e0ac663105863fe00824e08a4e56a4f8c6b00c48c1a1c132531b8569cd5042c3bb9e69"
+url = "https://github.com/tpm2-software/tpm2-tss/releases/download/4.2.0/tpm2-tss-4.2.0.tar.gz"
+sha512 = "d122cacd07f3fa229b4f9d988eb8cd4cf8e8021cf3cb32724c13cafa2a94091f1a0fe2bf3df327709e257c6a006277388923939525f33d84782efce7e5dc61c8"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/tpm2-software/tpm2-tss/releases/download/4.1.3/tpm2-tss-4.1.3.tar.gz.asc"
-sha512 = "bb22e70f26b49f7d866a7dc858d62460366d2b1e047a07abf8b4a98d544fada668de1642bd45b5cbb738f0b8e216d46b6ec282cb9d10f6f16cf83885bbe9465c"
+url = "https://github.com/tpm2-software/tpm2-tss/releases/download/4.2.0/tpm2-tss-4.2.0.tar.gz.asc"
+sha512 = "76edf7553b9b5b9c3e3aaebb5f3475a36b55d7bbe7d9a85ab57f1d4478141f6888fa3ec7929f055ad8a0f8d5d3038852eb65b3059e3b71299cfc0ee97a3f695e"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

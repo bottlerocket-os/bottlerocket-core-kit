@@ -1,5 +1,5 @@
 Name: %{_cross_os}libtss2
-Version: 4.1.3
+Version: 4.2.0
 Release: 1%{?dist}
 Summary: Libraries for the TPM 2.0 software stack
 License: BSD-2-Clause
@@ -47,6 +47,7 @@ CONFIGURE_OPTS=(
   --disable-tcti-i2c-ftdi
   --disable-tcti-libtpms
   --disable-tcti-mssim
+  --disable-tcti-null
   --disable-tcti-pcap
   --disable-tcti-spi-ftdi
   --disable-tcti-spi-helper
@@ -73,6 +74,10 @@ CONFIGURE_OPTS=(
 
 %install
 %make_install
+
+# Upstream installs this udev rule unconditionally, even when the
+# corresponding TCTI (spi-ltt2go) is disabled at configure time.
+rm %{buildroot}%{_cross_udevrulesdir}/ltt2go-udev.rules
 
 install -d %{buildroot}%{_cross_sysusersdir}
 install -p -m 0644 %{S:10} %{buildroot}%{_cross_sysusersdir}/tss.conf
