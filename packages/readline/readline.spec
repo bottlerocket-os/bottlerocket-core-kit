@@ -12,6 +12,9 @@ Patch1: readline-8.3-shlib.patch
 Patch1001: readline83-001
 Patch1002: readline83-002
 Patch1003: readline83-003
+Patch1004: readline83-004
+Patch1005: readline83-005
+Patch1006: readline83-006
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libncurses-devel
