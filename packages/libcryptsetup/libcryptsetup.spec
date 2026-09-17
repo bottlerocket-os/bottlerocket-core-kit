@@ -1,5 +1,5 @@
 Name: %{_cross_os}libcryptsetup
-Version: 2.8.6
+Version: 2.8.8
 Release: 1%{?dist}
 Summary: Libraries for disk encryption support
 License: GPL-2.0-or-later WITH cryptsetup-OpenSSL-exception AND LGPL-2.1-or-later WITH cryptsetup-OpenSSL-exception
