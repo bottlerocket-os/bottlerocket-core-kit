@@ -22,7 +22,12 @@ Source3: nvidia-gpu-devices.rules
 Source4: nvidia-container-toolkit-tmpfiles-ecs.conf
 Source5: nvidia-container-toolkit-tmpfiles-k8s.conf
 Source6: nvidia-container-toolkit-config-k8s
+# The CDI spec generation unit. Its default ExecStart creates no
+# backwards-compat symlinks.
 Source7: generate-cdi-specs.service
+# Drop-in template that variants can render to override ExecStart, adding the
+# legacy /usr/lib/nvidia/tesla symlinks.
+Source8: generate-cdi-specs-exec-start-conf-compat
 Patch0001: 0001-discover-reduce-missing-resource-warnings-to-debug-l.patch
 Patch0002: 0002-add-additional-symlinks-flag.patch
 
@@ -92,6 +97,7 @@ install -m 0644 %{S:4} %{buildroot}%{_cross_tmpfilesdir}/nvidia-container-toolki
 install -m 0644 %{S:5} %{buildroot}%{_cross_tmpfilesdir}/nvidia-container-toolkit-k8s.conf
 install -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-container-runtime/
 install -m 0644 %{S:7} %{buildroot}%{_cross_unitdir}/
+install -m 0644 %{S:8} %{buildroot}%{_cross_templatedir}/
 
 %files
 %license LICENSE
@@ -104,6 +110,7 @@ install -m 0644 %{S:7} %{buildroot}%{_cross_unitdir}/
 %{_cross_bindir}/nvidia-container-runtime.legacy
 %{_cross_udevrulesdir}/90-nvidia-gpu-devices.rules
 %{_cross_unitdir}/generate-cdi-specs.service
+%{_cross_templatedir}/generate-cdi-specs-exec-start-conf-compat
 
 %files ecs
 %{_cross_factorydir}/nvidia-container-runtime/nvidia-container-toolkit-config-ecs.toml
