@@ -1,0 +1,41 @@
+[Unit]
+Description=NVIDIA DRA driver GPU kubelet plugin
+After=kubelet.service
+Wants=kubelet.service
+# Run only when the settings marker is non-empty. The marker is rendered
+# non-empty ("run") when the kubernetes device plugin is disabled AND DRA is
+# either enabled or unset (so disabling the device plugin without configuring DRA
+# still yields a GPU publisher). It stays empty when the device plugin is enabled
+# (device plugin wins), when DRA is explicitly disabled, or when no settings
+# extension is present at all (marker empty or absent) -- in those cases this unit
+# is skipped and the device plugin runs. The two never publish GPUs at once.
+ConditionFileNotEmpty=/etc/nvidia-dra-driver-gpu/enabled
+
+[Service]
+# A brief sleep is needed to avoid the `test` failing its first check.
+ExecStartPre=/usr/bin/sleep 0.1
+ExecStartPre=/usr/bin/test -d /var/lib/kubelet/plugins_registry
+# --node-name defaults to the host name here; the settings drop-in overrides it
+# with settings.kubernetes.hostname-override (the name the kubelet registers).
+# --image-name is only used to render MPS control-daemon pods; MPS is alpha and
+# disabled by default, and an empty string satisfies the required flag.
+# --healthcheck-port -1 disables the gRPC healthcheck: any negative value
+# short-circuits startHealthcheck before it creates a listener.
+ExecStart=/usr/bin/gpu-kubelet-plugin \
+    --node-name %H \
+    --namespace kube-system \
+    --nvidia-driver-root / \
+    --container-driver-root / \
+    --cdi-root /etc/cdi \
+    --nvidia-cdi-hook-path /usr/bin/nvidia-cdi-hook \
+    --kubeconfig /etc/kubernetes/kubelet/kubeconfig \
+    --image-name "" \
+    --healthcheck-port -1
+Type=simple
+TimeoutSec=0
+RestartSec=2
+Restart=always
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target
