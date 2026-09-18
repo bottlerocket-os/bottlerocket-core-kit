@@ -3020,17 +3020,23 @@ dependencies = [
 name = "ghostdog"
 version = "0.1.0"
 dependencies = [
+ "apiclient",
  "argh",
+ "constants",
  "generate-readme",
  "gptman",
  "hex-literal",
  "lazy_static",
+ "log",
  "pciclient",
  "serde",
  "serde_json",
  "signpost",
+ "simplelog",
  "snafu",
  "tempfile",
+ "tokio",
+ "tokio-retry",
 ]
 
 [[package]]
