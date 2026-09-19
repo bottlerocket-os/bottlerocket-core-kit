@@ -1,6 +1,8 @@
 # Bottlerocket update infrastructure
 This document describes the Bottlerocket update system and its components, namely;
 
+**Keywords:** updates, TUF, tough, updog, signpost, update API, metadata, repository, manifest, targets, root.json, timestamp, snapshot, waves, rollout, versions, upgrade, downgrade, migrations
+
 - [tough](#tuf-and-tough): implementation of "The Update Framework" (TUF)
 - [Bottlerocket update API](#update-api): allows for checking and starting system updates from TUF repo
 - [apiclient](../api/apiclient/README.md): automates interactions with the update API
@@ -31,6 +33,35 @@ For Bottlerocket this includes a 'manifest.json' file and any update images or m
 
 Update metadata and files can be found by requesting and verifying these metadata files in order, and then requesting the manifest.json target which describes all available updates.
 Any file listed in the manifest is also a TUF 'target' listed in targets.json and can only be downloaded via the TUF repository, preventing the client from downloading untrusted data.
+
+```
+                 ┌─────────────┐
+                 │ API Server  │
+                 │  (renders)  │
+                 └──────┬──────┘
+                        ▼
+                 ┌─────────────┐
+                 │ /etc/updog  │──┐
+                 │   .toml     │  │ metadata_base_url
+                 └─────────────┘  │ targets_base_url
+                                  ▼
+                             ┌──────────┐
+                             │   TUF    │
+                             │   Repo   │
+                             └──────────┘
+                                  │
+                     ┌────────────┼────────────┐
+                     │            │            │
+                     ▼            ▼            ▼
+                 root.json   targets.json  manifest.json
+                     │            │            │
+                     └────────────┴────────────┘
+                                  │
+                                  ▼ (lists files & hashes)
+                          ┌───────┴───────┐
+                          ▼               ▼
+                     update images    migrations
+```
 
 ## What's Updog
 [Updog](updog/) is a low-level update client, used behind the scenes by the update API, that interacts with a 'The Update Framework' (TUF) repository to download and write updates to a Bottlerocket partition.
