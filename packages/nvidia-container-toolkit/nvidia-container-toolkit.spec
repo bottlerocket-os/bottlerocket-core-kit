@@ -61,7 +61,6 @@ Conflicts: %{name}-ecs
 
 %build
 %cross_go_configure %{goimport}
-export GO_MAJOR="1.26"
 
 # We don't set `-Wl,-z,now`, because the binary uses lazy loading
 # to load the NVIDIA libraries in the host
