@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -95,7 +96,7 @@ func TestPullImageCachedSnapshotSurvivesGC(t *testing.T) {
 		if role == "old" {
 			labels["containerd.io/gc.ref.snapshot."+snapshotter] = layer.Digest.String()
 		}
-		cfg, err := json.Marshal(oci.Image{Platform: oci.Platform{Architecture: "arm64", OS: "linux"},
+		cfg, err := json.Marshal(oci.Image{Platform: oci.Platform{Architecture: runtime.GOARCH, OS: "linux"},
 			Config: oci.ImageConfig{Labels: map[string]string{"role": role}}, RootFS: oci.RootFS{Type: "layers", DiffIDs: []digest.Digest{layer.Digest}}})
 		require.NoError(t, err)
 		config := write(cfg, oci.MediaTypeImageConfig, labels)
