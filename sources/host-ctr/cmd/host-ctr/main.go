@@ -983,6 +983,9 @@ func pullImage(ctx context.Context, source string, client *containerd.Client, re
 		pullOpts := []containerd.RemoteOpt{
 			withDynamicResolver(ctx, source, registryConfig),
 			containerd.WithSchema1Conversion,
+			// Lease cached layers while unpacking so GC cannot remove a parent before container creation.
+			containerd.WithPullUnpack,
+			containerd.WithPullSnapshotter(containerd.DefaultSnapshotter),
 		}
 
 		if len(labels) != 0 {
@@ -992,7 +995,7 @@ func pullImage(ctx context.Context, source string, client *containerd.Client, re
 		img, err = client.Pull(ctx, source, pullOpts...)
 
 		if err == nil {
-			log.G(ctx).WithField("img", img.Name()).Info("pulled image successfully")
+			log.G(ctx).WithField("img", img.Name()).Info("pulled and unpacked image successfully")
 			break
 		}
 		if retryAttempts >= maxRetryAttempts {
@@ -1000,7 +1003,7 @@ func pullImage(ctx context.Context, source string, client *containerd.Client, re
 		}
 		// Add a random jitter between 2 - 6 seconds to the retry interval
 		retryIntervalWithJitter := retryInterval + time.Duration(rand.Int31n(jitterPeakAmplitude))*time.Millisecond + jitterLowerBound*time.Millisecond
-		log.G(ctx).WithError(err).Warnf("failed to pull image. waiting %s before retrying...", retryIntervalWithJitter)
+		log.G(ctx).WithError(err).Warnf("failed to pull or unpack image. waiting %s before retrying...", retryIntervalWithJitter)
 		timer := time.NewTimer(retryIntervalWithJitter)
 		select {
 		case <-timer.C:
@@ -1012,11 +1015,6 @@ func pullImage(ctx context.Context, source string, client *containerd.Client, re
 		case <-ctx.Done():
 			return nil, errors.Wrap(err, "context ended while retrying")
 		}
-	}
-
-	log.G(ctx).WithField("img", img.Name()).Info("unpacking image...")
-	if err := img.Unpack(ctx, containerd.DefaultSnapshotter); err != nil {
-		return nil, errors.Wrap(err, "failed to unpack image")
 	}
 
 	return img, nil
