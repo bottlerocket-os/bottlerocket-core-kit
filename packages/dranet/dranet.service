@@ -1,0 +1,33 @@
+[Unit]
+Description=DRANET DRA driver for network devices
+After=containerd.service kubelet.service
+Wants=kubelet.service
+# On unless turned off. The marker holds text only when
+# settings.kubelet-dra-drivers.net.enabled is false, and the negated condition
+# reads an empty or absent marker as permission to run. A node with no settings
+# extension renders no marker at all, so the service runs there too.
+ConditionFileNotEmpty=!/etc/dranet/disabled
+
+[Service]
+# A brief sleep is needed to avoid the `test` failing its first check.
+ExecStartPre=/usr/bin/sleep 0.1
+ExecStartPre=/usr/bin/test -d /var/lib/kubelet/plugins_registry
+# Fallback for a node with no settings extension. The settings drop-in overrides
+# ExecStart with the node name, the bind address, and the device filter that
+# matches settings.kubelet-dra-drivers.net.advertised-devices. The filter is
+# repeated here so that no path leaves the driver on its own default, which
+# advertises the ENIs the VPC CNI manages.
+ExecStart=/usr/bin/dranet \
+    --hostname-override %H \
+    --kubeconfig /etc/kubernetes/kubelet/kubeconfig \
+    --bind-address 127.0.0.1:9177 \
+    --filter '"dra.net/pciDevice" in attributes && attributes["dra.net/pciDevice"].StringValue == "Elastic Fabric Adapter (EFA)"' \
+    --v 2
+Type=simple
+TimeoutSec=0
+RestartSec=2
+Restart=always
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

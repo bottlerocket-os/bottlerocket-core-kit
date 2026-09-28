@@ -1,0 +1,5 @@
+[required-extensions]
+kubelet-dra-drivers = "v1"
+std = { version = "v1", helpers = ["default"] }
++++
+{{~#if (eq (default "true" settings.kubelet-dra-drivers.net.enabled) "false")~}}stop{{~/if~}}
