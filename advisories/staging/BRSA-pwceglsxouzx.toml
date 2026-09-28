@@ -1,0 +1,27 @@
+[advisory]
+id = "BRSA-pwceglsxouzx"
+title = "containerd CVE-2026-53493"
+cve = "CVE-2026-53493"
+severity = "moderate"
+description = "A denial-of-service flaw was found in containerd's image pull handlers. A maliciously crafted OCI image index with a deeply nested or widely fanned-out descriptor graph can trigger excessive CPU and memory use during a pull, because the recursive traversal of child descriptors lacks sufficient depth and breadth limits and fails to deduplicate identical descriptors. This occurs during the image pull phase, before any container runs, and can stall container creation while exhausting host resources."
+
+[[advisory.products]]
+package-name = "containerd-1.7"
+patched-version = "1.7.36"
+patched-epoch = "1"
+
+[[advisory.products]]
+package-name = "containerd-2.2"
+patched-version = "2.2.9"
+patched-epoch = "0"
+
+[[advisory.products]]
+package-name = "containerd-2.3"
+patched-version = "2.3.6"
+patched-epoch = "0"
+
+[updateinfo]
+author = "giinglis"
+issue-date = 2026-09-25T21:00:00Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
