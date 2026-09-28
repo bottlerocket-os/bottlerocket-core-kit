@@ -1,0 +1,28 @@
+[required-extensions]
+kubernetes = "v1"
+kubelet-dra-drivers = "v1"
+std = { version = "v1", helpers = ["if_not_null", "default"] }
++++
+{{#if (eq (default "true" settings.kubelet-dra-drivers.net.enabled) "true")}}
+[Service]
+ExecStart=
+# An empty bind address makes Go serve on port 80 of every interface, so an unset
+# or empty value falls back to the loopback default below.
+#
+# advertised-devices picks the --filter expression. The "efa" value, which is also
+# the fallback, advertises only EFA devices, and keeps the node from advertising
+# the ENIs the VPC CNI manages. systemd takes the expression in single quotes
+# because CEL needs the double quotes.
+ExecStart=/usr/bin/dranet \
+    --hostname-override {{#if_not_null settings.kubernetes.hostname-override}}{{settings.kubernetes.hostname-override}}{{else}}%H{{/if_not_null}} \
+    --kubeconfig /etc/kubernetes/kubelet/kubeconfig \
+{{#if settings.kubelet-dra-drivers.net.bind-address}}
+    --bind-address {{{settings.kubelet-dra-drivers.net.bind-address}}} \
+{{else}}
+    --bind-address 127.0.0.1:9177 \
+{{/if}}
+{{#if (eq (default "efa" settings.kubelet-dra-drivers.net.advertised-devices) "efa")}}
+    --filter '"dra.net/pciDevice" in attributes && attributes["dra.net/pciDevice"].StringValue == "Elastic Fabric Adapter (EFA)"' \
+{{/if}}
+    --v 2
+{{/if}}
