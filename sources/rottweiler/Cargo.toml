@@ -14,7 +14,10 @@ hkdf = { workspace = true, features = ["std"] }
 imdsclient.workspace = true
 nix = { workspace = true, features = ["fs", "ioctl", "mount"] }
 serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+settings-extension-measurement.workspace = true
 sha2.workspace = true
+simplelog.workspace = true
 snafu.workspace = true
 tokio = { workspace = true, features = ["macros", "rt"] }
 walkdir.workspace = true
