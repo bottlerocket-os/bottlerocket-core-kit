@@ -28,7 +28,6 @@ BuildRequires: %{_cross_os}glibc-devel
 %build
 
 %set_cross_go_flags
-export GO_MAJOR="1.26"
 go build -ldflags "${GOLDFLAGS}" -o aws-otel-collector ./cmd/awscollector
 
 %install

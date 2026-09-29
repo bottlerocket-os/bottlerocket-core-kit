@@ -66,7 +66,6 @@ Provides: %{name}(k8s)
 %setup -T -D -n %{gorepo}-%{gover} -b 2 -q
 
 %build
-export GO_MAJOR="1.26"
 
 %set_cross_go_flags
 

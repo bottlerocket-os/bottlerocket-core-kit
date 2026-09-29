@@ -34,7 +34,6 @@ Requires: %{_cross_os}nvidia-container-toolkit
 
 %build
 %cross_go_configure %{goimport}
-export GO_MAJOR="1.26"
 # The plugin lazily loads (dlopen) the NVIDIA management libraries from the
 # host, so we don't set `-Wl,-z,now`; we export dynamic symbols instead.
 export CGO_LDFLAGS="-Wl,-z,relro -Wl,--export-dynamic"
