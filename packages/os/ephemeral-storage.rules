@@ -7,7 +7,7 @@ ENV{DEVTYPE}!="disk", GOTO="ephemeral_storage_end"
 # Known sources of ephemeral disks:
 # - EC2 instance types with instance storage volumes
 # - KVM VMs with additional virtio disks
-KERNEL!="nvme*|vd*", GOTO="ephemeral_storage_end"
+KERNEL!="nvme*|vd*|sd*", GOTO="ephemeral_storage_end"
 
 # We can't be sure that devices with similar kernel names are all ephemeral.
 # Our udev helper checks for known system partitions to classify the device.
