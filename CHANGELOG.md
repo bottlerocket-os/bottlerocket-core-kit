@@ -1,3 +1,28 @@
+# v17.1.0 (2026-09-29)
+
+## OS Changes
+* Support both forms of time-servers in `chrony` ([#1030])
+
+## Third Party Package Updates
+* Update `libpcre` to v10.49 ([#1066])
+* Update `containerd-1.7`, `containerd-2.2`, `containerd-2.3` to latest ([#1064])
+* Update `amazon-ssm-agent` to 3.3.5390 ([#1062])
+
+## Build Changes
+* Bump `bottlerocket-sdk` to v0.80.0 ([#1067])
+* Bump `bottlerocket-settings-models` to 0.30.0 ([#1030])
+
+## Orchestrator Changes
+### Kubernetes
+* Fix mapping for ids-per-pod in kubelet-config ([#1060]) - Thanks @rosem !
+
+[#1030]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1030
+[#1060]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1060
+[#1062]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1062
+[#1064]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1064
+[#1066]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1066
+[#1067]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1067
+
 # v17.0.1 (2026-09-22)
 
 ## Third Party Package Updates
