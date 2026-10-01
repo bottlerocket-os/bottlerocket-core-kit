@@ -385,7 +385,7 @@ fn populate_default_data(
         // datastore. If not, add it to the map of settings to write
         let mut settings_to_write = HashMap::new();
         for (key, val) in def_settings {
-            if !existing_data.contains(&key) {
+            if !key_or_ancestor_populated(&key, existing_data) {
                 settings_to_write.insert(key, val);
             }
         }
@@ -403,6 +403,16 @@ fn populate_default_data(
     }
 
     Ok(())
+}
+
+fn key_or_ancestor_populated(key: &Key, existing_data: &HashSet<Key>) -> bool {
+    existing_data.iter().any(|existing_key| {
+        key == existing_key
+            || key
+                .name()
+                .strip_prefix(existing_key.name())
+                .is_some_and(|suffix| suffix.starts_with('.'))
+    })
 }
 
 fn populate_default_metadata(
@@ -741,6 +751,51 @@ mod test {
                 )
                 .unwrap(),
             Some("{\"command\":\"my test command\",\"strength\":\"weak\",\"depth\":0}".into())
+        );
+    }
+
+    #[test]
+    fn test_populate_default_data_skips_descendants_of_existing_setting() {
+        let default_settings: Value = toml::from_str(
+            r#"
+            [ntp.time-servers.amazon-pool]
+            address = "time.aws.com"
+
+            [unrelated]
+            value = "default"
+            "#,
+        )
+        .unwrap();
+        let existing_data =
+            HashSet::from([Key::new(KeyType::Data, "settings.ntp.time-servers").unwrap()]);
+        let mut datastore = MemoryDataStore::new();
+
+        populate_default_data(&mut datastore, Some(default_settings), &existing_data).unwrap();
+
+        let pending = Committed::Pending {
+            tx: constants::LAUNCH_TRANSACTION.to_string(),
+        };
+        assert_eq!(
+            datastore
+                .get_key(
+                    &Key::new(
+                        KeyType::Data,
+                        "settings.ntp.time-servers.amazon-pool.address",
+                    )
+                    .unwrap(),
+                    &pending,
+                )
+                .unwrap(),
+            None
+        );
+        assert_eq!(
+            datastore
+                .get_key(
+                    &Key::new(KeyType::Data, "settings.unrelated.value").unwrap(),
+                    &pending,
+                )
+                .unwrap(),
+            Some("\"default\"".into())
         );
     }
 }
