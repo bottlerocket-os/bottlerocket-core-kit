@@ -1,7 +1,7 @@
 [required-extensions]
 container-registry = "v1"
 container-runtime-plugins = "v1"
-std = { version = "v1", helpers = ["default", "join_array"]}
+std = { version = "v1", helpers = ["default"]}
 +++
 [cri_keychain]
 # Make SOCI snapshotter act as a proxy ImageService
@@ -16,10 +16,14 @@ image_service_path="/run/containerd/containerd.sock"
 [content_store]
 type="containerd"
 
+# The standalone SOCI snapshotter reads registry mirrors from [resolver.host],
+# not from containerd's CRI registry configuration.
 {{#if settings.container-registry.mirrors}}
 {{#each settings.container-registry.mirrors}}
-[plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{registry}}"]
-endpoint = [{{join_array ", " endpoint }}]
+{{#each endpoint}}
+[[resolver.host."{{../registry}}".mirrors]]
+host = "{{this}}"
+{{/each}}
 {{/each}}
 {{/if}}
 
