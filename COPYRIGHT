@@ -14,6 +14,6 @@ operating system images.
 
 =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
 
-Contains modified aws-smithy-experimental file(s) [hyper_1_0.rs] from
-https://github.com/smithy-lang/smithy-rs/tree/release-2024-10-09.
+Contains modified aws-smithy-http-client file(s) [rustls_provider.rs] from
+https://github.com/awslabs/aws-sdk-rust/tree/release-2026-07-10.
 Licensed under the Apache-2.0 License.

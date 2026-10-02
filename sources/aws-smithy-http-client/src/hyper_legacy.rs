@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+use crate::hyper_legacy::timeout_middleware::HttpTimeoutError;
 use aws_smithy_async::future::timeout::TimedOutError;
 use aws_smithy_async::rt::sleep::{default_async_sleep, AsyncSleep, SharedAsyncSleep};
-use aws_smithy_runtime::client::http::connection_poisoning::CaptureSmithyConnection;
 use aws_smithy_runtime_api::box_error::BoxError;
+use aws_smithy_runtime_api::client::connection::CaptureSmithyConnection;
 use aws_smithy_runtime_api::client::connection::ConnectionMetadata;
 use aws_smithy_runtime_api::client::connector_metadata::ConnectorMetadata;
-use aws_smithy_runtime_api::client::dns::ResolveDns;
 use aws_smithy_runtime_api::client::http::{
     HttpClient, HttpConnector, HttpConnectorFuture, HttpConnectorSettings, SharedHttpClient,
     SharedHttpConnector,
@@ -24,253 +24,143 @@ use aws_smithy_types::body::SdkBody;
 use aws_smithy_types::config_bag::ConfigBag;
 use aws_smithy_types::error::display::DisplayErrorContext;
 use aws_smithy_types::retry::ErrorKind;
-use client::connect::Connection;
-use h2::Reason;
-use http::{Extensions, Uri};
-use hyper::rt::{Read, Write};
-use hyper_util::client::legacy as client;
-use hyper_util::client::legacy::connect::dns::Name;
-use hyper_util::client::legacy::connect::{
-    capture_connection, CaptureConnection, Connect, HttpInfo,
-};
-use hyper_util::rt::TokioExecutor;
-use rustls::crypto::CryptoProvider;
+use h2_0_3::Reason;
+use hyper_0_14::client::connect::{capture_connection, CaptureConnection, Connection, HttpInfo};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::error::Error;
-use std::future::Future;
-use std::net::SocketAddr;
-use std::pin::Pin;
+use std::fmt;
 use std::sync::RwLock;
-use std::task::{Context, Poll};
 use std::time::Duration;
-use std::{fmt, vec};
+use tokio::io::{AsyncRead, AsyncWrite};
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
-#[non_exhaustive]
-pub enum CryptoMode {
-    #[cfg(feature = "crypto-ring")]
-    Ring,
-    #[cfg(feature = "crypto-aws-lc")]
-    AwsLc,
-    #[cfg(feature = "crypto-aws-lc-fips")]
-    AwsLcFips,
-}
+#[cfg(feature = "legacy-rustls-ring")]
+mod default_connector {
+    use aws_smithy_async::rt::sleep::SharedAsyncSleep;
+    use aws_smithy_runtime_api::client::http::HttpConnectorSettings;
+    use legacy_hyper_rustls as hyper_rustls;
+    use legacy_rustls as rustls;
+    use std::sync::LazyLock;
 
-impl CryptoMode {
-    fn provider(self) -> CryptoProvider {
-        match self {
-            #[cfg(feature = "crypto-aws-lc")]
-            CryptoMode::AwsLc => rustls::crypto::aws_lc_rs::default_provider(),
+    // Creating a `with_native_roots` HTTP client takes 300ms on OS X. Cache this so that we
+    // don't need to repeatedly incur that cost.
+    pub(crate) static HTTPS_NATIVE_ROOTS: LazyLock<
+        hyper_rustls::HttpsConnector<hyper_0_14::client::HttpConnector>,
+    > = LazyLock::new(default_tls);
 
-            #[cfg(feature = "crypto-ring")]
-            CryptoMode::Ring => rustls::crypto::ring::default_provider(),
+    fn default_tls() -> hyper_rustls::HttpsConnector<hyper_0_14::client::HttpConnector> {
+        use legacy_rustls::client::WantsTransparencyPolicyOrClientCert;
+        use legacy_rustls::{ClientConfig, ConfigBuilder, WantsVerifier};
+        use rustls_native_certs;
+        // polyfill with_native_roots from https://docs.rs/hyper-rustls/0.24.2/src/hyper_rustls/config.rs.html#22-70
+        // to use the new rustls_native_certs, since rustls_native_certs 0.6 depends on rustls-pemfile which is deprecated
+        fn with_native_roots(
+            this: ConfigBuilder<ClientConfig, WantsVerifier>,
+        ) -> ConfigBuilder<ClientConfig, WantsTransparencyPolicyOrClientCert> {
+            let mut roots = rustls::RootCertStore::empty();
+            let mut valid_count = 0;
+            let mut invalid_count = 0;
 
-            #[cfg(feature = "crypto-aws-lc-fips")]
-            CryptoMode::AwsLcFips => {
-                let provider = rustls::crypto::default_fips_provider();
-                assert!(
-                    provider.fips(),
-                    "FIPS was requested but the provider did not support FIPS"
-                );
-                provider
+            for cert in
+                rustls_native_certs::load_native_certs().expect("could not load platform certs")
+            {
+                let cert = rustls::Certificate(cert.to_vec());
+                match roots.add(&cert) {
+                    Ok(_) => valid_count += 1,
+                    Err(err) => {
+                        tracing::trace!("invalid cert der {:?}", cert.0);
+                        tracing::debug!("certificate parsing failed: {:?}", err);
+                        invalid_count += 1
+                    }
+                }
             }
+            tracing::debug!(
+                "with_native_roots processed {} valid and {} invalid certs",
+                valid_count,
+                invalid_count
+            );
+            assert!(!roots.is_empty(), "no CA certificates found");
+
+            this.with_root_certificates(roots)
         }
-    }
-}
-
-/// A bridge that allows our `ResolveDns` trait to work with Hyper's `Resolver` interface (based on tower)
-#[derive(Clone)]
-struct HyperUtilResolver<R> {
-    resolver: R,
-}
-
-impl<R: ResolveDns + Clone + 'static> tower::Service<Name> for HyperUtilResolver<R> {
-    type Response = vec::IntoIter<SocketAddr>;
-    type Error = Box<dyn Error + Send + Sync>;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
-
-    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        Poll::Ready(Ok(()))
-    }
-
-    fn call(&mut self, req: Name) -> Self::Future {
-        let resolver = self.resolver.clone();
-        Box::pin(async move {
-            let dns_entries = resolver.resolve_dns(req.as_str()).await?;
-            Ok(dns_entries
-                .into_iter()
-                .map(|ip_addr| SocketAddr::new(ip_addr, 0))
-                .collect::<Vec<_>>()
-                .into_iter())
-        })
-    }
-}
-
-#[allow(unused_imports)]
-mod cached_connectors {
-    use client::connect::HttpConnector;
-    use hyper_util::client::legacy as client;
-    use hyper_util::client::legacy::connect::dns::GaiResolver;
-
-    use crate::hyper_1_0::build_connector::make_tls;
-    use crate::hyper_1_0::{CryptoMode, Inner};
-
-    #[cfg(feature = "crypto-ring")]
-    pub(crate) static HTTPS_NATIVE_ROOTS_RING: once_cell::sync::Lazy<
-        hyper_rustls::HttpsConnector<HttpConnector>,
-    > = once_cell::sync::Lazy::new(|| make_tls(GaiResolver::new(), CryptoMode::Ring.provider()));
-
-    #[cfg(feature = "crypto-aws-lc")]
-    pub(crate) static HTTPS_NATIVE_ROOTS_AWS_LC: once_cell::sync::Lazy<
-        hyper_rustls::HttpsConnector<HttpConnector>,
-    > = once_cell::sync::Lazy::new(|| make_tls(GaiResolver::new(), CryptoMode::AwsLc.provider()));
-
-    #[cfg(feature = "crypto-aws-lc-fips")]
-    pub(crate) static HTTPS_NATIVE_ROOTS_AWS_LC_FIPS: once_cell::sync::Lazy<
-        hyper_rustls::HttpsConnector<HttpConnector>,
-    > = once_cell::sync::Lazy::new(|| {
-        make_tls(GaiResolver::new(), CryptoMode::AwsLcFips.provider())
-    });
-
-    pub(super) fn cached_https(mode: Inner) -> hyper_rustls::HttpsConnector<HttpConnector> {
-        match mode {
-            #[cfg(feature = "crypto-ring")]
-            Inner::Standard(CryptoMode::Ring) => HTTPS_NATIVE_ROOTS_RING.clone(),
-            #[cfg(feature = "crypto-aws-lc")]
-            Inner::Standard(CryptoMode::AwsLc) => HTTPS_NATIVE_ROOTS_AWS_LC.clone(),
-            #[cfg(feature = "crypto-aws-lc-fips")]
-            Inner::Standard(CryptoMode::AwsLcFips) => HTTPS_NATIVE_ROOTS_AWS_LC_FIPS.clone(),
-            #[allow(unreachable_patterns)]
-            Inner::Standard(_) => unreachable!("unexpected mode"),
-            Inner::Custom(provider) => make_tls(GaiResolver::new(), provider),
-        }
-    }
-}
-
-mod build_connector {
-    use crate::hyper_1_0::{HyperUtilResolver, Inner};
-    use aws_smithy_runtime_api::client::dns::ResolveDns;
-    use client::connect::HttpConnector;
-    use headers::Authorization;
-    use hyper::Uri;
-    use hyper_http_proxy::{Proxy, ProxyConnector};
-    use hyper_util::client::legacy as client;
-    use rustls::crypto::CryptoProvider;
-    use std::sync::Arc;
-    use url::Url;
-
-    fn restrict_ciphers(base: CryptoProvider) -> CryptoProvider {
-        let suites = &[
-            rustls::CipherSuite::TLS13_AES_256_GCM_SHA384,
-            rustls::CipherSuite::TLS13_AES_128_GCM_SHA256,
-            // TLS1.2 suites
-            rustls::CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-            rustls::CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-            rustls::CipherSuite::TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-            rustls::CipherSuite::TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-            rustls::CipherSuite::TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
-        ];
-        let supported_suites = suites
-            .iter()
-            .flat_map(|suite| {
-                base.cipher_suites
-                    .iter()
-                    .find(|s| &s.suite() == suite)
-                    .cloned()
-            })
-            .collect::<Vec<_>>();
-        CryptoProvider {
-            cipher_suites: supported_suites,
-            ..base
-        }
-    }
-
-    pub(crate) fn make_tls<R>(
-        resolver: R,
-        crypto_provider: CryptoProvider,
-    ) -> hyper_rustls::HttpsConnector<HttpConnector<R>> {
-        use hyper_rustls::ConfigBuilderExt;
-        let mut base_connector = HttpConnector::new_with_resolver(resolver);
-        base_connector.enforce_http(false);
         hyper_rustls::HttpsConnectorBuilder::new()
                .with_tls_config(
-                rustls::ClientConfig::builder_with_provider(Arc::new(restrict_ciphers(crypto_provider)))
+                with_native_roots(rustls::ClientConfig::builder()
+                    .with_cipher_suites(&[
+                        // TLS1.3 suites
+                        rustls::cipher_suite::TLS13_AES_256_GCM_SHA384,
+                        rustls::cipher_suite::TLS13_AES_128_GCM_SHA256,
+                        // TLS1.2 suites
+                        rustls::cipher_suite::TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+                        rustls::cipher_suite::TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+                        rustls::cipher_suite::TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+                        rustls::cipher_suite::TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+                        rustls::cipher_suite::TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+                    ])
+                    .with_safe_default_kx_groups()
                     .with_safe_default_protocol_versions()
-                    .expect("Error with the TLS configuration. Please file a bug report under https://github.com/smithy-lang/smithy-rs/issues.")
-                    .with_native_roots().expect("error with TLS configuration.")
+                    .expect("Error with the TLS configuration. Please file a bug report under https://github.com/smithy-lang/smithy-rs/issues."))
                     .with_no_client_auth()
             )
             .https_or_http()
             .enable_http1()
             .enable_http2()
-            .wrap_connector(base_connector)
+            .build()
     }
 
-    pub(super) fn https_with_resolver<R: ResolveDns>(
-        crypto_provider: Inner,
-        resolver: R,
-    ) -> hyper_rustls::HttpsConnector<HttpConnector<HyperUtilResolver<R>>> {
-        make_tls(HyperUtilResolver { resolver }, crypto_provider.provider())
+    pub(super) fn base(
+        settings: &HttpConnectorSettings,
+        sleep: Option<SharedAsyncSleep>,
+    ) -> super::HyperConnectorBuilder {
+        let mut hyper = super::HyperConnector::builder().connector_settings(settings.clone());
+        if let Some(sleep) = sleep {
+            hyper = hyper.sleep_impl(sleep);
+        }
+        hyper
     }
 
-    pub(super) fn https_with_proxy(
-        https_connector: hyper_rustls::HttpsConnector<HttpConnector>,
-        https_proxy: &str,
-        no_proxy: Option<Vec<String>>,
-    ) -> hyper_http_proxy::ProxyConnector<hyper_rustls::HttpsConnector<HttpConnector>> {
-        // Determines whether a request of a given scheme, host and port should be proxied
-        // according to `https_proxy` and `no_proxy`.
-
-        let intercept = move |scheme: Option<&str>, host: Option<&str>, _port| {
-            if let Some(host) = host {
-                if let Some(no_proxy) = &no_proxy {
-                    if scheme != Some("https") {
-                        return false;
-                    }
-                    if no_proxy.iter().any(|s| s == "*") {
-                        // Don't proxy anything
-                        return false;
-                    }
-                    // If the host matches one of the no proxy list entries, return false (don't proxy)
-                    // Note that we're not doing anything fancy here for checking `no_proxy` since
-                    // we only expect requests here to be going out to some AWS API endpoint.
-                    return !no_proxy.iter().any(|no_proxy_host| {
-                        !no_proxy_host.is_empty() && host.ends_with(no_proxy_host)
-                    });
-                }
-                true
-            } else {
-                false
-            }
-        };
-
-        let mut proxy_uri = https_proxy.parse::<Uri>().expect("Invalid proxy URI");
-
-        // If the proxy's URI doesn't have a scheme, assume HTTP for the scheme and let the proxy
-        // server forward HTTPS connections and start a tunnel.
-        if proxy_uri.scheme().is_none() {
-            proxy_uri = format!("http://{https_proxy}")
-                .parse::<Uri>()
-                .expect("Unable to parse proxy URI as HTTPS");
-        }
-        let mut proxy = Proxy::new(intercept, proxy_uri);
-        // Parse https_proxy as URL to extract out auth information if any
-        let proxy_url =
-            Url::parse(&proxy.uri().to_string()).expect("Unable to parse HTTPS proxy as URL");
-
-        if !proxy_url.username().is_empty() || proxy_url.password().is_some() {
-            proxy.set_authorization(Authorization::basic(
-                proxy_url.username(),
-                proxy_url.password().unwrap_or_default(),
-            ));
-        }
-        ProxyConnector::from_proxy(https_connector, proxy)
-            .expect("Failed to create proxy connector")
+    /// Return a default HTTPS connector backed by the `rustls` crate.
+    ///
+    /// It requires a minimum TLS version of 1.2.
+    /// It allows you to connect to both `http` and `https` URLs.
+    pub(super) fn https() -> hyper_rustls::HttpsConnector<hyper_0_14::client::HttpConnector> {
+        HTTPS_NATIVE_ROOTS.clone()
     }
 }
 
-/// [`HttpConnector`] that uses [`hyper`] to make HTTP requests.
+/// Given `HttpConnectorSettings` and an `SharedAsyncSleep`, create a `SharedHttpConnector` from defaults depending on what cargo features are activated.
+pub fn default_connector(
+    settings: &HttpConnectorSettings,
+    sleep: Option<SharedAsyncSleep>,
+) -> Option<SharedHttpConnector> {
+    #[cfg(feature = "legacy-rustls-ring")]
+    {
+        tracing::trace!(settings = ?settings, sleep = ?sleep, "creating a new default connector");
+        let hyper = default_connector::base(settings, sleep).build_https();
+        Some(SharedHttpConnector::new(hyper))
+    }
+    #[cfg(not(feature = "legacy-rustls-ring"))]
+    {
+        tracing::trace!(settings = ?settings, sleep = ?sleep, "no default connector available");
+        None
+    }
+}
+
+/// Creates a hyper-backed HTTPS client from defaults depending on what cargo features are activated.
+pub fn default_client() -> Option<SharedHttpClient> {
+    #[cfg(feature = "legacy-rustls-ring")]
+    {
+        tracing::trace!("creating a new default hyper 0.14.x client");
+        Some(HyperClientBuilder::new().build_https())
+    }
+    #[cfg(not(feature = "legacy-rustls-ring"))]
+    {
+        tracing::trace!("no default connector available");
+        None
+    }
+}
+
+/// [`HttpConnector`] that uses [`hyper_0_14`] to make HTTP requests.
 ///
 /// This connector also implements socket connect and read timeouts.
 ///
@@ -297,67 +187,23 @@ impl HttpConnector for HyperConnector {
 
 /// Builder for [`HyperConnector`].
 #[derive(Default, Debug)]
-pub struct HyperConnectorBuilder<Crypto = CryptoUnset> {
+pub struct HyperConnectorBuilder {
     connector_settings: Option<HttpConnectorSettings>,
     sleep_impl: Option<SharedAsyncSleep>,
-    client_builder: Option<hyper_util::client::legacy::Builder>,
-    #[allow(unused)]
-    crypto: Crypto,
+    client_builder: Option<hyper_0_14::client::Builder>,
 }
 
-#[derive(Default)]
-#[non_exhaustive]
-pub struct CryptoUnset {}
-
-pub struct CryptoProviderSelected {
-    crypto_provider: Inner,
-}
-
-#[derive(Clone)]
-enum Inner {
-    Standard(CryptoMode),
-    #[allow(dead_code)]
-    Custom(CryptoProvider),
-}
-
-impl Inner {
-    fn provider(&self) -> CryptoProvider {
-        match self {
-            Inner::Standard(mode) => mode.provider(),
-            Inner::Custom(provider) => provider.clone(),
-        }
-    }
-}
-
-#[cfg(any(feature = "crypto-aws-lc", feature = "crypto-ring"))]
-impl HyperConnectorBuilder<CryptoProviderSelected> {
-    pub fn build_from_resolver<R: ResolveDns + Clone + 'static>(
-        self,
-        resolver: R,
-    ) -> HyperConnector {
-        let connector =
-            build_connector::https_with_resolver(self.crypto.crypto_provider.clone(), resolver);
-        self.build(connector)
-    }
-}
-
-impl<Any> HyperConnectorBuilder<Any> {
+impl HyperConnectorBuilder {
     /// Create a [`HyperConnector`] from this builder and a given connector.
-    pub(crate) fn build<C>(self, tcp_connector: C) -> HyperConnector
+    pub fn build<C>(self, tcp_connector: C) -> HyperConnector
     where
-        C: Send + Sync + 'static,
-        C: Clone,
-        C: tower::Service<Uri>,
-        C::Response: Read + Write + Connection + Send + Sync + Unpin,
-        C: Connect,
+        C: Clone + Send + Sync + 'static,
+        C: hyper_0_14::service::Service<http_02x::Uri>,
+        C::Response: Connection + AsyncRead + AsyncWrite + Send + Unpin + 'static,
         C::Future: Unpin + Send + 'static,
         C::Error: Into<BoxError>,
     {
-        let client_builder =
-            self.client_builder
-                .unwrap_or(hyper_util::client::legacy::Builder::new(
-                    TokioExecutor::new(),
-                ));
+        let client_builder = self.client_builder.unwrap_or_default();
         let sleep_impl = self.sleep_impl.or_else(default_async_sleep);
         let (connect_timeout, read_timeout) = self
             .connector_settings
@@ -388,6 +234,12 @@ impl<Any> HyperConnectorBuilder<Any> {
                 client: read_timeout,
             }),
         }
+    }
+
+    /// Create a [`HyperConnector`] with the default rustls HTTPS implementation.
+    #[cfg(feature = "legacy-rustls-ring")]
+    pub fn build_https(self) -> HyperConnector {
+        self.build(default_connector::https())
     }
 
     /// Set the async sleep implementation used for timeouts
@@ -423,35 +275,32 @@ impl<Any> HyperConnectorBuilder<Any> {
         self
     }
 
-    /// Override the Hyper client [`Builder`](hyper_util::client::legacy::Builder) used to construct this client.
+    /// Override the Hyper client [`Builder`](hyper_0_14::client::Builder) used to construct this client.
     ///
     /// This enables changing settings like forcing HTTP2 and modifying other default client behavior.
-    pub(crate) fn hyper_builder(
-        mut self,
-        hyper_builder: hyper_util::client::legacy::Builder,
-    ) -> Self {
-        self.set_hyper_builder(Some(hyper_builder));
+    pub fn hyper_builder(mut self, hyper_builder: hyper_0_14::client::Builder) -> Self {
+        self.client_builder = Some(hyper_builder);
         self
     }
 
-    /// Override the Hyper client [`Builder`](hyper_util::client::legacy::Builder) used to construct this client.
+    /// Override the Hyper client [`Builder`](hyper_0_14::client::Builder) used to construct this client.
     ///
     /// This enables changing settings like forcing HTTP2 and modifying other default client behavior.
-    pub(crate) fn set_hyper_builder(
+    pub fn set_hyper_builder(
         &mut self,
-        hyper_builder: Option<hyper_util::client::legacy::Builder>,
+        hyper_builder: Option<hyper_0_14::client::Builder>,
     ) -> &mut Self {
         self.client_builder = hyper_builder;
         self
     }
 }
 
-/// Adapter to use a Hyper 1.0-based Client as an `HttpConnector`
+/// Adapter from a [`hyper_0_14::Client`] to [`HttpConnector`].
 ///
 /// This adapter also enables TCP `CONNECT` and HTTP `READ` timeouts via [`HyperConnector::builder`].
 struct Adapter<C> {
     client: timeout_middleware::HttpReadTimeout<
-        hyper_util::client::legacy::Client<timeout_middleware::ConnectTimeout<C>, SdkBody>,
+        hyper_0_14::Client<timeout_middleware::ConnectTimeout<C>, SdkBody>,
     >,
 }
 
@@ -467,7 +316,7 @@ impl<C> fmt::Debug for Adapter<C> {
 fn extract_smithy_connection(capture_conn: &CaptureConnection) -> Option<ConnectionMetadata> {
     let capture_conn = capture_conn.clone();
     if let Some(conn) = capture_conn.clone().connection_metadata().as_ref() {
-        let mut extensions = Extensions::new();
+        let mut extensions = http_02x::Extensions::new();
         conn.get_extras(&mut extensions);
         let http_info = extensions.get::<HttpInfo>();
         let mut builder = ConnectionMetadata::builder()
@@ -492,17 +341,18 @@ fn extract_smithy_connection(capture_conn: &CaptureConnection) -> Option<Connect
 impl<C> HttpConnector for Adapter<C>
 where
     C: Clone + Send + Sync + 'static,
-    C: tower::Service<Uri>,
-    C::Response: Connection + Read + Write + Unpin + 'static,
-    timeout_middleware::ConnectTimeout<C>: Connect,
+    C: hyper_0_14::service::Service<http_02x::Uri>,
+    C::Response: Connection + AsyncRead + AsyncWrite + Send + Unpin + 'static,
     C::Future: Unpin + Send + 'static,
     C::Error: Into<BoxError>,
 {
     fn call(&self, request: HttpRequest) -> HttpConnectorFuture {
-        let mut request = match request.try_into_http1x() {
+        use hyper_0_14::service::Service;
+
+        let mut request = match request.try_into_http02x() {
             Ok(request) => request,
             Err(err) => {
-                return HttpConnectorFuture::ready(Err(ConnectorError::user(err.into())));
+                return HttpConnectorFuture::ready(Err(ConnectorError::other(err.into(), None)));
             }
         };
         let capture_connection = capture_connection(&mut request);
@@ -513,13 +363,12 @@ where
                 .set_connection_retriever(move || extract_smithy_connection(&capture_connection));
         }
         let mut client = self.client.clone();
-        use tower::Service;
         let fut = client.call(request);
         HttpConnectorFuture::new(async move {
             let response = fut
                 .await
                 .map_err(downcast_error)?
-                .map(SdkBody::from_body_1_x);
+                .map(SdkBody::from_body_0_4);
             match HttpResponse::try_from(response) {
                 Ok(response) => Ok(response),
                 Err(err) => Err(ConnectorError::other(err.into(), None)),
@@ -541,41 +390,40 @@ fn downcast_error(err: BoxError) -> ConnectorError {
     };
     // generally, the top of chain will probably be a hyper error. Go through a set of hyper specific
     // error classifications
-    let err = match find_source::<hyper::Error>(err.as_ref()) {
-        Some(hyper_error) => return to_connector_error(hyper_error)(err),
-        None => err,
+    let err = match err.downcast::<hyper_0_14::Error>() {
+        Ok(hyper_error) => return to_connector_error(*hyper_error),
+        Err(box_error) => box_error,
     };
 
     // otherwise, we have no idea!
     ConnectorError::other(err, None)
 }
 
-/// Convert a [`hyper::Error`] into a [`ConnectorError`]
-fn to_connector_error(err: &hyper::Error) -> fn(BoxError) -> ConnectorError {
-    if err.is_timeout() || find_source::<timeout_middleware::HttpTimeoutError>(err).is_some() {
-        return ConnectorError::timeout;
+/// Convert a [`hyper_0_14::Error`] into a [`ConnectorError`]
+fn to_connector_error(err: hyper_0_14::Error) -> ConnectorError {
+    if err.is_timeout() || find_source::<HttpTimeoutError>(&err).is_some() {
+        return ConnectorError::timeout(err.into());
     }
     if err.is_user() {
-        return ConnectorError::user;
+        return ConnectorError::user(err.into());
     }
-    if err.is_closed() || err.is_canceled() || find_source::<std::io::Error>(err).is_some() {
-        return ConnectorError::io;
+    if err.is_closed() || err.is_canceled() || find_source::<std::io::Error>(&err).is_some() {
+        return ConnectorError::io(err.into());
     }
     // We sometimes receive this from S3: hyper::Error(IncompleteMessage)
     if err.is_incomplete_message() {
-        return |err: BoxError| ConnectorError::other(err, Some(ErrorKind::TransientError));
+        return ConnectorError::other(err.into(), Some(ErrorKind::TransientError));
     }
-
-    if let Some(h2_err) = find_source::<h2::Error>(err) {
+    if let Some(h2_err) = find_source::<h2_0_3::Error>(&err) {
         if h2_err.is_go_away()
             || (h2_err.is_reset() && h2_err.reason() == Some(Reason::REFUSED_STREAM))
         {
-            return ConnectorError::io;
+            return ConnectorError::io(err.into());
         }
     }
 
     tracing::warn!(err = %DisplayErrorContext(&err), "unrecognized error from Hyper. If this error should be retried, please file an issue.");
-    |err: BoxError| ConnectorError::other(err, None)
+    ConnectorError::other(err.into(), None)
 }
 
 fn find_source<'a, E: Error + 'static>(err: &'a (dyn Error + 'static)) -> Option<&'a E> {
@@ -589,9 +437,6 @@ fn find_source<'a, E: Error + 'static>(err: &'a (dyn Error + 'static)) -> Option
     None
 }
 
-// TODO(https://github.com/awslabs/aws-sdk-rust/issues/1090): CacheKey must also include ptr equality to any
-// runtime components that are used—sleep_impl as a base (unless we prohibit overriding sleep impl)
-// If we decide to put a DnsResolver in RuntimeComponents, then we'll need to handle that as well.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 struct CacheKey {
     connect_timeout: Option<Duration>,
@@ -609,7 +454,7 @@ impl From<&HttpConnectorSettings> for CacheKey {
 
 struct HyperClient<F> {
     connector_cache: RwLock<HashMap<CacheKey, SharedHttpConnector>>,
-    client_builder: hyper_util::client::legacy::Builder,
+    client_builder: hyper_0_14::client::Builder,
     tcp_connector_fn: F,
 }
 
@@ -626,8 +471,8 @@ impl<C, F> HttpClient for HyperClient<F>
 where
     F: Fn() -> C + Send + Sync,
     C: Clone + Send + Sync + 'static,
-    C: tower::Service<Uri>,
-    C::Response: Connection + Read + Write + Send + Sync + Unpin + 'static,
+    C: hyper_0_14::service::Service<http_02x::Uri>,
+    C::Response: Connection + AsyncRead + AsyncWrite + Send + Unpin + 'static,
     C::Future: Unpin + Send + 'static,
     C::Error: Into<BoxError>,
 {
@@ -679,7 +524,7 @@ where
     }
 
     fn connector_metadata(&self) -> Option<ConnectorMetadata> {
-        Some(ConnectorMetadata::new("hyper", Some(Cow::Borrowed("1.x"))))
+        Some(ConnectorMetadata::new("hyper", Some(Cow::Borrowed("0.x"))))
     }
 }
 
@@ -690,127 +535,137 @@ where
 ///
 /// # Examples
 ///
-/// Construct a Hyper client with the RusTLS TLS implementation.
+/// Construct a Hyper client with the default TLS implementation (rustls).
 /// This can be useful when you want to share a Hyper connector between multiple
 /// generated Smithy clients.
+///
+/// ```no_run,ignore
+/// use aws_smithy_http_client::hyper_014::HyperClientBuilder;
+///
+/// let http_client = HyperClientBuilder::new().build_https();
+///
+/// // This connector can then be given to a generated service Config
+/// let config = my_service_client::Config::builder()
+///     .endpoint_url("http://localhost:1234")
+///     .http_client(http_client)
+///     .build();
+/// let client = my_service_client::Client::from_conf(config);
+/// ```
+///
+/// ## Use a Hyper client with WebPKI roots
+///
+/// A use case for where you may want to use the [`HyperClientBuilder`] is when
+/// setting Hyper client settings that aren't otherwise exposed by the `Config`
+/// builder interface. Some examples include changing:
+///
+/// - Hyper client settings
+/// - Allowed TLS cipher suites
+/// - Using an alternative TLS connector library (not the default, rustls)
+/// - CA trust root certificates (illustrated using WebPKI below)
+///
+/// ```no_run,ignore
+/// use aws_smithy_http_client::hyper_014::HyperClientBuilder;
+///
+/// let https_connector = hyper_rustls::HttpsConnectorBuilder::new()
+///     .with_webpki_roots()
+///     .https_only()
+///     .enable_http1()
+///     .enable_http2()
+///     .build();
+/// let http_client = HyperClientBuilder::new().build(https_connector);
+///
+/// // This connector can then be given to a generated service Config
+/// let config = my_service_client::Config::builder()
+///     .endpoint_url("https://example.com")
+///     .http_client(http_client)
+///     .build();
+/// let client = my_service_client::Client::from_conf(config);
+/// ```
 #[derive(Clone, Default, Debug)]
-pub struct HyperClientBuilder<Crypto = CryptoUnset> {
-    client_builder: Option<hyper_util::client::legacy::Builder>,
-    crypto_provider: Crypto,
+pub struct HyperClientBuilder {
+    client_builder: Option<hyper_0_14::client::Builder>,
 }
 
-impl HyperClientBuilder<CryptoProviderSelected> {
-    /// Create a hyper client using RusTLS for TLS
-    ///
-    /// The trusted certificates will be loaded later when this becomes the selected
-    /// HTTP client for a Smithy client.
-    pub fn build_https(self) -> SharedHttpClient {
-        let crypto = self.crypto_provider.crypto_provider;
-        build_with_fn(self.client_builder, move || {
-            cached_connectors::cached_https(crypto.clone())
-        })
-    }
-
-    /// Create a hyper client using a custom DNS resolver
-    pub fn build_with_resolver(
-        self,
-        resolver: impl ResolveDns + Clone + 'static,
-    ) -> SharedHttpClient {
-        build_with_fn(self.client_builder, move || {
-            build_connector::https_with_resolver(
-                self.crypto_provider.crypto_provider.clone(),
-                resolver.clone(),
-            )
-        })
-    }
-
-    /// Create a hyper client using a proxy connector
-    pub fn build_with_proxy<H, N>(self, https_proxy: H, no_proxy: Option<&[N]>) -> SharedHttpClient
-    where
-        H: AsRef<str> + Clone + Send + Sync + 'static,
-        N: AsRef<str>,
-    {
-        let crypto = self.crypto_provider.crypto_provider;
-        let no_proxy: Option<Vec<String>> =
-            no_proxy.map(|n| n.iter().map(|s| s.as_ref().to_owned()).collect());
-        build_with_fn(self.client_builder, move || {
-            build_connector::https_with_proxy(
-                cached_connectors::cached_https(crypto.clone()),
-                https_proxy.as_ref(),
-                no_proxy.clone(),
-            )
-        })
-    }
-}
-
-impl HyperClientBuilder<CryptoUnset> {
+impl HyperClientBuilder {
     /// Creates a new builder.
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn crypto_mode(self, provider: CryptoMode) -> HyperClientBuilder<CryptoProviderSelected> {
-        HyperClientBuilder {
-            client_builder: self.client_builder,
-            crypto_provider: CryptoProviderSelected {
-                crypto_provider: Inner::Standard(provider),
-            },
-        }
-    }
-
-    /// This interface will be broken in the future
+    /// Override the Hyper client [`Builder`](hyper_0_14::client::Builder) used to construct this client.
     ///
-    /// This exposes `CryptoProvider` from `rustls` directly and this API has no stability guarantee.
-    #[cfg(crypto_unstable)]
-    pub fn crypto_provider_unstable(
-        self,
-        provider: CryptoProvider,
-    ) -> HyperClientBuilder<CryptoProviderSelected> {
-        HyperClientBuilder {
-            client_builder: self.client_builder,
-            crypto_provider: CryptoProviderSelected {
-                crypto_provider: Inner::Custom(provider),
-            },
-        }
+    /// This enables changing settings like forcing HTTP2 and modifying other default client behavior.
+    pub fn hyper_builder(mut self, hyper_builder: hyper_0_14::client::Builder) -> Self {
+        self.client_builder = Some(hyper_builder);
+        self
     }
-}
 
-fn build_with_fn<C, F>(
-    client_builder: Option<hyper_util::client::legacy::Builder>,
-    tcp_connector_fn: F,
-) -> SharedHttpClient
-where
-    F: Fn() -> C + Send + Sync + 'static,
-    C: Clone + Send + Sync + 'static,
-    C: tower::Service<Uri>,
-    C::Response: Connection + Read + Write + Send + Sync + Unpin + 'static,
-    C::Future: Unpin + Send + 'static,
-    C::Error: Into<BoxError>,
-    C: Connect,
-{
-    SharedHttpClient::new(HyperClient {
-        connector_cache: RwLock::new(HashMap::new()),
-        client_builder: client_builder
-            .unwrap_or_else(|| hyper_util::client::legacy::Builder::new(TokioExecutor::new())),
-        tcp_connector_fn,
-    })
+    /// Override the Hyper client [`Builder`](hyper_0_14::client::Builder) used to construct this client.
+    ///
+    /// This enables changing settings like forcing HTTP2 and modifying other default client behavior.
+    pub fn set_hyper_builder(
+        &mut self,
+        hyper_builder: Option<hyper_0_14::client::Builder>,
+    ) -> &mut Self {
+        self.client_builder = hyper_builder;
+        self
+    }
+
+    /// Create a hyper client with the default rustls HTTPS implementation.
+    ///
+    /// The trusted certificates will be loaded later when this becomes the selected
+    /// HTTP client for a Smithy client.
+    #[cfg(feature = "legacy-rustls-ring")]
+    pub fn build_https(self) -> SharedHttpClient {
+        self.build_with_fn(default_connector::https)
+    }
+
+    /// Create a [`SharedHttpClient`] from this builder and a given connector.
+    ///
+    #[cfg_attr(
+        feature = "legacy-rustls-ring",
+        doc = "Use [`build_https`](HyperClientBuilder::build_https) if you don't want to provide a custom TCP connector."
+    )]
+    pub fn build<C>(self, tcp_connector: C) -> SharedHttpClient
+    where
+        C: Clone + Send + Sync + 'static,
+        C: hyper_0_14::service::Service<http_02x::Uri>,
+        C::Response: Connection + AsyncRead + AsyncWrite + Send + Unpin + 'static,
+        C::Future: Unpin + Send + 'static,
+        C::Error: Into<BoxError>,
+    {
+        self.build_with_fn(move || tcp_connector.clone())
+    }
+
+    fn build_with_fn<C, F>(self, tcp_connector_fn: F) -> SharedHttpClient
+    where
+        F: Fn() -> C + Send + Sync + 'static,
+        C: Clone + Send + Sync + 'static,
+        C: hyper_0_14::service::Service<http_02x::Uri>,
+        C::Response: Connection + AsyncRead + AsyncWrite + Send + Unpin + 'static,
+        C::Future: Unpin + Send + 'static,
+        C::Error: Into<BoxError>,
+    {
+        SharedHttpClient::new(HyperClient {
+            connector_cache: RwLock::new(HashMap::new()),
+            client_builder: self.client_builder.unwrap_or_default(),
+            tcp_connector_fn,
+        })
+    }
 }
 
 mod timeout_middleware {
+    use aws_smithy_async::future::timeout::{TimedOutError, Timeout};
+    use aws_smithy_async::rt::sleep::Sleep;
+    use aws_smithy_async::rt::sleep::{AsyncSleep, SharedAsyncSleep};
+    use aws_smithy_runtime_api::box_error::BoxError;
+    use pin_project_lite::pin_project;
     use std::error::Error;
     use std::fmt::Formatter;
     use std::future::Future;
     use std::pin::Pin;
     use std::task::{Context, Poll};
     use std::time::Duration;
-
-    use http::Uri;
-    use pin_project_lite::pin_project;
-
-    use aws_smithy_async::future::timeout::{TimedOutError, Timeout};
-    use aws_smithy_async::rt::sleep::Sleep;
-    use aws_smithy_async::rt::sleep::{AsyncSleep, SharedAsyncSleep};
-    use aws_smithy_runtime_api::box_error::BoxError;
 
     #[derive(Debug)]
     pub(crate) struct HttpTimeoutError {
@@ -850,7 +705,7 @@ mod timeout_middleware {
     impl<I> ConnectTimeout<I> {
         /// Create a new `ConnectTimeout` around `inner`.
         ///
-        /// Typically, `I` will implement [`hyper_util::client::legacy::connect::Connect`].
+        /// Typically, `I` will implement [`hyper_0_14::client::connect::Connect`].
         pub(crate) fn new(inner: I, sleep: SharedAsyncSleep, timeout: Duration) -> Self {
             Self {
                 inner,
@@ -875,7 +730,7 @@ mod timeout_middleware {
     impl<I> HttpReadTimeout<I> {
         /// Create a new `HttpReadTimeout` around `inner`.
         ///
-        /// Typically, `I` will implement [`tower::Service<http::Request<SdkBody>>`].
+        /// Typically, `I` will implement [`hyper_0_14::service::Service<http::Request<SdkBody>>`].
         pub(crate) fn new(inner: I, sleep: SharedAsyncSleep, timeout: Duration) -> Self {
             Self {
                 inner,
@@ -939,9 +794,9 @@ mod timeout_middleware {
         }
     }
 
-    impl<I> tower::Service<Uri> for ConnectTimeout<I>
+    impl<I> hyper_0_14::service::Service<http_02x::Uri> for ConnectTimeout<I>
     where
-        I: tower::Service<Uri>,
+        I: hyper_0_14::service::Service<http_02x::Uri>,
         I::Error: Into<BoxError>,
     {
         type Response = I::Response;
@@ -952,7 +807,7 @@ mod timeout_middleware {
             self.inner.poll_ready(cx).map_err(|err| err.into())
         }
 
-        fn call(&mut self, req: Uri) -> Self::Future {
+        fn call(&mut self, req: http_02x::Uri) -> Self::Future {
             match &self.timeout {
                 Some((sleep, duration)) => {
                     let sleep = sleep.sleep(*duration);
@@ -969,10 +824,9 @@ mod timeout_middleware {
         }
     }
 
-    impl<I, B> tower::Service<http::Request<B>> for HttpReadTimeout<I>
+    impl<I, B> hyper_0_14::service::Service<http_02x::Request<B>> for HttpReadTimeout<I>
     where
-        I: tower::Service<http::Request<B>>,
-        I::Error: Send + Sync + Error + 'static,
+        I: hyper_0_14::service::Service<http_02x::Request<B>, Error = hyper_0_14::Error>,
     {
         type Response = I::Response;
         type Error = BoxError;
@@ -982,7 +836,7 @@ mod timeout_middleware {
             self.inner.poll_ready(cx).map_err(|err| err.into())
         }
 
-        fn call(&mut self, req: http::Request<B>) -> Self::Future {
+        fn call(&mut self, req: http_02x::Request<B>) -> Self::Future {
             match &self.timeout {
                 Some((sleep, duration)) => {
                     let sleep = sleep.sleep(*duration);
@@ -1001,19 +855,23 @@ mod timeout_middleware {
 
     #[cfg(test)]
     pub(crate) mod test {
-        use std::time::Duration;
-
-        use hyper::rt::ReadBufCursor;
-        use hyper_util::client::legacy::connect::Connected;
-        use hyper_util::rt::TokioIo;
-        use tokio::net::TcpStream;
-
+        use crate::hyper_014::HyperConnector;
         use aws_smithy_async::assert_elapsed;
         use aws_smithy_async::future::never::Never;
         use aws_smithy_async::rt::sleep::{SharedAsyncSleep, TokioSleep};
+        use aws_smithy_runtime_api::box_error::BoxError;
+        use aws_smithy_runtime_api::client::http::HttpConnectorSettings;
+        use aws_smithy_runtime_api::client::orchestrator::HttpRequest;
+        use aws_smithy_runtime_api::client::result::ConnectorError;
         use aws_smithy_types::error::display::DisplayErrorContext;
-
-        use super::super::*;
+        use hyper_0_14::client::connect::{Connected, Connection};
+        use std::future::Future;
+        use std::pin::Pin;
+        use std::task::{Context, Poll};
+        use std::time::Duration;
+        use tokio::io::ReadBuf;
+        use tokio::io::{AsyncRead, AsyncWrite};
+        use tokio::net::TcpStream;
 
         #[allow(unused)]
         fn connect_timeout_is_correct<T: Send + Sync + Clone + 'static>() {
@@ -1029,8 +887,8 @@ mod timeout_middleware {
         #[non_exhaustive]
         #[derive(Clone, Default, Debug)]
         pub(crate) struct NeverConnects;
-        impl tower::Service<Uri> for NeverConnects {
-            type Response = TokioIo<TcpStream>;
+        impl hyper_0_14::service::Service<http_02x::Uri> for NeverConnects {
+            type Response = TcpStream;
             type Error = ConnectorError;
             type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
@@ -1038,7 +896,7 @@ mod timeout_middleware {
                 Poll::Ready(Ok(()))
             }
 
-            fn call(&mut self, _uri: Uri) -> Self::Future {
+            fn call(&mut self, _uri: http_02x::Uri) -> Self::Future {
                 Box::pin(async move {
                     Never::new().await;
                     unreachable!()
@@ -1049,7 +907,7 @@ mod timeout_middleware {
         /// A service that will connect but never send any data
         #[derive(Clone, Debug, Default)]
         struct NeverReplies;
-        impl tower::Service<Uri> for NeverReplies {
+        impl hyper_0_14::service::Service<http_02x::Uri> for NeverReplies {
             type Response = EmptyStream;
             type Error = BoxError;
             type Future = std::future::Ready<Result<Self::Response, Self::Error>>;
@@ -1058,7 +916,7 @@ mod timeout_middleware {
                 Poll::Ready(Ok(()))
             }
 
-            fn call(&mut self, _req: Uri) -> Self::Future {
+            fn call(&mut self, _req: http_02x::Uri) -> Self::Future {
                 std::future::ready(Ok(EmptyStream))
             }
         }
@@ -1067,16 +925,16 @@ mod timeout_middleware {
         #[non_exhaustive]
         #[derive(Debug, Default)]
         struct EmptyStream;
-        impl Read for EmptyStream {
+        impl AsyncRead for EmptyStream {
             fn poll_read(
                 self: Pin<&mut Self>,
                 _cx: &mut Context<'_>,
-                _buf: ReadBufCursor<'_>,
-            ) -> Poll<Result<(), std::io::Error>> {
+                _buf: &mut ReadBuf<'_>,
+            ) -> Poll<std::io::Result<()>> {
                 Poll::Pending
             }
         }
-        impl Write for EmptyStream {
+        impl AsyncWrite for EmptyStream {
             fn poll_write(
                 self: Pin<&mut Self>,
                 _cx: &mut Context<'_>,
@@ -1124,11 +982,12 @@ mod timeout_middleware {
                 .unwrap_err();
             assert!(
                 resp.is_timeout(),
-                "expected resp.is_timeout() to be true but it was false, resp == {resp:?}"
+                "expected resp.is_timeout() to be true but it was false, resp == {:?}",
+                resp
             );
             let message = DisplayErrorContext(&resp).to_string();
             let expected =
-                "timeout: client error (Connect): HTTP connect timeout occurred after 1s";
+                "timeout: error trying to connect: HTTP connect timeout occurred after 1s";
             assert!(
                 message.contains(expected),
                 "expected '{message}' to contain '{expected}'"
@@ -1171,32 +1030,31 @@ mod timeout_middleware {
 
 #[cfg(test)]
 mod test {
+    use crate::hyper_legacy::timeout_middleware::test::NeverConnects;
+    use crate::hyper_legacy::{HyperClientBuilder, HyperConnector};
+    use aws_smithy_async::time::SystemTimeSource;
+    use aws_smithy_runtime_api::box_error::BoxError;
+    use aws_smithy_runtime_api::client::http::{HttpClient, HttpConnectorSettings};
+    use aws_smithy_runtime_api::client::orchestrator::HttpRequest;
+    use aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder;
+    use hyper_0_14::client::connect::{Connected, Connection};
     use std::io::{Error, ErrorKind};
     use std::pin::Pin;
     use std::sync::atomic::{AtomicU32, Ordering};
     use std::sync::Arc;
     use std::task::{Context, Poll};
-
-    use http::Uri;
-    use hyper::rt::ReadBufCursor;
-    use hyper_util::client::legacy::connect::Connected;
-
-    use aws_smithy_async::time::SystemTimeSource;
-    use aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder;
-
-    use crate::hyper_1_0::timeout_middleware::test::NeverConnects;
-
-    use super::*;
+    use std::time::Duration;
+    use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
     #[tokio::test]
     async fn connector_selection() {
         // Create a client that increments a count every time it creates a new HyperConnector
         let creation_count = Arc::new(AtomicU32::new(0));
-        let http_client = build_with_fn(None, {
+        let http_client = HyperClientBuilder::new().build_with_fn({
             let count = creation_count.clone();
             move || {
                 count.fetch_add(1, Ordering::Relaxed);
-                NeverConnects
+                NeverConnects::default()
             }
         });
 
@@ -1254,7 +1112,7 @@ mod test {
             .call(HttpRequest::get("https://socket-hangup.com").unwrap())
             .await
             .expect_err("socket hangup");
-        assert!(err.is_io(), "unexpected error type: {err:?}");
+        assert!(err.is_io(), "{:?}", err);
     }
 
     // ---- machinery to make a Hyper connector that responds with an IO Error
@@ -1267,11 +1125,11 @@ mod test {
         }
     }
 
-    impl Read for HangupStream {
+    impl AsyncRead for HangupStream {
         fn poll_read(
             self: Pin<&mut Self>,
             _cx: &mut Context<'_>,
-            _buf: ReadBufCursor<'_>,
+            _buf: &mut ReadBuf<'_>,
         ) -> Poll<std::io::Result<()>> {
             Poll::Ready(Err(Error::new(
                 ErrorKind::ConnectionReset,
@@ -1280,7 +1138,7 @@ mod test {
         }
     }
 
-    impl Write for HangupStream {
+    impl AsyncWrite for HangupStream {
         fn poll_write(
             self: Pin<&mut Self>,
             _cx: &mut Context<'_>,
@@ -1303,7 +1161,7 @@ mod test {
         inner: T,
     }
 
-    impl<T> tower::Service<Uri> for TestConnection<T>
+    impl<T> hyper_0_14::service::Service<http_02x::Uri> for TestConnection<T>
     where
         T: Clone + Connection,
     {
@@ -1315,7 +1173,7 @@ mod test {
             Poll::Ready(Ok(()))
         }
 
-        fn call(&mut self, _req: Uri) -> Self::Future {
+        fn call(&mut self, _req: http_02x::Uri) -> Self::Future {
             std::future::ready(Ok(self.inner.clone()))
         }
     }
