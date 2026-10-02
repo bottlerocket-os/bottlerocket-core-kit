@@ -365,7 +365,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -376,7 +376,7 @@ checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
 dependencies = [
  "anstyle",
  "once_cell_polyfill",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1543,7 +1543,7 @@ dependencies = [
 [[package]]
 name = "bottlerocket-model-derive"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "darling",
  "quote",
@@ -1553,7 +1553,7 @@ dependencies = [
 [[package]]
 name = "bottlerocket-modeled-types"
 version = "0.19.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "base64",
  "bottlerocket-model-derive",
@@ -1589,7 +1589,7 @@ dependencies = [
 [[package]]
 name = "bottlerocket-scalar"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "serde",
  "serde_plain",
@@ -1598,7 +1598,7 @@ dependencies = [
 [[package]]
 name = "bottlerocket-scalar-derive"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-scalar",
  "darling",
@@ -1622,8 +1622,8 @@ dependencies = [
 
 [[package]]
 name = "bottlerocket-settings-models"
-version = "0.30.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+version = "0.29.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -1677,7 +1677,7 @@ dependencies = [
 [[package]]
 name = "bottlerocket-settings-sdk"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "argh",
  "bottlerocket-template-helper",
@@ -1690,7 +1690,7 @@ dependencies = [
 [[package]]
 name = "bottlerocket-string-impls-for"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "serde",
 ]
@@ -1698,7 +1698,7 @@ dependencies = [
 [[package]]
 name = "bottlerocket-template-helper"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -2734,7 +2734,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -4219,7 +4219,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5252,7 +5252,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -5345,7 +5345,7 @@ dependencies = [
  "security-framework 3.7.0",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -5675,7 +5675,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-autoscaling"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5688,7 +5688,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-aws"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5701,7 +5701,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-bootstrap-commands"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5715,7 +5715,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-bootstrap-containers"
 version = "0.2.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5728,7 +5728,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-cloudformation"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5741,7 +5741,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-container-registry"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5754,7 +5754,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-container-runtime"
 version = "0.4.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5767,7 +5767,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-container-runtime-plugins"
 version = "0.2.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5783,7 +5783,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-dns"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5796,7 +5796,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-ecs"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5809,7 +5809,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-host-containers"
 version = "0.2.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5822,7 +5822,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-image-verifier-plugins"
 version = "0.2.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5835,7 +5835,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-kernel"
 version = "0.3.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5848,7 +5848,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-kubelet-device-plugins"
 version = "0.4.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5861,7 +5861,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-kubelet-dra-drivers"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-settings-sdk",
@@ -5873,7 +5873,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-kubernetes"
 version = "0.11.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5887,7 +5887,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-measurement"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5901,7 +5901,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-metrics"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5914,7 +5914,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-motd"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-settings-sdk",
  "bottlerocket-string-impls-for",
@@ -5927,7 +5927,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-network"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5939,8 +5939,8 @@ dependencies = [
 
 [[package]]
 name = "settings-extension-ntp"
-version = "0.2.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+version = "0.1.0"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5948,13 +5948,12 @@ dependencies = [
  "env_logger",
  "serde",
  "serde_json",
- "snafu",
 ]
 
 [[package]]
 name = "settings-extension-nvidia-container-runtime"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5967,7 +5966,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-oci-defaults"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5981,7 +5980,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-oci-hooks"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -5994,7 +5993,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-pki"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -6007,7 +6006,7 @@ dependencies = [
 [[package]]
 name = "settings-extension-updates"
 version = "0.1.0"
-source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.30.0#9903fc0d7179cc8a0019dccd64b2e6aa51dac39f"
+source = "git+https://github.com/bottlerocket-os/bottlerocket-settings-sdk?tag=bottlerocket-settings-models-v0.29.0#37f4116d3864332046143e862c0e9425923395fa"
 dependencies = [
  "bottlerocket-model-derive",
  "bottlerocket-modeled-types",
@@ -6242,7 +6241,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52d1cfed4120b4d927bf7c0f86d2087a4a7d6027c906d9f9d525a80573b9be51"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -6408,10 +6407,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -7051,7 +7050,7 @@ checksum = "f2f6fb2847f6742cd76af783a2a2c49e9375d0a111c7bef6f71cd9e738c72d6e"
 dependencies = [
  "memoffset 0.9.1",
  "tempfile",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -7450,7 +7449,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
