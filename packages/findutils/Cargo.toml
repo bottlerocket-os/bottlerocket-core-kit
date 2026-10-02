@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://ftp.gnu.org/pub/gnu/findutils"
 
 [[package.metadata.build-package.external-files]]
-url = "https://ftp.gnu.org/pub/gnu/findutils/findutils-4.10.0.tar.xz"
-sha512 = "b8b683d21cd26c6da4f41c56e83cadbda4780f8610a2bbd4b4e34bb1f339c3209721974b03e076d5eef0331fd876d947b398197aad37c29bbcc2e0405c641b34"
+url = "https://ftp.gnu.org/pub/gnu/findutils/findutils-4.11.0.tar.xz"
+sha512 = "1b667c5363b599135ceabab6b4b5388dbee6de4e7fa301f5dfefc854473e442fbfe7dda93a28a70505c026987acd375d13169f76d18da49d29c1fb2e09c83fef"
 
 [[package.metadata.build-package.external-files]]
-url = "https://ftp.gnu.org/pub/gnu/findutils/findutils-4.10.0.tar.xz.sig"
-sha512 = "a835153a0671309021be187bf78afee58d9682acb40545aaa9dd187f0ebdea0cfa5583bd03f363243633ea056ddb0a7a6603987ab5e34a608426cb4265ac6d8f"
+url = "https://ftp.gnu.org/pub/gnu/findutils/findutils-4.11.0.tar.xz.sig"
+sha512 = "00847206d4656ce6aed297b675493d9cc7c052656aaca27feaccea432dc8274de1a39bb306b031209427c59e62497e7201f464df8fe32191f4cb711c929e46f4"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

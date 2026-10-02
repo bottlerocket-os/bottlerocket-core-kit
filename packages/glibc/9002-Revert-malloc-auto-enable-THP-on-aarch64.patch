@@ -1,0 +1,73 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jarrett Tierney <jmt@amazon.com>
+Date: Mon, 21 Sep 2026 22:45:00 +0000
+Subject: [PATCH] Revert malloc: auto-enable THP on aarch64
+
+Upstream commits 321e1fc7, 1c588a21, and bd569425 made malloc
+auto-enable Transparent Huge Pages on aarch64 by defining
+MALLOC_DEFAULT_THP_PAGESIZE=(1UL << 21) in the aarch64 hugepages.h,
+and by having do_set_hugetlb() treat that non-zero define as a signal
+to unconditionally initialize mp_.thp_mode/mp_.thp_pagesize at startup
+(and to short-circuit the value==1 tunable path).
+
+The auto-enable causes every glibc-linked process to consume ~22-28MB
+of AnonHugePages, wasting significant memory on container-dense nodes.
+THP in malloc should only activate when explicitly requested via the
+glibc.malloc.hugetlb tunable.
+
+This patch removes the aarch64 override that sets
+MALLOC_DEFAULT_THP_PAGESIZE and the two blocks in malloc.c that key
+off it, restoring the tunable-driven behavior of prior releases. The
+existing thp_mode_t enum, mp_.thp_mode field, and manual tunable path
+(value == 1 querying /sys/kernel/mm) are retained unchanged.
+---
+ malloc/malloc.c                             | 19 -------------------
+ sysdeps/unix/sysv/linux/aarch64/hugepages.h |  2 --
+ 2 files changed, 21 deletions(-)
+
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -4826,20 +4826,6 @@ do_set_hugetlb (size_t value)
+      startup, don't call them again here.  */
+   enum thp_mode_t thp_mode = get_dl_thp_mode ();
+ 
+-  /* Enable THP if MALLOC_DEFAULT_THP_PAGESIZE is non-zero.  */
+-  if (MALLOC_DEFAULT_THP_PAGESIZE > 0)
+-    {
+-      /* If thp_mode is unknown, THP segment load is disabled by
+-	 GLIBC_TUNABLES=glibc.elf.thp=0.  In this case, set
+-	 mp_.thp_mode to madvise.  Otherwise, set it to thp_mode to
+-	 keep mp_.thp_mode in sync with GL(dl_thp_mode).  */
+-      if (thp_mode == thp_mode_unknown)
+-	mp_.thp_mode = thp_mode_madvise;
+-      else
+-	mp_.thp_mode = thp_mode;
+-      mp_.thp_pagesize = MALLOC_DEFAULT_THP_PAGESIZE;
+-    }
+-
+   if (value == 0)
+     {
+       /* Turn off THP support completely.  */
+@@ -4848,11 +4834,6 @@ do_set_hugetlb (size_t value)
+     }
+   else if (value == 1)
+     {
+-      /* Avoid querying the THP page size/mode since accessing /sys/kernel/mm
+-	 is relatively slow and might not be accessible in containers.  */
+-      if (MALLOC_DEFAULT_THP_PAGESIZE > 0)
+-	return 0;
+-
+       if (thp_mode == thp_mode_unknown)
+ 	{
+ 	  /* Call __get_thp_mode and __get_thp_size when THP segment load
+diff --git a/sysdeps/unix/sysv/linux/aarch64/hugepages.h b/sysdeps/unix/sysv/linux/aarch64/hugepages.h
+--- a/sysdeps/unix/sysv/linux/aarch64/hugepages.h
++++ b/sysdeps/unix/sysv/linux/aarch64/hugepages.h
+@@ -16,6 +16,4 @@
+    License along with the GNU C Library; see the file COPYING.LIB.  If
+    not, see <https://www.gnu.org/licenses/>.  */
+ 
+-#define MALLOC_DEFAULT_THP_PAGESIZE	(1UL << 21)
+-
+ #include_next <hugepages.h>

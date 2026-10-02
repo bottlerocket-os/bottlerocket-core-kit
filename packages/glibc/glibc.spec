@@ -1,5 +1,5 @@
 Name: %{_cross_os}glibc
-Version: 2.43
+Version: 2.44
 Release: 1%{?dist}
 Epoch: 1
 Summary: The GNU libc libraries
@@ -18,28 +18,66 @@ Source14: tz-utc.txt
 # applied and reverted during the build.
 Source99: HACK-only-build-and-install-localedef.patch
 
-# Upstream patches from 2.43 release branch:
+# Upstream patches from 2.44 release branch:
 # ```
-# git checkout origin/release/2.43/master
-# git format-patch --no-numbered --no-signature glibc-2.43..
+# git checkout origin/release/2.44/master
+# git format-patch --no-numbered --no-signature glibc-2.44..
 # ```
-Patch0001: 0001-Replace-advisories-directory-with-file-ADVISORIES.patch
-Patch0002: 0002-NEWS-add-new-section-2.43.1.patch
-Patch0003: 0003-Fix-ldbl-128ibm-ceill-floorl-roundl-and-truncl-zero-.patch
-Patch0004: 0004-po-Incorporate-translatins-nl-updated-ar-new.patch
-Patch0005: 0005-Don-t-include-bits-openat2.h-directly-bug-33848.patch
-Patch0006: 0006-nss-Introduce-dedicated-struct-nss_database_for_fork.patch
-Patch0007: 0007-Linux-In-getlogin_r-use-utmp-fallback-only-for-speci.patch
-Patch0008: 0008-nss-Missing-checks-in-__nss_configure_lookup-__nss_d.patch
-Patch0009: 0009-debug-Fix-build-with-enable-fortify-source-1-BZ-3390.patch
-Patch0010: 0010-Add-BZ-33904-entry-to-NEWS.patch
-Patch0011: 0011-Revert-malloc-auto-enable-THP-on-aarch64.patch
+Patch0001: 0001-advisories-replace-with-ADVISORIES-text-file.patch
+Patch0002: 0002-NEWS-start-2.44.1-section.patch
+Patch0003: 0003-hurd-Make-the-readlink-__fstatat64-references-option.patch
+Patch0004: 0004-hurd-fix-fork-s-longjmp-demangling-on-i386.patch
+Patch0005: 0005-math-Fix-sinh-worst-case-results-for-x-36.736801-BZ-.patch
+Patch0006: 0006-math-Fix-x86_64-tanh-_FloatN-aliases-binding-to-the-.patch
+Patch0007: 0007-io-fix-ftw-ABI-on-MIPS-n64.patch
+Patch0008: 0008-hurd-Fix-build-after-the-ftw-kernel_stat.h-inclusion.patch
+Patch0009: 0009-linux-Inline-syscall-cancellation-to-keep-wrapper-fr.patch
+Patch0010: 0010-Fix-gen-as-const-headers-races-with-the-parallel-sub.patch
+Patch0011: 0011-Makerules-Only-install-the-ABI-lib-names-header-from.patch
+Patch0012: 0012-Makefile-Only-print-the-test-summary-in-the-second-p.patch
+Patch0013: 0013-Makerules-Make-the-.dt-to-.d-conversion-safe-against.patch
+Patch0014: 0014-Makefile-Order-the-top-level-stamp-files-before-the-.patch
+Patch0015: 0015-arm-Order-the-rtld-link-after-libgcc-stubs.a.patch
+Patch0016: 0016-benchtests-Create-objdir-in-the-bench-.c-generation-.patch
+Patch0017: 0017-elf-test-handle-different-rootsbindir-in-tst-ldconfi.patch
+Patch0018: 0018-ldbl-opt-Fix-mlong-double-128-configure-test-for-Cla.patch
+Patch0019: 0019-powerpc-Fix-mlong-double-128-IBM-format-configure-te.patch
+Patch0020: 0020-stdio-common-run-AWK-in-the-C-locale-in-the-printf-f.patch
+Patch0021: 0021-stdio-common-avoid-repeated-regexp-matches-in-tst-pr.patch
+Patch0022: 0022-string-Speed-up-strcmp-test-data-initialization.patch
+Patch0023: 0023-string-Speed-up-strcasecmp-test-data-initialization.patch
+Patch0024: 0024-elf-Honour-skip_ifunc-for-cross-object-IFUNC-relocat.patch
+Patch0025: 0025-m68k-Fix-fmod-fmodf-infinite-recursion-BZ-34508.patch
+Patch0026: 0026-misc-Fix-out-of-bounds-array-write-in-tdelete-bug-34.patch
+Patch0027: 0027-m68k-remove-sysdeps-m68k-m680x0-fpu-w_fmod_compat.c-.patch
+Patch0028: 0028-posix-Remove-unnecessary-overflow-check-in-wordexp-B.patch
+Patch0029: 0029-stdlib-Fix-right-justification-in-strfmon-bug-34510-.patch
+Patch0030: 0030-iconvdata-SHIFT_JISX0213-decoding-lacks-pending-char.patch
+Patch0031: 0031-iconvdata-EUC_JISX0213-decoding-lacks-pending-charac.patch
+Patch0032: 0032-iconvdata-Test-case-for-bug-34556-bug-34568.patch
+Patch0033: 0033-alpha-Fix-stack-alignment-in-makecontext.patch
+Patch0034: 0034-alpha-add-the-denormal-trap-enable-bit-to-FE_NOMASK_.patch
+Patch0035: 0035-alpha-expect-test-float32x-float64-div-to-fail.patch
+Patch0036: 0036-Add-check-symbol-version.awk.patch
+Patch0037: 0037-powerpc-Fix-non-atomic-stack-pointer-update-in-forti.patch
+Patch0038: 0038-powerpc-Fix-preprocessor-conditional-in-soft-float-_.patch
+Patch0039: 0039-libio-Fix-CVE-2026-18374-heap-buffer-overflow-in-ccs.patch
+Patch0040: 0040-libio-Add-test-for-fopen-with-an-empty-ccs-value-BZ-.patch
+Patch0041: 0041-nptl-Skip-pretty-printer-tests-without-python3-BZ-34.patch
+Patch0042: 0042-elf-Do-not-load-cache-extensions-from-an-old-format-.patch
+Patch0043: 0043-io-drop-nonnull-attribute-for-fchmodat-faccessat-fch.patch
+Patch0044: 0044-x86-64-Link-tst-shstk-legacy-1-f-g-with-Wl-no-as-nee.patch
+Patch0045: 0045-Revert-io-drop-nonnull-attribute-for-fchmodat-facces.patch
+Patch0046: 0046-io-drop-nonnull-attribute-for-fchmodat-faccessat-fch.patch
+Patch0047: 0047-fcntl-drop-nonnull-attribute-for-openat-openat2-s-pa.patch
+Patch0048: 0048-resolv-Fix-assertion-failure-on-search-list-truncati.patch
 
 # Fedora patches
 Patch1001: glibc-cs-path.patch
 
 # Local patches
 Patch9001: 9001-move-ldconfig-cache-to-ephemeral-storage.patch
+Patch9002: 9002-Revert-malloc-auto-enable-THP-on-aarch64.patch
 
 %description
 %{summary}.
