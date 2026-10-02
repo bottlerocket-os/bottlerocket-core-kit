@@ -7,6 +7,9 @@ std = { version = "v1", helpers = ["join_array"]}
 [[mirrors]]
 registry = "{{registry}}"
 endpoint = [{{{join_array ", " endpoint}}}]
+{{#if capabilities}}
+capabilities = [{{{join_array ", " capabilities}}}]
+{{/if}}
 {{/each}}
 {{/if}}
 {{#if settings.container-registry.credentials}}
