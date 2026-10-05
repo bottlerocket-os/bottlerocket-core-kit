@@ -14,8 +14,8 @@ path = "../packages.rs"
 package-name = "kubernetes-1.35"
 
 [[package.metadata.build-package.external-files]]
-url = "https://distro.eks.amazonaws.com/kubernetes-1-35/releases/13/artifacts/kubernetes/v1.35.6/kubernetes-src.tar.gz"
-sha512 = "413a280665fd48557d51db6c41b96f767c7e3db0422455d2d87a89e8435747c17026ec3309e9e80851a898738d3cb742bf15c1306c1253eff48e4595be9e1ced"
+url = "https://distro.eks.amazonaws.com/kubernetes-1-35/releases/15/artifacts/kubernetes/v1.35.8/kubernetes-src.tar.gz"
+sha512 = "63e4544c4684156f94bfa04959c698ebfed72ece803be67a76e19c0b376a80fd035e8acb0f935359f424ca4cfdfd973738215f96e21e45966ddc60bf4fbb672d"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

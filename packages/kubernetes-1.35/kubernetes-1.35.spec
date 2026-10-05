@@ -10,8 +10,8 @@
 %global gorepo kubernetes
 %global goimport %{goproject}/%{gorepo}
 
-%global releasever 13
-%global gover 1.35.6
+%global releasever 15
+%global gover 1.35.8
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -108,6 +108,7 @@ cp third_party/forked/golang/PATENTS PATENTS.golang
 
 %build
 export FORCE_HOST_GO=1
+export GO_MAJOR="1.26"
 
 # Build codegen programs with the host toolchain.
 make hack/update-codegen.sh
