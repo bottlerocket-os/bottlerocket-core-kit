@@ -1,5 +1,5 @@
 Name: %{_cross_os}strace
-Version: 7.1
+Version: 7.2
 Release: 1%{?dist}
 Summary: Linux syscall tracer
 License: LGPL-2.1-or-later
