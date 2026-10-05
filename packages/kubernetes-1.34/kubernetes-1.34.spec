@@ -10,8 +10,8 @@
 %global gorepo kubernetes
 %global goimport %{goproject}/%{gorepo}
 
-%global releasever 21
-%global gover 1.34.9
+%global releasever 24
+%global gover 1.34.11
 %global rpmver %{gover}
 
 %global _dwz_low_mem_die_limit 0
@@ -69,9 +69,6 @@ Source102: pod-infra-container-image
 
 Source1000: clarify.toml
 
-# Remove an orphaned go-proxyproto require that breaks -mod=vendor builds.
-Patch0001: 0001-apiserver-drop-unused-go-proxyproto-require.patch
-
 BuildRequires: git
 BuildRequires: rsync
 BuildRequires: %{_cross_os}glibc-devel
@@ -110,6 +107,7 @@ cp third_party/forked/golang/PATENTS PATENTS.golang
 
 %build
 export FORCE_HOST_GO=1
+export GO_MAJOR="1.26"
 
 # Build codegen programs with the host toolchain.
 make hack/update-codegen.sh
