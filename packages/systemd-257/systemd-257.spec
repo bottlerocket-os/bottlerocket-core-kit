@@ -90,7 +90,7 @@ Patch9016: 9016-bootctl-disable-secure-boot-autoenroll.patch
 
 # Patch meson to set OPENSSL_NO_UI_CONSOLE CFLAGS for the build
 Patch9017: 9017-meson-set-DOPENSSL_NO_UI_CONSOLE-when-using-openssl.patch
-# Patch meson to skip unsupported architecture builds 
+# Patch meson to skip unsupported architecture builds
 Patch9018: 9018-build-correct-sd-boot-EFI-arch-on-the-Bottlerocket-S.patch
 # Remove undesired SMBIOS functionality
 Patch9019: 9019-boot-remove-SMBIOS-Type-11-kernel-cmdline-extra-mech.patch
@@ -135,12 +135,21 @@ Requires: %{_cross_os}libselinux
 Requires: %{_cross_os}libtss2
 Requires: %{_cross_os}libuuid
 Requires: %{_cross_os}libxcrypt
+Requires: (%{name}-binfmt or %{_cross_os}image-feature(uki-image))
 
 Provides: %{_cross_os}systemd = %{package_priority_epoch}:
 Provides: %{_cross_os}libudev = %{package_priority_epoch}:
 Conflicts: %{_cross_os}systemd
 
 %description
+%{summary}.
+
+%package binfmt
+Summary: Miscellaneous binary format filesystem mount
+Requires: %{name}
+Conflicts: %{_cross_os}image-feature(uki-image)
+
+%description binfmt
 %{summary}.
 
 %package console
@@ -277,7 +286,7 @@ CONFIGURE_OPTS=(
  -Dmount-path='%{_cross_bindir}/mount'
  -Dumount-path='%{_cross_bindir}/umount'
  -Dkmod-path='%{_cross_bindir}/kmod'
- 
+
 
  -Dadm-group=false
  -Dwheel-group=false
@@ -570,7 +579,6 @@ install -p -m 0644 %{S:3} %{buildroot}%{loaderdir}/loader.conf
 %{_cross_unitdir}/nss-user-lookup.target
 %{_cross_unitdir}/paths.target
 %{_cross_unitdir}/poweroff.target
-%{_cross_unitdir}/proc-sys-fs-binfmt_misc.mount
 %{_cross_unitdir}/reboot.target
 %{_cross_unitdir}/rpcbind.target
 %{_cross_unitdir}/shutdown.target
@@ -596,7 +604,6 @@ install -p -m 0644 %{S:3} %{buildroot}%{loaderdir}/loader.conf
 %{_cross_unitdir}/sysinit.target.wants/dev-mqueue.mount
 %{_cross_unitdir}/sysinit.target.wants/kmod-static-nodes.service
 %{_cross_unitdir}/sysinit.target.wants/ldconfig.service
-%{_cross_unitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.mount
 %{_cross_unitdir}/sysinit.target.wants/sys-fs-fuse-connections.mount
 %{_cross_unitdir}/sysinit.target.wants/sys-kernel-config.mount
 %{_cross_unitdir}/sysinit.target.wants/sys-kernel-debug.mount
@@ -870,6 +877,10 @@ install -p -m 0644 %{S:3} %{buildroot}%{loaderdir}/loader.conf
 %exclude %{_cross_sysconfdir}/udev/
 %exclude %{_cross_sysconfdir}/X11
 %exclude %{_cross_sysconfdir}/xdg
+
+%files binfmt
+%{_cross_unitdir}/proc-sys-fs-binfmt_misc.mount
+%{_cross_unitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.mount
 
 %files devel
 %{_cross_libdir}/libsystemd.so

@@ -128,6 +128,7 @@ Source1400: logdog.common.conf
 
 # bootconfig snippets.
 Source1500: bootconfig-fips.conf
+Source1501: bootconfig-mantle-binfmt.conf
 
 # TPM2-related services.
 Source1600: encrypt-datastore.service
@@ -222,6 +223,7 @@ Requires: (%{_cross_os}shim or %{_cross_os}image-feature(uki-image))
 Requires: (%{name}-crypt if %{_cross_os}image-feature(encrypted-storage))
 Requires: ((%{name}-crypt-luks or %{_cross_os}image-feature(ephemeral-encryption-keys)) if %{_cross_os}image-feature(encrypted-storage))
 Requires: (%{name}-ephemeral-crypt if %{_cross_os}image-feature(ephemeral-encryption-keys))
+Requires: (%{name}-release-mantle if %{_cross_os}image-feature(uki-image))
 
 
 %description managed
@@ -233,6 +235,14 @@ Requires: (%{_cross_os}image-feature(fips) and %{name})
 Conflicts: %{_cross_os}image-feature(no-fips)
 
 %description fips
+%{summary}.
+
+%package mantle
+Summary: Bottlerocket release, Mantle boot hardening
+Requires: (%{_cross_os}image-feature(uki-image) and %{name}-managed)
+Conflicts: %{_cross_os}image-feature(no-uki-image)
+
+%description mantle
 %{summary}.
 
 %package crypt
@@ -430,6 +440,7 @@ install -p -m 0644 %{S:1400} %{buildroot}%{_cross_datadir}/logdog.d
 
 install -d %{buildroot}%{_cross_bootconfigdir}
 install -p -m 0644 %{S:1500} %{buildroot}%{_cross_bootconfigdir}/10-fips.conf
+install -p -m 0644 %{S:1501} %{buildroot}%{_cross_bootconfigdir}/20-mantle-binfmt.conf
 
 install -p -m 0644 %{S:1700} %{S:1701} %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_datadir}/bottlerocket
@@ -590,6 +601,9 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 
 %files fips
 %{_cross_bootconfigdir}/10-fips.conf
+
+%files mantle
+%{_cross_bootconfigdir}/20-mantle-binfmt.conf
 
 %files crypt
 %{_cross_unitdir}/measure-cmdline.service
