@@ -38,6 +38,18 @@ interface for encrypting and managing encrypted storage resources including:
 - `measure pcrphase <phase>` - Measure boot phase into PCR 11
   - Valid phases: `sysinit`, `preconfigured`, `configured`, `ready`, `shutdown`, `final`
 
+### PCR 8
+
+PCR 8 is extended twice per boot: first with the EC2 IMDS user data (`measure user-data`, before
+settings are applied), then with the OS settings (`measure settings`, after `settings-applier.service`).
+Both are measured as OLPC canonical JSON with `settings.aws.region` removed and with the registry
+removed from every host and bootstrap container image source (the settings extension also excludes
+`settings.updates.seed` and `settings.network.hostname`, as before), so the same configuration yields
+the same PCR 8 value regardless of the region or registry it is deployed to. User data that is not
+TOML is measured as its raw bytes. The full description of
+the measured bytes, the registry rule and its caveats, and how to recompute PCR 8 is in
+[docs/ENCRYPTED_STORAGE.md](../../docs/ENCRYPTED_STORAGE.md#pcr-8-user-data-and-os-settings).
+
 ### Aliases
 
 For convenience, the following aliases are supported:
