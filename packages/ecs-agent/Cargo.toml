@@ -14,8 +14,8 @@ releases-url = "https://github.com/aws/amazon-ecs-agent/releases"
 
 [[package.metadata.build-package.external-files]]
 # Verify the Git submodule commit of amazon-vpc-cni-plugins matches what is shipped in ../amazon-vpc-cni-plugins
-url = "https://github.com/aws/amazon-ecs-agent/archive/v1.106.1/amazon-ecs-agent-1.106.1.tar.gz"
-sha512 = "d50fac97e06ef53840a7ba6b2740efc2d0cff8887c966254a3890333e3ff101578057bd5ff7134588621ec4cd2119a53effb40111c296491fe59049e998fe457"
+url = "https://github.com/aws/amazon-ecs-agent/archive/v1.108.0/amazon-ecs-agent-1.108.0.tar.gz"
+sha512 = "182d579899ab2d3508237142b9b2913c4c47ddd05b31c7b5ccb195f084018625833526ffc6c0777958c852c7e354b11549cded78cdcdded627bba331f7c2ab55"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
