@@ -14,4 +14,4 @@ patched-epoch = "1"
 author = "shijiao"
 issue-date = 2026-09-14T21:29:33Z
 arches = ["aarch64", "x86_64"]
-version = "staging"
+version = "17.0.0"

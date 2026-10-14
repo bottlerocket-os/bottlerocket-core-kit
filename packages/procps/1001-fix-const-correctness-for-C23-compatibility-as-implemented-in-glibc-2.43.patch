@@ -7,6 +7,8 @@ Subject: [PATCH] fix const-correctness for C23 compatibility as implemented
 glibc 2.43 implements C23 type-generic functions (strchr, strstr, memchr,
 strrchr, bsearch) that return const-qualified pointers when given
 const-qualified input. Add const qualifiers to all affected call sites.
+
+Signed-off-by: Jarrett Tierney <jmt@amazon.com>
 ---
  library/devname.c  |  4 ++--
  library/meminfo.c  |  4 ++--
@@ -173,15 +175,15 @@ diff --git a/src/pgrep.c b/src/pgrep.c
 index a82d9c9..9a01e8b 100644
 --- a/src/pgrep.c
 +++ b/src/pgrep.c
-@@ -286,7 +286,7 @@ static struct el *split_list (const char *restrict str, int (*convert)(const cha
-             /* add 1 because slot zero is a count */
-             list = xrealloc (list, (1 + size) * sizeof *list);
+@@ -290,7 +290,7 @@ static struct el *split_list (const char *restrict str, int (*convert)(const cha
+             warnx(_("invalid empty list"));
+             break;
          }
 -        sep_pos = strchr (ptr, ',');
 +        sep_pos = (char *)strchr (ptr, ',');
-         if (sep_pos)
-             *sep_pos = 0;
-         /* Use ++i instead of i++ because slot zero is a count */
+         if (sep_pos == ptr) {
+             ptr++;
+             continue;
 diff --git a/src/pmap.c b/src/pmap.c
 index b824284..6cdf47f 100644
 --- a/src/pmap.c
@@ -298,16 +300,6 @@ diff --git a/src/top/top.c b/src/top/top.c
 index b29f7c8..e897442 100644
 --- a/src/top/top.c
 +++ b/src/top/top.c
-@@ -1026,7 +1026,8 @@ static void show_special (int interact, const char *glob) {
-      ( this function is called only with a glob under top's )
-      ( control and never containing any 'raw/binary' chars! ) */
-    char tmp[LRGBUFSIZ], lin[LRGBUFSIZ], row[ROWMINSIZ];
--   char *rp, *lin_end, *sub_beg, *sub_end;
-+   char *rp, *sub_beg, *sub_end;
-+   const char *lin_end;
-    int room;
-
-    // handle multiple lines passed in a bunch
 @@ -1203,11 +1204,12 @@ static int iokey (int action) {
     };
     static char erase[2];

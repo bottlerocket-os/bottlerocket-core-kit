@@ -1,3 +1,50 @@
+# v17.2.0 (2026-10-02)
+
+## OS Changes
+* Revert per-server time source configuration for `chrony` ([#1074])
+
+## Third Party Package Updates
+* Update `ethtool`, `findutils`, `glibc`, `procps`, `tpm2-tools`, `xfsprogs` to latest ([#1057])
+* Update `aws-iam-authenticator` to 0.7.20 ([#1058])
+* Update `soci-snapshotter` to v0.16.1 ([#1071])
+* Patch `notation` to bump `oras-go` to v2.6.2 ([#1070])
+
+## Build Changes
+* Update to `twoliter` v0.25.1 ([#1069])
+* Update `bottlerocket-settings-models` to 0.29.0 ([#1074])
+
+[#1057]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1057
+[#1058]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1058
+[#1069]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1069
+[#1070]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1070
+[#1071]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1071
+[#1074]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1074
+
+# v17.1.0 (2026-09-29)
+
+## OS Changes
+* Support both forms of time-servers in `chrony` ([#1030])
+
+## Third Party Package Updates
+* Update `libpcre` to v10.49 ([#1066])
+* Update `containerd-1.7`, `containerd-2.2`, `containerd-2.3` to latest ([#1064])
+* Update `amazon-ssm-agent` to 3.3.5390 ([#1062])
+
+## Build Changes
+* Bump `bottlerocket-sdk` to v0.80.0 ([#1067])
+* Bump `bottlerocket-settings-models` to 0.30.0 ([#1030])
+
+## Orchestrator Changes
+### Kubernetes
+* Fix mapping for ids-per-pod in kubelet-config ([#1060]) - Thanks @rosem !
+
+[#1030]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1030
+[#1060]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1060
+[#1062]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1062
+[#1064]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1064
+[#1066]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1066
+[#1067]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1067
+
 # v17.0.1 (2026-09-22)
 
 ## Third Party Package Updates

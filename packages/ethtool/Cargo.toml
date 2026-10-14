@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://kernel.org/pub/software/network/ethtool/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://mirrors.edge.kernel.org/pub/software/network/ethtool/ethtool-7.0.tar.xz"
-sha512 = "f8f0d08fe3da11f10cf7eb1f6348ebccd69175bfcdeb22726a8b86613d0dc7c8538b7d7075264102c9695f0100bb94cae03fd8dbe3b5bbe1fe758e1cb936a9c9"
+url = "https://mirrors.edge.kernel.org/pub/software/network/ethtool/ethtool-7.1.tar.xz"
+sha512 = "08ed12f6eaa06669371e8aff5b1c285ac81c328a50d82d7d60281f48c3ffbd284d86a5ee02126bc3f00aebea09a8784f21d956e068d57debe00d64893cbbe37c"
 
 [[package.metadata.build-package.external-files]]
-url = "https://mirrors.edge.kernel.org/pub/software/network/ethtool/ethtool-7.0.tar.sign"
-sha512 = "0706ba4f8f9bbb37cffcdd6609f5217026c7ec5d0e70e6dfd8fca914e8dd2bb3d461343aece55b53321a696a73d1650db7ad0460788ffb434e1754ba57172049"
+url = "https://mirrors.edge.kernel.org/pub/software/network/ethtool/ethtool-7.1.tar.sign"
+sha512 = "fd0b70a0c8a5ab09a7663ddc4a4627d7506221297978b70282406064efc0c2c5c08609d201b565a7dac9ec7110d292981ad047309f14e9644fa30308541db05d"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

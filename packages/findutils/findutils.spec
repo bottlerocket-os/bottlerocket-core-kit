@@ -1,12 +1,12 @@
 Name: %{_cross_os}findutils
-Version: 4.10.0
+Version: 4.11.0
 Release: 1%{?dist}
 Summary: A set of GNU tools for finding
 License: GPL-3.0-or-later
 URL: http://www.gnu.org/software/findutils/
 Source0: https://ftp.gnu.org/pub/gnu/findutils/findutils-%{version}.tar.xz
 Source1: https://ftp.gnu.org/pub/gnu/findutils/findutils-%{version}.tar.xz.sig
-Source2: gpgkey-A5189DB69C1164D33002936646502EF796917195.asc
+Source2: gpgkey-0CF4E8D871593224842832B888DD9E08C5DDACB9.asc
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libselinux-devel
 Requires: %{_cross_os}libselinux

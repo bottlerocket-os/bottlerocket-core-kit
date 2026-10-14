@@ -1,5 +1,5 @@
 Name: %{_cross_os}xfsprogs
-Version: 7.0.1
+Version: 7.1.1
 Release: 1%{?dist}
 Summary: Utilities for managing the XFS filesystem
 License: GPL-2.0-only AND LGPL-2.1-only

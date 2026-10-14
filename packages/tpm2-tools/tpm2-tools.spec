@@ -1,5 +1,5 @@
 Name: %{_cross_os}tpm2-tools
-Version: 5.7
+Version: 5.8
 Release: 1%{?dist}
 Summary: Tools for the TPM 2.0 software stack
 License: BSD-3-Clause

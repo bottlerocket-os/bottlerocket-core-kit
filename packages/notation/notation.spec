@@ -20,6 +20,9 @@ Source0: https://%{goimport}/archive/v%{gover}/%{gorepo}-v%{gover}.tar.gz
 Source1: bundled-%{gorepo}-v%{gover}.tar.gz
 Source2: notation-tmpfiles.conf
 
+# Bump oras.land/oras-go/v2 from v2.5.0 to v2.6.2.
+Patch0001: 0001-notation-bump-oras-go-to-v2.6.2.patch
+
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}ecr-credential-helper
 
@@ -29,6 +32,7 @@ Requires: %{_cross_os}ecr-credential-helper
 %prep
 %setup -n %{gorepo}-%{gover} -q
 %setup -T -D -n %{gorepo}-%{gover} -b 1 -q
+%patch -P 1 -p1
 
 %build
 %set_cross_go_flags

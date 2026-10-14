@@ -1,5 +1,5 @@
 Name: %{_cross_os}procps
-Version: 4.0.6
+Version: 4.0.7
 Release: 1%{?dist}
 Summary: A set of process monitoring tools
 License: GPL-2.0-or-later AND LGPL-2.1-or-later

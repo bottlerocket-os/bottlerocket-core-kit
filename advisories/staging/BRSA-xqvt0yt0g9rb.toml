@@ -1,0 +1,18 @@
+[advisory]
+id = "BRSA-xqvt0yt0g9rb"
+title = "libpcre CVE-2026-86145"
+ghsa = "GHSA-3r4p-g7gg-ppmf"
+cve = "CVE-2026-86145"
+severity = "moderate"
+description = "An out-of-bounds write flaw was found in PCRE2 in pcre2_dfa_match() that can lead to process crash or memory corruption."
+
+[[advisory.products]]
+package-name = "libpcre"
+patched-version = "10.49"
+patched-epoch = "0"
+
+[updateinfo]
+author = "jepiyush"
+issue-date = 2026-09-29T05:31:39Z
+arches = ["x86_64", "aarch64"]
+version = "staging"

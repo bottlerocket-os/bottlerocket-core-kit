@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://github.com/tpm2-software/tpm2-tools/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/tpm2-software/tpm2-tools/releases/download/5.7/tpm2-tools-5.7.tar.gz"
-sha512 = "629b0b1826815877f452935285f7b3fe0f32bd24fe9130eb169a2dc9b7b254a737797043af9eea68be706b87c32ab2b7189151360c9c00bc5c31dce62a799670"
+url = "https://github.com/tpm2-software/tpm2-tools/releases/download/5.8/tpm2-tools-5.8.tar.gz"
+sha512 = "0bea68505a773f75476a1e0ea2abd8336a16f0b8900006512a81019708f04b50dbb7960922b37821278825305d33e042f82da2125e7409dacbd139cd52474e82"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/tpm2-software/tpm2-tools/releases/download/5.7/tpm2-tools-5.7.tar.gz.asc"
-sha512 = "863722d52ac225493dd5d3d3577e52a1810db38883a1346eadb10278c9d425178bf99480e240be30891e7699edebdc960a008542e5a495ac1e2e00547414fa37"
+url = "https://github.com/tpm2-software/tpm2-tools/releases/download/5.8/tpm2-tools-5.8.tar.gz.asc"
+sha512 = "af1db58956082c4bae61869a85ad1993e26acabfa3e5486cd34c8fde6d986e5a7bac574304ba00babdf9ea0056a341e9ac29755850be9dc665753513e3362950"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
