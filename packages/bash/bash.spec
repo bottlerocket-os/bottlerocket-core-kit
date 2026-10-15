@@ -1,5 +1,5 @@
 %global majorminor 5.3
-%global version %{majorminor}.15
+%global version %{majorminor}.20
 
 Name: %{_cross_os}bash
 Version: %{version}
@@ -29,6 +29,11 @@ Patch1012: bash53-012
 Patch1013: bash53-013
 Patch1014: bash53-014
 Patch1015: bash53-015
+Patch1016: bash53-016
+Patch1017: bash53-017
+Patch1018: bash53-018
+Patch1019: bash53-019
+Patch1020: bash53-020
 
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libncurses-devel

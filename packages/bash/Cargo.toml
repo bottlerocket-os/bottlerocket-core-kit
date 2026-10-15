@@ -79,6 +79,26 @@ sha512 = "7beb4a1c39b126189a94deb12d5065b571196f27abdd8ae9c9b340ffccc1f52ed9fec3
 url = "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-015"
 sha512 = "812fbffd1b755cc9bbf730a4632f68a573351c4eeb5a4f495fa8f2f4dd7dbe1587dd22aed0f9c4d5c941130489ecc3def96068c77cc142680326ba8785862432"
 
+[[package.metadata.build-package.external-files]]
+url = "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-016"
+sha512 = "e18aed683aca1af8a92f955a0ad32a23ee22f982e1bec9ea4c078a8523b30e4848fd9dc4d863cb14d1fce25bf9fdbde2473d9c0686e8be25be113cb5a36cb462"
+
+[[package.metadata.build-package.external-files]]
+url = "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-017"
+sha512 = "608245b580267e33ffa3ed02de7173a07594a9831e3b6a505bc6fa68570e3839663bad39552744ec61421179b000dc2584f48cbadb232fc2c1427871c899a1ad"
+
+[[package.metadata.build-package.external-files]]
+url = "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-018"
+sha512 = "5a15dfb3dafddea9a62ef5d552660d425d0658a8254adabeed5c993264b6ac59f670e6a47e6847ef6598d60e553e834a08e09dfca3734ae119dcd7d36dca97d1"
+
+[[package.metadata.build-package.external-files]]
+url = "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-019"
+sha512 = "fecb787bf5b0c6589d5c891c8df205e39a83330e36dcb685a01ff1e117074db5288b22e7dfd3d4e9096267cc80decefd16d6837e4dd99bae26fdf3b6f9814c7c"
+
+[[package.metadata.build-package.external-files]]
+url = "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-020"
+sha512 = "64e34979fb20cab2e6b38bcd9ec470cb917de3ef2d53db7c96c71fb5245083e37d9c65a6c2935164da2b6dc97116e4210366b8253bdd7a201f618770a44135ab"
+
 [build-dependencies]
 glibc = { path = "../glibc" }
 libncurses = { path = "../libncurses" }
