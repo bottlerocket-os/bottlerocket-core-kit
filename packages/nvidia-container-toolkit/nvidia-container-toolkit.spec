@@ -95,8 +95,11 @@ install -p -m 0644 %{S:3} %{buildroot}%{_cross_udevrulesdir}/90-nvidia-gpu-devic
 install -m 0644 %{S:4} %{buildroot}%{_cross_tmpfilesdir}/nvidia-container-toolkit-ecs.conf
 install -m 0644 %{S:5} %{buildroot}%{_cross_tmpfilesdir}/nvidia-container-toolkit-k8s.conf
 install -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-container-runtime/
-install -m 0644 %{S:7} %{buildroot}%{_cross_unitdir}/
-install -m 0644 %{S:8} %{buildroot}%{_cross_templatedir}/
+# __PREFIX__ is the host root that the container paths drop.
+sed -e 's|__PREFIX__|%{_cross_rootdir}|g' %{S:7} > generate-cdi-specs.service
+install -m 0644 generate-cdi-specs.service %{buildroot}%{_cross_unitdir}/
+sed -e 's|__PREFIX__|%{_cross_rootdir}|g' %{S:8} > generate-cdi-specs-exec-start-conf-compat
+install -m 0644 generate-cdi-specs-exec-start-conf-compat %{buildroot}%{_cross_templatedir}/
 
 %files
 %license LICENSE

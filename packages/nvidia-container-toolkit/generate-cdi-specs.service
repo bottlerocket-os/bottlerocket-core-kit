@@ -32,9 +32,12 @@ Type=oneshot
 # Explanation of the options:
 # --format json: to be consistent across Bottlerocket's variants
 # --mode nvml: the default mode ("auto") resolves to this already, make it explicit
-# --device-name-strategy uuid: the ECS agent only supports device UUIDs; for k8s
-#                              this is irrelevant because these specs will be used
-#                              only when NVIDIA_VISIBLE_DEVICES is "all"
+# --device-name-strategy uuid: the ECS agent only supports device UUIDs
+# --device-name-strategy index: names each device by index as well, which is how
+#                               the kubelet device plugin names them. Both
+#                               strategies together are the nvidia-ctk default,
+#                               and a specification that holds index names
+#                               declares CDI version 0.5.0 instead of 0.3.0
 # --output /etc/cdi/nvidia.json: store the CDI specifications at this location
 #
 # NOTE: This is the default (clean) ExecStart. It does NOT create the legacy
@@ -44,6 +47,13 @@ Type=oneshot
 ExecStart=/usr/bin/nvidia-ctk cdi generate --format json \
   --mode nvml \
   --device-name-strategy uuid \
+  --device-name-strategy index \
+  --output /etc/cdi/nvidia.json
+ExecStart=/usr/bin/nvidia-ctk cdi transform root \
+  --from __PREFIX__ \
+  --to / \
+  --relative-to container \
+  --input /etc/cdi/nvidia.json \
   --output /etc/cdi/nvidia.json
 RemainAfterExit=true
 StandardError=journal+console
