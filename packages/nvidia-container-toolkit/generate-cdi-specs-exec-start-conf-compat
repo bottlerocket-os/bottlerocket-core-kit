@@ -12,4 +12,11 @@ ExecStart=/usr/bin/nvidia-ctk cdi generate --format json \
   --additional-symlinks /usr/lib/nvidia/tesla \
   --mode nvml \
   --device-name-strategy uuid \
+  --device-name-strategy index \
+  --output /etc/cdi/nvidia.json
+ExecStart=/usr/bin/nvidia-ctk cdi transform root \
+  --from __PREFIX__ \
+  --to / \
+  --relative-to container \
+  --input /etc/cdi/nvidia.json \
   --output /etc/cdi/nvidia.json

@@ -1,0 +1,131 @@
+From ecbbcbfd1e0f7ff6e03ff4c5ad189e24cb2b3d05 Mon Sep 17 00:00:00 2001
+From: Maher Homsi <maherhom@amazon.com>
+Date: Wed, 14 Oct 2026 21:06:21 +0000
+Subject: [PATCH] Normalize container paths in generated CDI specifications
+
+Add a --container-path-root flag that replaces the given root with "/"
+in the container paths of a generated specification, through the
+container-toolkit root transformer. The host paths keep the root, so
+they still resolve on the host.
+
+This lets the plugin discover the driver with a root of "/", which is
+where the runtime sockets and the GSP firmware live, and still report
+library paths as /usr/lib/<library>.
+
+Signed-off-by: Maher Homsi <maherhom@amazon.com>
+---
+ cmd/nvidia-device-plugin/main.go           |  8 ++++++++
+ cmd/nvidia-device-plugin/plugin-manager.go |  1 +
+ internal/cdi/cdi.go                        | 23 +++++++++++++++++++++-
+ internal/cdi/options.go                    |  8 ++++++++
+ 4 files changed, 39 insertions(+), 1 deletion(-)
+
+diff --git a/cmd/nvidia-device-plugin/main.go b/cmd/nvidia-device-plugin/main.go
+index 41db260..13b7463 100644
+--- a/cmd/nvidia-device-plugin/main.go
++++ b/cmd/nvidia-device-plugin/main.go
+@@ -46,6 +46,8 @@ type options struct {
+ 	kubeletSocket   string
+ 	cdiFeatureFlags cli.StringSlice
+ 	cdiEnabledHooks cli.StringSlice
++
++	containerPathRoot string
+ }
+ 
+ func main() {
+@@ -184,6 +186,12 @@ func main() {
+ 			EnvVars:     []string{"CDI_ENABLED_HOOKS"},
+ 			Destination: &o.cdiEnabledHooks,
+ 		},
++		&cli.StringFlag{
++			Name:        "container-path-root",
++			Usage:       "The root to replace with '/' in the container paths of a generated CDI specification. The host paths keep this root",
++			EnvVars:     []string{"CONTAINER_PATH_ROOT"},
++			Destination: &o.containerPathRoot,
++		},
+ 	}
+ 	o.flags = c.Flags
+ 
+diff --git a/cmd/nvidia-device-plugin/plugin-manager.go b/cmd/nvidia-device-plugin/plugin-manager.go
+index d4617cb..e04b184 100644
+--- a/cmd/nvidia-device-plugin/plugin-manager.go
++++ b/cmd/nvidia-device-plugin/plugin-manager.go
+@@ -64,6 +64,7 @@ func GetPlugins(ctx context.Context, infolib info.Interface, nvmllib nvml.Interf
+ 		cdi.WithImexChannels(imexChannels),
+ 		cdi.WithFeatureFlags(o.cdiFeatureFlags.Value()...),
+ 		cdi.WithEnabledHooks(o.cdiEnabledHooks.Value()...),
++		cdi.WithContainerPathRoot(o.containerPathRoot),
+ 		cdi.WithDeviceDiscoveryStrategy(resolvedStrategy),
+ 	)
+ 	if err != nil {
+diff --git a/internal/cdi/cdi.go b/internal/cdi/cdi.go
+index 9de02b3..7a0e52c 100644
+--- a/internal/cdi/cdi.go
++++ b/internal/cdi/cdi.go
+@@ -27,6 +27,7 @@ import (
+ 	"github.com/NVIDIA/go-nvml/pkg/nvml"
+ 	"github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi"
+ 	"github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/transform"
++	"github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/transform/noop"
+ 	transformroot "github.com/NVIDIA/nvidia-container-toolkit/pkg/nvcdi/transform/root"
+ 	"github.com/sirupsen/logrus"
+ 	"k8s.io/klog/v2"
+@@ -56,6 +57,9 @@ type cdiHandler struct {
+ 	vendor           string
+ 	deviceIDStrategy string
+ 
++	// containerPathRoot is replaced with "/" in the container paths.
++	containerPathRoot string
++
+ 	deviceListStrategies    spec.DeviceListStrategies
+ 	deviceDiscoveryStrategy string
+ 
+@@ -200,7 +204,7 @@ func (cdi *cdiHandler) CreateSpecFile() error {
+ 		}
+ 
+ 		// TODO: Once the NewDriverTransformer is merged in container-toolkit we can instantiate it directly.
+-		transformer := cdi.getRootTransformer()
++		transformer := transform.Merge(cdi.getRootTransformer(), cdi.getContainerPathTransformer())
+ 		if err := transformer.Transform(spec.Raw()); err != nil {
+ 			return fmt.Errorf("failed to transform driver root in CDI spec: %v", err)
+ 		}
+@@ -255,6 +259,23 @@ func (cdi *cdiHandler) getRootTransformer() transform.Transformer {
+ 	return transform.Merge(driverRootTransformer, devRootTransformer)
+ }
+ 
++// getContainerPathTransformer returns a transformer that replaces the container
++// path root with "/". Discovery resolves symlinks, so on a host that keeps the
++// driver libraries under a prefix, such as a cross-compilation sysroot, the
++// container paths hold that prefix and the standard paths do not resolve. The
++// host paths keep the prefix, because the files are there.
++func (cdi *cdiHandler) getContainerPathTransformer() transform.Transformer {
++	if cdi.containerPathRoot == "" || cdi.containerPathRoot == "/" {
++		return noop.New()
++	}
++
++	return transformroot.New(
++		transformroot.WithRoot(cdi.containerPathRoot),
++		transformroot.WithTargetRoot("/"),
++		transformroot.WithRelativeTo("container"),
++	)
++}
++
+ // QualifiedName constructs a CDI qualified device name for the specified resources.
+ // Note: This assumes that the specified id matches the device name returned by the naming strategy.
+ func (cdi *cdiHandler) QualifiedName(class string, id string) string {
+diff --git a/internal/cdi/options.go b/internal/cdi/options.go
+index b178b30..5c2a6a3 100644
+--- a/internal/cdi/options.go
++++ b/internal/cdi/options.go
+@@ -132,3 +132,11 @@ func WithEnabledHooks(hooks ...string) Option {
+ 		c.nvcdiEnabledHooks = hooks
+ 	}
+ }
++
++// WithContainerPathRoot sets the root that is replaced with "/" in the
++// container paths of a generated specification.
++func WithContainerPathRoot(root string) Option {
++	return func(c *cdiHandler) {
++		c.containerPathRoot = root
++	}
++}
