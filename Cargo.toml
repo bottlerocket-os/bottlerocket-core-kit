@@ -27,6 +27,7 @@ members = [
   "packages/docker-engine-25",
   "packages/docker-engine-29",
   "packages/docker-init",
+  "packages/dranet",
   "packages/e2fsprogs",
   "packages/early-boot-config",
   "packages/ecr-credential-helper",

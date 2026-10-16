@@ -96,6 +96,7 @@ dependencies = [
  "docker-engine-25",
  "docker-engine-29",
  "docker-init",
+ "dranet",
  "e2fsprogs",
  "early-boot-config",
  "ecr-credential-helper",
@@ -326,6 +327,13 @@ dependencies = [
 
 [[package]]
 name = "docker-init"
+version = "0.1.0"
+dependencies = [
+ "glibc",
+]
+
+[[package]]
+name = "dranet"
 version = "0.1.0"
 dependencies = [
  "glibc",

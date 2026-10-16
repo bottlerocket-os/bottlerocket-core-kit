@@ -1,0 +1,8 @@
+[clarify."howett.net/plist"]
+# The LICENSE file concatenates two licenses: BSD-2-Clause for the package
+# itself, followed by the BSD-3-Clause text covering the parts taken from the Go
+# standard library. The scanner cannot detect a combined file, so state it here.
+expression = "BSD-2-Clause AND BSD-3-Clause"
+license-files = [
+    { path = "LICENSE", hash = 0xe764fb44 },
+]
