@@ -1,3 +1,11 @@
+# Unreleased
+
+## OS Changes
+* Render per-source NTP object lists and optional chrony logging; retain legacy URL-list rendering ([#1081])
+* Render chrony settings without HTML escaping and allow omitted shared options ([#1081])
+
+[#1081]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1081
+
 # v17.2.0 (2026-10-02)
 
 ## OS Changes
