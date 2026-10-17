@@ -136,6 +136,7 @@ Requires: %{_cross_os}libtss2
 Requires: %{_cross_os}libuuid
 Requires: %{_cross_os}libxcrypt
 Requires: (%{name}-binfmt or %{_cross_os}image-feature(uki-image))
+Requires: (%{name}-cgroups-v1-support or %{_cross_os}image-feature(uki-image))
 
 Provides: %{_cross_os}systemd = %{package_priority_epoch}:
 Provides: %{_cross_os}libudev = %{package_priority_epoch}:
@@ -213,6 +214,15 @@ Conflicts: %{_cross_os}image-feature(no-uki-image)
 Conflicts: %{_cross_os}image-feature(in-place-updates)
 
 %description bootloader
+%{summary}.
+
+%package cgroups-v1-support
+Summary: Force enable support for cgroups-v1
+Requires: %{name}
+Requires: %{_cross_os}image-feature(no-uki-image)
+Conflicts: %{_cross_os}image-feature(uki-image)
+
+%description cgroups-v1-support
 %{summary}.
 
 %prep
@@ -545,7 +555,6 @@ install -p -m 0644 %{S:3} %{buildroot}%{loaderdir}/loader.conf
 
 %dir %{_cross_bootconfigdir}
 %{_cross_bootconfigdir}/20-mount-rate-limit-burst.conf
-%{_cross_bootconfigdir}/21-cgroup-enable-legacy-force.conf
 
 %dir %{_cross_unitdir}
 %{_cross_unitdir}/basic.target
@@ -976,3 +985,7 @@ install -p -m 0644 %{S:3} %{buildroot}%{loaderdir}/loader.conf
 %{loaderdir}/loader.conf
 %dir %{_cross_libdir}/systemd/boot
 %{_cross_libdir}/systemd/boot/efi/
+
+%files cgroups-v1-support
+%dir %{_cross_bootconfigdir}
+%{_cross_bootconfigdir}/21-cgroup-enable-legacy-force.conf
