@@ -1,3 +1,38 @@
+# v18.0.0 (2026-10-19)
+
+## OS Changes
+* Update `eni-max-pods` with new instance types and corrected limits ([#1085])
+
+## Third Party Package Updates
+* Update `amazon-ssm-agent` to 3.3.5538.0 ([#1082])
+* Update `docker-engine-25` to v25.0.18 ([#1082])
+* Update `ecs-agent` to v1.108.0 ([#1082])
+* Update `aws-otel-collector` to v0.50.0 ([#1075])
+* Update `aws-signing-helper` to v1.8.5 ([#1075])
+* Update `bash` to v5.3.20 ([#1075])
+* Update `iproute` to v7.2.0 ([#1075])
+* Update `strace` to v7.2 ([#1075])
+* Update `kubernetes-1.31`, `kubernetes-1.32`, `kubernetes-1.33`, `kubernetes-1.34`, `kubernetes-1.35`, `kubernetes-1.36` to latest ([#1075])
+
+## Build Changes
+* Update to `twoliter` v0.26.0 ([#1079])
+* Bump `bottlerocket-sdk` to v0.81.0 ([#1086])
+
+## Orchestrator Changes
+
+### Kubernetes
+* Add `dranet` package ([#1077])
+* Discover the NVIDIA driver under `/` in `nvidia-k8s-device-plugin` ([#1083])
+* Normalize container paths in `nvidia-container-toolkit` CDI specifications ([#1083])
+
+[#1075]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1075
+[#1077]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1077
+[#1079]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1079
+[#1082]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1082
+[#1083]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1083
+[#1085]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1085
+[#1086]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1086
+
 # v17.2.0 (2026-10-02)
 
 ## OS Changes
