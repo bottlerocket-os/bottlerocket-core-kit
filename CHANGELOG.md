@@ -16,7 +16,7 @@
 
 ## Build Changes
 * Update to `twoliter` v0.26.0 ([#1079])
-* Bump `bottlerocket-sdk` to v0.81.0 ([#1086])
+* Update Rust dependencies ([#1090])
 
 ## Orchestrator Changes
 
@@ -31,7 +31,7 @@
 [#1082]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1082
 [#1083]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1083
 [#1085]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1085
-[#1086]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1086
+[#1090]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1090
 
 # v17.2.0 (2026-10-02)
 
