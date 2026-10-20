@@ -28,10 +28,7 @@ mod error {
     #[snafu(visibility(pub(crate)))]
     pub(crate) enum Error {
         #[snafu(display("{}", source))]
-        Server {
-            #[snafu(source(from(apiserver::server::Error, Box::new)))]
-            source: Box<apiserver::server::Error>,
-        },
+        Server { source: apiserver::server::Error },
 
         #[snafu(display("Logger setup error: {}", source))]
         Logger { source: log::SetLoggerError },

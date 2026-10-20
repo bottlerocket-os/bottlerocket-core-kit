@@ -113,8 +113,7 @@ pub(crate) mod error {
 
         #[snafu(display("Failed to request upgrade to WebSocket: {}", source))]
         Upgrade {
-            #[snafu(source(from(tokio_tungstenite::tungstenite::Error, Box::new)))]
-            source: Box<tokio_tungstenite::tungstenite::Error>,
+            source: tokio_tungstenite::tungstenite::Error,
         },
     }
 }
