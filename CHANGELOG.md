@@ -1,4 +1,4 @@
-# v18.0.0 (2026-10-19)
+# v17.3.0 (2026-10-20)
 
 ## OS Changes
 * Update `eni-max-pods` with new instance types and corrected limits ([#1085])
