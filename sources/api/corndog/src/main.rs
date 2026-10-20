@@ -4,13 +4,15 @@ It sets kernel-related settings, for example:
 * sysctl values, based on key/value pairs in `settings.kernel.sysctl`
 * lockdown mode, based on the value of `settings.kernel.lockdown`
 * static and transparent hugepage settings, based on the values of `settings.kernel.hugepages`
+* zram swap size at boot, based on `settings.kernel.zram.size`
 
 corndog also provides a settings generator for hugepages, subcommand "generate-hugepages-setting".
 */
 mod hugepages;
+mod swap;
 
 use crate::hugepages::*;
-use bottlerocket_modeled_types::{HugepagesSettings, Lockdown, SysctlKey};
+use bottlerocket_modeled_types::{HugepagesSettings, Lockdown, SysctlKey, ZramSettings, ZramSize};
 use log::{debug, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
@@ -50,6 +52,8 @@ struct KernelSettings {
     sysctl: Option<HashMap<SysctlKey, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     hugepages: Option<HugepagesSettings>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    zram: Option<ZramSettings>,
 }
 
 /// Trait for executing system commands
@@ -98,6 +102,10 @@ fn run() -> Result<()> {
                 apply_hugepages(&hugepages)?;
             }
         }
+        "prepare-swap" => {
+            let size = get_zram_size(args.config_path)?;
+            swap::prepare(size.as_ref()).context(error::SwapSnafu)?;
+        }
         "generate-hugepages-setting" => {
             let hugepages_setting = generate_hugepages_setting()?;
             // We will only fail if we cannot serialize the output to JSON string.
@@ -123,6 +131,21 @@ where
     let config_str =
         fs::read_to_string(config_path.as_ref()).context(error::ReadConfigFileSnafu)?;
     toml::from_str(config_str.as_str()).context(error::DeserializationSnafu)
+}
+
+/// Swap is on by default, so a missing config file means unset, not an error.
+fn get_zram_size<P>(config_path: P) -> Result<Option<ZramSize>>
+where
+    P: AsRef<Path>,
+{
+    let path = config_path.as_ref();
+    // try_exists, unlike exists, reports errors such as an SELinux denial instead of
+    // treating them as a missing file.
+    if !path.try_exists().context(error::ReadConfigFileSnafu)? {
+        warn!("{} not found; using the default zram size", path.display());
+        return Ok(None);
+    }
+    Ok(get_kernel_settings(path)?.zram.and_then(|zram| zram.size))
 }
 
 /// Generate sysctl config file content from key-value pairs
@@ -314,7 +337,8 @@ fn usage() -> ! {
         sysctl
         lockdown
         generate-hugepages-setting
-        allocate-hugepages,
+        allocate-hugepages
+        prepare-swap
 
     Global arguments:
         --config-path PATH
@@ -360,9 +384,11 @@ where
                 )
             }
 
-            "sysctl" | "lockdown" | "generate-hugepages-setting" | "allocate-hugepages" => {
-                subcommand = Some(arg)
-            }
+            "sysctl"
+            | "lockdown"
+            | "generate-hugepages-setting"
+            | "allocate-hugepages"
+            | "prepare-swap" => subcommand = Some(arg),
 
             _ => usage(),
         }
@@ -395,6 +421,9 @@ mod error {
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
     pub(super) enum Error {
+        #[snafu(display("Failed to prepare zram swap: {source}"))]
+        Swap { source: crate::swap::Error },
+
         #[snafu(display("Error reading config file: {}", source))]
         ReadConfigFile {
             #[snafu(source(from(io::Error, Box::new)))]
@@ -682,5 +711,27 @@ mod test {
                 "Key should not contain additional dashes after prefix: {key}"
             );
         }
+    }
+
+    #[test]
+    fn zram_size_from_config() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("corndog.toml");
+        assert_eq!(get_zram_size(&path).unwrap(), None);
+
+        fs::write(&path, "lockdown = \"integrity\"\n").unwrap();
+        assert_eq!(get_zram_size(&path).unwrap(), None);
+
+        fs::write(&path, "[zram]\nsize = \"0\"\n").unwrap();
+        assert_eq!(
+            get_zram_size(&path).unwrap(),
+            Some(ZramSize::try_from("0").unwrap())
+        );
+
+        fs::write(&path, "[zram]\nsize = ").unwrap();
+        assert!(get_zram_size(&path).is_err());
+
+        // A path that exists but can't be read as a file is an error, not unset.
+        assert!(get_zram_size(dir.path()).is_err());
     }
 }

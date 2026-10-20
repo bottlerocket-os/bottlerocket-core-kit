@@ -2,18 +2,17 @@
 Description=Prepare Swap
 RefuseManualStart=true
 RefuseManualStop=true
-DefaultDependencies=no
-Wants=modprobe@zram.service
-After=modprobe@zram.service dev-zram0.device
+# Run after bootstrap commands so a zram size they set applies on this boot.
+After=settings-applier.service bootstrap-commands.service
+Requires=settings-applier.service
+Before=containerd.service kubelet.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/sbin/zramctl /dev/zram0 --size 1G
-ExecStart=/usr/sbin/mkswap --uuid clear /dev/zram0
-ExecStart=/usr/sbin/swapon --discard --priority 1024 /dev/zram0
+ExecStart=/usr/bin/corndog prepare-swap
 RemainAfterExit=true
 StandardError=journal+console
 SyslogIdentifier=prepare-swap
 
 [Install]
-WantedBy=sysinit.target
+WantedBy=preconfigured.target
