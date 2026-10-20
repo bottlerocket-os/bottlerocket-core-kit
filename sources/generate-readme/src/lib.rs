@@ -6,7 +6,7 @@ functions are called in a crate's build.rs file to generate a README from Rust d
 use snafu::ResultExt;
 use std::fs::File;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub type Result<T> = std::result::Result<T, error::Error>;
 
@@ -17,6 +17,9 @@ pub mod error {
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
     pub enum Error {
+        #[snafu(display("Unable to determine the current directory: {}", source))]
+        CurrentDir { source: std::io::Error },
+
         #[snafu(display("Unable to create the 'README.md' file: {}", source))]
         ReadmeCreate { source: std::io::Error },
 
@@ -72,15 +75,21 @@ where
     })?;
     let mut template = File::open("README.tpl").context(error::ReadmeTemplateOpenSnafu)?;
 
+    // `cargo_toml` finds the workspace root (for `.workspace = true` inheritance) by walking up
+    // the parent directories of the crate's `Cargo.toml`, so the root must be an absolute path.
+    let root = std::env::current_dir().context(error::CurrentDirSnafu)?;
+
     let mut content = cargo_readme::generate_readme(
-        &PathBuf::from("."), // root
+        &root,               // root
         &mut source,         // source
         Some(&mut template), // template
-        // The "add x" arguments don't apply when using a template.
-        true,  // add title
-        false, // add badges
-        false, // add license
-        true,  // indent headings
+        cargo_readme::ReadmeOptions {
+            add_title: true,
+            add_badges: false,
+            add_license: false,
+            indent_headings: true,
+            ..Default::default()
+        },
     )
     .map_err(|e| error::ReadmeGenerateSnafu { error: e }.build())?;
 

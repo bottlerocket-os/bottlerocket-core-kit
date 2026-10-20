@@ -67,14 +67,17 @@ skip-tree = [
     # breaking changes which will need to be explored for our first party code
     # https://rust-random.github.io/book/update-0.9.html
     { name = "rand", version = "=0.8" },
-    # zbus introduces newer versions of crates that are either
-    # incompatible or way ahead from the versions used in other crates
-    { name = "zbus", version = "=5.14.0" },
     # aws-sigv4 upgraded to newer RustCrypto crates (hmac 0.13, sha2 0.11,
     # hashbrown 0.16, foldhash 0.2) while other deps still use older versions
     { name = "aws-sigv4" },
     # lru 0.16 uses hashbrown 0.16 / foldhash 0.2 while other deps use older versions
     { name = "lru" },
+    # settings-sdk still on toml 0.8 blocking update in core-kit to toml 1
+    { name = "toml" },
+    { name = "toml_edit" },
+    { name = "winnow" },
+    # nix has many updates but we'll need to do a more dedicated pass for updating it
+    { name = "nix" }
 ]
 
 [bans.workspace-dependencies]
