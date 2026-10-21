@@ -1,3 +1,10 @@
+# v17.4.0 (2026-10-22)
+
+## Build Changes
+* Bump `bottlerocket-sdk` to v0.81.1 ([#1094])
+
+[#1094]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1094
+
 # v17.3.0 (2026-10-20)
 
 ## OS Changes
