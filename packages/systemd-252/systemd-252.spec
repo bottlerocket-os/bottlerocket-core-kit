@@ -101,6 +101,11 @@ Patch9020: 9020-core-validate-input-cgroup-path-more-prudently.patch
 Patch9038: 9038-nspawn-normalize-pivot_root-paths.patch
 Patch9039: 9039-nspawn-apply-BindUser-Ephemeral-from-settings-fil.patch
 
+# Backport of cd7f3702eb47c82a50bf74c2b7c15c2e4e1f5c79 to use /run/systemd 
+# instead of /tmp for PrivateDevices= mount namespace, fixing race condition
+# during early boot.
+Patch9040: 9040-namespace-use-run-systemd-for-PrivateDevices.patch
+
 BuildRequires: gperf
 BuildRequires: intltool
 BuildRequires: meson
