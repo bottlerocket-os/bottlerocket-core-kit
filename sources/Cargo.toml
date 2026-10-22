@@ -21,7 +21,6 @@ members = [
     "api/shibaken",
     "api/prairiedog",
     "api/simple-settings-plugin",
-    "aws-smithy-experimental",
 
     "bloodhound",
 
@@ -90,7 +89,7 @@ members = [
 
 [workspace.dependencies]
 apiclient = { version = "0.1", path = "api/apiclient", default-features = false }
-aws-smithy-experimental = { version = "0.1", path = "aws-smithy-experimental" }
+aws-smithy-http-client = { version = "1", path = "aws-smithy-http-client" }
 block-party = { version = "0.1", path = "updater/block-party" }
 bottlerocket-image-features = { version = "0.1", path = "bottlerocket-image-features" }
 bottlerocket-release = { version = "0.1", path = "bottlerocket-release" }
@@ -160,9 +159,16 @@ hex = "0.4"
 hex-literal = "0.4"
 hkdf = { version = "0.12", default-features = false }
 http = "0.2"
+# http-02x is an alias for the same http 0.2 crate above. It exists because
+# aws-smithy-http-client imports http under the renamed name "http-02x" to
+# coexist with http 1.x. This does not introduce a duplicate both resolve
+# to the same http 0.2.x in Cargo.lock.
+http-02x = { package = "http", version = "0.2" }
+http-body-util = "0.1"
 httparse = "1"
 httptest = "0.15"
 hyper = { version = "1", default-features = false }
+hyper-0-14 = { package = "hyper", version = "0.14", default-features = false }
 hyper-http-proxy = "~1.0"
 hyper-rustls = { version = "0.27", default-features = false }
 hyper-util = { version = "0.1", default-features = false }
@@ -194,7 +200,8 @@ quote = "1"
 rand = { version = "0.8", default-features = false }
 regex = "1"
 reqwest = { version = "0.12", default-features = false }
-rustls = "0.23"
+rustls = { version = "0.23", default-features = false }
+rustls-pki-types = { version = "1", features = ["std"] }
 semver = "1"
 serde = "1"
 serde-xml-rs = "0.6"
@@ -214,12 +221,13 @@ tempfile = "3"
 test-case = "3"
 tokio = { version = "~1.51", default-features = false }  # LTS
 tokio-retry = "0.3"
+tokio-rustls = { version = "0.26", default-features = false }
 tokio-test = "0.4"
 tokio-tungstenite = { version = "0.20", default-features = false }
 tokio-util = "0.7"
 toml = "0.8"
 tough = "0.24"
-tower = "0.4"
+tower = "0.5"
 tracing = "0.1"
 typed-path = "0.9"
 unindent = "0.2"
