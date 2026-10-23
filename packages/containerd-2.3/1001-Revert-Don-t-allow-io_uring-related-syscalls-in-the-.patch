@@ -1,4 +1,4 @@
-From f6f4f959862cad73cc44d07b088f449ae6c69066 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Henry Wang <henwang@amazon.com>
 Date: Thu, 10 Apr 2025 20:50:50 +0000
 Subject: [PATCH] Revert "Don't allow io_uring related syscalls in the
@@ -7,15 +7,14 @@ Subject: [PATCH] Revert "Don't allow io_uring related syscalls in the
 This reverts commit a48ddf4a208b24eadea82f0eac62e236f2acf004.
 ---
  contrib/seccomp/seccomp_default.go      |  3 +++
- contrib/seccomp/seccomp_default_test.go | 36 -------------------------
- 2 files changed, 3 insertions(+), 36 deletions(-)
- delete mode 100644 contrib/seccomp/seccomp_default_test.go
+ contrib/seccomp/seccomp_default_test.go | 29 -------------------------
+ 2 files changed, 3 insertions(+), 29 deletions(-)
 
 diff --git a/contrib/seccomp/seccomp_default.go b/contrib/seccomp/seccomp_default.go
-index 55d673fcb..1135f2391 100644
+index eda0223..20d81db 100644
 --- a/contrib/seccomp/seccomp_default.go
 +++ b/contrib/seccomp/seccomp_default.go
-@@ -188,6 +188,9 @@ func DefaultProfile(sp *specs.Spec) *specs.LinuxSeccomp {
+@@ -297,6 +297,9 @@ func DefaultProfile(sp *specs.Spec) *specs.LinuxSeccomp {
  				"ioprio_set",
  				"io_setup",
  				"io_submit",
@@ -26,19 +25,13 @@ index 55d673fcb..1135f2391 100644
  				"kill",
  				"landlock_add_rule",
 diff --git a/contrib/seccomp/seccomp_default_test.go b/contrib/seccomp/seccomp_default_test.go
-deleted file mode 100644
-index 53e386809..000000000
+index c9c3a5c..cd56af6 100644
 --- a/contrib/seccomp/seccomp_default_test.go
-+++ /dev/null
-@@ -1,36 +0,0 @@
--package seccomp
--
--import (
--	"testing"
--
--	"github.com/opencontainers/runtime-spec/specs-go"
--)
--
++++ b/contrib/seccomp/seccomp_default_test.go
+@@ -11,35 +11,6 @@ import (
+ 	"github.com/opencontainers/runtime-spec/specs-go"
+ )
+ 
 -func TestIOUringIsNotAllowed(t *testing.T) {
 -
 -	disallowed := map[string]bool{
@@ -67,6 +60,7 @@ index 53e386809..000000000
 -		}
 -	}
 -}
--- 
-2.45.0
-
+-
+ func TestSocketSyscallsForDomains(t *testing.T) {
+ 	t.Parallel()
+ 

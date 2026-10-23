@@ -2,9 +2,9 @@
 %global gorepo containerd
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 2.3.6
+%global gover 2.3.7
 %global rpmver %{gover}
-%global gitrev ee2735368117d2eb259779949d5e75cdafec9761
+%global gitrev 6f589cf13dc01a5b493911355427e05b2ff005d7
 
 %global package_priority_epoch 0
 %global _dwz_low_mem_die_limit 0
@@ -86,9 +86,6 @@ Provides: %{name}(optimized-gunzip) = 0:
 
 %build
 %set_cross_go_flags
-
-# containerd 2.3 requires Go 1.26 (go.mod toolchain directive go1.26.x); select
-# the 1.26 toolchain from the SDK instead of the default.
 
 export BUILDTAGS="no_btrfs selinux"
 export LD_VERSION="-X github.com/containerd/containerd/v2/version.Version=%{gover}+bottlerocket"
