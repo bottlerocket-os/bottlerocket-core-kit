@@ -12,7 +12,13 @@ Type=oneshot
 # root filesystem during startup. Ordinarily we would use a tmpfiles.d snippet
 # for this, but we need to ensure that the file_contexts are available before
 # tmpfiles.d runs, so that relabel directives work as expected.
-ExecStart=/usr/bin/cp -r -n /usr/share/factory/etc/selinux /etc
+#
+# Copy to a temporary directory and rename it into place, so that other units
+# never see a partially copied policy. libselinux treats SELinux as disabled
+# until /etc/selinux/config exists, but fails to load the file contexts if the
+# config is present and file_contexts is not yet.
+ExecStart=/usr/bin/cp -r /usr/share/factory/etc/selinux /etc/.selinux.tmp
+ExecStart=/usr/bin/mv -T /etc/.selinux.tmp /etc/selinux
 
 RemainAfterExit=true
 StandardError=journal+console
