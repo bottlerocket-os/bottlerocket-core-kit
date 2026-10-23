@@ -8,19 +8,24 @@ publish = false
 [dependencies]
 argh.workspace = true
 bottlerocket-image-features.workspace = true
+early-boot-config-provider.workspace = true
 envy.workspace = true
 hex.workspace = true
 hkdf = { workspace = true, features = ["std"] }
 imdsclient.workspace = true
 nix = { workspace = true, features = ["fs", "ioctl", "mount"] }
+olpc-cjson.workspace = true
 serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
 sha2.workspace = true
 snafu.workspace = true
 tokio = { workspace = true, features = ["macros", "rt"] }
+toml.workspace = true
 walkdir.workspace = true
 zeroize = { workspace = true, features = ["alloc", "derive"] }
 
 [dev-dependencies]
+flate2 = { workspace = true, features = ["rust_backend"] }
 reqwest.workspace = true
 
 [build-dependencies]
