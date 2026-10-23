@@ -25,6 +25,7 @@ Source6: nvidia-mps-control-daemon-exec-start-conf
 # default (no-symlink) template. The device plugin's ExecStart always comes from
 # this rendered drop-in, so no separate compat base unit is needed.
 Source7: nvidia-k8s-device-plugin-exec-start-conf-compat
+Source8: run-nvidia-mps-shm.mount
 
 Patch0001: 0001-Update-MPS-roots-for-immutable-host-OS.patch
 Patch1001: 1001-Ensure-that-generated-CDI-specs-do-not-contain-enabl.patch
@@ -59,6 +60,7 @@ install -p -m 0755 mps-control-daemon %{buildroot}%{_cross_bindir}
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:1} %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:5} %{buildroot}%{_cross_unitdir}
+install -p -m 0644 %{S:8} %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_unitdir}/nvidia-k8s-device-plugin.service.d
 install -d %{buildroot}%{_cross_unitdir}/nvidia-mps-control-daemon.service.d
 install -D -m 0644 %{S:2} %{buildroot}%{_cross_templatedir}/nvidia-k8s-device-plugin-conf
@@ -78,6 +80,7 @@ install -D -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/nvidia-mps-control-d
 %{_cross_bindir}/mps-control-daemon
 %{_cross_unitdir}/nvidia-k8s-device-plugin.service
 %{_cross_unitdir}/nvidia-mps-control-daemon.service
+%{_cross_unitdir}/run-nvidia-mps-shm.mount
 %dir %{_cross_unitdir}/nvidia-k8s-device-plugin.service.d
 %dir %{_cross_unitdir}/nvidia-mps-control-daemon.service.d
 %{_cross_templatedir}/nvidia-k8s-device-plugin-conf
