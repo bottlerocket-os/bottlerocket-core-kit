@@ -8,6 +8,7 @@ It sets kernel-related settings, for example:
 corndog also provides a settings generator for hugepages, subcommand "generate-hugepages-setting".
 */
 mod hugepages;
+mod memory_min;
 
 use crate::hugepages::*;
 use bottlerocket_modeled_types::{HugepagesSettings, Lockdown, SysctlKey};
@@ -97,6 +98,9 @@ fn run() -> Result<()> {
                 debug!("Applying hugepages settings: {hugepages:#?}");
                 apply_hugepages(&hugepages)?;
             }
+        }
+        "apply-kube-reserved-memory-min" => {
+            memory_min::apply().context(error::MemoryMinSnafu)?;
         }
         "generate-hugepages-setting" => {
             let hugepages_setting = generate_hugepages_setting()?;
@@ -314,7 +318,8 @@ fn usage() -> ! {
         sysctl
         lockdown
         generate-hugepages-setting
-        allocate-hugepages,
+        allocate-hugepages
+        apply-kube-reserved-memory-min
 
     Global arguments:
         --config-path PATH
@@ -360,9 +365,11 @@ where
                 )
             }
 
-            "sysctl" | "lockdown" | "generate-hugepages-setting" | "allocate-hugepages" => {
-                subcommand = Some(arg)
-            }
+            "sysctl"
+            | "lockdown"
+            | "generate-hugepages-setting"
+            | "allocate-hugepages"
+            | "apply-kube-reserved-memory-min" => subcommand = Some(arg),
 
             _ => usage(),
         }
@@ -395,6 +402,9 @@ mod error {
     #[derive(Debug, Snafu)]
     #[snafu(visibility(pub(super)))]
     pub(super) enum Error {
+        #[snafu(display("Failed to apply kube-reserved memory.min: {source}"))]
+        MemoryMin { source: crate::memory_min::Error },
+
         #[snafu(display("Error reading config file: {}", source))]
         ReadConfigFile {
             #[snafu(source(from(io::Error, Box::new)))]

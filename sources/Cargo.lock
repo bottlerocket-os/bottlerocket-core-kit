@@ -2149,12 +2149,14 @@ dependencies = [
  "log",
  "num_cpus",
  "pciclient",
+ "schnauzer",
  "serde",
  "serde_json",
  "simplelog",
  "snafu",
  "tempfile",
  "test-case",
+ "tokio",
  "toml 0.8.23",
 ]
 
