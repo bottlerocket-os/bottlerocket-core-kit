@@ -1,0 +1,5 @@
+[required-extensions]
+kubernetes = { version = "v1", helpers = ["kube_memory_min"] }
++++
+[Slice]
+MemoryMin={{kube_memory_min "runtime" settings.kubernetes.kube-reserved-memory-min}}
