@@ -2,7 +2,7 @@
 container-registry = "v1"
 container-runtime = "v1"
 kubernetes = "v1"
-std = { version = "v1", helpers = ["join_array", "default"]}
+std = { version = "v1", helpers = ["join_array", "default", "if_not_null"]}
 +++
 version = 3
 root = "/var/lib/containerd"
@@ -35,12 +35,12 @@ enable_selinux = true
 {{#if settings.container-runtime.max-container-log-line-size}}
 max_container_log_line_size = {{settings.container-runtime.max-container-log-line-size}}
 {{/if}}
-{{#if settings.container-runtime.enable-unprivileged-ports}}
+{{#if_not_null settings.container-runtime.enable-unprivileged-ports}}
 enable_unprivileged_ports = {{settings.container-runtime.enable-unprivileged-ports}}
-{{/if}}
-{{#if settings.container-runtime.enable-unprivileged-icmp}}
+{{/if_not_null}}
+{{#if_not_null settings.container-runtime.enable-unprivileged-icmp}}
 enable_unprivileged_icmp = {{settings.container-runtime.enable-unprivileged-icmp}}
-{{/if}}
+{{/if_not_null}}
 
 [plugins."io.containerd.transfer.v1.local"]
 {{#if settings.container-runtime.max-concurrent-downloads}}
