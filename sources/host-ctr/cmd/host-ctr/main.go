@@ -12,14 +12,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/api/types/runc/options"
-	"github.com/containerd/containerd/cio"
-	"github.com/containerd/containerd/containers"
-	"github.com/containerd/containerd/contrib/seccomp"
-	"github.com/containerd/containerd/namespaces"
-	"github.com/containerd/containerd/oci"
-	"github.com/containerd/containerd/remotes/docker"
+	"github.com/containerd/containerd/v2/client"
+	"github.com/containerd/containerd/v2/contrib/seccomp"
+	"github.com/containerd/containerd/v2/core/containers"
+	"github.com/containerd/containerd/v2/pkg/cio"
+	"github.com/containerd/containerd/v2/pkg/namespaces"
+	"github.com/containerd/containerd/v2/pkg/oci"
 	"github.com/containerd/errdefs"
 	"github.com/containerd/log"
 	runtimespec "github.com/opencontainers/runtime-spec/specs-go"
@@ -94,7 +93,8 @@ func App() *cli.App {
 		{
 			Name:  "run",
 			Usage: "run host container with the specified image",
-			Flags: []cli.Flag{
+			// extraPullFlags() adds --expected-digest for the transfer-service pull.
+			Flags: append([]cli.Flag{
 				&cli.StringFlag{
 					Name:        "source",
 					Usage:       "the image source",
@@ -136,8 +136,8 @@ func App() *cli.App {
 					Destination: &command,
 					Value:       "[]",
 				},
-			},
-			Action: func(_ *cli.Context) error {
+			}, extraPullFlags()...),
+			Action: func(c *cli.Context) error {
 				var commandParts []string
 				if err := json.Unmarshal([]byte(command), &commandParts); err != nil {
 					return fmt.Errorf("failed to parse entrypoint command: %w", err)
@@ -152,6 +152,7 @@ func App() *cli.App {
 					containerType(cType),
 					useCachedImage,
 					commandParts,
+					expectedDigest(c),
 				)
 			},
 		},
@@ -159,7 +160,7 @@ func App() *cli.App {
 			Name:        "pull-image",
 			Usage:       "pull the specified container image",
 			Description: "pull the specified container image to make it available in the containerd image store",
-			Flags: []cli.Flag{
+			Flags: append([]cli.Flag{
 				&cli.StringFlag{
 					Name:        "source",
 					Usage:       "the image source",
@@ -181,14 +182,14 @@ func App() *cli.App {
 					Name:  "label",
 					Usage: "label to add to the pulled image in `key=value` format",
 				},
-			},
+			}, extraPullFlags()...),
 			Action: func(c *cli.Context) error {
 				labels := c.StringSlice("label")
 				labelsMap, err := convertLabels(labels)
 				if err != nil {
 					return err
 				}
-				return pullImageOnly(containerdSocket, namespace, source, registryConfig, useCachedImage, labelsMap)
+				return pullImageOnly(containerdSocket, namespace, source, registryConfig, useCachedImage, labelsMap, expectedDigest(c))
 			},
 		},
 		{
@@ -263,7 +264,7 @@ func SliceContains(s []string, v string) bool {
 	return false
 }
 
-func runCtr(containerdSocket string, namespace string, containerID string, source string, superpowered bool, registryConfigPath string, cType containerType, useCachedImage bool, command []string) error {
+func runCtr(containerdSocket string, namespace string, containerID string, source string, superpowered bool, registryConfigPath string, cType containerType, useCachedImage bool, command []string, expectedDigest string) error {
 	// Check if the containerType provided is valid
 	if !cType.IsValid() {
 		return errors.New("Invalid container type")
@@ -290,16 +291,16 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 		}
 	}(ctx, cancel)
 
-	client, err := newContainerdClient(ctx, containerdSocket, namespace)
+	c, err := newContainerdClient(ctx, containerdSocket, namespace)
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+	defer c.Close()
 
-	var img containerd.Image
+	var img client.Image
 	emptyLabels := make(map[string]string)
 
-	img, err = fetchImage(ctx, source, client, registryConfigPath, useCachedImage, emptyLabels)
+	img, err = fetchImage(ctx, source, c, registryConfigPath, useCachedImage, emptyLabels, expectedDigest)
 	if err != nil {
 		log.G(ctx).WithField("ref", source).Error(err)
 		return err
@@ -309,7 +310,7 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 	containerName := containerID
 	containerID = prefix + containerID
 	// Check if the target container already exists. If it does, take over the helm to manage it.
-	container, err := client.LoadContainer(ctx, containerID)
+	container, err := c.LoadContainer(ctx, containerID)
 	if err != nil {
 		if errdefs.IsNotFound(err) {
 			log.G(ctx).WithField("ctr-id", containerID).Info("Container does not exist, proceeding to create it")
@@ -356,15 +357,15 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 			specOpts = append(specOpts, oci.WithProcessArgs(command...))
 		}
 
-		ctrOpts := containerd.WithNewSpec(specOpts...)
+		ctrOpts := client.WithNewSpec(specOpts...)
 
 		// Create the container.
-		container, err = client.NewContainer(
+		container, err = c.NewContainer(
 			ctx,
 			containerID,
-			containerd.WithImage(img),
-			containerd.WithNewSnapshot(containerID+"-snapshot", img),
-			containerd.WithRuntime("io.containerd.runc.v2", &options.Options{
+			client.WithImage(img),
+			client.WithNewSnapshot(containerID+"-snapshot", img),
+			client.WithRuntime("io.containerd.runc.v2", &options.Options{
 				Root: "/run/host-containerd/runc",
 			}),
 			ctrOpts,
@@ -378,7 +379,7 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 		// Clean up the container as program wraps up.
 		cleanup, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		err := container.Delete(cleanup, containerd.WithSnapshotCleanup)
+		err := container.Delete(cleanup, client.WithSnapshotCleanup)
 		if err != nil {
 			log.G(cleanup).WithError(err).Error("failed to cleanup container")
 		}
@@ -413,8 +414,8 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 		log.G(ctx).WithField("task status", taskStatus.Status).Info("found existing container task")
 
 		// If the task isn't running (it's in some weird state like `Paused`), we should replace it with a new task.
-		if taskStatus.Status != containerd.Running {
-			_, err := task.Delete(ctx, containerd.WithProcessKill)
+		if taskStatus.Status != client.Running {
+			_, err := task.Delete(ctx, client.WithProcessKill)
 			if err != nil {
 				log.G(ctx).WithError(err).Error("failed to delete existing container task")
 				return err
@@ -460,7 +461,7 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 	// container task finishes and exits on its own.
 
 	// Container task's exit status.
-	var status containerd.ExitStatus
+	var status client.ExitStatus
 	// Context used when stopping and cleaning up the container task
 	ctrCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -518,18 +519,18 @@ func runCtr(containerdSocket string, namespace string, containerID string, sourc
 }
 
 // pullImageOnly pulls the specified container image
-func pullImageOnly(containerdSocket string, namespace string, source string, registryConfigPath string, useCachedImage bool, labels map[string]string) error {
+func pullImageOnly(containerdSocket string, namespace string, source string, registryConfigPath string, useCachedImage bool, labels map[string]string, expectedDigest string) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ctx = namespaces.WithNamespace(ctx, namespace)
 
-	client, err := newContainerdClient(ctx, containerdSocket, namespace)
+	c, err := newContainerdClient(ctx, containerdSocket, namespace)
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+	defer c.Close()
 
-	_, err = fetchImage(ctx, source, client, registryConfigPath, useCachedImage, labels)
+	_, err = fetchImage(ctx, source, c, registryConfigPath, useCachedImage, labels, expectedDigest)
 	if err != nil {
 		log.G(ctx).WithField("ref", source).Error(err)
 		return err
@@ -544,13 +545,13 @@ func cleanUp(containerdSocket string, namespace string, containerID string) erro
 	defer cancel()
 	ctx = namespaces.WithNamespace(ctx, namespace)
 
-	client, err := newContainerdClient(ctx, containerdSocket, namespace)
+	c, err := newContainerdClient(ctx, containerdSocket, namespace)
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+	defer c.Close()
 
-	container, err := client.LoadContainer(ctx, containerID)
+	container, err := c.LoadContainer(ctx, containerID)
 	if err != nil {
 		if errdefs.IsNotFound(err) {
 			log.G(ctx).WithField("container-id", containerID).Info("container does not exist, no clean up necessary")
@@ -573,14 +574,14 @@ func cleanUp(containerdSocket string, namespace string, containerID string) erro
 			}
 		}
 		if task != nil {
-			_, err := task.Delete(ctx, containerd.WithProcessKill)
+			_, err := task.Delete(ctx, client.WithProcessKill)
 			if err != nil {
 				log.G(ctx).WithField("container-id", containerID).WithError(err).Error("failed to delete existing container task")
 				return err
 			}
 			log.G(ctx).WithField("container-id", containerID).Info("killed existing container task")
 		}
-		if err := container.Delete(ctx, containerd.WithSnapshotCleanup); err != nil {
+		if err := container.Delete(ctx, client.WithSnapshotCleanup); err != nil {
 			log.G(ctx).WithField("container-id", containerID).WithError(err).Error("failed to delete existing container")
 			return err
 		}
@@ -591,8 +592,8 @@ func cleanUp(containerdSocket string, namespace string, containerID string) erro
 }
 
 // newContainerdClient creates a new containerd client connected to the specified containerd socket.
-func newContainerdClient(ctx context.Context, containerdSocket string, namespace string) (*containerd.Client, error) {
-	client, err := containerd.New(containerdSocket, containerd.WithDefaultNamespace(namespace))
+func newContainerdClient(ctx context.Context, containerdSocket string, namespace string) (*client.Client, error) {
+	c, err := client.New(containerdSocket, client.WithDefaultNamespace(namespace))
 	if err != nil {
 		log.G(ctx).
 			WithError(err).
@@ -602,7 +603,7 @@ func newContainerdClient(ctx context.Context, containerdSocket string, namespace
 		return nil, err
 	}
 
-	return client, nil
+	return c, nil
 }
 
 // withSuperpowered adds container options to grant administrative privileges
@@ -929,10 +930,14 @@ func withProxyEnv() oci.SpecOpts {
 	return oci.Compose(withHTTPSProxy, withNoProxy)
 }
 
-// fetchImage returns a `containerd.Image` given an image source.
-func fetchImage(ctx context.Context, source string, client *containerd.Client, registryConfigPath string, useCachedImage bool, labels map[string]string) (containerd.Image, error) {
+// fetchImage returns a `client.Image` given an image source.
+func fetchImage(ctx context.Context, source string, c *client.Client, registryConfigPath string, useCachedImage bool, labels map[string]string, expectedDigest string) (client.Image, error) {
+	// Validate the pin once so both paths report a malformed digest clearly.
+	if expectedDigest != "" && !isValidSha256Digest(expectedDigest) {
+		return nil, fmt.Errorf("--expected-digest must be a sha256:<64 hex chars> digest, got %q", expectedDigest)
+	}
 	// Check the containerd image store to see if image exists
-	img, err := client.GetImage(ctx, source)
+	img, err := c.GetImage(ctx, source)
 	if err != nil {
 		if errdefs.IsNotFound(err) {
 			log.G(ctx).WithField("ref", source).Info("Image does not exist, proceeding to pull image from source.")
@@ -943,104 +948,28 @@ func fetchImage(ctx context.Context, source string, client *containerd.Client, r
 	}
 	if img != nil && useCachedImage {
 		log.G(ctx).WithField("ref", source).Info("Image exists, fetching cached image from image store")
-		return img, err
-	}
-	return pullImage(ctx, source, client, registryConfigPath, labels)
-}
-
-// pullImage pulls an image from the specified source.
-func pullImage(ctx context.Context, source string, client *containerd.Client, registryConfigPath string, labels map[string]string) (containerd.Image, error) {
-	// Handle registry config
-	var registryConfig *RegistryConfig
-	if registryConfigPath != "" {
-		var err error
-		registryConfig, err = NewRegistryConfig(registryConfigPath)
-		if err != nil {
-			log.G(ctx).
-				WithError(err).
-				WithField("registry-config", registryConfigPath).
-				Error("failed to read registry config")
+		// The cached path never invokes the daemon verifier; enforce client-side.
+		if err := verifySourcePinnedDigest(source, img); err != nil {
 			return nil, err
 		}
-	} else {
-		registryConfig = NewBlankRegistryConfig()
+		if err := verifyExpectedDigest(ctx, img, expectedDigest); err != nil {
+			return nil, err
+		}
+		return img, nil
 	}
-
-	// Pull the image
-	// Retry with exponential backoff when failures occur, maximum retry duration will not exceed 31 seconds
-	const maxRetryAttempts = 5
-	const intervalMultiplier = 2
-	const maxRetryInterval = 30 * time.Second
-	const jitterPeakAmplitude = 4000
-	const jitterLowerBound = 2000
-	var retryInterval = 1 * time.Second
-	var retryAttempts = 0
-	var img containerd.Image
-	for {
-		var err error
-
-		//nolint:staticcheck // We will re-evaluate the deprecated WithSchema1Conversion
-		pullOpts := []containerd.RemoteOpt{
-			withDynamicResolver(ctx, source, registryConfig),
-			containerd.WithSchema1Conversion,
-		}
-
-		if len(labels) != 0 {
-			pullOpts = append(pullOpts, containerd.WithPullLabels(labels))
-		}
-
-		img, err = client.Pull(ctx, source, pullOpts...)
-
-		if err == nil {
-			log.G(ctx).WithField("img", img.Name()).Info("pulled image successfully")
-			break
-		}
-		if retryAttempts >= maxRetryAttempts {
-			return nil, errors.Wrap(err, "retries exhausted")
-		}
-		// Add a random jitter between 2 - 6 seconds to the retry interval
-		retryIntervalWithJitter := retryInterval + time.Duration(rand.Int31n(jitterPeakAmplitude))*time.Millisecond + jitterLowerBound*time.Millisecond
-		log.G(ctx).WithError(err).Warnf("failed to pull image. waiting %s before retrying...", retryIntervalWithJitter)
-		timer := time.NewTimer(retryIntervalWithJitter)
-		select {
-		case <-timer.C:
-			retryInterval *= intervalMultiplier
-			if retryInterval > maxRetryInterval {
-				retryInterval = maxRetryInterval
-			}
-			retryAttempts++
-		case <-ctx.Done():
-			return nil, errors.Wrap(err, "context ended while retrying")
-		}
+	img, err = pullImage(ctx, source, c, registryConfigPath, labels, expectedDigest)
+	if err != nil {
+		return nil, err
 	}
-
-	log.G(ctx).WithField("img", img.Name()).Info("unpacking image...")
-	if err := img.Unpack(ctx, containerd.DefaultSnapshotter); err != nil {
-		return nil, errors.Wrap(err, "failed to unpack image")
+	// Authoritative client-side digest enforcement. A digest-pinned source must
+	// match even without --expected-digest.
+	if err := verifySourcePinnedDigest(source, img); err != nil {
+		return nil, err
 	}
-
+	if err := verifyExpectedDigest(ctx, img, expectedDigest); err != nil {
+		return nil, err
+	}
 	return img, nil
-}
-
-// withDynamicResolver provides an initialized resolver for use with ref.
-func withDynamicResolver(ctx context.Context, ref string, registryConfig *RegistryConfig) containerd.RemoteOpt {
-	defaultResolver := func(_ *containerd.Client, c *containerd.RemoteContext) error {
-		if registryConfig != nil {
-			c.Resolver = docker.NewResolver(docker.ResolverOptions{
-				Hosts: registryHosts(registryConfig, nil),
-			})
-		}
-		return nil
-	}
-
-	switch {
-	case isECRPrivateRef(ref):
-		return withECRPrivateResolver(ctx, ref)
-	case strings.HasPrefix(ref, "public.ecr.aws/"):
-		return withECRPublicResolver(ctx, ref, registryConfig, defaultResolver)
-	default:
-		return defaultResolver
-	}
 }
 
 // withUnmaskedPaths sets an alternate list of masked paths, less the paths provided

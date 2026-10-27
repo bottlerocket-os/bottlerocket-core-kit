@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -8,11 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containerd/containerd/pkg/cri/server"
-	"github.com/containerd/containerd/remotes/docker"
+	"github.com/containerd/containerd/v2/core/remotes/docker"
 	"github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
-	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
 )
 
 // Mirror contains the config related to the registry mirror
@@ -62,7 +62,6 @@ func registryHosts(registryConfig *RegistryConfig, authorizerOverride *docker.Au
 		var (
 			registries []docker.RegistryHost
 			endpoints  []string
-			authConfig runtime.AuthConfig
 		)
 		// Set up endpoints for the registry
 		// The endpoints array may still be empty after this step
@@ -100,17 +99,12 @@ func registryHosts(registryConfig *RegistryConfig, authorizerOverride *docker.Au
 			if authorizerOverride == nil {
 				// Set up auth for pulling from registry
 				var authOpts []docker.AuthorizerOpt
-				if _, ok := registryConfig.Credentials[defaultHost]; ok {
-					// Convert registry credentials config to runtime auth config, so it can be parsed by `ParseAuth`
-					authConfig.Username = registryConfig.Credentials[defaultHost].Username
-					authConfig.Password = registryConfig.Credentials[defaultHost].Password
-					authConfig.Auth = registryConfig.Credentials[defaultHost].Auth
-					authConfig.IdentityToken = registryConfig.Credentials[defaultHost].IdentityToken
+				if cred, ok := registryConfig.Credentials[defaultHost]; ok {
 					authOpts = append(authOpts, docker.WithAuthClient(&http.Client{
 						Transport: newTransport(),
 					}))
-					authOpts = append(authOpts, docker.WithAuthCreds(func(host string) (string, string, error) {
-						return server.ParseAuth(&authConfig, host)
+					authOpts = append(authOpts, docker.WithAuthCreds(func(_ string) (string, string, error) {
+						return parseAuth(cred)
 					}))
 				}
 				authorizer = docker.NewDockerAuthorizer(authOpts...)
@@ -127,6 +121,33 @@ func registryHosts(registryConfig *RegistryConfig, authorizerOverride *docker.Au
 		}
 		return registries, nil
 	}
+}
+
+// parseAuth resolves a registry Credential into a (username, secret) pair: prefer
+// explicit username/password, then an identity token, then a base64-encoded
+// `user:password` `auth` blob. Reimplements containerd's CRI ParseAuth, which
+// moved under an internal/ path in v2 and is no longer importable:
+// https://github.com/containerd/containerd/blob/2892c2042ee7fbd3be0e5bdc675e07b5acedb0bf/pkg/cri/server/image_pull.go#L235
+func parseAuth(cred Credential) (string, string, error) {
+	if cred.Username != "" {
+		return cred.Username, cred.Password, nil
+	}
+	if cred.IdentityToken != "" {
+		return "", cred.IdentityToken, nil
+	}
+	if cred.Auth != "" {
+		decoded, err := base64.StdEncoding.DecodeString(cred.Auth)
+		if err != nil {
+			return "", "", err
+		}
+		fields := strings.SplitN(string(decoded), ":", 2)
+		if len(fields) != 2 {
+			return "", "", fmt.Errorf("invalid decoded auth: %q", string(decoded))
+		}
+		user, passwd := fields[0], strings.Trim(fields[1], "\x00")
+		return user, passwd, nil
+	}
+	return "", "", nil
 }
 
 // newTransport is borrowed from containerd CRI plugin
