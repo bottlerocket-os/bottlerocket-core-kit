@@ -1,0 +1,18 @@
+[Unit]
+Description=Host Container Image Verifier Directory (/opt/host-civ)
+DefaultDependencies=no
+Conflicts=umount.target
+Before=local-fs.target umount.target
+Wants=prepare-opt.service prepare-var.service
+After=prepare-opt.service prepare-var.service
+RequiresMountsFor=/opt /var
+
+[Mount]
+What=overlay
+Where=/opt/host-civ
+Type=overlay
+# "noexec" omitted because host-containerd needs to execute image verifiers.
+Options=nosuid,nodev,noatime,lowerdir=/usr/libexec/host-civ,upperdir=/var/lib/host-civ-plugins/.overlay/upper,workdir=/var/lib/host-civ-plugins/.overlay/work,context=system_u:object_r:civ_exec_t:s0
+
+[Install]
+WantedBy=preconfigured.target
