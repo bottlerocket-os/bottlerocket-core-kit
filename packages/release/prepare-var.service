@@ -17,7 +17,8 @@ ExecStart=/usr/bin/rm -rf \
     /var/lib/kernel-modules \
     /var/lib/cni-plugins \
     /var/lib/csi-helpers \
-    /var/lib/civ-plugins
+    /var/lib/civ-plugins \
+    /var/lib/host-civ-plugins
 
 ExecStart=/usr/bin/mkdir -p \
     /var/lib/kernel-devel/.overlay/lower \
@@ -30,7 +31,9 @@ ExecStart=/usr/bin/mkdir -p \
     /var/lib/csi-helpers/.overlay/upper \
     /var/lib/csi-helpers/.overlay/work \
     /var/lib/civ-plugins/.overlay/upper \
-    /var/lib/civ-plugins/.overlay/work
+    /var/lib/civ-plugins/.overlay/work \
+    /var/lib/host-civ-plugins/.overlay/upper \
+    /var/lib/host-civ-plugins/.overlay/work
 
 # Ensure the directories are labeled as expected.
 ExecStart=/usr/sbin/setfiles \
@@ -39,7 +42,8 @@ ExecStart=/usr/sbin/setfiles \
     /var/lib/kernel-modules \
     /var/lib/cni-plugins \
     /var/lib/csi-helpers \
-    /var/lib/civ-plugins
+    /var/lib/civ-plugins \
+    /var/lib/host-civ-plugins
 
 RemainAfterExit=true
 StandardError=journal+console
