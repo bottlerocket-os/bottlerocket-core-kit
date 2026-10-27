@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
-	"github.com/containerd/containerd/v2/pkg/reference"
 	"github.com/containerd/log"
 )
 
@@ -64,15 +63,6 @@ var fipsSupportedEcrRegionSet = map[string]bool{
 type parsedECR struct {
 	Region string
 	Fips   bool
-}
-
-// extractHostFromRef extracts the registry hostname from an image reference.
-func extractHostFromRef(ref string) (string, error) {
-	parsed, err := reference.Parse(ref)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse reference: %w", err)
-	}
-	return parsed.Hostname(), nil
 }
 
 // parseECRHost parses an ECR private registry hostname and extracts
