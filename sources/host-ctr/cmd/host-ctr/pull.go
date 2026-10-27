@@ -34,6 +34,10 @@ import (
 // hostDigestionTrustPolicyDir holds the per-image trust policy drop-ins.
 const hostDigestionTrustPolicyDir = "/etc/host-containerd/image-verifiers/digestion/trustpolicy.d"
 
+// containerdCertsDir is the hosts.d dir thar-be-registries renders from
+// settings.container-registry.mirrors; used to resolve registry mirrors.
+const containerdCertsDir = "/etc/containerd/certs.d"
+
 // extraPullFlags adds the --expected-digest flag.
 func extraPullFlags() []cli.Flag {
 	return []cli.Flag{
@@ -217,6 +221,7 @@ func pullViaTransferService(ctx context.Context, source string, client *containe
 	credHelper := &hostCtrCredentialHelper{registryConfig: registryConfig}
 	reg, err := tregistry.NewOCIRegistry(ctx, source,
 		tregistry.WithCredentials(credHelper),
+		tregistry.WithHostDir(containerdCertsDir),
 	)
 	if err != nil {
 		return nil, err
