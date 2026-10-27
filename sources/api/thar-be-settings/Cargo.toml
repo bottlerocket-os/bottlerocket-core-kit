@@ -17,7 +17,7 @@ http.workspace = true
 itertools.workspace = true
 log.workspace = true
 models.workspace = true
-nix.workspace = true
+nix = { workspace = true, features = ["process"] }
 schnauzer.workspace = true
 serde_json.workspace = true
 simplelog.workspace = true

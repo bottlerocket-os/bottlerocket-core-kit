@@ -19,7 +19,7 @@ For each configured registry, it creates:
 */
 
 use log::{error, info, warn};
-use nix::fcntl::{renameat2, RenameFlags};
+use nix::fcntl::{renameat2, RenameFlags, AT_FDCWD};
 use simplelog::{Config as LogConfig, LevelFilter, SimpleLogger};
 use snafu::ResultExt;
 use std::fs;
@@ -113,7 +113,7 @@ fn run() -> Result<()> {
 /// Atomically exchange two directories using Linux renameat2.
 /// Both paths must exist. After the call, each path points to what the other contained.
 fn rename_exchange_dir(a: &Path, b: &Path) -> Result<()> {
-    renameat2(None, a, None, b, RenameFlags::RENAME_EXCHANGE)
+    renameat2(AT_FDCWD, a, AT_FDCWD, b, RenameFlags::RENAME_EXCHANGE)
         .context(RenameDirSnafu { from: a, to: b })
 }
 

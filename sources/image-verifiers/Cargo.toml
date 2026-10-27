@@ -28,7 +28,6 @@ snafu.workspace = true
 tempfile.workspace = true
 toml.workspace = true
 walkdir.workspace = true
-nix = { workspace = true, features = ["fs"] }
 
 [build-dependencies]
 generate-readme.workspace = true
