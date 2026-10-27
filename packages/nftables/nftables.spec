@@ -1,5 +1,5 @@
 Name: %{_cross_os}nftables
-Version: 1.1.6
+Version: 1.1.7
 Release: 1%{?dist}
 Summary: Tools for managing Netfilter tables
 License: GPL-2.0-only

@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://netfilter.org/projects/nftables/files/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://netfilter.org/projects/nftables/files/nftables-1.1.6.tar.xz"
-sha512 = "8d0a833d0ae2b6ac82e0da8bb74ffb69679e49a938b86a75d4ee3d81343400a95fe064cf95d60d22df30370779e524b31497a9c89a516d9bff645f3f83bb6bb1"
+url = "https://netfilter.org/projects/nftables/files/nftables-1.1.7.tar.xz"
+sha512 = "4dc900ad6e74c4ce532df974287bd3d5382ccabcee9e61b7639071abae70c215a8dea04d1f5af6f0f431e5717bd98db12dc858b00b51f284a17b488ef648b73d"
 
 [[package.metadata.build-package.external-files]]
-url = "https://netfilter.org/projects/nftables/files/nftables-1.1.6.tar.xz.sig"
-sha512 = "7a7cc7773c4784f7c5902b3fd33b7efcb808eb846bee4a0fed5f8ef54759a5cf2dd59605d171fe2ffa59416db7e56162f59b7abbd7fdfa2b5e3d417942743585"
+url = "https://netfilter.org/projects/nftables/files/nftables-1.1.7.tar.xz.sig"
+sha512 = "9ef7fbb7b6a7cd98643ae8848486476049ac29ae1e6330307cf8e67ba85f9d97e1eb3e9d3502a9749c7ac282ef80152017d4b1d49f0b0442cb5a2412986d6010"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
