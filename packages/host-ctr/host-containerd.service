@@ -3,6 +3,9 @@ Description=containerd runtime for host containers
 Documentation=https://containerd.io
 After=network-online.target preconfigured.target
 Wants=network-online.target preconfigured.target
+# Order after the verifier overlay mount so the bindir is populated at start,
+# and after the trust policy drop-in mount so pinned pulls can write to it.
+RequiresMountsFor=/opt/host-civ /etc/host-containerd/image-verifiers/digestion/trustpolicy.d
 
 [Service]
 EnvironmentFile=/etc/network/proxy.env
