@@ -2,7 +2,7 @@
 //! settings, resetting them to their original state when the Terminal is dropped.
 
 use super::get_winsize;
-use libc::{STDIN_FILENO, STDOUT_FILENO};
+use libc::STDOUT_FILENO;
 use log::{debug, warn};
 use model::exec::TtyInit;
 use nix::{
@@ -10,6 +10,7 @@ use nix::{
     unistd::isatty,
 };
 use snafu::ResultExt;
+use std::io::{stdin, stdout};
 
 /// The Terminal type acts as a guard around changes to terminal settings, resetting them to their
 /// original state when the Terminal is dropped.
@@ -40,8 +41,8 @@ impl Terminal {
             Some(true) => true,
             Some(false) => false,
             None => {
-                let stdin_tty = isatty(STDIN_FILENO) == Ok(true);
-                let stdout_tty = isatty(STDOUT_FILENO) == Ok(true);
+                let stdin_tty = isatty(stdin()) == Ok(true);
+                let stdout_tty = isatty(stdout()) == Ok(true);
                 let is_tty = stdin_tty && stdout_tty;
                 debug!("Detected tty: {is_tty}");
                 is_tty
@@ -59,7 +60,7 @@ impl Terminal {
 
             // Get the current settings of the user's terminal so we can restore them later.
             let current_termios =
-                tcgetattr(STDOUT_FILENO).context(error::TermAttrSnafu { op: "get" })?;
+                tcgetattr(stdout()).context(error::TermAttrSnafu { op: "get" })?;
 
             debug!("Setting terminal to raw mode, sorry about the carriage returns");
             let mut new_termios = current_termios.clone();
@@ -69,7 +70,7 @@ impl Terminal {
             cfmakeraw(&mut new_termios);
             // We make the change 'NOW' because we don't expect any input/output yet, and so should
             // have nothing to FLUSH.
-            tcsetattr(STDOUT_FILENO, SetArg::TCSANOW, &new_termios)
+            tcsetattr(stdout(), SetArg::TCSANOW, &new_termios)
                 .context(error::TermAttrSnafu { op: "set" })?;
 
             orig_termios = Some(current_termios);
@@ -89,7 +90,7 @@ impl Drop for Terminal {
         if let Some(orig_termios) = &self.orig_termios {
             // We shouldn't fail to reset unless stdout was closed somehow, and there's not much we
             // can do about cleaning it up then.
-            if tcsetattr(STDOUT_FILENO, SetArg::TCSANOW, orig_termios).is_err() {
+            if tcsetattr(stdout(), SetArg::TCSANOW, orig_termios).is_err() {
                 warn!("Failed to clean up terminal :(");
             }
         }

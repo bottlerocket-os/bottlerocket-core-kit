@@ -38,7 +38,7 @@ hyper-unix-connector.workspace = true
 libc.workspace = true
 log.workspace = true
 models.workspace = true
-nix.workspace = true
+nix = { workspace = true, features = ["term"] }
 olpc-cjson.workspace = true
 rand = { workspace = true, features = ["default"] }
 reqwest.workspace = true
