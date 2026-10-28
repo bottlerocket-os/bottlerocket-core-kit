@@ -79,7 +79,6 @@ libcap = { path = "../../packages/libcap" }
 libcrypto = { path = "../../packages/libcrypto" }
 libcryptsetup = { path = "../../packages/libcryptsetup" }
 libdevmapper = { path = "../../packages/libdevmapper" }
-libdrm = { path = "../../packages/libdrm" }
 libelf = { path = "../../packages/libelf" }
 libffi = { path = "../../packages/libffi" }
 libjson-c = { path = "../../packages/libjson-c" }

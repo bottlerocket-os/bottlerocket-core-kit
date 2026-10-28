@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-01x0yd7oww77"
+title = "libdrm support ended"
+severity = "low"
+end-of-life = true
+description = "libdrm is no longer included in Bottlerocket. All users must upgrade to a version of the OS that does not include this package."
+
+[[advisory.products]]
+package-name = "libdrm"
+patched-version = "2.4.129"
+patched-epoch = "1"
+
+[updateinfo]
+author = "jepiyush"
+issue-date = 2026-10-28T16:30:00Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
