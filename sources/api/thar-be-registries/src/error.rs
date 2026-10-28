@@ -22,6 +22,12 @@ pub(super) enum Error {
         source: std::io::Error,
     },
 
+    #[snafu(display("Failed to read directory '{}': {}", path, source))]
+    ReadDir {
+        path: String,
+        source: std::io::Error,
+    },
+
     #[snafu(display("Failed to write file '{}': {}", path, source))]
     WriteFile {
         path: String,
