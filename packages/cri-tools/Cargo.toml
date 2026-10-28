@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/kubernetes-sigs/cri-tools/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/kubernetes-sigs/cri-tools/archive/v1.35.0/cri-tools-1.35.0.tar.gz"
-sha512 = "ea34e736b457f851b610e8091ebbb608ac0f790c80156ad3e1a7080c76df4ea759091300b7ee6b5812a42ec93e165d71b6fa06f12424f46b4b181f5059b100bb"
+url = "https://github.com/kubernetes-sigs/cri-tools/archive/v1.37.0/cri-tools-1.37.0.tar.gz"
+sha512 = "1895be8ba45d3c8f2e5189b795eb61139957c001e0b760a610163bd3aa8260c187a1a2ffe5cd182f88d7379a5875cf357b839e95604a03d5eb29ff1667731370"
 bundle-modules = [ "go" ]
 
 [build-dependencies]
