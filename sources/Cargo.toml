@@ -92,6 +92,7 @@ members = [
 apiclient = { version = "0.1", path = "api/apiclient", default-features = false }
 aws-smithy-experimental = { version = "0.1", path = "aws-smithy-experimental" }
 block-party = { version = "0.1", path = "updater/block-party" }
+bottlerocket-crypto-provider = { version = "0.1", path = "bottlerocket-crypto-provider" }
 bottlerocket-image-features = { version = "0.1", path = "bottlerocket-image-features" }
 bottlerocket-release = { version = "0.1", path = "bottlerocket-release" }
 constants = { version = "0.1", path = "constants" }

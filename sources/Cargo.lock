@@ -6890,7 +6890,7 @@ version = "0.1.0"
 dependencies = [
  "argh",
  "async-trait",
- "aws-lc-rs",
+ "bottlerocket-crypto-provider",
  "bottlerocket-modeled-types",
  "bottlerocket-release",
  "bytes",
