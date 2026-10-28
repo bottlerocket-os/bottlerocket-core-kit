@@ -101,6 +101,11 @@ Patch9020: 9020-core-validate-input-cgroup-path-more-prudently.patch
 Patch9038: 9038-nspawn-normalize-pivot_root-paths.patch
 Patch9039: 9039-nspawn-apply-BindUser-Ephemeral-from-settings-fil.patch
 
+# Backport of upstream commit cd7f3702eb47 to create the PrivateDevices=
+# temporary mount point under /run/systemd instead of /tmp, which is not
+# guaranteed to be mounted when early boot services start. Fixed in v255.
+Patch9040: 9040-namespace-use-run-systemd-for-PrivateDevices.patch
+
 BuildRequires: gperf
 BuildRequires: intltool
 BuildRequires: meson
