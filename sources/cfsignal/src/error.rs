@@ -42,4 +42,9 @@ pub enum Error {
             >,
         >,
     },
+
+    #[snafu(display("Invalid proxy URL: {}", source))]
+    ProxyConfig {
+        source: aws_smithy_http_client::proxy::ProxyError,
+    },
 }
