@@ -69,7 +69,6 @@ members = [
   "packages/libcap",
   "packages/libcrypto",
   "packages/libdevmapper",
-  "packages/libdrm",
   "packages/libelf",
   "packages/libffi",
   "packages/libgcc",

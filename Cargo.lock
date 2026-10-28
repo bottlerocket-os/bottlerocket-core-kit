@@ -139,7 +139,6 @@ dependencies = [
  "libcrypto",
  "libcryptsetup",
  "libdevmapper",
- "libdrm",
  "libelf",
  "libffi",
  "libgcc",
@@ -659,13 +658,6 @@ dependencies = [
  "libselinux",
  "libudev",
  "util-linux",
-]
-
-[[package]]
-name = "libdrm"
-version = "0.1.0"
-dependencies = [
- "glibc",
 ]
 
 [[package]]
