@@ -134,6 +134,7 @@ async fn run_inner(outfile: &Path, commands: &[&str]) -> Result<()> {
 #[tokio::main]
 async fn main() -> ! {
     let outpath = parse_args(env::args());
+    bottlerocket_crypto_provider::install_provider().expect("failed to install crypto provider");
     process::exit(match run(&outpath).await {
         Ok(()) => 0,
         Err(err) => {
