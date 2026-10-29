@@ -17,6 +17,7 @@ Environment=ECS_ENGINE_TASK_CLEANUP_WAIT_DURATION="{{default "3h" settings.ecs.t
 Environment=ECS_IMAGE_CLEANUP_INTERVAL="{{default "30m" settings.ecs.image-cleanup-wait}}"
 Environment=ECS_IMAGE_MINIMUM_CLEANUP_AGE="{{default "1h" settings.ecs.image-cleanup-age}}"
 Environment=ECS_IMAGE_PULL_BEHAVIOR="{{default "default" settings.ecs.image-pull-behavior}}"
+Environment=ECS_INSTANCE_IP_COMPATIBILITY="{{default "" settings.ecs.instance-ip-compatibility}}"
 Environment=ECS_LOGLEVEL="{{settings.ecs.loglevel}}"
 Environment=ECS_NUM_IMAGES_DELETE_PER_CYCLE="{{default 5 settings.ecs.image-cleanup-delete-per-cycle}}"
 Environment=ECS_RESERVED_MEMORY="{{default 0 settings.ecs.reserved-memory}}"
