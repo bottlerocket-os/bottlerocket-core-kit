@@ -1,6 +1,5 @@
-use crate::aws::{sdk_config, LogFailedAttempts};
-use crate::PROVIDER;
-use aws_smithy_http_client::{proxy::ProxyConfig, tls, Builder as HttpClientBuilder, Connector};
+use crate::aws::{sdk_config, sdk_http_clients, LogFailedAttempts};
+use aws_smithy_runtime_api::client::http::SharedHttpClient;
 use aws_smithy_types::error::display::DisplayErrorContext;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
@@ -55,9 +54,9 @@ where
     H: AsRef<str>,
     N: AsRef<str>,
 {
-    let config = sdk_config(region).await;
-
-    let client = build_client(https_proxy, no_proxy, config)?;
+    let clients = sdk_http_clients(https_proxy, no_proxy).context(ProxyConfigSnafu)?;
+    let config = sdk_config(region, clients.credentials).await;
+    let client = build_client(&config, clients.service);
 
     tokio::time::timeout(
         FETCH_PRIVATE_DNS_NAME_TIMEOUT,
@@ -105,40 +104,16 @@ where
     .context(FetchPrivateDnsNameTimeoutSnafu)?
 }
 
-fn build_client<H, N>(
-    https_proxy: Option<H>,
-    no_proxy: Option<&[N]>,
-    config: aws_config::SdkConfig,
-) -> Result<aws_sdk_ec2::Client>
-where
-    H: AsRef<str>,
-    N: AsRef<str>,
-{
-    let http_client = if let Some(https_proxy) = https_proxy {
-        let https_proxy = https_proxy.as_ref().to_string();
-        let mut proxy = ProxyConfig::https(&https_proxy).context(ProxyConfigSnafu)?;
-        if let Some(no_proxy) = no_proxy {
-            let no_proxy_str: Vec<&str> = no_proxy.iter().map(|s| s.as_ref()).collect();
-            proxy = proxy.no_proxy(no_proxy_str.join(","));
-        }
-        HttpClientBuilder::new().build_with_connector_fn(move |settings, _runtime_components| {
-            let mut builder = Connector::builder()
-                .proxy_config(proxy.clone())
-                .tls_provider(tls::Provider::Rustls(PROVIDER.clone()));
-            builder.set_connector_settings(settings.cloned());
-            builder.build()
-        })
-    } else {
-        HttpClientBuilder::new()
-            .tls_provider(tls::Provider::Rustls(PROVIDER.clone()))
-            .build_https()
-    };
-    let ec2_config = aws_sdk_ec2::config::Builder::from(&config)
+fn build_client(
+    config: &aws_config::SdkConfig,
+    http_client: SharedHttpClient,
+) -> aws_sdk_ec2::Client {
+    let ec2_config = aws_sdk_ec2::config::Builder::from(config)
         .http_client(http_client)
         .interceptor(LogFailedAttempts::new())
         .build();
 
-    Ok(aws_sdk_ec2::Client::from_conf(ec2_config))
+    aws_sdk_ec2::Client::from_conf(ec2_config)
 }
 
 #[cfg(test)]
@@ -153,7 +128,8 @@ mod test {
     const INSTANCE_ID: &str = "i-0123456789abcdef0";
 
     fn test_client(endpoint_url: &str) -> aws_sdk_ec2::Client {
-        build_client::<&str, &str>(None, None, test_sdk_config(endpoint_url)).unwrap()
+        let http_client = sdk_http_clients::<&str, &str>(None, None).unwrap().service;
+        build_client(&test_sdk_config(endpoint_url), http_client)
     }
 
     #[tokio::test]
