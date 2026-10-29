@@ -1,7 +1,5 @@
-use crate::aws::sdk_config;
-use crate::PROVIDER;
+use crate::aws::{sdk_config, sdk_http_clients};
 use aws_sdk_eks::types::KubernetesNetworkConfigResponse;
-use aws_smithy_http_client::{proxy::ProxyConfig, tls, Builder as HttpClientBuilder, Connector};
 use aws_smithy_types::error::display::DisplayErrorContext;
 use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use snafu::{OptionExt, ResultExt, Snafu};
@@ -55,9 +53,12 @@ where
     H: AsRef<str>,
     N: AsRef<str>,
 {
-    let config = sdk_config(region).await;
-
-    let client = build_client(https_proxy, no_proxy, config)?;
+    let clients = sdk_http_clients(https_proxy, no_proxy).context(ProxyConfigSnafu)?;
+    let config = sdk_config(region, clients.credentials).await;
+    let service_config = aws_sdk_eks::config::Builder::from(&config)
+        .http_client(clients.service)
+        .build();
+    let client = aws_sdk_eks::Client::from_conf(service_config);
 
     tokio::time::timeout(EKS_DESCRIBE_CLUSTER_TIMEOUT, async {
         log::info!("EKS DescribeCluster for {}", cluster);
@@ -87,39 +88,4 @@ where
     })
     .await
     .context(DescribeClusterTimeoutSnafu)?
-}
-
-fn build_client<H, N>(
-    https_proxy: Option<H>,
-    no_proxy: Option<&[N]>,
-    config: aws_config::SdkConfig,
-) -> Result<aws_sdk_eks::Client>
-where
-    H: AsRef<str>,
-    N: AsRef<str>,
-{
-    let http_client = if let Some(https_proxy) = https_proxy {
-        let https_proxy = https_proxy.as_ref().to_string();
-        let mut proxy = ProxyConfig::https(&https_proxy).context(ProxyConfigSnafu)?;
-        if let Some(no_proxy) = no_proxy {
-            let no_proxy_str: Vec<&str> = no_proxy.iter().map(|s| s.as_ref()).collect();
-            proxy = proxy.no_proxy(no_proxy_str.join(","));
-        }
-        HttpClientBuilder::new().build_with_connector_fn(move |settings, _runtime_components| {
-            let mut builder = Connector::builder()
-                .proxy_config(proxy.clone())
-                .tls_provider(tls::Provider::Rustls(PROVIDER.clone()));
-            builder.set_connector_settings(settings.cloned());
-            builder.build()
-        })
-    } else {
-        HttpClientBuilder::new()
-            .tls_provider(tls::Provider::Rustls(PROVIDER.clone()))
-            .build_https()
-    };
-    let eks_config = aws_sdk_eks::config::Builder::from(&config)
-        .http_client(http_client)
-        .build();
-
-    Ok(aws_sdk_eks::Client::from_conf(eks_config))
 }
