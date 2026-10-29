@@ -7,6 +7,7 @@ It sets kernel-related settings, for example:
 * sysctl values, based on key/value pairs in `settings.kernel.sysctl`
 * lockdown mode, based on the value of `settings.kernel.lockdown`
 * static and transparent hugepage settings, based on the values of `settings.kernel.hugepages`
+* zram swap size at boot, based on `settings.kernel.zram.size`
 
 corndog also provides a settings generator for hugepages, subcommand "generate-hugepages-setting".
 
