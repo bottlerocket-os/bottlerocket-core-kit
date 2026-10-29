@@ -1,5 +1,9 @@
 %global _cross_first_party 1
 %undefine _debugsource_packages
+# Temporarily skip the SDK check-fips policy: the runtime crypto provider
+# builds the standard binaries with aws-lc-fips-sys, which the current
+# checker rejects. Remove once the SDK ships the updated check-fips.
+%undefine cross_check_fips
 %global cross_generate_sbom %{shrink: \
   mkdir -p %{_builddir}/sbom-temp && \
   sbomtool generate \
