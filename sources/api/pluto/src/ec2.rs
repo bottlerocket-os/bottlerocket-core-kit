@@ -1,4 +1,5 @@
-use crate::aws::{sdk_config, sdk_http_client, LogFailedAttempts};
+use crate::aws::{sdk_config, sdk_http_clients, LogFailedAttempts};
+use aws_smithy_runtime_api::client::http::SharedHttpClient;
 use aws_smithy_types::error::display::DisplayErrorContext;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
@@ -53,9 +54,10 @@ where
     H: AsRef<str>,
     N: AsRef<str>,
 {
-    let config = sdk_config(region).await;
+    let clients = sdk_http_clients(https_proxy, no_proxy).context(ProxyConfigSnafu)?;
+    let config = sdk_config(region, clients.credentials).await;
 
-    let client = build_client(https_proxy, no_proxy, config)?;
+    let client = build_client(config, clients.service);
 
     tokio::time::timeout(
         FETCH_PRIVATE_DNS_NAME_TIMEOUT,
@@ -103,22 +105,16 @@ where
     .context(FetchPrivateDnsNameTimeoutSnafu)?
 }
 
-fn build_client<H, N>(
-    https_proxy: Option<H>,
-    no_proxy: Option<&[N]>,
+fn build_client(
     config: aws_config::SdkConfig,
-) -> Result<aws_sdk_ec2::Client>
-where
-    H: AsRef<str>,
-    N: AsRef<str>,
-{
-    let http_client = sdk_http_client(https_proxy, no_proxy).context(ProxyConfigSnafu)?;
+    http_client: SharedHttpClient,
+) -> aws_sdk_ec2::Client {
     let ec2_config = aws_sdk_ec2::config::Builder::from(&config)
         .http_client(http_client)
         .interceptor(LogFailedAttempts)
         .build();
 
-    Ok(aws_sdk_ec2::Client::from_conf(ec2_config))
+    aws_sdk_ec2::Client::from_conf(ec2_config)
 }
 
 #[cfg(test)]
@@ -132,7 +128,8 @@ mod test {
         let config = aws_config::SdkConfig::builder()
             .behavior_version(BehaviorVersion::v2026_01_12())
             .build();
-        let client = build_client::<&str, &str>(None, None, config).unwrap();
+        let http_client = sdk_http_clients::<&str, &str>(None, None).unwrap().service;
+        let client = build_client(config, http_client);
         assert!(client
             .config()
             .interceptors()
