@@ -286,8 +286,6 @@ where
 
 /// Uses the reqwest library to send a GET request to `URL` and returns the response.
 fn send_get_request(url: &str) -> Result<Response> {
-    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
-
     let url = Url::parse(url).context(error::HttpUrlParseSnafu { url })?;
     let client = Client::builder()
         .build()

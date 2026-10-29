@@ -380,13 +380,14 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "aws-config",
- "aws-lc-rs",
  "aws-sdk-s3",
  "aws-sdk-secretsmanager",
  "aws-sdk-ssm",
  "aws-smithy-checksums",
+ "aws-smithy-http-client 1.2.0",
  "aws-smithy-types",
  "base64 0.22.1",
+ "bottlerocket-crypto-provider",
  "constants",
  "datastore",
  "futures",
@@ -405,7 +406,6 @@ dependencies = [
  "rand 0.8.8",
  "reqwest 0.12.28",
  "retry-read",
- "rustls 0.23.46",
  "serde",
  "serde_json",
  "signal-hook",
@@ -3824,12 +3824,11 @@ checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
 name = "logdog"
 version = "0.1.0"
 dependencies = [
- "aws-lc-rs",
+ "bottlerocket-crypto-provider",
  "flate2",
  "generate-readme",
  "glob",
  "reqwest 0.12.28",
- "rustls 0.23.46",
  "serde_json",
  "shell-words",
  "snafu",
@@ -3919,13 +3918,12 @@ name = "metricdog"
 version = "0.1.0"
 dependencies = [
  "argh",
- "aws-lc-rs",
+ "bottlerocket-crypto-provider",
  "bottlerocket-release",
  "generate-readme",
  "httptest",
  "log",
  "reqwest 0.12.28",
- "rustls 0.23.46",
  "serde",
  "serde_json",
  "simplelog",
