@@ -527,6 +527,8 @@ async fn main_inner() -> Result<()> {
     // SimpleLogger will send errors to stderr and anything less to stdout.
     SimpleLogger::init(arguments.log_level, LogConfig::default()).context(error::LoggerSnafu)?;
 
+    bottlerocket_crypto_provider::install_provider().expect("failed to install crypto provider");
+
     let command =
         serde_plain::from_str::<Command>(&arguments.subcommand).unwrap_or_else(|_| usage());
 
