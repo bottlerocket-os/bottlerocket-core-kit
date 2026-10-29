@@ -1,7 +1,7 @@
 use crate::error::{self, Result};
-
 use aws_config::BehaviorVersion;
-use aws_smithy_experimental::hyper_1_0::{CryptoMode, HyperClientBuilder};
+use aws_smithy_http_client::tls::rustls_provider::CryptoMode;
+use aws_smithy_http_client::{proxy::ProxyConfig, tls, Builder as HttpClientBuilder, Connector};
 use aws_types::region::Region;
 use imdsclient::ImdsClient;
 use log::info;
@@ -16,21 +16,30 @@ pub async fn signal_resource(
     status: String,
 ) -> Result<()> {
     info!("Connecting to IMDS");
-    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    bottlerocket_crypto_provider::install_provider().expect("failed to install crypto provider");
     let mut client = ImdsClient::new();
     let instance_id = get_instance_id(&mut client).await?;
     let region = get_region(&mut client).await?;
 
     info!("Region: {region:?} - InstanceID: {instance_id:?} - Signal: {status:?}");
-    let config = aws_config::defaults(BehaviorVersion::v2026_01_12())
-        .region(Region::new(region.to_owned()))
-        .load()
-        .await;
+    let crypto_mode = CryptoMode::Custom(
+        bottlerocket_crypto_provider::provider()
+            .expect("failed to detect FIPS mode for crypto provider"),
+    );
 
-    #[cfg(feature = "fips")]
-    let crypto_mode = CryptoMode::AwsLcFips;
-    #[cfg(not(feature = "fips"))]
-    let crypto_mode = CryptoMode::AwsLc;
+    // Credentials retain the SDK's broader environment proxy policy.
+    let credentials_crypto_mode = crypto_mode.clone();
+    let credentials_http_client =
+        HttpClientBuilder::new().build_with_connector_fn(move |settings, runtime_components| {
+            let mut connector = Connector::builder()
+                .proxy_config(ProxyConfig::from_env())
+                .tls_provider(tls::Provider::Rustls(credentials_crypto_mode.clone()));
+            connector.set_connector_settings(settings.cloned());
+            if let Some(components) = runtime_components {
+                connector.set_sleep_impl(components.sleep_impl());
+            }
+            connector.build()
+        });
 
     let https_proxy: Option<String> = match env::var_os("HTTPS_PROXY") {
         Some(https_proxy) => https_proxy.to_str().map(|h| h.to_string()),
@@ -45,15 +54,31 @@ pub async fn signal_resource(
     };
 
     let http_client = if let Some(https_proxy) = https_proxy {
-        let no_proxy = no_proxy.as_deref();
-        HyperClientBuilder::new()
-            .crypto_mode(crypto_mode)
-            .build_with_proxy(https_proxy, no_proxy)
+        let mut proxy = ProxyConfig::https(&https_proxy).context(error::ProxyConfigSnafu)?;
+        if let Some(ref no_proxy) = no_proxy {
+            proxy = proxy.no_proxy(no_proxy.join(","));
+        }
+        HttpClientBuilder::new().build_with_connector_fn(move |settings, runtime_components| {
+            let mut builder = Connector::builder()
+                .proxy_config(proxy.clone())
+                .tls_provider(tls::Provider::Rustls(crypto_mode.clone()));
+            builder.set_connector_settings(settings.cloned());
+            if let Some(components) = runtime_components {
+                builder.set_sleep_impl(components.sleep_impl());
+            }
+            builder.build()
+        })
     } else {
-        HyperClientBuilder::new()
-            .crypto_mode(crypto_mode)
+        HttpClientBuilder::new()
+            .tls_provider(tls::Provider::Rustls(crypto_mode))
             .build_https()
     };
+
+    let config = aws_config::defaults(BehaviorVersion::v2026_01_12())
+        .http_client(credentials_http_client)
+        .region(Region::new(region.to_owned()))
+        .load()
+        .await;
 
     let cloudformation_config = aws_sdk_cloudformation::config::Builder::from(&config)
         .http_client(http_client)

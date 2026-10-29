@@ -8,17 +8,16 @@ publish = false
 exclude = ["README.md"]
 
 [features]
-fips = ["rustls/fips", "aws-lc-rs/fips", "aws-smithy-experimental/crypto-aws-lc-fips"]
+fips = []
 
 [dependencies]
 aws-config.workspace = true
-aws-lc-rs = { workspace = true, features = ["bindgen"] }
 aws-sdk-cloudformation.workspace = true
-aws-smithy-experimental = { workspace = true, features = ["crypto-aws-lc"] }
+aws-smithy-http-client = { workspace = true, features = ["rustls-aws-lc"] }
 aws-types.workspace = true
 imdsclient.workspace = true
 log.workspace = true
-rustls.workspace = true
+bottlerocket-crypto-provider.workspace = true
 serde = { workspace = true, features = ["derive"] }
 simplelog.workspace = true
 snafu.workspace = true
