@@ -17,6 +17,8 @@ use aws_config::{self, timeout::TimeoutConfig};
 use aws_sdk_s3;
 use aws_sdk_secretsmanager;
 use aws_sdk_ssm;
+use aws_smithy_http_client::tls::rustls_provider::CryptoMode;
+use aws_smithy_http_client::{proxy::ProxyConfig, tls, Builder as HttpClientBuilder, Connector};
 use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use std::time::Duration;
 use tls_resolver_error::*;
@@ -32,13 +34,30 @@ fn format_sdk_error(e: &impl ProvideErrorMetadata) -> String {
 }
 
 /// Returns AWS SDK config with standard timeouts.
-async fn aws_sdk_config() -> aws_config::SdkConfig {
+async fn aws_sdk_config() -> ResolverResult<aws_config::SdkConfig> {
     aws_sdk_config_with_region(None).await
 }
 
 /// Returns AWS SDK config with standard timeouts and optional region override.
-async fn aws_sdk_config_with_region(region: Option<&str>) -> aws_config::SdkConfig {
+async fn aws_sdk_config_with_region(region: Option<&str>) -> ResolverResult<aws_config::SdkConfig> {
+    // The SDK's default HTTP client selects its own TLS provider. Supply the
+    // runtime-selected provider to both credential and service requests.
+    let crypto_mode =
+        CryptoMode::Custom(bottlerocket_crypto_provider::provider().context(CryptoProviderSnafu)?);
+    let http_client =
+        HttpClientBuilder::new().build_with_connector_fn(move |settings, runtime_components| {
+            let mut connector = Connector::builder()
+                .proxy_config(ProxyConfig::from_env())
+                .tls_provider(tls::Provider::Rustls(crypto_mode.clone()));
+            connector.set_connector_settings(settings.cloned());
+            if let Some(components) = runtime_components {
+                connector.set_sleep_impl(components.sleep_impl());
+            }
+            connector.build()
+        });
+
     let mut builder = aws_config::defaults(aws_config::BehaviorVersion::v2026_01_12())
+        .http_client(http_client)
         .timeout_config(
             TimeoutConfig::builder()
                 .operation_timeout(Duration::from_secs(OPERATION_TIMEOUT_SECS))
@@ -47,7 +66,7 @@ async fn aws_sdk_config_with_region(region: Option<&str>) -> aws_config::SdkConf
     if let Some(r) = region {
         builder = builder.region(aws_config::Region::new(r.to_owned()));
     }
-    builder.load().await
+    Ok(builder.load().await)
 }
 
 pub struct HttpsUri {
@@ -150,7 +169,7 @@ impl TryFrom<&SettingsInput> for S3Uri {
 #[async_trait]
 impl UriResolver for S3Uri {
     async fn resolve(&self) -> ResolverResult<String> {
-        let cfg = aws_sdk_config().await;
+        let cfg = aws_sdk_config().await?;
         let client = aws_sdk_s3::Client::new(&cfg);
 
         let resp = client
@@ -243,7 +262,7 @@ impl TryFrom<&SettingsInput> for SecretsManagerArn {
 #[async_trait]
 impl UriResolver for SecretsManagerArn {
     async fn resolve(&self) -> ResolverResult<String> {
-        let cfg = aws_sdk_config_with_region(Some(&self.region)).await;
+        let cfg = aws_sdk_config_with_region(Some(&self.region)).await?;
         let client = aws_sdk_secretsmanager::Client::new(&cfg);
         let resp = client
             .get_secret_value()
@@ -296,7 +315,7 @@ impl TryFrom<&SettingsInput> for SecretsManagerUri {
 #[async_trait]
 impl UriResolver for SecretsManagerUri {
     async fn resolve(&self) -> ResolverResult<String> {
-        let cfg = aws_sdk_config().await;
+        let cfg = aws_sdk_config().await?;
         let client = aws_sdk_secretsmanager::Client::new(&cfg);
         let resp = client
             .get_secret_value()
@@ -341,7 +360,7 @@ impl TryFrom<&SettingsInput> for SsmArn {
 #[async_trait]
 impl UriResolver for SsmArn {
     async fn resolve(&self) -> ResolverResult<String> {
-        let cfg = aws_sdk_config_with_region(Some(&self.region)).await;
+        let cfg = aws_sdk_config_with_region(Some(&self.region)).await?;
         let client = aws_sdk_ssm::Client::new(&cfg);
         let resp = client
             .get_parameter()
@@ -394,7 +413,7 @@ impl TryFrom<&SettingsInput> for SsmUri {
 #[async_trait]
 impl UriResolver for SsmUri {
     async fn resolve(&self) -> ResolverResult<String> {
-        let config = aws_sdk_config().await;
+        let config = aws_sdk_config().await?;
         let client = aws_sdk_ssm::Client::new(&config);
         let resp = client
             .get_parameter()
@@ -419,6 +438,11 @@ impl UriResolver for SsmUri {
 #[derive(Debug, Snafu)]
 #[snafu(module)]
 pub enum TlsResolverError {
+    #[snafu(display("Failed to select the runtime crypto provider: {}", source))]
+    CryptoProvider {
+        source: bottlerocket_crypto_provider::Error,
+    },
+
     #[snafu(display("Given invalid https:// URI '{}'", input_source))]
     InvalidHttpsUri { input_source: String },
 
