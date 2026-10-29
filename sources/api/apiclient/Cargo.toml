@@ -12,8 +12,8 @@ exclude = ["README.md"]
 [features]
 default = ["tls"]
 aws-sdk = ["dep:aws-config", "dep:aws-smithy-types", "dep:aws-sdk-s3", "dep:aws-sdk-secretsmanager", "dep:aws-sdk-ssm", "dep:aws-smithy-checksums"]
-tls = ["aws-sdk", "dep:rustls", "dep:aws-lc-rs", "reqwest/rustls-tls-native-roots"]
-fips = ["tls", "aws-lc-rs/fips", "rustls/fips"]
+tls = ["aws-sdk", "dep:aws-smithy-http-client", "dep:bottlerocket-crypto-provider", "reqwest/rustls-tls-native-roots"]
+fips = ["tls"]
 
 [dependencies]
 async-trait.workspace = true
@@ -23,8 +23,9 @@ aws-sdk-s3 = { workspace = true, optional = true }
 aws-sdk-secretsmanager = { workspace = true, optional = true }
 aws-sdk-ssm = { workspace = true, optional = true }
 aws-smithy-checksums = { workspace = true, optional = true }
-aws-lc-rs = { workspace = true, optional = true, features = ["bindgen"] }
+aws-smithy-http-client = { workspace = true, optional = true, features = ["rustls-aws-lc"] }
 base64.workspace = true
+bottlerocket-crypto-provider = { workspace = true, optional = true }
 constants.workspace = true
 datastore.workspace = true
 futures.workspace = true
@@ -43,7 +44,6 @@ olpc-cjson.workspace = true
 rand = { workspace = true, features = ["default"] }
 reqwest.workspace = true
 retry-read.workspace = true
-rustls = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 signal-hook.workspace = true
