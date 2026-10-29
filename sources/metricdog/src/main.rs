@@ -86,29 +86,51 @@ fn main() -> ! {
     let args: Arguments = argh::from_env();
     SimpleLogger::init(args.log_level, LogConfig::default()).expect("unable to configure logger");
     let systemd_check = SystemdCheck {};
-    process::exit(
-        match main_inner(args, Box::new(systemd_check), Box::new(systemd_check)) {
-            Ok(()) => 0,
-            Err(err) => {
-                eprintln!("{err}");
-                1
-            }
-        },
-    )
+    let result = load_config(&args).and_then(|config| {
+        main_with_config(
+            args,
+            config,
+            Box::new(systemd_check),
+            Box::new(systemd_check),
+            || bottlerocket_crypto_provider::install_provider().context(error::CryptoProviderSnafu),
+        )
+    });
+    process::exit(match result {
+        Ok(()) => 0,
+        Err(err) => {
+            eprintln!("{err}");
+            1
+        }
+    })
 }
 
 /// pub(crate) for testing.
+#[cfg(test)]
 pub(crate) fn main_inner(
     arguments: Arguments,
     service_check: Box<dyn ServiceCheck>,
     host_check: Box<dyn HostCheck>,
 ) -> Result<()> {
-    // load the metricdog config file
-    let config = match &arguments.config {
-        None => Config::new()?,
-        Some(filepath) => Config::from_file(filepath)?,
-    };
+    let config = load_config(&arguments)?;
+    // Tests can call this entry point repeatedly without installing a global provider.
+    main_with_config(arguments, config, service_check, host_check, || Ok(()))
+}
 
+fn load_config(arguments: &Arguments) -> Result<Config> {
+    // load the metricdog config file
+    match &arguments.config {
+        None => Config::new(),
+        Some(filepath) => Config::from_file(filepath),
+    }
+}
+
+fn main_with_config(
+    arguments: Arguments,
+    config: Config,
+    service_check: Box<dyn ServiceCheck>,
+    host_check: Box<dyn HostCheck>,
+    install_provider: impl FnOnce() -> Result<()>,
+) -> Result<()> {
     // exit early with no error if the opt-out flag is set
     if !config.send_metrics {
         return Ok(());
@@ -125,20 +147,111 @@ pub(crate) fn main_inner(
     // instantiate the metricdog object
     let metricdog = Metricdog::from_parts(config, os_release, service_check, host_check)?;
 
-    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
-
-    // execute the specified command
+    // Install the provider once before sending metrics, using the command's error handling.
     match arguments.command {
         Command::SendBootSuccess(_) => {
-            if let Err(err) = metricdog.send_boot_success() {
+            if let Err(err) = install_provider().and_then(|()| metricdog.send_boot_success()) {
                 // we don't want to fail the boot if there is a failure to send this message, so
                 // we log the error and return Ok(())
                 error!("Error while reporting boot success: {err}");
             }
         }
         Command::SendHealthPing(_) => {
+            install_provider()?;
             metricdog.send_health_ping()?;
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::args::{SendBootSuccess, SendHealthPing};
+    use log::LevelFilter;
+    use tempfile::TempDir;
+
+    fn arguments(command: Command) -> (TempDir, Arguments) {
+        let dir = TempDir::new().unwrap();
+        let os_release = dir.path().join("os-release");
+        std::fs::write(
+            &os_release,
+            "PRETTY_NAME=Bottlerocket\nVARIANT_ID=myvariant\nVERSION_ID=1.2.3\nBUILD_ID=abcdef0\n",
+        )
+        .unwrap();
+        let arguments = Arguments {
+            // The shared helper must use its loaded config rather than rereading this file.
+            config: Some(dir.path().join("missing-config.toml")),
+            log_level: LevelFilter::Off,
+            os_release: Some(os_release),
+            command,
+        };
+        (dir, arguments)
+    }
+
+    fn config(send_metrics: bool) -> Config {
+        Config {
+            metrics_url: "https://example.invalid/metrics".to_string(),
+            send_metrics,
+            service_checks: Vec::new(),
+            region: "us-west-2".to_string(),
+            seed: 1234,
+            version_lock: "latest".to_string(),
+            ignore_waves: false,
+        }
+    }
+
+    fn provider_failure() -> Result<()> {
+        Err(bottlerocket_crypto_provider::Error::ProviderAlreadyInstalled)
+            .context(error::CryptoProviderSnafu)
+    }
+
+    #[test]
+    fn opt_out_skips_provider_and_release() {
+        let (dir, mut arguments) = arguments(Command::SendBootSuccess(SendBootSuccess {}));
+        arguments.os_release = Some(dir.path().join("missing-os-release"));
+        main_with_config(
+            arguments,
+            config(false),
+            Box::new(SystemdCheck {}),
+            Box::new(SystemdCheck {}),
+            || panic!("opted-out metrics must not install a provider"),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn boot_provider_failure_is_best_effort() {
+        let (_dir, arguments) = arguments(Command::SendBootSuccess(SendBootSuccess {}));
+        main_with_config(
+            arguments,
+            config(true),
+            Box::new(SystemdCheck {}),
+            Box::new(SystemdCheck {}),
+            provider_failure,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn health_provider_failure_is_returned() {
+        let (_dir, arguments) = arguments(Command::SendHealthPing(SendHealthPing {}));
+        let err = main_with_config(
+            arguments,
+            config(true),
+            Box::new(SystemdCheck {}),
+            Box::new(SystemdCheck {}),
+            provider_failure,
+        )
+        .unwrap_err();
+        assert!(matches!(
+            &err,
+            error::Error::CryptoProvider {
+                source: bottlerocket_crypto_provider::Error::ProviderAlreadyInstalled
+            }
+        ));
+        assert!(err
+            .to_string()
+            .starts_with("Failed to install crypto provider: "));
+    }
 }
