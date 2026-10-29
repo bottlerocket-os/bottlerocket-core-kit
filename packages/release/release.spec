@@ -107,10 +107,8 @@ Source1101: systemd-resolved-service-env.conf
 Source1102: systemd-networkd-service-env.conf
 Source1103: systemd-logind-inhibit-maxdelay.conf
 Source1104: aws-config.conf
-Source1105: wait-for-selinux-policy.conf
 Source1106: systemd-resolved-service-private-tmp.conf
 Source1107: systemd-journald-compat.conf
-Source1108: systemd-sysusers-selinux.conf
 Source1109: modprobe-no-exit.conf
 Source1110: tmp-mount-noexec.conf
 Source1111: network-pre-target-dbus-dep.conf
@@ -348,17 +346,9 @@ install -d %{buildroot}%{_cross_unitdir}/systemd-networkd.service.d
 install -p -m 0644 %{S:1102} \
   %{buildroot}%{_cross_unitdir}/systemd-networkd.service.d/00-env.conf
 
-install -d %{buildroot}%{_cross_unitdir}/systemd-udev-trigger.service.d/
-install -p -m 0644 %{S:1105} \
-  %{buildroot}%{_cross_unitdir}/systemd-udev-trigger.service.d/00-selinux.conf
-
 install -d %{buildroot}%{_cross_unitdir}/systemd-journald.service.d
 install -p -m 0644 %{S:1107} \
   %{buildroot}%{_cross_unitdir}/systemd-journald.service.d/50-systemd-journald.conf
-
-install -d %{buildroot}%{_cross_unitdir}/systemd-sysusers.service.d
-install -p -m 0644 %{S:1108} \
-  %{buildroot}%{_cross_unitdir}/systemd-sysusers.service.d/50-systemd-sysusers.conf
 
 install -d %{buildroot}%{_cross_unitdir}/modprobe@.service.d
 install -p -m 0644 %{S:1109} \
@@ -511,10 +501,6 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %{_cross_unitdir}/service.d/10-requires-tmp.conf
 %dir %{_cross_unitdir}/systemd-tmpfiles-setup.service.d
 %{_cross_unitdir}/systemd-tmpfiles-setup.service.d/00-debug.conf
-%dir %{_cross_unitdir}/systemd-udev-trigger.service.d
-%{_cross_unitdir}/systemd-udev-trigger.service.d/00-selinux.conf
-%dir %{_cross_unitdir}/systemd-sysusers.service.d
-%{_cross_unitdir}/systemd-sysusers.service.d/50-systemd-sysusers.conf
 %dir %{_cross_unitdir}/systemd-journald.service.d
 %{_cross_unitdir}/systemd-journald.service.d/50-systemd-journald.conf
 %dir %{_cross_unitdir}/modprobe@.service.d
