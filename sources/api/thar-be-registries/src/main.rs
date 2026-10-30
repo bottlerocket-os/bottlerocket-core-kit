@@ -491,6 +491,63 @@ mod tests {
     }
 
     #[test]
+    fn test_write_hosts_toml_preserves_endpoint_order() {
+        let dir = tempfile::tempdir().unwrap();
+        let mirror = Mirror {
+            registry: "docker.io".to_string(),
+            endpoint: vec![
+                "https://zeta.example.com".to_string(),
+                "https://alpha.example.com".to_string(),
+                "https://mid.example.com/v2/docker-hub".to_string(),
+            ],
+        };
+        write_hosts_toml(dir.path(), &mirror).unwrap();
+        let content = fs::read_to_string(dir.path().join("docker.io/hosts.toml")).unwrap();
+        let hosts: Vec<&str> = content
+            .lines()
+            .filter(|l| l.starts_with("[host."))
+            .collect();
+        assert_eq!(
+            hosts,
+            [
+                r#"[host."https://zeta.example.com"]"#,
+                r#"[host."https://alpha.example.com"]"#,
+                r#"[host."https://mid.example.com/v2/docker-hub"]"#,
+            ],
+            "hosts.toml:\n{}",
+            content
+        );
+    }
+
+    #[test]
+    fn test_write_hosts_toml_duplicate_endpoint_keeps_first_position() {
+        let dir = tempfile::tempdir().unwrap();
+        let mirror = Mirror {
+            registry: "*".to_string(),
+            endpoint: vec![
+                "https://b.example.com".to_string(),
+                "https://a.example.com".to_string(),
+                "https://b.example.com".to_string(),
+            ],
+        };
+        write_hosts_toml(dir.path(), &mirror).unwrap();
+        let content = fs::read_to_string(dir.path().join("_default/hosts.toml")).unwrap();
+        let hosts: Vec<&str> = content
+            .lines()
+            .filter(|l| l.starts_with("[host."))
+            .collect();
+        assert_eq!(
+            hosts,
+            [
+                r#"[host."https://b.example.com"]"#,
+                r#"[host."https://a.example.com"]"#,
+            ],
+            "hosts.toml:\n{}",
+            content
+        );
+    }
+
+    #[test]
     fn test_empty_endpoints() {
         let dir = tempfile::tempdir().unwrap();
         let mirror = Mirror {

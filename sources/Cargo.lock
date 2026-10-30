@@ -6228,6 +6228,7 @@ name = "thar-be-registries"
 version = "0.1.0"
 dependencies = [
  "generate-readme",
+ "indexmap",
  "log",
  "nix",
  "serde",

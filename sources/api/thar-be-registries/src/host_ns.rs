@@ -5,13 +5,14 @@
 //!
 //! [containerd documentation]: https://github.com/containerd/containerd/blob/c4982bffc6dd887a58a189f8a6be99b1b1542953/docs/hosts.md
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::fmt;
 use url::Url;
 
 /// A registry mirror endpoint URL.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Endpoint(String);
 
@@ -64,9 +65,10 @@ pub struct HostNamespace {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server: Option<String>,
 
-    /// Mirror host configurations, keyed by endpoint URL.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub host: BTreeMap<Endpoint, HostConfig>,
+    /// Mirror host configurations, keyed by endpoint URL. containerd tries hosts in the order
+    /// they appear in hosts.toml, so this map must keep the insertion (settings) order.
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub host: IndexMap<Endpoint, HostConfig>,
 }
 
 /// Configuration for a single host/mirror endpoint.
@@ -105,7 +107,7 @@ mod tests {
     fn test_serialize_server_only() {
         let ns = HostNamespace {
             server: Some("https://registry-1.docker.io".to_string()),
-            host: BTreeMap::new(),
+            host: IndexMap::new(),
         };
         let s = toml::to_string(&ns).unwrap();
         assert!(s.contains(r#"server = "https://registry-1.docker.io""#));
@@ -116,7 +118,7 @@ mod tests {
     fn test_serialize_server_and_host() {
         let mut ns = HostNamespace {
             server: Some("https://registry-1.docker.io".to_string()),
-            host: BTreeMap::new(),
+            host: IndexMap::new(),
         };
         ns.host.insert(
             Endpoint::new("https://mirror.example.com"),
@@ -143,7 +145,7 @@ mod tests {
     fn test_roundtrip() {
         let mut ns = HostNamespace {
             server: Some("https://test.io".to_string()),
-            host: BTreeMap::new(),
+            host: IndexMap::new(),
         };
         ns.host.insert(
             Endpoint::new("https://mirror.io"),
@@ -152,6 +154,24 @@ mod tests {
         let s = toml::to_string(&ns).unwrap();
         let parsed: HostNamespace = toml::from_str(&s).unwrap();
         assert_eq!(ns, parsed);
+    }
+
+    #[test]
+    fn test_serialize_preserves_host_order() {
+        let mut ns = HostNamespace::default();
+        for url in [
+            "https://zeta.example.com",
+            "https://alpha.example.com",
+            "https://mid.example.com",
+        ] {
+            ns.host
+                .insert(Endpoint::new(url), HostConfig::new([Capability::Pull]));
+        }
+        let s = toml::to_string(&ns).unwrap();
+        let zeta = s.find(r#"[host."https://zeta.example.com"]"#).unwrap();
+        let alpha = s.find(r#"[host."https://alpha.example.com"]"#).unwrap();
+        let mid = s.find(r#"[host."https://mid.example.com"]"#).unwrap();
+        assert!(zeta < alpha && alpha < mid, "hosts out of order:\n{}", s);
     }
 
     #[test]
