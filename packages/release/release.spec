@@ -97,8 +97,6 @@ Source1080: var-lib-kernel-devel-lower.mount.in
 Source1081: usr-src-kernels.mount.in
 Source1082: usr-share-licenses.mount.in
 Source1083: lib-modules.mount.in
-Source1084: usr-bin.mount.in
-Source1085: usr-libexec.mount.in
 Source1086: bottlerocket.mount.in
 
 # Drop-in units to override defaults
@@ -395,16 +393,6 @@ LIBDIRPATH=$(systemd-escape --path %{_cross_libdir})
 sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:1083} > ${LIBDIRPATH}-modules.mount
 install -p -m 0644 ${LIBDIRPATH}-modules.mount %{buildroot}%{_cross_unitdir}
 
-# Mounting on usr/bin requires using the real path: %{_cross_bindir}
-BINDIRPATH=$(systemd-escape --path %{_cross_bindir})
-sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:1084} > ${BINDIRPATH}.mount
-install -p -m 0644 ${BINDIRPATH}.mount %{buildroot}%{_cross_unitdir}
-
-# Mounting on usr/libexec requires using the real path: %{_cross_libexecdir}
-LIBEXECDIRPATH=$(systemd-escape --path %{_cross_libexecdir})
-sed -e 's|PREFIX|%{_cross_prefix}|g' %{S:1085} > ${LIBEXECDIRPATH}.mount
-install -p -m 0644 ${LIBEXECDIRPATH}.mount %{buildroot}%{_cross_unitdir}
-
 # Process bottlerocket mount template files with proper systemd naming
 BOTTLEROCKET_PATH=$(systemd-escape --path /.bottlerocket)
 install -p -m 0644 %{S:1086} %{buildroot}%{_cross_unitdir}/${BOTTLEROCKET_PATH}.mount
@@ -522,8 +510,6 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %dir %{_cross_unitdir}/tmp.mount.d
 %{_cross_unitdir}/tmp.mount.d/10-no-exec.conf
 %{_cross_unitdir}/configure-snapshotter.service
-%{_cross_unitdir}/*-bin.mount
-%{_cross_unitdir}/*-libexec.mount
 %{_cross_tmpfilesdir}/release-fips.conf
 %{_cross_libdir}/systemd/logind.conf.d/80-inhibit-maxdelay.conf
 %{_cross_libdir}/systemd/networkd.conf.d/80-release.conf

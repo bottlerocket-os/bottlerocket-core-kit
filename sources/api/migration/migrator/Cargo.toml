@@ -13,7 +13,7 @@ exclude = ["README.md"]
 fips = ["tough/fips"]
 
 [dependencies]
-aws-lc-rs = { workspace = true, features = ["bindgen"] }
+aws-lc-rs = { workspace = true, features = ["bindgen", "fips"] }
 bottlerocket-release.workspace = true
 bytes.workspace = true
 futures = { workspace = true, features = ["default"] }
