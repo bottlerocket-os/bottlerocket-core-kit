@@ -18,8 +18,8 @@ sha512 = "833c6354b77b933d96af0060d904040a4dcf91b1e6b52c7b3e9c75fee19f30f8117c61
 bundle-modules = [ "go" ]
 
 [[package.metadata.build-package.external-files]]
-url = "https://cache.bottlerocket.aws/0001-notation-bump-oras-go-to-v2.6.2.patch/64cbbafa2594a13c26c12eb610915ac014eece23346625f9b8a693164d36b1b5e9176364a0a6cfcd4c89438223bd98709a5f8c5b9e4c46cfad88feb3cd914ddb/0001-notation-bump-oras-go-to-v2.6.2.patch"
-sha512 = "64cbbafa2594a13c26c12eb610915ac014eece23346625f9b8a693164d36b1b5e9176364a0a6cfcd4c89438223bd98709a5f8c5b9e4c46cfad88feb3cd914ddb"
+url = "https://cache.bottlerocket.aws/0001-notation-bump-oras-go-to-v2.6.2.patch/be5881d112443c889285dd690f5fc3cc77722014048a7975c4ee8c31380beb10e63a8903ff879aaf13c03627f6a506852c6eac2723280bc1f657c9a1dc6e333f/0001-notation-bump-oras-go-to-v2.6.2.patch"
+sha512 = "be5881d112443c889285dd690f5fc3cc77722014048a7975c4ee8c31380beb10e63a8903ff879aaf13c03627f6a506852c6eac2723280bc1f657c9a1dc6e333f"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
