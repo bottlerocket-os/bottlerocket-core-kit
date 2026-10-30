@@ -10,6 +10,10 @@ For each configured registry, it creates:
 * `hosts.toml` - mirror endpoints with pull/resolve capabilities
 * `credentials.toml` - authentication credentials (mode 0600)
 
+If a `*` mirror is configured, a registry that only has credentials also gets a copy of
+`_default/hosts.toml`, so its credentials don't hide the `*` mirror. To keep a registry off the
+`*` mirror, give it its own mirror entry with `endpoint = []`.
+
 ## Behavior
 
 * Exits successfully (0) if the input file doesn't exist (graceful no-op)
@@ -34,7 +38,9 @@ mod registry;
 mod settings;
 
 use creds::RegistryCredentials;
-use error::{CreateDirSnafu, RenameDirSnafu, Result, SerializeTomlSnafu, WriteFileSnafu};
+use error::{
+    CreateDirSnafu, ReadDirSnafu, RenameDirSnafu, Result, SerializeTomlSnafu, WriteFileSnafu,
+};
 use host_ns::{Capability, Endpoint, HostConfig, HostNamespace};
 use registry::{encode_registry_name, parse_registry, DOCKER_HUB_HOST, DOCKER_HUB_REGISTRY};
 use settings::{read_settings, Credential, Mirror};
@@ -100,6 +106,8 @@ fn run() -> Result<()> {
             total_count,
         });
     }
+
+    apply_default_mirror(temp_dir.path())?;
 
     // Ensure target exists for atomic swap.
     fs::create_dir_all(CERTS_DIR).context(CreateDirSnafu { path: CERTS_DIR })?;
@@ -202,6 +210,44 @@ fn write_credentials_toml(base_dir: &Path, cred: &Credential) -> Result<()> {
     })?;
 
     info!("Wrote credentials.toml for '{}'", cred.registry);
+    Ok(())
+}
+
+/// Copy the default mirror's hosts.toml into every registry directory that has none.
+///
+/// containerd uses the first of `certs.d/<host>` and `certs.d/_default` that exists, whatever
+/// it contains, so a registry directory needs its own hosts.toml for the `*` mirror to apply. The
+/// copied file has no `server`, so containerd fills in the registry's own upstream exactly as it
+/// does when it reads `_default`.
+///
+/// The targets are found by scanning `base_dir`, so this applies to every directory without a
+/// hosts.toml, whatever else it holds. It must run after all other files have been written.
+fn apply_default_mirror(base_dir: &Path) -> Result<()> {
+    let default_hosts = base_dir.join(encode_registry_name("*")).join("hosts.toml");
+    if !default_hosts.exists() {
+        return Ok(());
+    }
+
+    let entries = fs::read_dir(base_dir).context(ReadDirSnafu {
+        path: base_dir.display().to_string(),
+    })?;
+    for entry in entries {
+        let entry = entry.context(ReadDirSnafu {
+            path: base_dir.display().to_string(),
+        })?;
+        let dir = entry.path();
+        let hosts = dir.join("hosts.toml");
+        if !dir.is_dir() || hosts.exists() {
+            continue;
+        }
+        fs::copy(&default_hosts, &hosts).context(WriteFileSnafu {
+            path: hosts.display().to_string(),
+        })?;
+        info!(
+            "Wrote default mirror hosts.toml for '{}'",
+            entry.file_name().to_string_lossy()
+        );
+    }
     Ok(())
 }
 
@@ -424,6 +470,145 @@ mod tests {
             .path()
             .join("registry.example.com/credentials.toml")
             .exists());
+    }
+
+    fn mirror(registry: &str, endpoint: &str) -> Mirror {
+        Mirror {
+            registry: registry.to_string(),
+            endpoint: vec![endpoint.to_string()],
+        }
+    }
+
+    fn credential(registry: &str) -> Credential {
+        Credential {
+            registry: registry.to_string(),
+            username: Some("user".to_string()),
+            password: Some("pass".to_string()),
+            auth: None,
+            identitytoken: None,
+        }
+    }
+
+    #[test]
+    fn test_credentials_inherit_default_mirror() {
+        let dir = tempfile::tempdir().unwrap();
+        write_hosts_toml(dir.path(), &mirror("*", "http://127.0.0.1:30020")).unwrap();
+        write_credentials_toml(dir.path(), &credential("registry.example.com")).unwrap();
+        apply_default_mirror(dir.path()).unwrap();
+
+        let default = fs::read_to_string(dir.path().join("_default/hosts.toml")).unwrap();
+        let hosts = fs::read_to_string(dir.path().join("registry.example.com/hosts.toml")).unwrap();
+        assert_eq!(hosts, default);
+        assert!(hosts.contains(r#"[host."http://127.0.0.1:30020"]"#));
+        assert!(!hosts.contains("server"));
+        assert!(dir
+            .path()
+            .join("registry.example.com/credentials.toml")
+            .exists());
+    }
+
+    #[test]
+    fn test_credentials_keep_explicit_mirror() {
+        let dir = tempfile::tempdir().unwrap();
+        write_hosts_toml(dir.path(), &mirror("*", "https://wildcard.example.com")).unwrap();
+        write_hosts_toml(
+            dir.path(),
+            &mirror("registry.example.com", "https://specific.example.com"),
+        )
+        .unwrap();
+        write_credentials_toml(dir.path(), &credential("registry.example.com")).unwrap();
+        apply_default_mirror(dir.path()).unwrap();
+
+        verify_file(
+            dir.path(),
+            "registry.example.com/hosts.toml",
+            &[
+                r#"server = "https://registry.example.com""#,
+                r#"[host."https://specific.example.com"]"#,
+            ],
+        );
+        let hosts = fs::read_to_string(dir.path().join("registry.example.com/hosts.toml")).unwrap();
+        assert!(!hosts.contains("wildcard.example.com"));
+    }
+
+    #[test]
+    fn test_credentials_without_default_mirror() {
+        let dir = tempfile::tempdir().unwrap();
+        write_hosts_toml(
+            dir.path(),
+            &mirror("other.example.com", "https://mirror.example.com"),
+        )
+        .unwrap();
+        write_credentials_toml(dir.path(), &credential("registry.example.com")).unwrap();
+        apply_default_mirror(dir.path()).unwrap();
+
+        assert!(!dir.path().join("registry.example.com/hosts.toml").exists());
+        assert!(dir
+            .path()
+            .join("registry.example.com/credentials.toml")
+            .exists());
+    }
+
+    #[test]
+    fn test_port_credentials_inherit_default_mirror() {
+        let dir = tempfile::tempdir().unwrap();
+        write_hosts_toml(dir.path(), &mirror("*", "https://mirror.example.com")).unwrap();
+        write_credentials_toml(dir.path(), &credential("localhost:5000")).unwrap();
+        apply_default_mirror(dir.path()).unwrap();
+
+        // No `server`, so containerd keeps its localhost defaults (http, skip_verify).
+        let hosts = fs::read_to_string(dir.path().join("localhost_5000_/hosts.toml")).unwrap();
+        assert!(hosts.contains(r#"[host."https://mirror.example.com"]"#));
+        assert!(!hosts.contains("server"));
+    }
+
+    #[test]
+    fn test_wildcard_credentials_keep_default_mirror() {
+        let dir = tempfile::tempdir().unwrap();
+        write_hosts_toml(dir.path(), &mirror("*", "https://mirror.example.com")).unwrap();
+        let default = fs::read_to_string(dir.path().join("_default/hosts.toml")).unwrap();
+        write_credentials_toml(dir.path(), &credential("*")).unwrap();
+        apply_default_mirror(dir.path()).unwrap();
+
+        assert_eq!(
+            fs::read_to_string(dir.path().join("_default/hosts.toml")).unwrap(),
+            default
+        );
+        assert!(dir.path().join("_default/credentials.toml").exists());
+    }
+
+    #[test]
+    fn test_credentials_opt_out_of_default_mirror() {
+        let dir = tempfile::tempdir().unwrap();
+        write_hosts_toml(dir.path(), &mirror("*", "https://mirror.example.com")).unwrap();
+        let opt_out = Mirror {
+            registry: "registry.example.com".to_string(),
+            endpoint: vec![],
+        };
+        write_hosts_toml(dir.path(), &opt_out).unwrap();
+        write_credentials_toml(dir.path(), &credential("registry.example.com")).unwrap();
+        apply_default_mirror(dir.path()).unwrap();
+
+        let hosts = fs::read_to_string(dir.path().join("registry.example.com/hosts.toml")).unwrap();
+        assert_eq!(hosts.trim(), r#"server = "https://registry.example.com""#);
+    }
+
+    // `docker.io/...` refs look up `certs.d/docker.io` (then `_default`), never the
+    // `registry-1.docker.io` credentials directory. This covers refs spelled
+    // `registry-1.docker.io/...`.
+    #[test]
+    fn test_docker_io_credentials_inherit_default_mirror() {
+        let dir = tempfile::tempdir().unwrap();
+        write_hosts_toml(dir.path(), &mirror("*", "https://mirror.example.com")).unwrap();
+        write_credentials_toml(dir.path(), &credential("docker.io")).unwrap();
+        apply_default_mirror(dir.path()).unwrap();
+
+        verify_file(
+            dir.path(),
+            "registry-1.docker.io/hosts.toml",
+            &[r#"[host."https://mirror.example.com"]"#],
+        );
+        assert!(!dir.path().join("docker.io").exists());
     }
 
     #[test]
