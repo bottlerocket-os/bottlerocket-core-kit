@@ -39,6 +39,9 @@ clusterDNS:
 - {{settings.kubernetes.cluster-dns-ip}}
 {{/each}}
 {{/if}}
+{{#if_not_null settings.kubernetes.merge-default-eviction-settings}}
+mergeDefaultEvictionSettings: {{settings.kubernetes.merge-default-eviction-settings}}
+{{/if_not_null}}
 {{#if settings.kubernetes.eviction-hard}}
 evictionHard:
   {{#each settings.kubernetes.eviction-hard}}
