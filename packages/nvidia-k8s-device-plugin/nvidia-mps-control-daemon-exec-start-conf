@@ -5,6 +5,10 @@ std = { version = "v1", helpers = ["if_not_null", "default"] }
 {{#if_not_null settings.kubelet-device-plugins.nvidia}}
 {{#if (eq (default "true" settings.kubelet-device-plugins.nvidia.enabled) "true")}}
 {{#if (eq settings.kubelet-device-plugins.nvidia.device-sharing-strategy "mps")}}
+[Unit]
+Requires=run-nvidia-mps-shm.mount
+After=run-nvidia-mps-shm.mount
+
 [Service]
 ExecStart=
 {{#if (eq settings.kubelet-device-plugins.nvidia.device-partitioning-strategy "mig")}}
