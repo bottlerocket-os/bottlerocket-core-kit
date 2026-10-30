@@ -46,6 +46,7 @@ fn all_helpers() -> HashMap<ExtensionName, HashMap<HelperName, Box<dyn HelperDef
             "join_node_taints" => helper!(handlebars_helpers::join_node_taints),
             "kube_reserve_cpu" => helper!(handlebars_helpers::kube_reserve_cpu),
             "kube_reserve_memory" => helper!(handlebars_helpers::kube_reserve_memory),
+            "kube_memory_min" => helper!(handlebars_helpers::kube_memory_min),
         },
 
         "network" => hashmap! {
@@ -343,6 +344,7 @@ mod test {
                     "join_node_taints",
                     "kube_reserve_cpu",
                     "kube_reserve_memory",
+                    "kube_memory_min",
                 ],
             ),
         ];

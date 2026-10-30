@@ -58,7 +58,7 @@ where
         // Get the list of affected services for each setting
         let affected_services =
             get_affected_service_metadata(socket_path.as_ref(), settings_limit).await?;
-        if affected_services.is_empty() {
+        if affected_services.values().all(Vec::is_empty) {
             return Ok(Services::default());
         }
 
@@ -198,5 +198,51 @@ impl ServiceRestart for Service {
             );
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{Read, Write};
+    use std::os::unix::net::UnixListener;
+    use std::time::Duration;
+
+    #[tokio::test]
+    async fn explicit_empty_services_do_not_query_or_restart_services() {
+        let directory = tempfile::TempDir::new().unwrap();
+        let socket = directory.path().join("api.sock");
+        let listener = UnixListener::bind(&socket).unwrap();
+        let server = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut request = Vec::new();
+            while !request.ends_with(b"\r\n\r\n") {
+                let mut byte = [0];
+                stream.read_exact(&mut byte).unwrap();
+                request.push(byte[0]);
+            }
+            assert!(String::from_utf8(request)
+                .unwrap()
+                .starts_with("GET /metadata/affected-services?"));
+            let body = r#"{"settings.kubernetes.kube-reserved-memory-min.kubelet":[]}"#;
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                body.len(), body
+            ).unwrap();
+        });
+        let result = get_affected_services(
+            &socket,
+            Some(HashSet::from([
+                "settings.kubernetes.kube-reserved-memory-min.kubelet".into(),
+            ])),
+        )
+        .await
+        .unwrap();
+        server.join().unwrap();
+        assert!(result.0.is_empty());
     }
 }
