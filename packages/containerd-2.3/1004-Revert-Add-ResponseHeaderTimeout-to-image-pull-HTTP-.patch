@@ -1,0 +1,34 @@
+From 37095090918dbfff716d0e105051638b3ccb4176 Mon Sep 17 00:00:00 2001
+From: Kyle Sessions <kssessio@amazon.com>
+Date: Fri, 30 Oct 2026 19:57:25 +0000
+Subject: [PATCH] Revert "Add: ResponseHeaderTimeout to image pull HTTP
+ transport"
+
+This reverts commit 574a60700ee870807a052e2a0d0c7eed08b7ce8f.
+
+The 30s response header timeout breaks pulls from registries that
+send headers late, e.g. Nexus scanning layers before it answers.
+Retries hit the same delay. containerd 2.2 and 1.7 have no such
+timeout. See containerd/containerd#13682; per-registry timeouts in
+hosts.toml (containerd/containerd#13636) are the eventual
+replacement.
+
+Signed-off-by: Kyle Sessions <kssessio@amazon.com>
+---
+ core/remotes/docker/registry.go | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/core/remotes/docker/registry.go b/core/remotes/docker/registry.go
+index 9d45068..9b601cb 100644
+--- a/core/remotes/docker/registry.go
++++ b/core/remotes/docker/registry.go
+@@ -264,6 +264,5 @@ func DefaultHTTPTransport(defaultTLSConfig *tls.Config) *http.Transport {
+ 		TLSHandshakeTimeout:   10 * time.Second,
+ 		TLSClientConfig:       defaultTLSConfig,
+ 		ExpectContinueTimeout: 5 * time.Second,
+-		ResponseHeaderTimeout: 30 * time.Second,
+ 	}
+ }
+-- 
+2.56.0
+
