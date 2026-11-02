@@ -23,7 +23,9 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 use url::Url;
 
+mod kube_memory_min;
 pub mod stdlib;
+pub use kube_memory_min::kube_memory_min;
 
 pub use stdlib::{
     any_enabled, base64_decode, default, goarch, join_array, join_map, negate_or_else, toml_encode,
