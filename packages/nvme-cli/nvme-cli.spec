@@ -1,18 +1,21 @@
 Name: %{_cross_os}nvme-cli
-Version: 2.16
+Version: 3.2
 Release: 1%{?dist}
 Epoch: 1
 Summary: CLI to interact with NVMe devices
-License: LGPL-2.1-only AND GPL-2.0-only AND CC0-1.0 AND MIT
+License: GPL-2.0-only AND GPL-2.0-or-later AND LGPL-2.1-or-later AND CC0-1.0 AND MIT AND LicenseRef-Gary-S-Brown-CRC32
 URL: https://github.com/linux-nvme/nvme-cli
 Source0: https://github.com/linux-nvme/nvme-cli/archive/v%{version}/nvme-cli-%{version}.tar.gz
+
+# nvme-cli 3.x opens only /dev/<basename of the device argument>, so udev
+# symlinks such as /dev/disk/by-ebs-id/* and /dev/disk/by-id/* fail with
+# EINVAL. Drop this once upstream libnvme resolves symlinks itself.
+Patch1001: 1001-libnvme-resolve-device-symlinks.patch
 
 BuildRequires: meson
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libjson-c-devel
-BuildRequires: %{_cross_os}libnvme-devel
 Requires: %{_cross_os}libjson-c
-Requires: %{_cross_os}libnvme
 
 %description
 %{summary}.
@@ -23,8 +26,24 @@ Requires: %{_cross_os}libnvme
 %build
 CONFIGURE_OPTS=(
  -Ddocs=false
- -Ddocs-build=false
+ -Dexamples=false
+ -Dtests=false
+ -Dpython=disabled
  -Djson-c=enabled
+
+ # ghostdog runs `nvme id-ctrl`, the deprecated 2.x alias of `nvme id ctrl`
+ -Ddeprecated-cmds=enabled
+
+ -Dkmip=disabled
+ -Dmdns=disabled
+ -Dnvme-discoverd=disabled
+ -Dnvmf-autoconnect=disabled
+
+ -Dkeyutils=disabled
+ -Dlibarchive=disabled
+ -Dlibkmod=disabled
+ -Dliburing=disabled
+ -Dopenssl=disabled
 )
 
 %cross_meson "${CONFIGURE_OPTS[@]}"
@@ -32,17 +51,20 @@ CONFIGURE_OPTS=(
 
 %install
 %cross_meson_install
-# This is an empty configuration file with comments with examples of how to
-# configure the systemd services
-rm %{buildroot}%{_sysconfdir}/nvme/discovery.conf
+# This is a sample configuration file with comments with examples of how to
+# configure NVMe over Fabrics connections
+rm %{buildroot}%{_sysconfdir}/nvme/nvme-fabrics.conf.sample
 
 %files
-%license LICENSE ccan/licenses/LGPL-2.1 ccan/licenses/BSD-MIT ccan/licenses/CC0
+%license LICENSE LICENSES/CC0-1.0.txt LICENSES/GPL-2.0.txt LICENSES/GPL-2.0-only.txt LICENSES/GPL-2.0-or-later.txt LICENSES/LGPL-2.1-or-later.txt LICENSES/LicenseRef-Gary-S-Brown-CRC32.txt LICENSES/MIT.txt
 %{_cross_attribution_file}
 %{_cross_sbindir}/nvme
+%{_cross_libdir}/libnvme3.so.*
+%exclude %{_cross_includedir}
+%exclude %{_cross_libdir}/libnvme3.so
+%exclude %{_cross_libdir}/pkgconfig
 %exclude %{_cross_udevrulesdir}
-%exclude %{_cross_unitdir}
-%exclude %{_cross_datadir}
-%exclude %{_cross_prefix}/lib/dracut
+%exclude %{_cross_datadir}/bash-completion
+%exclude %{_cross_datadir}/zsh
 
 %changelog
