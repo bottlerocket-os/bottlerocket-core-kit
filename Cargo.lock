@@ -157,7 +157,6 @@ dependencies = [
  "libnftnl",
  "libnl",
  "libnvidia-container",
- "libnvme",
  "libpcre",
  "libpopt",
  "libseccomp",
@@ -798,13 +797,6 @@ dependencies = [
  "libelf",
  "libseccomp",
  "libtirpc",
-]
-
-[[package]]
-name = "libnvme"
-version = "0.1.0"
-dependencies = [
- "glibc",
 ]
 
 [[package]]
