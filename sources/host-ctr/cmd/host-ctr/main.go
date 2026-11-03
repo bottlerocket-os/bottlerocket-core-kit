@@ -979,10 +979,8 @@ func pullImage(ctx context.Context, source string, client *containerd.Client, re
 	for {
 		var err error
 
-		//nolint:staticcheck // We will re-evaluate the deprecated WithSchema1Conversion
 		pullOpts := []containerd.RemoteOpt{
 			withDynamicResolver(ctx, source, registryConfig),
-			containerd.WithSchema1Conversion,
 		}
 
 		if len(labels) != 0 {
