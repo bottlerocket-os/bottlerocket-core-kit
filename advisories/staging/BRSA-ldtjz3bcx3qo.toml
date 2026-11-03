@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-ldtjz3bcx3qo"
+title = "util-linux CVE-2026-78410"
+cve = "CVE-2026-78410"
+severity = "high"
+description = "A flaw was found in util-linux's mount(8). In restricted (SUID, non-root) mode the source path from fstab is not pinned before the privileged mount, so a local unprivileged user who can replace the source or a writable parent directory can redirect a bind mount, or a post-mount ownership or mode change, to another host path."
+
+[[advisory.products]]
+package-name = "util-linux"
+patched-version = "2.42.4"
+patched-epoch = "1"
+
+[updateinfo]
+author = "ceradev"
+issue-date = 2026-11-03T19:38:15Z
+arches = ["x86_64", "aarch64"]
+version = "staging"

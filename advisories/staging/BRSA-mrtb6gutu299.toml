@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-mrtb6gutu299"
+title = "util-linux CVE-2026-78408"
+cve = "CVE-2026-78408"
+severity = "high"
+description = "A flaw was found in util-linux's nsenter. The --join-cgroup option opens the target cgroup.procs file as root and keeps the file descriptor open across later credential changes and execve(). If a privileged user runs nsenter --join-cgroup against an attacker-controlled target, a program run there can inherit root's ability to move, and then terminate, unrelated host processes."
+
+[[advisory.products]]
+package-name = "util-linux"
+patched-version = "2.42.4"
+patched-epoch = "1"
+
+[updateinfo]
+author = "ceradev"
+issue-date = 2026-11-03T19:38:15Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
