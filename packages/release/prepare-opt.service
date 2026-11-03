@@ -20,6 +20,10 @@ ExecStart=/usr/bin/mkdir -p /opt/csi
 ExecStart=/usr/bin/rm -rf /opt/civ
 ExecStart=/usr/bin/mkdir -p /opt/civ
 
+# Create the directories for a read-write overlayfs for host-containerd's image verifiers.
+ExecStart=/usr/bin/rm -rf /opt/host-civ
+ExecStart=/usr/bin/mkdir -p /opt/host-civ
+
 RemainAfterExit=true
 StandardError=journal+console
 

@@ -837,6 +837,11 @@ install -d %{buildroot}%{_cross_libexecdir}/civ/bin
 install -p -m 0755 %{__cargo_outdir}/notation-image-verifier %{buildroot}%{_cross_libexecdir}/civ/bin
 install -p -m 0755 %{__cargo_outdir}/digestion-image-verifier %{buildroot}%{_cross_libexecdir}/civ/bin
 
+# Shared digestion binary; the symlink name selects the host trust policy via argv[0].
+install -d %{buildroot}%{_cross_libexecdir}/host-civ/bin
+ln -s ../../civ/bin/digestion-image-verifier \
+  %{buildroot}%{_cross_libexecdir}/host-civ/bin/host-ctr-digestion-image-verifier
+
 %cross_scan_attribution --clarify %{_builddir}/sources/clarify.toml \
     cargo --offline --locked %{_builddir}/sources/Cargo.toml
 
@@ -1065,6 +1070,7 @@ install -p -m 0644 %{S:400} %{S:401} %{S:402} %{buildroot}%{_cross_licensedir}
 
 %files -n %{_cross_os}digestion-image-verifier
 %{_cross_libexecdir}/civ/bin/digestion-image-verifier
+%{_cross_libexecdir}/host-civ/bin/host-ctr-digestion-image-verifier
 
 %files -n %{_cross_os}thar-be-registries
 %{_cross_bindir}/thar-be-registries

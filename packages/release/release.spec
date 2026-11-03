@@ -100,6 +100,9 @@ Source1083: lib-modules.mount.in
 Source1084: usr-bin.mount.in
 Source1085: usr-libexec.mount.in
 Source1086: bottlerocket.mount.in
+# /opt/host-civ needs a build-time edit: its path has a literal hyphen, so the
+# unit file must be installed under the systemd-escaped name opt-host\x2dciv.mount.
+Source1087: opt-host-civ.mount.in
 
 # Drop-in units to override defaults
 Source1100: systemd-tmpfiles-setup-service-debug.conf
@@ -334,6 +337,12 @@ install -p -m 0644 \
   %{S:1069} %{S:1070} \
   %{buildroot}%{_cross_unitdir}
 
+# Install the /opt/host-civ overlay mount under its systemd-escaped name, like
+# host-ctr's etc-host-containers mount: the literal hyphen in /opt/host-civ means
+# systemd refuses a unit named opt-host-civ.mount ("Where= doesn't match unit name").
+OPT_HOST_CIV_PATH=$(systemd-escape --path /opt/host-civ)
+install -p -m 0644 %{S:1087} %{buildroot}%{_cross_unitdir}/${OPT_HOST_CIV_PATH}.mount
+
 install -d %{buildroot}%{_cross_unitdir}/systemd-tmpfiles-setup.service.d
 install -p -m 0644 %{S:1100} \
   %{buildroot}%{_cross_unitdir}/systemd-tmpfiles-setup.service.d/00-debug.conf
@@ -566,6 +575,7 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %{_cross_unitdir}/opt-cni.mount
 %{_cross_unitdir}/opt-csi.mount
 %{_cross_unitdir}/opt-civ.mount
+%{_cross_unitdir}/opt-host\x2dciv.mount
 %{_cross_unitdir}/root-.aws.mount
 %{_cross_unitdir}/var-lib-bottlerocket.mount
 %{_cross_unitdir}/*-lower.mount

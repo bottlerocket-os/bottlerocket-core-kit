@@ -10,6 +10,8 @@ License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}containerd
+# Provides /usr/libexec/host-civ, the lowerdir of the /opt/host-civ overlay.
+Requires: %{_cross_os}digestion-image-verifier
 
 Source10: host-containerd.service
 Source11: host-containerd-tmpfiles.conf

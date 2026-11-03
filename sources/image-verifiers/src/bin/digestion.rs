@@ -6,13 +6,20 @@ Containerd invokes: `digestion-image-verifier -name <ref> -digest <sha256:...>`
 If no trust policy is configured, all images are allowed.
 */
 
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use base64::Engine;
 use image_verifiers::{args, logging, policy, reference};
 use log::{debug, error};
 use serde::Deserialize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process;
 
 const DIGESTION_TRUST_POLICY: &str = "/etc/containerd/image-verifiers/digestion/trustpolicy.json";
+// Per-image drop-in dir for host containers, keyed by base64url of the reference.
+const HOST_CTR_DIGESTION_TRUST_POLICY_DIR: &str =
+    "/etc/host-containerd/image-verifiers/digestion/trustpolicy.d";
+// argv[0] when invoked via the host bin_dir symlink; selects the host policy.
+const HOST_CTR_VERIFIER_NAME: &str = "host-ctr-digestion-image-verifier";
 const SUPPORTED_VERSION: &str = "1.0";
 
 /// Digestion trust policy deserialized from trustpolicy.json.
@@ -41,9 +48,29 @@ impl policy::Policy for TrustPolicy {
     }
 }
 
-/// Loads the trust policy from the configured path.
-fn load_trust_policy() -> policy::Result<Option<TrustPolicy>> {
-    policy::load(Path::new(DIGESTION_TRUST_POLICY))
+/// Trust policy path: a per-image drop-in when invoked as the host verifier,
+/// else the orchestrator's single fixed policy file.
+fn trust_policy_path(called_as: &str, image_ref: &str) -> PathBuf {
+    if called_as == HOST_CTR_VERIFIER_NAME {
+        let key = URL_SAFE_NO_PAD.encode(image_ref.as_bytes());
+        Path::new(HOST_CTR_DIGESTION_TRUST_POLICY_DIR).join(format!("{key}.json"))
+    } else {
+        PathBuf::from(DIGESTION_TRUST_POLICY)
+    }
+}
+
+/// The base name the binary was invoked as (argv[0]); drives policy selection.
+fn invoked_name() -> String {
+    std::env::args_os()
+        .next()
+        .map(PathBuf::from)
+        .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
+        .unwrap_or_default()
+}
+
+/// Loads the trust policy for the given image reference.
+fn load_trust_policy(image_ref: &str) -> policy::Result<Option<TrustPolicy>> {
+    policy::load(&trust_policy_path(&invoked_name(), image_ref))
 }
 
 fn main() {
@@ -53,7 +80,7 @@ fn main() {
 
     debug!("verifying image: {}", image_ref);
 
-    let policy = match load_trust_policy() {
+    let policy = match load_trust_policy(&args.name) {
         Ok(Some(p)) => p,
         Ok(None) => {
             debug!("image verification skipped: no trust policy configured");
@@ -119,5 +146,30 @@ mod tests {
     fn test_digest_matching(digest: &str, trusted: &[&str], expected: bool) {
         let trusted: Vec<String> = trusted.iter().map(|s| s.to_string()).collect();
         assert_eq!(trusted.contains(&digest.to_string()), expected);
+    }
+
+    #[test]
+    fn orchestrator_uses_fixed_single_file() {
+        assert_eq!(
+            trust_policy_path("digestion-image-verifier", "example.com/image:tag"),
+            PathBuf::from(DIGESTION_TRUST_POLICY),
+        );
+    }
+
+    #[test]
+    fn host_ctr_uses_per_reference_dropin() {
+        let image_ref = "example.com/image:tag";
+        let key = URL_SAFE_NO_PAD.encode(image_ref.as_bytes());
+        assert_eq!(
+            trust_policy_path(HOST_CTR_VERIFIER_NAME, image_ref),
+            Path::new(HOST_CTR_DIGESTION_TRUST_POLICY_DIR).join(format!("{key}.json")),
+        );
+    }
+
+    #[test]
+    fn host_ctr_distinct_references_distinct_files() {
+        let a = trust_policy_path(HOST_CTR_VERIFIER_NAME, "example.com/a:tag");
+        let b = trust_policy_path(HOST_CTR_VERIFIER_NAME, "example.com/b:tag");
+        assert_ne!(a, b);
     }
 }

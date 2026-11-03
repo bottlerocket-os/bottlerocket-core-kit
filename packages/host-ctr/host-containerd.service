@@ -3,6 +3,8 @@ Description=containerd runtime for host containers
 Documentation=https://containerd.io
 After=network-online.target preconfigured.target
 Wants=network-online.target preconfigured.target
+# Order after the verifier overlay mount so the bindir is populated at start.
+RequiresMountsFor=/opt/host-civ
 
 [Service]
 EnvironmentFile=/etc/network/proxy.env
