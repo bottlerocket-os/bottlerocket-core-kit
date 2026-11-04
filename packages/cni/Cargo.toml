@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://github.com/containernetworking/cni/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/containernetworking/cni/archive/v1.3.0/cni-1.3.0.tar.gz"
-sha512 = "b723187db7f08bce9ad71fa1fef805aa72752aa5916edb5b9402f23b85f97c01a8a1e19a633550d7b547c582cba43452b1da92ba4ae8435d95d01a2399874694"
+url = "https://github.com/containernetworking/cni/archive/v1.3.1/cni-1.3.1.tar.gz"
+sha512 = "0490e08575f3f53b5dfd15a0faf34526ed4d78ef648d31b7c66a53f2ebb05ef4db5a7952e2e4f59c7353e4c3da9fc1e20bb4d900d242e1e8d52c9d0f9a7fc0b2"
 bundle-modules = [ "go" ]
 
 [build-dependencies]
