@@ -1,0 +1,11 @@
+# Amazon EC2 exposes the Amazon Time Sync Service PTP Hardware Clock (PHC) through
+# the ENA driver when the instance is booted with the `ena.phc_enable=1` kernel
+# parameter. The kernel names PTP character devices /dev/ptpN in probe order, which
+# is not stable, so create a predictable /dev/ptp_ena symlink -- matching the name
+# used by Amazon Linux and the EC2 documentation -- for chrony to reference via
+# `settings.ntp.refclocks` (e.g. `refclock PHC /dev/ptp_ena`).
+ACTION=="remove", GOTO="ena_ptp_end"
+SUBSYSTEM!="ptp", GOTO="ena_ptp_end"
+ATTR{clock_name}=="ena-ptp-*", SYMLINK+="ptp_ena"
+
+LABEL="ena_ptp_end"
