@@ -13,6 +13,10 @@ For each configured registry, it creates:
 * `hosts.toml` - mirror endpoints with pull/resolve capabilities
 * `credentials.toml` - authentication credentials (mode 0600)
 
+If a `*` mirror is configured, a registry that only has credentials also gets a copy of
+`_default/hosts.toml`, so its credentials don't hide the `*` mirror. To keep a registry off the
+`*` mirror, give it its own mirror entry with `endpoint = []`.
+
 ### Behavior
 
 * Exits successfully (0) if the input file doesn't exist (graceful no-op)
