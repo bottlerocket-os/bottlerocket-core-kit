@@ -6,13 +6,16 @@ std = { version = "v1" }
 # /usr/lib/nvidia/tesla library path. Overrides the clean default ExecStart to add
 # `--additional-symlinks /usr/lib/nvidia/tesla`, so the generated CDI spec
 # (/etc/cdi/nvidia.json) recreates the legacy library path inside containers.
-# Variants that do not render this drop-in keep the clean default.
+# Variants that do not render this drop-in keep the clean default. Keep the other
+# flags, including the --disable-hook ones, in sync with generate-cdi-specs.service.
 ExecStart=
 ExecStart=/usr/bin/nvidia-ctk cdi generate --format json \
   --additional-symlinks /usr/lib/nvidia/tesla \
   --mode nvml \
   --device-name-strategy uuid \
   --device-name-strategy index \
+  --disable-hook update-application-profile \
+  --disable-hook apply-cuda-memory-limits \
   --output /etc/cdi/nvidia.json
 ExecStart=/usr/bin/nvidia-ctk cdi transform root \
   --from __PREFIX__ \
