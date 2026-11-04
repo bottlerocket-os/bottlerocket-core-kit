@@ -1,4 +1,4 @@
-From 671e97dfad23fe9b5852e2ebe32969a7f7a20fd0 Mon Sep 17 00:00:00 2001
+From f066b08b42cb575bcbc57feab86a8254162f8c3d Mon Sep 17 00:00:00 2001
 From: Arnaldo Garcia Rincon <agarrcia@amazon.com>
 Date: Tue, 18 Jan 2022 23:57:24 +0000
 Subject: [PATCH] makefile: avoid ldconfig when cross-compiling
@@ -14,7 +14,7 @@ Signed-off-by: Markus Boehme <markubo@amazon.com>
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index b914727f..2473686c 100644
+index 080af51..9a0d4b7 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -266,7 +266,10 @@ ifeq ($(WITH_NVCGO), yes)
@@ -30,5 +30,5 @@ index b914727f..2473686c 100644
  	$(MAKE_DIR)/$(LIB_PKGCFG).in "$(strip $(VERSION))" "$(strip $(LIB_LDLIBS_SHARED))" > $(DESTDIR)$(pkgconfdir)/$(LIB_PKGCFG)
  	# Install binary files
 -- 
-2.47.0
+2.50.1
 
