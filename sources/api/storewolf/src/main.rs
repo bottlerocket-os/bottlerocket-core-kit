@@ -640,7 +640,7 @@ fn main() {
 }
 #[cfg(test)]
 mod test {
-    use datastore::memory::MemoryDataStore;
+    use datastore::{memory::MemoryDataStore, DataStore};
     use toml::Table;
 
     use super::*;
@@ -742,5 +742,46 @@ mod test {
                 .unwrap(),
             Some("{\"command\":\"my test command\",\"strength\":\"weak\",\"depth\":0}".into())
         );
+    }
+
+    #[test]
+    fn ntp_values_and_empty_rollback_options_survive_default_population() {
+        let defaults: toml::Value = toml::from_str(
+            r#"
+            [ntp]
+            time-servers = ["169.254.169.123", "2.amazon.pool.ntp.org"]
+            options = ["iburst"]
+            "#,
+        )
+        .unwrap();
+        let servers = Key::new(KeyType::Data, "settings.ntp.time-servers").unwrap();
+        let options = Key::new(KeyType::Data, "settings.ntp.options").unwrap();
+        let launch = Committed::Pending {
+            tx: constants::LAUNCH_TRANSACTION.to_string(),
+        };
+        for existing in [
+            r#"["169.254.169.123","2.amazon.pool.ntp.org"]"#,
+            r#"["time.cloudflare.com"]"#,
+            r#"[{"address":"time.aws.com","directive":"pool","options":["iburst"]}]"#,
+            "[]",
+        ] {
+            let mut datastore = MemoryDataStore::new();
+            datastore
+                .set_key(&servers, existing, &Committed::Live)
+                .unwrap();
+            datastore.set_key(&options, "[]", &Committed::Live).unwrap();
+            let populated = datastore.list_populated_keys("", &Committed::Live).unwrap();
+            populate_default_data(&mut datastore, Some(defaults.clone()), &populated).unwrap();
+            assert_eq!(
+                datastore.get_key(&servers, &Committed::Live).unwrap(),
+                Some(existing.to_owned())
+            );
+            assert_eq!(
+                datastore.get_key(&options, &Committed::Live).unwrap(),
+                Some("[]".to_owned())
+            );
+            assert_eq!(datastore.get_key(&servers, &launch).unwrap(), None);
+            assert_eq!(datastore.get_key(&options, &launch).unwrap(), None);
+        }
     }
 }

@@ -536,6 +536,37 @@ mod test {
     }
 
     #[test]
+    fn ntp_list_representations_round_trip_as_one_leaf() {
+        #[derive(serde::Deserialize)]
+        struct Ntp {
+            #[serde(rename = "time-servers")]
+            time_servers: serde_json::Value,
+        }
+
+        for servers in [
+            json!(["a.example", "b.example"]),
+            json!([
+                {"address":"169.254.169.123","directive":"server","options":["iburst"]},
+                {"address":"time.aws.com","directive":"pool"}
+            ]),
+            json!([]),
+        ] {
+            let input = json!({"time-servers":servers});
+            let pairs = to_pairs_with_prefix("settings.ntp", &input).unwrap();
+            assert_eq!(pairs.len(), 1);
+            let stored = pairs.get(&key!("settings.ntp.time-servers")).unwrap();
+            assert_eq!(
+                serde_json::from_str::<serde_json::Value>(stored).unwrap(),
+                servers
+            );
+            let restored: Ntp =
+                crate::deserialization::from_map_with_prefix(Some("settings.ntp".into()), &pairs)
+                    .unwrap();
+            assert_eq!(restored.time_servers, servers);
+        }
+    }
+
+    #[test]
     fn nested_struct_keys() {
         let b = B {
             list: vec![5, 6, 7],

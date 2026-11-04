@@ -855,6 +855,7 @@ mod test {
     use maplit::{hashmap, hashset};
     use model::{ConfigurationFile, Service};
     use serde::{Deserialize, Serialize};
+    use serde_json::json;
     use std::convert::TryInto;
 
     #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -1078,6 +1079,107 @@ mod test {
         assert_eq!(
             Some("\"tz\"".to_string()),
             ds.get_key(&key, &pending).unwrap()
+        );
+    }
+
+    #[test]
+    fn set_settings_replaces_ntp_url_list_with_object_list() {
+        let key = Key::new(KeyType::Data, "settings.ntp.time-servers").unwrap();
+        let object_list = json!([
+            {
+                "address": "169.254.169.123",
+                "directive": "server",
+                "options": ["prefer", "iburst", "minpoll 4", "maxpoll 4"]
+            },
+            {
+                "address": "time.aws.com",
+                "directive": "pool",
+                "options": ["iburst"]
+            }
+        ]);
+        let settings: model::Settings = serde_json::from_value(json!({
+            "ntp": {
+                "time-servers": object_list
+            }
+        }))
+        .unwrap();
+
+        let mut ds = MemoryDataStore::new();
+        ds.set_key(
+            &key,
+            r#"["169.254.169.123","2.amazon.pool.ntp.org"]"#,
+            &Committed::Live,
+        )
+        .unwrap();
+
+        let tx = "object-list";
+        set_settings(&mut ds, &settings, tx, Strength::Strong).unwrap();
+        commit_transaction::<MemoryDataStore>(&mut ds, tx).unwrap();
+
+        assert_eq!(
+            ds.get_key(&key, &Committed::Live).unwrap(),
+            Some(
+                r#"[{"address":"169.254.169.123","directive":"server","options":["prefer","iburst","minpoll 4","maxpoll 4"]},{"address":"time.aws.com","directive":"pool","options":["iburst"]}]"#
+                    .to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn ntp_lists_switch_back_and_clear_without_creating_child_keys() {
+        let key = Key::new(KeyType::Data, "settings.ntp.time-servers").unwrap();
+        let mut datastore = MemoryDataStore::new();
+        datastore
+            .set_key(&key, r#"["old.example"]"#, &Committed::Live)
+            .unwrap();
+        for value in [
+            json!([{"address":"a.example","directive":"server","options":["iburst"]}]),
+            json!(["custom-pool.example"]),
+            json!([]),
+        ] {
+            let settings: model::Settings =
+                serde_json::from_value(json!({"ntp":{"time-servers":value}})).unwrap();
+            set_settings(&mut datastore, &settings, "ntp-switch", Strength::Strong).unwrap();
+            commit_transaction::<MemoryDataStore>(&mut datastore, "ntp-switch").unwrap();
+            let stored = datastore.get_key(&key, &Committed::Live).unwrap().unwrap();
+            assert_eq!(
+                serde_json::from_str::<serde_json::Value>(&stored).unwrap(),
+                value
+            );
+            assert_eq!(
+                datastore
+                    .list_populated_keys("settings.ntp.time-servers", &Committed::Live)
+                    .unwrap(),
+                hashset! {key.clone()}
+            );
+        }
+    }
+
+    #[test]
+    fn ntp_compatibility_map_is_written_as_an_object_list() {
+        let key = Key::new(KeyType::Data, "settings.ntp.time-servers").unwrap();
+        let mut datastore = MemoryDataStore::new();
+        datastore
+            .set_key(&key, r#"["old.example"]"#, &Committed::Live)
+            .unwrap();
+        let settings: model::Settings = serde_json::from_value(json!({
+            "ntp":{"time-servers":{
+                "link-local":{"address":"169.254.169.123","directive":"server","options":["iburst"]}
+            }}
+        }))
+        .unwrap();
+        set_settings(&mut datastore, &settings, "ntp-map", Strength::Strong).unwrap();
+        commit_transaction::<MemoryDataStore>(&mut datastore, "ntp-map").unwrap();
+        let stored = datastore.get_key(&key, &Committed::Live).unwrap().unwrap();
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&stored).unwrap(),
+            json!([{"address":"169.254.169.123","directive":"server","options":["iburst"]}])
+        );
+        assert_eq!(
+            datastore
+                .list_populated_keys("settings.ntp.time-servers", &Committed::Live)
+                .unwrap(),
+            hashset! {key}
         );
     }
 
