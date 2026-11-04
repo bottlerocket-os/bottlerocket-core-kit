@@ -2,7 +2,7 @@
 %global gorepo nvidia-container-toolkit
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 1.19.1
+%global gover 1.20.1
 %global rpmver %{gover}
 
 Name: %{_cross_os}nvidia-container-toolkit
