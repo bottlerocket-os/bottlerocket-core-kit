@@ -7,6 +7,10 @@ It sets kernel-related settings, for example:
 * sysctl values, based on key/value pairs in `settings.kernel.sysctl`
 * lockdown mode, based on the value of `settings.kernel.lockdown`
 * static and transparent hugepage settings, based on the values of `settings.kernel.hugepages`
+* zram swap size at boot, based on `settings.kernel.zram.size`
+
+Setting `settings.kernel.zram.size` to `"0"` creates no zram device. Bootstrap containers that run
+`swapoff /dev/zram0` without first checking for an active zram swap device will then fail.
 
 corndog also provides a settings generator for hugepages, subcommand "generate-hugepages-setting".
 

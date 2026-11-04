@@ -260,6 +260,7 @@ Requires: (%{_cross_os}image-feature(ephemeral-encryption-keys) and %{name}-cryp
 %package swap
 Summary: Bottlerocket release, with zram-based swap
 Requires: %{name}
+Requires: %{_cross_os}corndog
 
 %description swap
 %{summary}.

@@ -32,3 +32,8 @@ defrag = "{{{settings.kernel.hugepages.transparent.defrag}}}"
 {{/if}}
 {{/if}}
 {{/if}}
+
+{{#if settings.kernel.zram.size}}
+[zram]
+size = "{{{settings.kernel.zram.size}}}"
+{{/if}}
