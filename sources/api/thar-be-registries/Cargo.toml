@@ -9,6 +9,7 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [dependencies]
+indexmap = { workspace = true, features = ["serde"] }
 log.workspace = true
 serde = { workspace = true, features = ["derive"] }
 simplelog.workspace = true
