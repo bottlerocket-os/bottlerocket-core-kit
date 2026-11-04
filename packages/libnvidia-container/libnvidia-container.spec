@@ -1,7 +1,7 @@
 %global nvidia_modprobe_version 550.54.14
 
 Name: %{_cross_os}libnvidia-container
-Version: 1.19.1
+Version: 1.20.1
 Release: 1%{?dist}
 Epoch: 1
 Summary: NVIDIA container runtime library
