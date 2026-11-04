@@ -1,5 +1,5 @@
 Name: %{_cross_os}coreutils
-Version: 9.11
+Version: 9.12
 Release: 1%{?dist}
 Summary: A set of basic GNU tools
 License: GPL-3.0-or-later

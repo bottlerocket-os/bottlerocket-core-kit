@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-ohdd8mq75jp1"
+title = "util-linux CVE-2026-78409"
+cve = "CVE-2026-78409"
+severity = "high"
+description = "A flaw was found in util-linux's libmount. On Linux 6.15 and later, the X-mount.subdir option opens the subdirectory on a detached mount tree with open_tree(), which follows symlinks in intermediate path components, so a local unprivileged user with an fstab-authorized X-mount.subdir entry can attach a host path at the intended mountpoint."
+
+[[advisory.products]]
+package-name = "util-linux"
+patched-version = "2.42.4"
+patched-epoch = "1"
+
+[updateinfo]
+author = "ceradev"
+issue-date = 2026-11-03T19:38:15Z
+arches = ["x86_64", "aarch64"]
+version = "staging"

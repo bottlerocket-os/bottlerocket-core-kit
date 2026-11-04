@@ -12,12 +12,12 @@ path = "../packages.rs"
 releases-url = "https://mirrors.edge.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/"
 
 [[package.metadata.build-package.external-files]]
-url = "http://kernel.org/pub/linux/utils/fs/xfs/xfsprogs/xfsprogs-7.1.1.tar.xz"
-sha512 = "5c6e2a57a8f2e04a50cf5a085509a229f7a858a5807d85d807deeef1013d6dbbc1d701da4adb010dec5e251774b6b32e28496309bd11b4e6ebcbc09999f04cd5"
+url = "http://kernel.org/pub/linux/utils/fs/xfs/xfsprogs/xfsprogs-7.2.1.tar.xz"
+sha512 = "c8d0779b50cb06df17ef24be48e878649fd5aa5e789806cc965655e93d695fe5751d0e606f288accea6f7c673bf8647b8e8f8e12f420d50cbdede84de79634fc"
 
 [[package.metadata.build-package.external-files]]
-url = "http://kernel.org/pub/linux/utils/fs/xfs/xfsprogs/xfsprogs-7.1.1.tar.sign"
-sha512 = "fcb57a1374f2201edac001fa7bc58aa8c2660e048f81e458437cf1e4e6d688bf5005d443f638ce8f8dd28f8bcb6429fb0a4a3ca38fe316df9c4db7aa9b7a5ae0"
+url = "http://kernel.org/pub/linux/utils/fs/xfs/xfsprogs/xfsprogs-7.2.1.tar.sign"
+sha512 = "28211d3b322d8f1737bf762de5142c5fc9f1a34772207db8946def44066a538c7f41d2642fdd8b2279e2fd709479f718c02d09e9dcf526ba0a18dfd75bf324c9"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

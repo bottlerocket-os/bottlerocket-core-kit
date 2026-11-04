@@ -12,8 +12,8 @@ path = "../packages.rs"
 releases-url = "https://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git"
 
 [[package.metadata.build-package.external-files]]
-url = "https://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git/snapshot/erofs-utils-1.8.10.tar.gz"
-sha512 = "8c7afd3db55fd4c4f7aa9fbd7ed40fa40de0bfffcee601a3f5dce823d406a32b5e939e24cd6dc336e3033e940fb16ee93f8821f627f90b10e6137113949933dd"
+url = "https://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git/snapshot/erofs-utils-1.9.4.tar.gz"
+sha512 = "c78fb83a206fa1a313eae3c54134f892a6eafc6839ee689457c5d4b1f5a7d399f9475a160a9c9173221944e8823e665eecfc0d72b2b2a1563250646d091a9176"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

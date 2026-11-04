@@ -1,8 +1,8 @@
 Name: %{_cross_os}erofs-utils
-Version: 1.8.10
+Version: 1.9.4
 Release: 1%{?dist}
 Summary: Utilities for managing the EROFS filesystem
-License: GPL-2.0-only AND GPL-2.0-or-later AND (GPL-2.0-only OR Apache-2.0) AND (GPL-2.0-or-later OR Apache-2.0) AND (GPL-2.0-only OR BSD-2-Clause) AND (GPL-2.0-or-later OR BSD-2-Clause) AND Unlicense
+License: MIT AND GPL-2.0-only AND (GPL-2.0-or-later OR MIT) AND (GPL-2.0-only OR BSD-2-Clause) AND (GPL-2.0-or-later OR BSD-2-Clause) AND Unlicense
 URL: https://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs-utils.git
 Source0: %{url}/snapshot/erofs-utils-%{version}.tar.gz
 
@@ -29,14 +29,23 @@ Requires: %{_cross_os}libzstd
 autoreconf -fi
 %cross_configure \
   --enable-multithreading \
+  --disable-fanotify \
   --disable-fuse \
   --disable-lz4 \
   --disable-lzma \
+  --disable-oci \
+  --disable-s3 \
+  --disable-ublk \
   --with-libzstd \
   --with-selinux \
   --with-uuid \
   --with-zlib \
+  --without-json-c \
+  --without-libcurl \
   --without-libdeflate \
+  --without-libnl3 \
+  --without-libxml2 \
+  --without-openssl \
   --without-qpl \
   --without-xxhash \
   %{nil}
@@ -47,9 +56,10 @@ autoreconf -fi
 %make_install
 
 %files
-%license LICENSES/Apache-2.0 LICENSES/GPL-2.0
+%license LICENSES/GPL-2.0 LICENSES/MIT
 %{_cross_attribution_file}
 %{_cross_bindir}/dump.erofs
 %{_cross_bindir}/fsck.erofs
 %{_cross_bindir}/mkfs.erofs
+%exclude %{_cross_sbindir}/mount.erofs
 %exclude %{_cross_mandir}
