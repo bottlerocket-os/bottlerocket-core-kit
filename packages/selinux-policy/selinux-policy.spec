@@ -36,6 +36,7 @@ Source100: selinux.config
 Source101: lxc_contexts
 Source102: selinux-policy-files.service
 Source103: selinux-policy-tmpfiles.conf
+Source104: systemd-after-selinux-policy-files.conf
 
 BuildRequires: secilc
 
@@ -75,6 +76,8 @@ ln -s ..%{_cross_factorydir}%{_cross_sysconfdir}/selinux %{buildroot}%{_cross_sy
 
 install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:102} %{buildroot}%{_cross_unitdir}/selinux-policy-files.service
+install -d %{buildroot}%{_cross_unitdir}/systemd-.service.d
+install -p -m 0644 %{S:104} %{buildroot}%{_cross_unitdir}/systemd-.service.d/10-after-selinux-policy-files.conf
 
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:103} %{buildroot}%{_cross_tmpfilesdir}/selinux-policy.conf
@@ -88,5 +91,7 @@ install -p -m 0644 %{S:103} %{buildroot}%{_cross_tmpfilesdir}/selinux-policy.con
 %{_cross_sysconfdir}/selinux
 %{_cross_tmpfilesdir}/selinux-policy.conf
 %{_cross_unitdir}/selinux-policy-files.service
+%dir %{_cross_unitdir}/systemd-.service.d
+%{_cross_unitdir}/systemd-.service.d/10-after-selinux-policy-files.conf
 
 %changelog
