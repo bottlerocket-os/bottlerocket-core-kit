@@ -2,7 +2,7 @@
 %global gorepo k8s-device-plugin
 %global goimport %{goproject}/%{gorepo}
 
-%global gover 0.19.3
+%global gover 0.20.1
 %global rpmver %{gover}
 
 Name: %{_cross_os}nvidia-k8s-device-plugin
@@ -31,6 +31,7 @@ Patch1001: 1001-Ensure-that-generated-CDI-specs-do-not-contain-enabl.patch
 Patch1002: 1002-Enable-library-path-compatibility-symlinks.patch
 Patch1003: 1003-vendor-add-CreateLibSymlinksHook.patch
 Patch1004: 1004-Normalize-container-paths-in-generated-CDI-specifica.patch
+Patch1005: 1005-Disable-new-default-CDI-hooks-from-nvidia-container-.patch
 
 BuildRequires: %{_cross_os}glibc-devel
 
