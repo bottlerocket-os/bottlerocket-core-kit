@@ -1,9 +1,9 @@
 [required-extensions]
 kubernetes = "v1"
-kubelet-dra-drivers = "v1"
+kubelet-dra-drivers-net = "v1"
 std = { version = "v1", helpers = ["if_not_null", "default"] }
 +++
-{{#if (eq (default "true" settings.kubelet-dra-drivers.net.enabled) "true")}}
+{{#if (eq (default "true" settings.kubelet-dra-drivers-net.enabled) "true")}}
 [Service]
 ExecStart=
 # An empty bind address makes Go serve on port 80 of every interface, so an unset
@@ -16,12 +16,12 @@ ExecStart=
 ExecStart=/usr/bin/dranet \
     --hostname-override {{#if_not_null settings.kubernetes.hostname-override}}{{settings.kubernetes.hostname-override}}{{else}}%H{{/if_not_null}} \
     --kubeconfig /etc/kubernetes/kubelet/kubeconfig \
-{{#if settings.kubelet-dra-drivers.net.bind-address}}
-    --bind-address {{{settings.kubelet-dra-drivers.net.bind-address}}} \
+{{#if settings.kubelet-dra-drivers-net.bind-address}}
+    --bind-address {{{settings.kubelet-dra-drivers-net.bind-address}}} \
 {{else}}
     --bind-address 127.0.0.1:9177 \
 {{/if}}
-{{#if (eq (default "efa" settings.kubelet-dra-drivers.net.advertised-devices) "efa")}}
+{{#if (eq (default "efa" settings.kubelet-dra-drivers-net.advertised-devices) "efa")}}
     --filter '"dra.net/pciDevice" in attributes && attributes["dra.net/pciDevice"].StringValue == "Elastic Fabric Adapter (EFA)"' \
 {{/if}}
     --v 2
