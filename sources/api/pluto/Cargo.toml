@@ -10,15 +10,14 @@ build = "build.rs"
 exclude = ["README.md"]
 
 [features]
-fips = ["aws-lc-rs/fips", "aws-smithy-experimental/crypto-aws-lc-fips", "rustls/fips"]
+fips = []
 
 [dependencies]
 argh.workspace = true
 aws-config.workspace = true
-aws-lc-rs = { workspace = true, features = ["bindgen"] }
 aws-sdk-eks.workspace = true
 aws-sdk-ec2.workspace = true
-aws-smithy-experimental = {workspace = true, features = ["crypto-aws-lc"]}
+aws-smithy-http-client = { workspace = true, features = ["rustls-aws-lc"] }
 aws-smithy-runtime-api.workspace = true
 aws-smithy-types.workspace = true
 aws-types.workspace = true
@@ -28,7 +27,7 @@ bottlerocket-settings-models.workspace = true
 constants.workspace = true
 imdsclient.workspace = true
 log.workspace = true
-rustls.workspace = true
+bottlerocket-crypto-provider.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 simplelog.workspace = true
