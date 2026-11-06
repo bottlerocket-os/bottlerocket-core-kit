@@ -137,6 +137,7 @@ Requires: %{_cross_os}libtss2
 Requires: %{_cross_os}libuuid
 Requires: %{_cross_os}libxcrypt
 Requires: (%{name}-binfmt or %{_cross_os}image-feature(uki-image))
+Requires: (%{name}-cgroups-v1 or %{_cross_os}image-feature(uki-image))
 Requires: (%{name}-integrity if %{_cross_os}image-feature(uki-image))
 
 Provides: %{_cross_os}systemd = %{package_priority_epoch}:
@@ -223,6 +224,15 @@ Conflicts: %{_cross_os}image-feature(no-uki-image)
 Conflicts: %{_cross_os}image-feature(in-place-updates)
 
 %description bootloader
+%{summary}.
+
+%package cgroups-v1
+Summary: Force enable support for cgroups-v1
+Requires: %{name}
+Requires: %{_cross_os}image-feature(no-uki-image)
+Conflicts: %{_cross_os}image-feature(uki-image)
+
+%description cgroups-v1
 %{summary}.
 
 %prep
@@ -556,7 +566,6 @@ install -p -m 0644 %{S:3} %{buildroot}%{loaderdir}/loader.conf
 
 %dir %{_cross_bootconfigdir}
 %{_cross_bootconfigdir}/20-mount-rate-limit-burst.conf
-%{_cross_bootconfigdir}/21-cgroup-enable-legacy-force.conf
 
 %dir %{_cross_unitdir}
 %{_cross_unitdir}/basic.target
@@ -990,3 +999,6 @@ install -p -m 0644 %{S:3} %{buildroot}%{loaderdir}/loader.conf
 
 %files integrity
 %{_cross_bootconfigdir}/20-integrity.conf
+
+%files cgroups-v1
+%{_cross_bootconfigdir}/21-cgroup-enable-legacy-force.conf
