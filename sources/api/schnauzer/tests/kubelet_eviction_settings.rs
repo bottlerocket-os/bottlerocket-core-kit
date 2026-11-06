@@ -51,7 +51,6 @@ async fn merge_defaults_is_opt_in_on_supported_versions(version: u8, enabled: Op
     assert!(rendered.contains("memorySwap:\n  swapBehavior: LimitedSwap"));
 }
 
-#[test_case(31)]
 #[test_case(32)]
 #[tokio::test]
 async fn older_versions_do_not_render_merge_defaults(version: u8) {

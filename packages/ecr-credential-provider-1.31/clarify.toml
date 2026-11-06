@@ -1,8 +1,0 @@
-[clarify."sigs.k8s.io/yaml"]
-expression = "MIT AND BSD-3-Clause AND Apache-2.0"
-license-files = [
-    { path = "LICENSE", hash = 0x617d80bc },
-    { path = "goyaml.v2/LICENSE", hash = 0xe569d630 },
-    { path = "goyaml.v2/LICENSE.libyaml", hash = 0xa2e4ce3 },
-    { path = "goyaml.v2/NOTICE", hash = 0x49bceeb9 },
-]
