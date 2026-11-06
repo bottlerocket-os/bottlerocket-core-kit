@@ -21,7 +21,6 @@ members = [
     "api/shibaken",
     "api/prairiedog",
     "api/simple-settings-plugin",
-    "aws-smithy-experimental",
 
     "bloodhound",
 
@@ -90,8 +89,8 @@ members = [
 
 [workspace.dependencies]
 apiclient = { version = "0.1", path = "api/apiclient", default-features = false }
-aws-smithy-experimental = { version = "0.1", path = "aws-smithy-experimental" }
 block-party = { version = "0.1", path = "updater/block-party" }
+bottlerocket-crypto-provider = { version = "0.1", path = "bottlerocket-crypto-provider" }
 bottlerocket-image-features = { version = "0.1", path = "bottlerocket-image-features" }
 bottlerocket-release = { version = "0.1", path = "bottlerocket-release" }
 constants = { version = "0.1", path = "constants" }
@@ -128,6 +127,7 @@ aws-sdk-s3 = { version = "1", default-features = false, features = ["default-htt
 aws-sdk-secretsmanager = { version = "1", default-features = false, features = ["default-https-client", "rt-tokio"] }
 aws-sdk-ssm = { version = "1", default-features = false, features = ["default-https-client", "rt-tokio"] }
 aws-smithy-checksums = "0"
+aws-smithy-http-client = "1"
 aws-smithy-runtime = "1"
 aws-smithy-runtime-api = "1"
 aws-smithy-types = "1"

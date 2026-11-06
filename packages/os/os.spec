@@ -12,6 +12,10 @@
 # Remove this when crc-fast v2.0+ is available.
 %global __global_rustflags_static %(echo %{__global_rustflags_static} | sed 's/-Clto=thin//g')
 
+# aws-smithy-http-client only builds CryptoMode::Custom with this cfg.
+%global __global_rustflags_aws_sdk %{__global_rustflags_aws_sdk} --cfg aws_sdk_unstable
+%global __global_rustflags_static %{__global_rustflags_static} --cfg aws_sdk_unstable
+
 Name: %{_cross_os}os
 Version: 0.0
 Release: 1%{?dist}
