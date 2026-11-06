@@ -1,3 +1,5 @@
+use crate::image_source;
+use crate::secret_json::SecretValue;
 use snafu::FromString;
 use snafu::prelude::*;
 use std::io::Write;
@@ -216,21 +218,29 @@ pub(crate) fn ephemeral_encryption_keys_enabled() -> Result<bool> {
     Ok(features.ephemeral_encryption_keys)
 }
 
-/// Get canonicalized settings from apiclient, excluding seed and hostname
-pub fn apiclient_get_settings() -> Result<Zeroizing<Vec<u8>>> {
-    execute(
-        APICLIENT,
-        &[
-            "get",
-            "settings",
-            "--exclude",
-            "settings.updates.seed",
-            "--exclude",
-            "settings.network.hostname",
-            "--canonicalize",
-        ],
-        None,
-    )
+/// Get settings from apiclient as JSON, excluding seed, hostname, and the location settings.
+///
+/// The output is standard (pretty-printed) JSON rather than apiclient's canonical form, which is
+/// not valid JSON, so that it can be parsed and transformed before being canonicalized locally.
+pub fn apiclient_get_settings() -> Result<SecretValue> {
+    // The region is removed again in `image_source::measurement_bytes`, which also handles user
+    // data; asking apiclient to drop all three keeps the excluded values out of this process.
+    let mut args = vec![
+        "get",
+        "settings",
+        "--exclude",
+        "settings.updates.seed",
+        "--exclude",
+        "settings.network.hostname",
+    ];
+    for prefix in image_source::LOCATION_SETTINGS {
+        args.push("--exclude");
+        args.push(prefix);
+    }
+    let output = execute(APICLIENT, &args, None)?;
+    serde_json::from_slice(&output)
+        .map(SecretValue::new)
+        .with_whatever_context(|_| "failed to parse settings as JSON")
 }
 
 /// Extend a TPM PCR with SHA256, SHA384, and SHA512 hashes
