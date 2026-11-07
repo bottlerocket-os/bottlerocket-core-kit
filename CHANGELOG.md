@@ -1,3 +1,63 @@
+# v18.0.0 (2026-11-06)
+
+## OS Changes
+* Remove `libdrm` package ([#1110])
+* Stop converting Docker schema 1 manifests in `host-ctr` ([#1122])
+* Support configurable boot-time zram size in `corndog` ([#1093])
+  * **Note:** setting `settings.kernel.zram.size` to `"0"` creates no zram device. Bootstrap containers that run `swapoff /dev/zram0` without first checking for an active zram swap device will then fail. Check `/proc/swaps` first, or use `settings.kernel.zram.size` instead of resizing zram in a bootstrap container.
+* Preserve mirror endpoint order in `hosts.toml` in `thar-be-registries` ([#1111])
+* Prevent `credentials.toml` from hiding the default mirror in `thar-be-registries` ([#1112])
+* Render unprivileged ports/ICMP in `containerd` when set to false ([#1105])
+* Ensure SELinux policy is loaded before credential-consuming services ([#1098])
+* Update `host-ctr` Go dependencies ([#1096])
+* Remove cgroups v1 support from UKI images in `systemd-257` ([#1076])
+* Skip the `binfmt_misc` mount on UKI images in `systemd-257` ([#1076])
+
+## Third Party Package Updates
+* Update `containerd-2.2` to v2.2.10, `containerd-2.3` to v2.3.7 ([#1113])
+* Update `cri-tools` to 1.37.0 ([#1096])
+* Update `cni` to 1.3.1 ([#1099])
+* Update `libncurses`, `libnftnl`, `libtirpc`, `liburcu`, `nftables` ([#1103])
+* Update `chrony`, `coreutils`, `erofs-utils`, `util-linux`, `xfsprogs` ([#1125])
+* Update `libseccomp` to v2.6.1 ([#1126])
+* Update `kubernetes-1.31`, `kubernetes-1.32`, `kubernetes-1.33`, `kubernetes-1.34`, `kubernetes-1.35`, `kubernetes-1.36`, `kubernetes-1.37` to latest ([#1123])
+* Patch `notation` to prune stale `go.sum` entries from the `oras-go` patch ([#1116])
+* Patch `systemd-252` to backport a `PrivateDevices=` early-boot race fix ([#922])
+
+## Build Changes
+* Bump `bottlerocket-sdk` to v0.82.0 ([#1132])
+* Update to `twoliter` v0.27.0 ([#1133])
+* Bump `bottlerocket-settings-models` to 0.33.0 ([#1120])
+
+## Orchestrator Changes
+
+### Kubernetes
+* Specify snapshotter in pause image import for `kubernetes-1.31`, `kubernetes-1.32` ([#1104])
+* Support `mergeDefaultEvictionSettings` through the API for `kubernetes-1.33` through `kubernetes-1.37` ([#1089])
+
+[#922]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/922
+[#1076]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1076
+[#1089]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1089
+[#1093]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1093
+[#1096]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1096
+[#1098]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1098
+[#1099]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1099
+[#1103]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1103
+[#1104]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1104
+[#1105]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1105
+[#1110]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1110
+[#1111]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1111
+[#1112]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1112
+[#1113]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1113
+[#1116]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1116
+[#1120]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1120
+[#1122]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1122
+[#1123]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1123
+[#1125]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1125
+[#1126]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1126
+[#1132]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1132
+[#1133]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1133
+
 # v17.4.0 (2026-10-22)
 
 ## Build Changes
