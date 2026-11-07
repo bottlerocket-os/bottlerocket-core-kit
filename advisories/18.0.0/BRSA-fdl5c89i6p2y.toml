@@ -12,6 +12,6 @@ patched-epoch = "1"
 
 [updateinfo]
 author = "ceradev"
-issue-date = 2026-11-03T19:38:15Z
+issue-date = 2026-11-06T20:10:00Z
 arches = ["x86_64", "aarch64"]
-version = "staging"
+version = "18.0.0"
