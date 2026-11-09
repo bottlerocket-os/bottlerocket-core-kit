@@ -22,7 +22,7 @@ use crate::error::{self, Result};
 use nix::fcntl::{fcntl, FcntlArg, FdFlag, OFlag};
 use snafu::{ensure, ResultExt};
 use std::env;
-use std::os::unix::io::{AsRawFd, RawFd};
+use std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, RawFd};
 use std::os::unix::net::UnixDatagram;
 use std::path::Path;
 use tokio::net::UnixStream;
@@ -67,7 +67,9 @@ pub fn listener_socket() -> Result<u8> {
         error::UnexpectedFileDescriptorCountSnafu { found: fd_count }
     );
 
-    let fd = SD_LISTEN_FDS_START as RawFd;
+    // SAFETY: systemd passed us this fd via socket activation, as validated above, and it stays
+    // open for the life of the process.
+    let fd = unsafe { BorrowedFd::borrow_raw(SD_LISTEN_FDS_START as RawFd) };
 
     // The listener socket has to be configured as O_NONBLOCK, otherwise clients that connect to
     // the dbus socket will hang
@@ -87,8 +89,8 @@ pub fn listener_socket() -> Result<u8> {
 pub fn controller_pair() -> Result<(UnixStream, UnixStream)> {
     let (stream1, stream2) = UnixStream::pair().context(error::SocketPairSnafu)?;
 
-    clear_cloexec(stream1.as_raw_fd())?;
-    clear_cloexec(stream2.as_raw_fd())?;
+    clear_cloexec(&stream1)?;
+    clear_cloexec(&stream2)?;
 
     Ok((stream1, stream2))
 }
@@ -106,7 +108,7 @@ pub fn journal_socket() -> Result<UnixDatagram> {
         .context(error::JournalSocketSnafu)?;
 
     // Clear CLOEXEC flag so dbus-broker can inherit the socket
-    clear_cloexec(socket.as_raw_fd())?;
+    clear_cloexec(&socket)?;
 
     Ok(socket)
 }
@@ -134,8 +136,10 @@ pub fn notify_socket() -> Result<UnixDatagram> {
 ///
 /// Allows the file descriptor to be inherited by child processes,
 /// which is required for dbus-broker socket inheritance.
-pub fn clear_cloexec(fd: RawFd) -> Result<()> {
-    let flags = fcntl(fd, FcntlArg::F_GETFD).context(error::GetFdFlagsSnafu { fd })?;
+pub fn clear_cloexec(fd: impl AsFd) -> Result<()> {
+    let fd = fd.as_fd();
+    let raw_fd = fd.as_raw_fd();
+    let flags = fcntl(fd, FcntlArg::F_GETFD).context(error::GetFdFlagsSnafu { fd: raw_fd })?;
 
     let mut fd_flags = FdFlag::from_bits_truncate(flags);
     fd_flags.remove(FdFlag::FD_CLOEXEC);
@@ -143,7 +147,7 @@ pub fn clear_cloexec(fd: RawFd) -> Result<()> {
     nix::fcntl::fcntl(fd, nix::fcntl::FcntlArg::F_SETFD(fd_flags)).context(
         error::SetFlagSnafu {
             what: "CLOEXEC",
-            fd,
+            fd: raw_fd,
         },
     )?;
 
@@ -151,13 +155,16 @@ pub fn clear_cloexec(fd: RawFd) -> Result<()> {
 }
 
 /// Sets the NONBLOCK flag for the file descriptor
-pub fn set_nonblock(fd: RawFd) -> Result<()> {
-    let current_flags = fcntl(fd, FcntlArg::F_GETFL).context(error::GetFdFlagsSnafu { fd })?;
+pub fn set_nonblock(fd: impl AsFd) -> Result<()> {
+    let fd = fd.as_fd();
+    let raw_fd = fd.as_raw_fd();
+    let current_flags =
+        fcntl(fd, FcntlArg::F_GETFL).context(error::GetFdFlagsSnafu { fd: raw_fd })?;
 
     let new_flags = OFlag::from_bits_truncate(current_flags) | OFlag::O_NONBLOCK;
     nix::fcntl::fcntl(fd, nix::fcntl::FcntlArg::F_SETFL(new_flags)).context(
         error::SetFlagSnafu {
-            fd,
+            fd: raw_fd,
             what: "O_NONBLOCK",
         },
     )?;

@@ -13,7 +13,7 @@ argh.workspace = true
 bytes.workspace = true
 constants.workspace = true
 log.workspace = true
-nix.workspace = true
+nix = { workspace = true, features = ["mount"] }
 schnauzer.workspace = true
 signpost.workspace = true
 simplelog.workspace = true
