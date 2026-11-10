@@ -1,0 +1,37 @@
+From 4482f55bec02432dd0be5cc205efc20c30c14d00 Mon Sep 17 00:00:00 2001
+From: Gavin Inglis <giinglis@amazon.com>
+Date: Tue, 10 Nov 2026 23:40:07 +0000
+Subject: [PATCH] ztoc: link zlib statically without the -l:libz.a cgo flag
+
+Go 1.26.11 and 1.27.4 tightened the cgo linker flag allowlist in
+cmd/go/internal/work/security.go, so the ztoc/compression package
+fails to build:
+
+  invalid flag in #cgo LDFLAGS: -l:libz.a (see https://go.dev/s/invalidflag)
+
+Use `-Wl,--push-state,-Bstatic -lz -Wl,--pop-state` instead. All three
+flags are on the allowlist, and the result is the same: the linker
+searches the -L directories and the system library path for libz.a
+only, so zlib is still linked statically.
+
+Signed-off-by: Gavin Inglis <giinglis@amazon.com>
+---
+ ztoc/compression/gzip_zinfo.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ztoc/compression/gzip_zinfo.go b/ztoc/compression/gzip_zinfo.go
+index 697de80..51644cc 100644
+--- a/ztoc/compression/gzip_zinfo.go
++++ b/ztoc/compression/gzip_zinfo.go
+@@ -17,7 +17,7 @@
+ package compression
+
+ // #cgo CFLAGS: -I${SRCDIR}/
+-// #cgo LDFLAGS: -L${SRCDIR}/../out -l:libz.a
++// #cgo LDFLAGS: -L${SRCDIR}/../out -Wl,--push-state,-Bstatic -lz -Wl,--pop-state
+ // #include "gzip_zinfo.h"
+ // #include <stdlib.h>
+ // #include <stdint.h>
+--
+2.50.1
+
