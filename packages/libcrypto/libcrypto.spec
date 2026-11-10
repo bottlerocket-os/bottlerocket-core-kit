@@ -5,7 +5,7 @@
 %global _cross_cxxflags %{_cross_cflags}
 
 Name: %{_cross_os}libcrypto
-Version: 3.3.0
+Version: 3.6.0
 Release: 1%{?dist}
 Summary: AWS-LC cryptographic library
 License: ISC AND (Apache-2.0 OR ISC) AND OpenSSL
@@ -13,19 +13,9 @@ URL: https://github.com/aws/aws-lc
 
 Source0: https://github.com/aws/aws-lc/archive/AWS-LC-FIPS-%{version}/aws-lc-AWS-LC-FIPS-%{version}.tar.gz
 
-# Upstream patches from AWS-LC-FIPS 3.3 branch can be fetched using the script
+# Upstream patches from AWS-LC-FIPS 3.x branch can be fetched using the script
 # at generate-aws-lc-patches.sh
 
-Patch1001: 1001-Cherry-pick-2024-Implement-SSL_CTX_set_client_hello_.patch
-Patch1002: 1002-FIPS-2024-CHERRYPICK-Fix-shared-library-install-on-W.patch
-Patch1003: 1003-FIPS-2024-CHERRY-PICK-Generate-Rust-Bindings-2999-32.patch
-Patch1004: 1004-CHERRYPICK-FIPS-3.x-Make-rustfmt-optional-for-Rust-b.patch
-Patch1005: 1005-CHERRYPICK-FIPS-3.x-Support-SSL_OP_IGNORE_UNEXPECTED.patch
-Patch1006: 1006-Prepare-v3.4.0-3306.patch
-Patch1007: 1007-CHERRYPICK-FIPS-3.0-Fix-SSL_OP_IGNORE_UNEXPECTED_EOF.patch
-Patch1008: 1008-Prepare-v3.5.0-3362.patch
-Patch1009: 1009-Cherry-pick-2024-Enable-Hybrid-PQ-KeyShares-by-defau.patch
-Patch1010: 1010-Cherry-pick-2024-Fix-CMake-Compatability-CI-jobs-295.patch
 Patch9001: 9001-fix-memchr-const-correctness-for-C23-compatibility-as-implemented-in-glibc-2.43.patch
 
 BuildRequires: %{_cross_os}glibc-devel
