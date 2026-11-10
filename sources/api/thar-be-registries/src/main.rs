@@ -152,9 +152,10 @@ fn write_hosts_toml(base_dir: &Path, mirror: &Mirror) -> Result<()> {
         ..Default::default()
     };
 
+    let caps = resolve_capabilities(mirror.capabilities.as_deref());
     for endpoint in &mirror.endpoint {
         let ep = Endpoint::new(endpoint);
-        let mut cfg = HostConfig::new([Capability::Pull, Capability::Resolve]);
+        let mut cfg = HostConfig::new(caps.iter().copied());
         if ep.has_path_component() {
             cfg = cfg.with_override_path(true);
         }
@@ -169,6 +170,27 @@ fn write_hosts_toml(base_dir: &Path, mirror: &Mirror) -> Result<()> {
 
     info!("Wrote hosts.toml for '{}'", mirror.registry);
     Ok(())
+}
+
+/// Map an optional list of capability strings to Capability values.
+/// Returns the default ["pull", "resolve"] when capabilities is None.
+/// Unknown strings are skipped with a warning.
+fn resolve_capabilities(caps: Option<&[String]>) -> Vec<Capability> {
+    match caps {
+        None => vec![Capability::Pull, Capability::Resolve],
+        Some(strings) => strings
+            .iter()
+            .filter_map(|s| match s.as_str() {
+                "pull" => Some(Capability::Pull),
+                "resolve" => Some(Capability::Resolve),
+                "push" => Some(Capability::Push),
+                other => {
+                    warn!("Unknown capability '{}', skipping", other);
+                    None
+                }
+            })
+            .collect(),
+    }
 }
 
 /// Write credentials.toml for a registry.
@@ -273,6 +295,7 @@ mod tests {
     #[test_case(
     "docker.io",
     &["https://mirror.example.com"],
+    None,
     "docker.io/hosts.toml",
     &[r#"server = "https://registry-1.docker.io""#, r#"[host."https://mirror.example.com"]"#]
     ; "docker.io mirror"
@@ -280,6 +303,7 @@ mod tests {
     #[test_case(
     "registry.example.com:5000",
     &["https://mirror.local"],
+    None,
     "registry.example.com_5000_/hosts.toml",
     &[r#"server = "https://registry.example.com:5000""#]
     ; "registry with port"
@@ -287,6 +311,7 @@ mod tests {
     #[test_case(
     "docker.io",
     &["https://ecr-cache.example.com/v2/docker-hub"],
+    None,
     "docker.io/hosts.toml",
     &["override_path = true"]
     ; "endpoint with path sets override_path"
@@ -294,6 +319,7 @@ mod tests {
     #[test_case(
     "*",
     &["https://mirror.global"],
+    None,
     "_default/hosts.toml",
     &[r#"[host."https://mirror.global"]"#]
     ; "global mirror"
@@ -301,6 +327,7 @@ mod tests {
     #[test_case(
     "registry.example.com:443",
     &["https://mirror.local"],
+    None,
     "registry.example.com_443_/hosts.toml",
     &[r#"server = "https://registry.example.com:443""#]
     ; "port 443 preserves port in directory and server"
@@ -308,6 +335,7 @@ mod tests {
     #[test_case(
     "registry.example.com:80",
     &["http://mirror.local"],
+    None,
     "registry.example.com_80_/hosts.toml",
     &[r#"server = "http://registry.example.com:80""#]
     ; "port 80 infers http scheme"
@@ -315,6 +343,7 @@ mod tests {
     #[test_case(
     "http://registry.local:5000",
     &["http://mirror.local:5000"],
+    None,
     "registry.local_5000_/hosts.toml",
     &[r#"server = "http://registry.local:5000""#]
     ; "explicit http scheme preserved"
@@ -322,6 +351,7 @@ mod tests {
     #[test_case(
     "docker.io",
     &["https://10.0.0.1:443/path/to/resource"],
+    None,
     "docker.io/hosts.toml",
     &[r#"[host."https://10.0.0.1:443/path/to/resource"]"#, "override_path = true"]
     ; "https ip port 443 with path sets override_path"
@@ -329,6 +359,7 @@ mod tests {
     #[test_case(
     "registry.example.com",
     &["https://172.16.0.5:8443/path/to/resource"],
+    None,
     "registry.example.com/hosts.toml",
     &[r#"[host."https://172.16.0.5:8443/path/to/resource"]"#, "override_path = true"]
     ; "https ip custom port with path sets override_path"
@@ -337,6 +368,7 @@ mod tests {
     #[test_case(
     "public.ecr.aws",
     &["196.18.8.18:443/v2/eks-a-test"],
+    None,
     "public.ecr.aws/hosts.toml",
     &[r#"[host."196.18.8.18:443/v2/eks-a-test"]"#, "override_path = true"]
     ; "schemeless ip port 443 with path against public.ecr.aws sets override_path"
@@ -344,6 +376,7 @@ mod tests {
     #[test_case(
     "registry.example.com",
     &["192.168.1.1:5000/path/to/resource"],
+    None,
     "registry.example.com/hosts.toml",
     &[r#"[host."192.168.1.1:5000/path/to/resource"]"#, "override_path = true"]
     ; "schemeless ip custom port with path sets override_path"
@@ -351,6 +384,7 @@ mod tests {
     #[test_case(
     "registry.example.com",
     &["mirror.local:5000/path/to/resource"],
+    None,
     "registry.example.com/hosts.toml",
     &[r#"[host."mirror.local:5000/path/to/resource"]"#, "override_path = true"]
     ; "schemeless hostname custom port with path sets override_path"
@@ -359,6 +393,7 @@ mod tests {
     #[test_case(
     "registry.example.com",
     &["http://mirror.local:5000/path/to/resource"],
+    None,
     "registry.example.com/hosts.toml",
     &[r#"[host."http://mirror.local:5000/path/to/resource"]"#, "override_path = true"]
     ; "http hostname custom port with path sets override_path"
@@ -367,13 +402,39 @@ mod tests {
     #[test_case(
     "docker.io",
     &["https://mirror.example.com/path/to/resource"],
+    None,
     "docker.io/hosts.toml",
     &[r#"[host."https://mirror.example.com/path/to/resource"]"#, "override_path = true"]
     ; "https hostname no port with path sets override_path"
   )]
+    #[test_case(
+    "docker.io",
+    &["https://mirror.example.com"],
+    Some(&["pull"]),
+    "docker.io/hosts.toml",
+    &[r#"capabilities = ["pull"]"#]
+    ; "explicit pull-only capability"
+  )]
+    #[test_case(
+    "docker.io",
+    &["https://mirror.example.com"],
+    None,
+    "docker.io/hosts.toml",
+    &["pull", "resolve"]
+    ; "default capabilities when none specified"
+  )]
+    #[test_case(
+    "docker.io",
+    &["https://mirror.example.com"],
+    Some(&["pull", "resolve", "push"]),
+    "docker.io/hosts.toml",
+    &["pull", "resolve", "push"]
+    ; "all three capabilities"
+  )]
     fn test_write_hosts_toml(
         registry: &str,
         endpoints: &[&str],
+        capabilities: Option<&[&str]>,
         expected_path: &str,
         expected_contents: &[&str],
     ) {
@@ -381,6 +442,7 @@ mod tests {
         let mirror = Mirror {
             registry: registry.to_string(),
             endpoint: endpoints.iter().map(|s| s.to_string()).collect(),
+            capabilities: capabilities.map(|cs| cs.iter().map(|s| s.to_string()).collect()),
         };
         write_hosts_toml(dir.path(), &mirror).unwrap();
         verify_file(dir.path(), expected_path, expected_contents);
@@ -455,6 +517,7 @@ mod tests {
         let mirror = Mirror {
             registry: "registry.example.com".to_string(),
             endpoint: vec!["https://mirror.example.com".to_string()],
+            capabilities: None,
         };
         let cred = Credential {
             registry: "registry.example.com".to_string(),
@@ -638,6 +701,7 @@ mod tests {
         let mirror = Mirror {
             registry: "*".to_string(),
             endpoint: vec!["https://mirror.example.com".to_string()],
+            capabilities: None,
         };
         write_hosts_toml(dir.path(), &mirror).unwrap();
         let content = fs::read_to_string(dir.path().join("_default/hosts.toml")).unwrap();
@@ -650,6 +714,7 @@ mod tests {
         let mirror = Mirror {
             registry: "docker.io".to_string(),
             endpoint: vec!["https://mirror.example.com".to_string()],
+            capabilities: None,
         };
         write_hosts_toml(dir.path(), &mirror).unwrap();
         let content = fs::read_to_string(dir.path().join("docker.io/hosts.toml")).unwrap();
@@ -666,6 +731,7 @@ mod tests {
                 "https://mirror2.example.com".to_string(),
                 "https://mirror3.example.com".to_string(),
             ],
+            capabilities: None,
         };
         write_hosts_toml(dir.path(), &mirror).unwrap();
         let content = fs::read_to_string(dir.path().join("test.io/hosts.toml")).unwrap();
@@ -738,11 +804,49 @@ mod tests {
         let mirror = Mirror {
             registry: "test.io".to_string(),
             endpoint: vec![],
+            capabilities: None,
         };
         write_hosts_toml(dir.path(), &mirror).unwrap();
         let content = fs::read_to_string(dir.path().join("test.io/hosts.toml")).unwrap();
         assert!(content.contains(r#"server = "https://test.io""#));
         assert!(!content.contains("[host."));
+    }
+
+    #[test]
+    fn test_resolve_capabilities_none_returns_default() {
+        let caps = resolve_capabilities(None);
+        assert_eq!(caps, vec![Capability::Pull, Capability::Resolve]);
+    }
+
+    #[test]
+    fn test_resolve_capabilities_pull_only() {
+        let caps = resolve_capabilities(Some(&["pull".to_string()]));
+        assert_eq!(caps, vec![Capability::Pull]);
+    }
+
+    #[test]
+    fn test_resolve_capabilities_all_three() {
+        let caps = resolve_capabilities(Some(&[
+            "pull".to_string(),
+            "resolve".to_string(),
+            "push".to_string(),
+        ]));
+        assert_eq!(
+            caps,
+            vec![Capability::Pull, Capability::Resolve, Capability::Push]
+        );
+    }
+
+    #[test]
+    fn test_resolve_capabilities_unknown_skipped() {
+        let caps = resolve_capabilities(Some(&["pull".to_string(), "fly".to_string()]));
+        assert_eq!(caps, vec![Capability::Pull]);
+    }
+
+    #[test]
+    fn test_resolve_capabilities_empty_returns_empty() {
+        let caps = resolve_capabilities(Some(&[]));
+        assert!(caps.is_empty());
     }
 
     #[test]
