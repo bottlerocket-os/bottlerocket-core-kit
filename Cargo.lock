@@ -707,7 +707,7 @@ dependencies = [
 
 [[package]]
 name = "libjansson"
-version = "2.14.1"
+version = "2.15.1"
 dependencies = [
  "glibc",
 ]
