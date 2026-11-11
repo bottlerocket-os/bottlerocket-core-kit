@@ -21,6 +21,9 @@ Source101: soci-snapshotter.service
 Source102: soci-snapshotter.socket
 Source1000: clarify.toml
 
+# Go 1.26.11 and 1.27.4 reject the `-l:libz.a` cgo linker flag.
+Patch0001: 0001-ztoc-link-zlib-statically-without-the-l-libz.a-cgo-f.patch
+
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libz-devel
 Requires: (%{name}-k8s if %{_cross_os}variant-runtime(k8s))
@@ -64,6 +67,7 @@ Provides: %{name}(k8s)
 %autosetup -n %{gorepo}-%{gover} -p1
 %setup -T -D -n %{gorepo}-%{gover} -b 1 -q
 %setup -T -D -n %{gorepo}-%{gover} -b 2 -q
+patch -p1 -d cmd/vendor/github.com/awslabs/soci-snapshotter < %{P:1}
 
 %build
 
