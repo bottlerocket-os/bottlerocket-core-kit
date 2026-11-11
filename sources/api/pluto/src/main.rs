@@ -701,6 +701,8 @@ mod test {
 
     #[tokio::test]
     async fn test_hostname_override_source() {
+        // pluto's main installs this before any IMDS call; reqwest has no fallback provider.
+        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         println!("listen on {base_uri}");

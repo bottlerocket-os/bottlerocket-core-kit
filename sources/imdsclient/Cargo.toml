@@ -23,4 +23,5 @@ generate-readme.workspace = true
 
 [dev-dependencies]
 httptest.workspace = true
+rustls.workspace = true
 tokio-test.workspace = true

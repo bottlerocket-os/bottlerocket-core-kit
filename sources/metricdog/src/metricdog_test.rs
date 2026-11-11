@@ -22,6 +22,12 @@ fn os_release() -> BottlerocketRelease {
     BottlerocketRelease::from_file(&path).unwrap()
 }
 
+/// Installs the crypto provider that `main_inner` installs, for tests that call `Metricdog`
+/// directly; reqwest is built without a fallback provider.
+fn install_crypto_provider() {
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+}
+
 struct MockCheck {}
 
 impl ServiceCheck for MockCheck {
@@ -69,6 +75,7 @@ impl HostCheck for MockCheck {
 
 #[test]
 fn send_healthy_ping() {
+    install_crypto_provider();
     let server = Server::run();
     let matcher = all_of![
         request::method_path("GET", "/metrics"),
@@ -108,6 +115,7 @@ fn send_healthy_ping() {
 
 #[test]
 fn send_unhealthy_ping() {
+    install_crypto_provider();
     let server = Server::run();
     let matcher = all_of![
         request::method_path("GET", "/metrics"),
@@ -152,6 +160,7 @@ fn send_unhealthy_ping() {
 
 #[test]
 fn send_boot_success() {
+    install_crypto_provider();
     let server = Server::run();
     let matcher = all_of![
         request::method_path("GET", "/metrics"),
