@@ -49,8 +49,12 @@ jobs:
       - run: rustup component add rustfmt
       - run: make twoliter check-licenses
       - run: make twoliter unit-tests
+        env:
+          RUSTFLAGS: --cfg aws_sdk_unstable
       # Avoid running Go lint check via `cargo make check-lints` since there's a separate golangci-lint workflow
       - run: make twoliter check-fmt
       - run: make twoliter check-clippy
+        env:
+          RUSTFLAGS: --cfg aws_sdk_unstable
       - run: make twoliter check-shell
       - run: make ARCH="${{ matrix.arch }}"
