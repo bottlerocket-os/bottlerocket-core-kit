@@ -1,8 +1,7 @@
-use crate::aws::sdk_config;
+use crate::aws::{sdk_config, LogFailedAttempts};
 use crate::PROVIDER;
 use aws_smithy_http_client::{proxy::ProxyConfig, tls, Builder as HttpClientBuilder, Connector};
 use aws_smithy_types::error::display::DisplayErrorContext;
-use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
 use tokio_retry::{
@@ -74,9 +73,8 @@ where
                     .context(DescribeInstancesSnafu { instance_id });
                 if let Err(Error::DescribeInstances { source, .. }) = &response {
                     log::error!(
-                        "EC2 DescribeInstances attempt failed, will retry: code={} message={}",
-                        source.code().unwrap_or_default(),
-                        source.message().unwrap_or_default(),
+                        "EC2 DescribeInstances failed: {}",
+                        DisplayErrorContext(source)
                     );
                 }
                 response?
@@ -137,7 +135,103 @@ where
     };
     let ec2_config = aws_sdk_ec2::config::Builder::from(&config)
         .http_client(http_client)
+        .interceptor(LogFailedAttempts::new())
         .build();
 
     Ok(aws_sdk_ec2::Client::from_conf(ec2_config))
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::aws::test_util::{
+        recording_interceptor, refused_endpoint, test_sdk_config, TEST_MAX_ATTEMPTS,
+    };
+    use aws_smithy_runtime_api::client::interceptors::Intercept;
+    use httptest::{matchers::*, responders::*, Expectation, Server};
+
+    const INSTANCE_ID: &str = "i-0123456789abcdef0";
+
+    fn test_client(endpoint_url: &str) -> aws_sdk_ec2::Client {
+        build_client::<&str, &str>(None, None, test_sdk_config(endpoint_url)).unwrap()
+    }
+
+    #[tokio::test]
+    async fn build_client_adds_log_failed_attempts() {
+        let client = test_client("http://127.0.0.1:1");
+        assert!(client
+            .config()
+            .interceptors()
+            .any(|i| i.name() == "LogFailedAttempts"));
+    }
+
+    #[tokio::test]
+    async fn logs_each_refused_connection() {
+        let (interceptor, messages) = recording_interceptor();
+        let result = test_client(&refused_endpoint())
+            .describe_instances()
+            .instance_ids(INSTANCE_ID)
+            .customize()
+            .interceptor(interceptor)
+            .send()
+            .await;
+        assert!(result.is_err());
+
+        let messages = messages.lock().unwrap();
+        assert_eq!(messages.len(), TEST_MAX_ATTEMPTS as usize, "{messages:?}");
+        for (i, message) in messages.iter().enumerate() {
+            let prefix = format!(
+                "EC2 DescribeInstances attempt {}/{} failed: ",
+                i + 1,
+                TEST_MAX_ATTEMPTS
+            );
+            assert!(message.starts_with(&prefix), "{message}");
+            assert!(message.contains("Connection refused"), "{message}");
+            assert!(!message.contains("HTTP status"), "{message}");
+        }
+    }
+
+    #[tokio::test]
+    async fn logs_403_once_without_retry() {
+        let server = Server::run();
+        server.expect(
+            Expectation::matching(request::method_path("POST", "/"))
+                .times(1)
+                .respond_with(
+                    status_code(403)
+                        .append_header("x-amzn-requestid", "req-403")
+                        .body(
+                            r#"<?xml version="1.0" encoding="UTF-8"?>
+<Response><Errors><Error><Code>UnauthorizedOperation</Code><Message>You are not authorized to perform this operation.</Message></Error></Errors><RequestID>req-403</RequestID></Response>"#,
+                        ),
+                ),
+        );
+        let (interceptor, messages) = recording_interceptor();
+        let result = test_client(&format!("http://{}", server.addr()))
+            .describe_instances()
+            .instance_ids(INSTANCE_ID)
+            .customize()
+            .interceptor(interceptor)
+            .send()
+            .await;
+        assert!(result.is_err());
+
+        let messages = messages.lock().unwrap();
+        assert_eq!(messages.len(), 1, "{messages:?}");
+        assert!(
+            messages[0].starts_with("EC2 DescribeInstances attempt 1/3 failed: "),
+            "{}",
+            messages[0]
+        );
+        assert!(
+            messages[0].contains("UnauthorizedOperation"),
+            "{}",
+            messages[0]
+        );
+        assert!(
+            messages[0].ends_with("(HTTP status 403, request ID req-403)"),
+            "{}",
+            messages[0]
+        );
+    }
 }
