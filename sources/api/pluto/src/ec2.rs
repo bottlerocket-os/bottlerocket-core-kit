@@ -1,6 +1,5 @@
-use crate::aws::{sdk_config, sdk_http_client};
+use crate::aws::{sdk_config, sdk_http_client, LogFailedAttempts};
 use aws_smithy_types::error::display::DisplayErrorContext;
-use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
 use tokio_retry::{
@@ -72,9 +71,8 @@ where
                     .context(DescribeInstancesSnafu { instance_id });
                 if let Err(Error::DescribeInstances { source, .. }) = &response {
                     log::error!(
-                        "EC2 DescribeInstances attempt failed, will retry: code={} message={}",
-                        source.code().unwrap_or_default(),
-                        source.message().unwrap_or_default(),
+                        "EC2 DescribeInstances attempt failed, will retry: {}",
+                        DisplayErrorContext(source)
                     );
                 }
                 response?
@@ -117,7 +115,27 @@ where
     let http_client = sdk_http_client(https_proxy, no_proxy).context(ProxyConfigSnafu)?;
     let ec2_config = aws_sdk_ec2::config::Builder::from(&config)
         .http_client(http_client)
+        .interceptor(LogFailedAttempts)
         .build();
 
     Ok(aws_sdk_ec2::Client::from_conf(ec2_config))
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use aws_config::BehaviorVersion;
+    use aws_smithy_runtime_api::client::interceptors::Intercept;
+
+    #[tokio::test]
+    async fn build_client_adds_log_failed_attempts() {
+        let config = aws_config::SdkConfig::builder()
+            .behavior_version(BehaviorVersion::v2026_01_12())
+            .build();
+        let client = build_client::<&str, &str>(None, None, config).unwrap();
+        assert!(client
+            .config()
+            .interceptors()
+            .any(|i| i.name() == "LogFailedAttempts"));
+    }
 }

@@ -5,7 +5,15 @@ use aws_smithy_http_client::{
     proxy::{ProxyConfig, ProxyError},
     tls, Builder as HttpClientBuilder, Connector,
 };
+use aws_smithy_runtime_api::box_error::BoxError;
 use aws_smithy_runtime_api::client::http::SharedHttpClient;
+use aws_smithy_runtime_api::client::interceptors::context::FinalizerInterceptorContextRef;
+use aws_smithy_runtime_api::client::interceptors::Intercept;
+use aws_smithy_runtime_api::client::orchestrator::Metadata;
+use aws_smithy_runtime_api::client::retries::RequestAttempts;
+use aws_smithy_runtime_api::client::runtime_components::RuntimeComponents;
+use aws_smithy_types::config_bag::ConfigBag;
+use aws_smithy_types::error::display::DisplayErrorContext;
 use aws_smithy_types::retry::{RetryConfig, RetryConfigBuilder};
 use aws_types::region::Region;
 use aws_types::SdkConfig;
@@ -79,4 +87,37 @@ where
             .build_https()
     };
     Ok(http_client)
+}
+
+/// Logs the error of each failed AWS SDK attempt. The SDK retries failed
+/// requests itself and only returns the last error.
+#[derive(Debug)]
+pub(crate) struct LogFailedAttempts;
+
+impl Intercept for LogFailedAttempts {
+    fn name(&self) -> &'static str {
+        "LogFailedAttempts"
+    }
+
+    fn read_after_attempt(
+        &self,
+        context: &FinalizerInterceptorContextRef<'_>,
+        _runtime_components: &RuntimeComponents,
+        cfg: &mut ConfigBag,
+    ) -> Result<(), BoxError> {
+        if let Some(Err(err)) = context.output_or_error() {
+            let (service, operation) = cfg
+                .load::<Metadata>()
+                .map_or(("AWS", "request"), |m| (m.service(), m.name()));
+            let attempt = cfg.load::<RequestAttempts>().map_or(0, |a| a.attempts());
+            log::warn!(
+                "{} {} attempt {} failed: {}",
+                service,
+                operation,
+                attempt,
+                DisplayErrorContext(err)
+            );
+        }
+        Ok(())
+    }
 }

@@ -1,7 +1,6 @@
-use crate::aws::{sdk_config, sdk_http_client};
+use crate::aws::{sdk_config, sdk_http_client, LogFailedAttempts};
 use aws_sdk_eks::types::KubernetesNetworkConfigResponse;
 use aws_smithy_types::error::display::DisplayErrorContext;
-use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
 
@@ -67,9 +66,8 @@ where
             .context(DescribeClusterSnafu { cluster });
         if let Err(Error::DescribeCluster { source, .. }) = &response {
             log::error!(
-                "EKS DescribeCluster attempt failed: code={} message={}",
-                source.code().unwrap_or_default(),
-                source.message().unwrap_or_default(),
+                "EKS DescribeCluster failed: {}",
+                DisplayErrorContext(source)
             );
         }
         response?
@@ -99,6 +97,7 @@ where
     let http_client = sdk_http_client(https_proxy, no_proxy).context(ProxyConfigSnafu)?;
     let eks_config = aws_sdk_eks::config::Builder::from(&config)
         .http_client(http_client)
+        .interceptor(LogFailedAttempts)
         .build();
 
     Ok(aws_sdk_eks::Client::from_conf(eks_config))

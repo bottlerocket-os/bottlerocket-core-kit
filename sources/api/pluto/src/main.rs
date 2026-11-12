@@ -262,7 +262,7 @@ async fn get_eks_network_config(aws_k8s_info: &SettingsViewDelta) -> Result<Opti
         settings_view_get!(aws_k8s_info.aws.region),
         settings_view_get!(aws_k8s_info.kubernetes.cluster_name),
     ) {
-        if let Ok(config) = eks::get_cluster_network_config(
+        match eks::get_cluster_network_config(
             region,
             cluster_name,
             settings_view_get!(aws_k8s_info.network.https_proxy),
@@ -271,7 +271,11 @@ async fn get_eks_network_config(aws_k8s_info: &SettingsViewDelta) -> Result<Opti
         .await
         .context(error::EksSnafu)
         {
-            return Ok(get_dns_from_cluster_config(&config));
+            Ok(config) => return Ok(get_dns_from_cluster_config(&config)),
+            Err(e) => log::warn!(
+                "EKS DescribeCluster failed, falling back to IMDS-derived cluster DNS IP: {}",
+                e
+            ),
         }
     }
     Ok(None)
