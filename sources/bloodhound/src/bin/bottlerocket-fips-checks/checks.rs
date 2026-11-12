@@ -11,6 +11,20 @@ const EXPECTED_FIPS_NAME: &str = "Amazon Linux 2023 Kernel Cryptographic API";
 const FIPS_KERNEL_CHECK_MARKER: &str = "/etc/.fips-kernel-check-passed";
 const FIPS_MODULE_CHECK_MARKER: &str = "/etc/.fips-module-check-passed";
 
+/// Checks whether kernel FIPS mode is active by reading /proc/sys/crypto/fips_enabled.
+fn is_fips_enabled(sac: &dyn SystemAccess) -> bool {
+    look_for_strings_in_file(sac, CRYPTO_FIPS_ENABLED, &[EXPECTED_FIPS_ENABLED]).unwrap_or(false)
+}
+
+/// Returns a FAIL result indicating FIPS is not enabled on this system.
+fn fail_fips_not_enabled() -> CheckerResult {
+    CheckerResult {
+        status: CheckStatus::FAIL,
+        error: "FIPS mode is not enabled on this system".to_string(),
+        ..Default::default()
+    }
+}
+
 // =>o.o<= =>o.o<= =>o.o<= =>o.o<= =>o.o<= =>o.o<= =>o.o<= =>o.o<= =>o.o<= =>o.o<=
 
 pub struct FIPS01000000Checker {}
@@ -43,6 +57,9 @@ pub struct FIPS01010000Checker {}
 
 impl Checker for FIPS01010000Checker {
     fn execute(&self, sac: &dyn SystemAccess) -> CheckerResult {
+        if !is_fips_enabled(sac) {
+            return fail_fips_not_enabled();
+        }
         check_file_contains!(
             sac,
             CRYPTO_FIPS_NAME,
@@ -54,7 +71,7 @@ impl Checker for FIPS01010000Checker {
 
     fn metadata(&self) -> CheckerMetadata {
         CheckerMetadata {
-            title: format!("FIPS module is {EXPECTED_FIPS_NAME}.").to_string(),
+            title: format!("FIPS module is {EXPECTED_FIPS_NAME}."),
             id: "1.1".to_string(),
             level: 0,
             name: "fips01010000".to_string(),
@@ -69,13 +86,16 @@ pub struct FIPS01020000Checker {}
 
 impl Checker for FIPS01020000Checker {
     fn execute(&self, sac: &dyn SystemAccess) -> CheckerResult {
+        if !is_fips_enabled(sac) {
+            return fail_fips_not_enabled();
+        }
+
         let result = check_file_exists!(
             sac,
             FIPS_KERNEL_CHECK_MARKER,
             format!("{FIPS_KERNEL_CHECK_MARKER} not found")
         );
 
-        // Check if we need to continue
         if result.status == CheckStatus::FAIL {
             return result;
         }
@@ -109,9 +129,9 @@ mod tests {
         let usac = UnitTestSystemAccess::default();
         let checker = FIPS01000000Checker {};
         let result = checker.execute(&usac);
-        // skip the test if /proc/sys/crypto/fips_enabled is missing
         assert_eq!(result.status, CheckStatus::SKIP);
     }
+
     #[test]
     pub fn test_fips01000000checker_fips_disabled() {
         let mut usac = UnitTestSystemAccess::default();
@@ -120,6 +140,7 @@ mod tests {
         let result = checker.execute(&usac);
         assert_eq!(result.status, CheckStatus::FAIL);
     }
+
     #[test]
     pub fn test_fips01000000checker_fips_enabled() {
         let mut usac = UnitTestSystemAccess::default();
@@ -130,16 +151,17 @@ mod tests {
     }
 
     #[test]
-    pub fn test_fips01010000checker_missing_fips_name() {
+    pub fn test_fips01010000checker_fips_not_enabled() {
         let usac = UnitTestSystemAccess::default();
         let checker = FIPS01010000Checker {};
         let result = checker.execute(&usac);
-        assert_eq!(result.status, CheckStatus::SKIP);
+        assert_eq!(result.status, CheckStatus::FAIL);
     }
 
     #[test]
     pub fn test_fips01010000checker_wrong_fips_name() {
         let mut usac = UnitTestSystemAccess::default();
+        usac.register_file(CRYPTO_FIPS_ENABLED, EXPECTED_FIPS_ENABLED);
         usac.register_file(CRYPTO_FIPS_NAME, "some wrong name");
         let checker = FIPS01010000Checker {};
         let result = checker.execute(&usac);
@@ -149,6 +171,7 @@ mod tests {
     #[test]
     pub fn test_fips01010000checker_passing() {
         let mut usac = UnitTestSystemAccess::default();
+        usac.register_file(CRYPTO_FIPS_ENABLED, EXPECTED_FIPS_ENABLED);
         usac.register_file(CRYPTO_FIPS_NAME, EXPECTED_FIPS_NAME);
         let checker = FIPS01010000Checker {};
         let result = checker.execute(&usac);
@@ -156,28 +179,68 @@ mod tests {
     }
 
     #[test]
+    pub fn test_fips01020000checker_fips_not_enabled() {
+        let usac = UnitTestSystemAccess::default();
+        let checker = FIPS01020000Checker {};
+        let result = checker.execute(&usac);
+        assert_eq!(result.status, CheckStatus::FAIL);
+    }
+
+    #[test]
     pub fn test_fips01020000checker_missing_module_check_marker() {
         let mut usac = UnitTestSystemAccess::default();
+        usac.register_file(CRYPTO_FIPS_ENABLED, EXPECTED_FIPS_ENABLED);
         usac.register_file(FIPS_KERNEL_CHECK_MARKER, "1");
         let checker = FIPS01020000Checker {};
         let result = checker.execute(&usac);
         assert_eq!(result.status, CheckStatus::FAIL);
     }
+
     #[test]
     pub fn test_fips01020000checker_missing_kernel_check_marker() {
         let mut usac = UnitTestSystemAccess::default();
+        usac.register_file(CRYPTO_FIPS_ENABLED, EXPECTED_FIPS_ENABLED);
         usac.register_file(FIPS_MODULE_CHECK_MARKER, "1");
         let checker = FIPS01020000Checker {};
         let result = checker.execute(&usac);
         assert_eq!(result.status, CheckStatus::FAIL);
     }
+
     #[test]
     pub fn test_fips01020000checker_passing() {
         let mut usac = UnitTestSystemAccess::default();
+        usac.register_file(CRYPTO_FIPS_ENABLED, EXPECTED_FIPS_ENABLED);
         usac.register_file(FIPS_KERNEL_CHECK_MARKER, "1");
         usac.register_file(FIPS_MODULE_CHECK_MARKER, "1");
         let checker = FIPS01020000Checker {};
         let result = checker.execute(&usac);
         assert_eq!(result.status, CheckStatus::PASS);
+    }
+
+    #[test]
+    pub fn test_is_fips_enabled_true() {
+        let mut usac = UnitTestSystemAccess::default();
+        usac.register_file(CRYPTO_FIPS_ENABLED, EXPECTED_FIPS_ENABLED);
+        assert!(is_fips_enabled(&usac));
+    }
+
+    #[test]
+    pub fn test_is_fips_enabled_false() {
+        let mut usac = UnitTestSystemAccess::default();
+        usac.register_file(CRYPTO_FIPS_ENABLED, "0");
+        assert!(!is_fips_enabled(&usac));
+    }
+
+    #[test]
+    pub fn test_is_fips_enabled_missing_file() {
+        let usac = UnitTestSystemAccess::default();
+        assert!(!is_fips_enabled(&usac));
+    }
+
+    #[test]
+    pub fn test_fail_fips_not_enabled() {
+        let result = fail_fips_not_enabled();
+        assert_eq!(result.status, CheckStatus::FAIL);
+        assert!(!result.error.is_empty());
     }
 }
