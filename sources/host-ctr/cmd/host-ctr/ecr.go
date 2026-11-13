@@ -12,9 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
-	"github.com/containerd/containerd"
-	"github.com/containerd/containerd/reference"
-	"github.com/containerd/containerd/remotes/docker"
 	"github.com/containerd/log"
 )
 
@@ -68,15 +65,6 @@ type parsedECR struct {
 	Fips   bool
 }
 
-// extractHostFromRef extracts the registry hostname from an image reference.
-func extractHostFromRef(ref string) (string, error) {
-	parsed, err := reference.Parse(ref)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse reference: %w", err)
-	}
-	return parsed.Hostname(), nil
-}
-
 // parseECRHost parses an ECR private registry hostname and extracts
 // the region and whether it's a FIPS endpoint.
 func parseECRHost(host string) (*parsedECR, error) {
@@ -95,15 +83,6 @@ func parseECRHost(host string) (*parsedECR, error) {
 	}
 
 	return &parsedECR{Region: region, Fips: isFips}, nil
-}
-
-// isECRPrivateRef returns true if ref points to an ECR private registry.
-func isECRPrivateRef(ref string) bool {
-	host, err := extractHostFromRef(ref)
-	if err != nil {
-		return false
-	}
-	return ecrPrivateHostPattern.MatchString(host)
 }
 
 // decodeECRToken decodes a base64 ECR token and returns username and password.
@@ -184,73 +163,4 @@ func getECRPublicCredentials(ctx context.Context) (string, string, error) {
 	}
 
 	return decodeECRToken(output.AuthorizationData.AuthorizationToken)
-}
-
-// withECRPrivateResolver creates a resolver for private ECR registries.
-// Returns an error if credentials cannot be obtained - private ECR requires
-// authentication.
-func withECRPrivateResolver(ctx context.Context, ref string) containerd.RemoteOpt {
-	return func(_ *containerd.Client, c *containerd.RemoteContext) error {
-		ecrHost, err := extractHostFromRef(ref)
-		if err != nil {
-			return fmt.Errorf("failed to extract host from reference: %w", err)
-		}
-
-		parsed, err := parseECRHost(ecrHost)
-		if err != nil {
-			return fmt.Errorf("failed to parse ECR host: %w", err)
-		}
-
-		username, password, err := getECRPrivateCredentials(ctx, parsed.Region, parsed.Fips)
-		if err != nil {
-			return fmt.Errorf("failed to get private ECR credentials for region %s: %w", parsed.Region, err)
-		}
-
-		authOpt := docker.WithAuthCreds(func(host string) (string, string, error) {
-			if host != ecrHost {
-				return "", "", fmt.Errorf("ecr-private: unexpected host %s, expected %s", host, ecrHost)
-			}
-			return username, password, nil
-		})
-		authorizer := docker.NewDockerAuthorizer(authOpt)
-		c.Resolver = docker.NewResolver(docker.ResolverOptions{
-			Hosts: registryHosts(nil, &authorizer),
-		})
-
-		log.G(ctx).WithField("ref", ref).WithField("region", parsed.Region).Info("pulling private ECR image")
-		return nil
-	}
-}
-
-// withECRPublicResolver creates a resolver for ECR Public registries.
-// Falls back to unauthenticated pull if credentials cannot be obtained since
-// ECR Public supports anonymous access.
-func withECRPublicResolver(ctx context.Context, ref string, registryConfig *RegistryConfig, defaultResolver containerd.RemoteOpt) containerd.RemoteOpt {
-	if registryConfig != nil {
-		if _, found := registryConfig.Credentials[ecrPublicHost]; found {
-			return defaultResolver
-		}
-	}
-
-	username, password, err := getECRPublicCredentials(ctx)
-	if err != nil {
-		log.G(ctx).WithError(err).Warn("ecr-public: failed to get credentials, falling back to unauthenticated pull")
-		return defaultResolver
-	}
-
-	authOpt := docker.WithAuthCreds(func(host string) (string, string, error) {
-		if host != ecrPublicHost {
-			return "", "", fmt.Errorf("ecr-public: unexpected host %s, expected %s", host, ecrPublicHost)
-		}
-		return username, password, nil
-	})
-	authorizer := docker.NewDockerAuthorizer(authOpt)
-
-	return func(_ *containerd.Client, c *containerd.RemoteContext) error {
-		c.Resolver = docker.NewResolver(docker.ResolverOptions{
-			Hosts: registryHosts(registryConfig, &authorizer),
-		})
-		log.G(ctx).WithField("ref", ref).Info("pulling from ECR Public")
-		return nil
-	}
 }

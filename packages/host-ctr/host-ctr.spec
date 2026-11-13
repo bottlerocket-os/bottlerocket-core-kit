@@ -10,6 +10,7 @@ License: Apache-2.0 OR MIT
 URL: https://github.com/bottlerocket-os/bottlerocket
 BuildRequires: %{_cross_os}glibc-devel
 Requires: %{_cross_os}containerd
+Requires: %{_cross_os}digestion-image-verifier
 
 Source10: host-containerd.service
 Source11: host-containerd-tmpfiles.conf
@@ -18,6 +19,8 @@ Source13: ephemeral-storage.conf
 
 # Mount for writing host-ctr configuration
 Source100: etc-host-containers.mount.in
+# Mount for host-ctr's image verifier trust policy drop-ins
+Source101: etc-host-containerd-image-verifiers-digestion-trustpolicy.d.mount.in
 
 %description
 %{summary}.
@@ -40,6 +43,8 @@ install -d %{buildroot}%{_cross_unitdir}
 install -p -m 0644 %{S:10} %{buildroot}%{_cross_unitdir}
 ETC_HOST_CONTAINERS=$(systemd-escape --path /etc/host-containers)
 install -p -m 0644 %{S:100} %{buildroot}%{_cross_unitdir}/${ETC_HOST_CONTAINERS}.mount
+TRUST_POLICY_DIR=$(systemd-escape --path /etc/host-containerd/image-verifiers/digestion/trustpolicy.d)
+install -p -m 0644 %{S:101} %{buildroot}%{_cross_unitdir}/${TRUST_POLICY_DIR}.mount
 
 install -d %{buildroot}%{_cross_tmpfilesdir}
 install -p -m 0644 %{S:11} %{buildroot}%{_cross_tmpfilesdir}/host-containerd.conf

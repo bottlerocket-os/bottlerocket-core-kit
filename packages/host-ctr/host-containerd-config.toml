@@ -12,3 +12,9 @@ disabled_plugins = [
 
 [grpc]
 address = "/run/host-containerd/containerd.sock"
+
+# Host-specific verifier bin_dir, separate from the orchestrator's /opt/civ/bin.
+[plugins."io.containerd.image-verifier.v1.bindir"]
+  bin_dir = "/opt/host-civ/bin"
+  max_verifiers = -1
+  per_verifier_timeout = "10s"
