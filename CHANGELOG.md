@@ -1,3 +1,24 @@
+# v19.0.0 (2026-11-13)
+
+## OS Changes
+* Pull images via the containerd image transfer service and support digest verification in `host-ctr` ([#1119])
+* Prevent `apiclient exec` while in lockdown mode ([#1145])
+* Log setting names in `apiserver` ([#1143])
+* Drop `ring` from `reqwest` and `rcgen` dependencies ([#1138])
+* Add bpf token permissions for kernel-next in `selinux-policy` ([#1146])
+
+### Third Party Package Updates
+* Update `docker-cli-29`, `docker-engine-29` ([#1142])
+* Patch `soci-snapshotter` to link zlib statically ([#1137])
+
+[#1119]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1119
+[#1137]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1137
+[#1138]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1138
+[#1142]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1142
+[#1143]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1143
+[#1145]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1145
+[#1146]: https://github.com/bottlerocket-os/bottlerocket-core-kit/pull/1146
+
 # v18.0.0 (2026-11-06)
 
 ## OS Changes
