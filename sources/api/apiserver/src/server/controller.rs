@@ -445,10 +445,18 @@ pub(crate) fn set_settings<D: DataStore>(
             })?;
     }
 
-    info!("Writing Settings to pending transaction in datastore: {pairs:?}");
+    info!(
+        "Writing Settings to pending transaction in datastore: {:?}",
+        key_names(&pairs)
+    );
     datastore
         .set_keys(&pairs, &pending)
         .context(error::DataStoreSnafu { op: "set_keys" })
+}
+
+/// The names of the given keys, for logging.
+fn key_names(pairs: &HashMap<Key, String>) -> Vec<&str> {
+    pairs.keys().map(|key| key.name().as_str()).collect()
 }
 
 // This is not as nice as get_settings, which uses Serializer/Deserializer to properly use the
@@ -874,6 +882,16 @@ mod test {
             let settings = serde_json::from_str::<TestSettings>(&json).unwrap();
             settings.$field
         }};
+    }
+
+    #[test]
+    fn settings_log_names_keys_not_values() {
+        let settings = serde_json::json!({ "motd": "motd-value" });
+        let pairs = to_pairs_with_prefix("settings", &settings).unwrap();
+
+        let logged = format!("{:?}", key_names(&pairs));
+        assert!(logged.contains("settings.motd"));
+        assert!(!logged.contains("motd-value"));
     }
 
     #[test]
