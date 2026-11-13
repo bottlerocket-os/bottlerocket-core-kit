@@ -573,8 +573,16 @@ mod test {
     use super::*;
     use httptest::{matchers::*, responders::*, Expectation, Server};
 
+    /// Installs a process-default rustls crypto provider. When the workspace is tested together,
+    /// feature unification gives reqwest rustls without a fallback provider, so building a client
+    /// panics unless one is installed, as binaries using this crate do at startup.
+    fn install_crypto_provider() {
+        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    }
+
     #[tokio::test]
     async fn fetch_imds() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let token = "some+token";
@@ -615,6 +623,7 @@ mod test {
 
     #[tokio::test]
     async fn fetch_imds_notfound() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let token = "some+token";
@@ -650,6 +659,7 @@ mod test {
 
     #[tokio::test]
     async fn fetch_imds_unauthorized() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let token = "some+token";
@@ -685,6 +695,7 @@ mod test {
 
     #[tokio::test]
     async fn fetch_imds_timeout() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let token = "some+token";
@@ -720,6 +731,7 @@ mod test {
 
     #[tokio::test]
     async fn fetch_token_timeout() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let retry_timeout = Duration::from_secs(2);
@@ -737,6 +749,7 @@ mod test {
 
     #[tokio::test]
     async fn fetch_string() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let token = "some+token";
@@ -771,6 +784,7 @@ mod test {
 
     #[tokio::test]
     async fn fetch_bytes() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let token = "some+token";
@@ -805,6 +819,7 @@ mod test {
 
     #[tokio::test]
     async fn fetch_userdata() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let token = "some+token";
@@ -838,6 +853,7 @@ mod test {
 
     #[tokio::test]
     async fn fetch_hostname() {
+        install_crypto_provider();
         let server = Server::run();
         let base_uri = format!("http://{}", server.addr());
         let token = "some+token";

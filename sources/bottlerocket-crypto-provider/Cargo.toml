@@ -12,4 +12,4 @@ rustls = { workspace = true }
 snafu.workspace = true
 
 [dev-dependencies]
-rcgen = "0.13"
+rcgen = { version = "0.13", default-features = false, features = ["aws_lc_rs"] }
