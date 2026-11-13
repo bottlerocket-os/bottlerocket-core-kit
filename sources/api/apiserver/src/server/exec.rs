@@ -15,16 +15,106 @@ use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws::{self, Message};
 use log::{debug, error, info};
 use model::exec::{Capacity, ClientMessage, ServerMessage};
+use snafu::{ensure, ResultExt};
 use std::convert::TryFrom;
 use std::fmt::Debug;
 use std::path::PathBuf;
+use std::process::Stdio;
 use std::sync::mpsc::TrySendError;
 use std::time::{Duration, Instant};
+use tokio::process::Command as AsyncCommand;
+
+use crate::server::error;
 
 mod child;
 mod stop;
 use child::ChildHandles;
 use stop::{ok_or_stop, some_or_stop, stop};
+
+/// Path to the Bottlerocket datastore directory
+pub(crate) const DATASTORE_DIR: &str = "/.bottlerocket/datastore";
+/// Absolute path to the rottweiler helper
+pub(crate) const ROTTWEILER_BIN: &str = "/usr/bin/rottweiler";
+
+/// The state of the datastore's fscrypt key, as reported by rottweiler.
+#[derive(PartialEq)]
+pub(crate) enum DatastoreKeyState {
+    /// The datastore carries no fscrypt policy; there's nothing to lock.
+    NotEncrypted,
+    /// The datastore is encrypted and its key is present; 'exec' may proceed.
+    Unlocked,
+    /// The datastore is encrypted and its key has been removed; the host is locked down.
+    LockedDown,
+}
+
+/// Parse rottweiler's `key-status` output into a `DatastoreKeyState`.
+fn parse_key_state(stdout: &str) -> error::Result<DatastoreKeyState> {
+    match stdout.trim() {
+        "not-encrypted" => Ok(DatastoreKeyState::NotEncrypted),
+        "unlocked" => Ok(DatastoreKeyState::Unlocked),
+        "locked" => Ok(DatastoreKeyState::LockedDown),
+        other => error::LockdownStateUnknownSnafu {
+            detail: format!("unrecognized rottweiler key-status output: '{other}'"),
+        }
+        .fail(),
+    }
+}
+
+/// Returns the datastore's key state when it can be determined without asking rottweiler, or
+/// `None` if rottweiler must be consulted.  If the `encrypted-storage` image feature is off, the
+/// datastore can't be encrypted, so this returns `Some(NotEncrypted)` and 'exec' may proceed
+/// without a rottweiler query; hosts built without that feature have no rottweiler binary to ask.
+/// If the feature is on, this returns `None`, deferring to rottweiler's own key-status query.
+fn key_state_for_feature(encrypted_storage: bool) -> Option<DatastoreKeyState> {
+    if encrypted_storage {
+        None
+    } else {
+        Some(DatastoreKeyState::NotEncrypted)
+    }
+}
+
+async fn datastore_key_state() -> error::Result<DatastoreKeyState> {
+    let features = bottlerocket_image_features::parse_image_features().map_err(|e| {
+        error::Error::LockdownStateImageFeatures {
+            message: e.to_string(),
+        }
+    })?;
+    if let Some(state) = key_state_for_feature(features.encrypted_storage) {
+        return Ok(state);
+    }
+
+    let output = AsyncCommand::new(ROTTWEILER_BIN)
+        .args(["key-status", "directory", DATASTORE_DIR])
+        .stdin(Stdio::null())
+        .output()
+        .await
+        .context(error::LockdownStateExecSnafu {
+            program: ROTTWEILER_BIN,
+        })?;
+
+    ensure!(
+        output.status.success(),
+        error::LockdownStateUnknownSnafu {
+            detail: format!(
+                "'{}' exited with {}: stdout: '{}', stderr: '{}'",
+                ROTTWEILER_BIN,
+                output.status,
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            ),
+        }
+    );
+
+    parse_key_state(&String::from_utf8_lossy(&output.stdout))
+}
+
+fn exec_refusal(state: DatastoreKeyState) -> error::Result<()> {
+    ensure!(
+        state != DatastoreKeyState::LockedDown,
+        error::LockdownActiveSnafu
+    );
+    Ok(())
+}
 
 /// To guard against stale connections, we send ping and pong messages through the channel
 /// regularly as a 'heartbeat'; this is how often we send them.
@@ -67,6 +157,7 @@ pub(crate) async fn ws_exec(
         r.path()
     );
 
+    exec_refusal(datastore_key_state().await?)?;
     ws::start(WsExec::new(data.exec_socket_path.clone()), &r, stream)
 }
 
@@ -376,5 +467,52 @@ impl Handler<message::CapacityUpdate> for WsExec {
             ws::CloseCode::Error,
         );
         ctx.text(msg);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn refuses_only_when_locked_down() {
+        assert!(exec_refusal(DatastoreKeyState::NotEncrypted).is_ok());
+        assert!(exec_refusal(DatastoreKeyState::Unlocked).is_ok());
+        assert!(exec_refusal(DatastoreKeyState::LockedDown).is_err());
+    }
+
+    #[test]
+    fn parses_each_helper_answer() {
+        assert!(matches!(
+            parse_key_state("not-encrypted\n"),
+            Ok(DatastoreKeyState::NotEncrypted)
+        ));
+        assert!(matches!(
+            parse_key_state("unlocked\n"),
+            Ok(DatastoreKeyState::Unlocked)
+        ));
+        assert!(matches!(
+            parse_key_state("locked\n"),
+            Ok(DatastoreKeyState::LockedDown)
+        ));
+    }
+
+    #[test]
+    fn unrecognized_helper_answer_is_an_error() {
+        assert!(parse_key_state("").is_err());
+        assert!(parse_key_state("probably-fine").is_err());
+    }
+
+    #[test]
+    fn feature_off_short_circuits_to_not_encrypted() {
+        assert!(matches!(
+            key_state_for_feature(false),
+            Some(DatastoreKeyState::NotEncrypted)
+        ));
+    }
+
+    #[test]
+    fn feature_on_defers_to_rottweiler() {
+        assert!(key_state_for_feature(true).is_none());
     }
 }

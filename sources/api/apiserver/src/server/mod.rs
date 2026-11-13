@@ -7,6 +7,7 @@ mod error;
 mod exec;
 
 pub use error::Error;
+use exec::{DATASTORE_DIR, ROTTWEILER_BIN};
 
 use actix_web::{
     body::BoxBody, error::ResponseError, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
@@ -640,12 +641,7 @@ async fn deactivate_update() -> Result<HttpResponse> {
 /// Locks down the machine
 async fn lockdown() -> Result<HttpResponse> {
     debug!("Locking down now");
-    let commands = vec![vec![
-        "rottweiler",
-        "lock",
-        "directory",
-        "/.bottlerocket/datastore",
-    ]];
+    let commands = vec![vec![ROTTWEILER_BIN, "lock", "directory", DATASTORE_DIR]];
 
     for args in commands {
         let output = Command::new(args[0])
@@ -1015,6 +1011,7 @@ impl ResponseError for error::Error {
             // 423 Locked
             UpdateShareLock { .. } => StatusCode::LOCKED,
             UpdateLockHeld => StatusCode::LOCKED,
+            LockdownActive => StatusCode::LOCKED,
 
             // 409 Conflict
             DisallowCommand => StatusCode::CONFLICT,
@@ -1048,6 +1045,9 @@ impl ResponseError for error::Error {
             Shutdown { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             Lockdown { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             LockdownExec { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            LockdownStateExec { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            LockdownStateUnknown { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            LockdownStateImageFeatures { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             Reboot { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             UpdateDispatcher { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             UpdateError => StatusCode::INTERNAL_SERVER_ERROR,
