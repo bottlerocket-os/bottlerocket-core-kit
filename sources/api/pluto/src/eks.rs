@@ -1,7 +1,7 @@
 use crate::aws::sdk_config;
 use crate::PROVIDER;
 use aws_sdk_eks::types::KubernetesNetworkConfigResponse;
-use aws_smithy_experimental::hyper_1_0::HyperClientBuilder;
+use aws_smithy_http_client::{proxy::ProxyConfig, tls, Builder as HttpClientBuilder, Connector};
 use aws_smithy_types::error::display::DisplayErrorContext;
 use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use snafu::{OptionExt, ResultExt, Snafu};
@@ -34,6 +34,11 @@ pub(super) enum Error {
 
     #[snafu(display("Missing field '{}' in EKS response", field))]
     Missing { field: &'static str },
+
+    #[snafu(display("Invalid proxy URL: {}", source))]
+    ProxyConfig {
+        source: aws_smithy_http_client::proxy::ProxyError,
+    },
 }
 
 type Result<T> = std::result::Result<T, Error>;
@@ -95,12 +100,21 @@ where
 {
     let http_client = if let Some(https_proxy) = https_proxy {
         let https_proxy = https_proxy.as_ref().to_string();
-        HyperClientBuilder::new()
-            .crypto_mode(PROVIDER)
-            .build_with_proxy(https_proxy, no_proxy)
+        let mut proxy = ProxyConfig::https(&https_proxy).context(ProxyConfigSnafu)?;
+        if let Some(no_proxy) = no_proxy {
+            let no_proxy_str: Vec<&str> = no_proxy.iter().map(|s| s.as_ref()).collect();
+            proxy = proxy.no_proxy(no_proxy_str.join(","));
+        }
+        HttpClientBuilder::new().build_with_connector_fn(move |settings, _runtime_components| {
+            let mut builder = Connector::builder()
+                .proxy_config(proxy.clone())
+                .tls_provider(tls::Provider::Rustls(PROVIDER.clone()));
+            builder.set_connector_settings(settings.cloned());
+            builder.build()
+        })
     } else {
-        HyperClientBuilder::new()
-            .crypto_mode(PROVIDER)
+        HttpClientBuilder::new()
+            .tls_provider(tls::Provider::Rustls(PROVIDER.clone()))
             .build_https()
     };
     let eks_config = aws_sdk_eks::config::Builder::from(&config)

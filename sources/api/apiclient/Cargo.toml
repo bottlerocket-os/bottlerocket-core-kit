@@ -33,7 +33,7 @@ futures-channel.workspace = true
 http.workspace = true
 httparse.workspace = true
 # apiclient exec requires an older version of hyper
-hyper = { version = "0.14", features = ["client", "http1", "http2", "tcp"] }
+hyper-0-14 = { workspace = true, features = ["client", "http1", "http2", "tcp"] }
 hyper-unix-connector.workspace = true
 libc.workspace = true
 log.workspace = true
