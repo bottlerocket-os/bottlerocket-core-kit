@@ -3,9 +3,9 @@
 %global goorg github.com/moby
 %global goimport %{goorg}/moby
 
-%global gover 29.0.4
+%global gover 29.9.3
 %global rpmver %{gover}
-%global gitrev 4612690e23f7c4200af175e12cae206b2ee00c7b
+%global gitrev 70efc0e31da3a115fc87574d1b786fa2b867c346
 
 %global source_date_epoch 1363394400
 
@@ -42,7 +42,6 @@ BuildRequires: git
 BuildRequires: %{_cross_os}glibc-devel
 BuildRequires: %{_cross_os}libseccomp-devel
 BuildRequires: %{_cross_os}systemd-devel
-BuildRequires: %{_cross_os}nftables-devel
 Requires: %{_cross_os}containerd
 Requires: %{_cross_os}libseccomp
 Requires: %{_cross_os}systemd
@@ -66,6 +65,7 @@ BUILDTAGS+=" exclude_graphdriver_btrfs"
 BUILDTAGS+=" exclude_graphdriver_devicemapper"
 BUILDTAGS+=" exclude_graphdriver_vfs"
 BUILDTAGS+=" exclude_graphdriver_zfs"
+BUILDTAGS+=" no_embedded_containerd"
 export BUILDTAGS
 export VERSION=%{gover}
 export GITCOMMIT=%{gitrev}

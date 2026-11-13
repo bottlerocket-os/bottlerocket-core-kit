@@ -12,15 +12,14 @@ path = "../packages.rs"
 releases-url = "https://github.com/moby/moby/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/moby/moby/archive/docker-v29.0.4/moby-docker-v29.0.4.tar.gz"
-sha512 = "475770b282bdfd0f9f9343fb9818384253d3e17b9976599ad1de52f64e67a1f88a18a40d8b296f37299485fe2e6eabfee6ae6be6547c0fc936053872aa4ef1f7"
+url = "https://github.com/moby/moby/archive/docker-v29.9.3/moby-docker-v29.9.3.tar.gz"
+sha512 = "291f3fe265e59ca7d854e9b445e06754a6a8df637501e745465744b0afa131ddc1e1044f3688f6b63d5fe120f2e5637ebdb40d01dab07477ee9a90282da8612b"
 
 [[package.metadata.build-package.external-files]]
-url = "https://cache.bottlerocket.aws/0003-Switch-containerd-image-backend-s-image-pull-to-tran.patch/357030a55a200e76709ded37584419cd035f0f810248c654f2c618467411b28afac5408a600631b429f32e565532e4ebf46f334c6dea09158c84d1366f310be0/0003-Switch-containerd-image-backend-s-image-pull-to-tran.patch"
-sha512 = "357030a55a200e76709ded37584419cd035f0f810248c654f2c618467411b28afac5408a600631b429f32e565532e4ebf46f334c6dea09158c84d1366f310be0"
+url = "https://cache.bottlerocket.aws/0003-Switch-containerd-image-backend-s-image-pull-to-tran.patch/3da9e8b6da659134531766d07b29ca60fdf2d7c6175c8464ada7ebc215bcdb5ba1029c27e45cacfbb33317cf9417343b61fa1278c23ede05588f6a5063dbb39a/0003-Switch-containerd-image-backend-s-image-pull-to-tran.patch"
+sha512 = "3da9e8b6da659134531766d07b29ca60fdf2d7c6175c8464ada7ebc215bcdb5ba1029c27e45cacfbb33317cf9417343b61fa1278c23ede05588f6a5063dbb39a"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
 libseccomp = { path = "../libseccomp" }
 systemd-252 = { path = "../systemd-252" }
-nftables = { path = "../nftables" }

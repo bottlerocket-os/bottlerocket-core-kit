@@ -1,4 +1,4 @@
-From 90132d7394bba59e95b37f1cb6b0533a4f92a064 Mon Sep 17 00:00:00 2001
+From 64a3aea7f0b5ebfd7ef62be6e9b757e1268c1af0 Mon Sep 17 00:00:00 2001
 From: Shikha Vyaghra <vyaghras@amazon.com>
 Date: Thu, 6 Jul 2023 17:26:45 +0000
 Subject: [PATCH] Change default capabilities using daemon config
@@ -13,6 +13,8 @@ Signed-off-by: Shikha Vyaghra <vyaghras@amazon.com>
 Signed-off-by: Arnaldo Garcia Rincon <agarrcia@amazon.com>
 [updated for docker v29]
 Signed-off-by: Kush Upadhyay <kushupad@amazon.com>
+[updated for docker v29.9.3]
+Signed-off-by: Kyle Sessions <kssessio@amazon.com>
 ---
  daemon/command/config_unix.go |  1 +
  daemon/config/config.go       |  2 ++
@@ -21,40 +23,40 @@ Signed-off-by: Kush Upadhyay <kushupad@amazon.com>
  4 files changed, 14 insertions(+), 3 deletions(-)
 
 diff --git a/daemon/command/config_unix.go b/daemon/command/config_unix.go
-index ecc892e..04a5c11 100644
+index c086dd5..880270b 100644
 --- a/daemon/command/config_unix.go
 +++ b/daemon/command/config_unix.go
-@@ -57,4 +57,5 @@ func installConfigFlags(conf *config.Config, flags *pflag.FlagSet) {
+@@ -58,4 +58,5 @@ func installConfigFlags(conf *config.Config, flags *pflag.FlagSet) {
  	// Note that conf.BridgeConfig.UserlandProxyPath and honorXDG are configured according to the value of rootless.RunningWithRootlessKit, not the value of --rootless.
  	flags.BoolVar(&conf.Rootless, "rootless", conf.Rootless, "Enable rootless mode; typically used with RootlessKit")
  	flags.StringVar(&conf.CgroupNamespaceMode, "default-cgroupns-mode", conf.CgroupNamespaceMode, `Default mode for containers cgroup namespace ("host" | "private")`)
 +	flags.Var(opts.NewNamedListOptsRef("default-capabilities", &conf.Capabilities, nil), "default-capabilities", "Default capabilities for containers")
  }
 diff --git a/daemon/config/config.go b/daemon/config/config.go
-index 6efe605..b8c7f41 100644
+index e03b04e..b77c797 100644
 --- a/daemon/config/config.go
 +++ b/daemon/config/config.go
-@@ -88,6 +88,7 @@ var flatOptions = map[string]bool{
- 	"default-ulimits":      true,
- 	"features":             true,
+@@ -93,6 +93,7 @@
  	"builder":              true,
+ 	"nri-opts":             true,
+ 	"extension-config":     true,
 +	"default-capabilities": true,
  }
  
  // skipValidateOptions contains configuration keys
-@@ -96,6 +97,7 @@ var flatOptions = map[string]bool{
+@@ -101,6 +102,7 @@
  var skipValidateOptions = map[string]bool{
  	"features": true,
  	"builder":  true,
 +	"default-capabilities": true,
  
  	// Only available in daemon.json, no flags
- 	"min-api-version": true,
+ 	"min-api-version":  true,
 diff --git a/daemon/config/config_linux.go b/daemon/config/config_linux.go
-index 80c0ab8..c830ba4 100644
+index 1d8138a..fd2a318 100644
 --- a/daemon/config/config_linux.go
 +++ b/daemon/config/config_linux.go
-@@ -94,6 +94,7 @@ type Config struct {
+@@ -97,6 +97,7 @@ type Config struct {
  	// ResolvConf is the path to the configuration of the host resolver
  	ResolvConf string `json:"resolv-conf,omitempty"`
  	Rootless   bool   `json:"rootless,omitempty"`
@@ -63,10 +65,10 @@ index 80c0ab8..c830ba4 100644
  
  // GetExecRoot returns the user configured Exec-root
 diff --git a/daemon/oci_linux.go b/daemon/oci_linux.go
-index 8d936f6..2959049 100644
+index e8147a2..c14d1db 100644
 --- a/daemon/oci_linux.go
 +++ b/daemon/oci_linux.go
-@@ -155,10 +155,17 @@ func WithApparmor(c *container.Container) coci.SpecOpts {
+@@ -156,10 +156,17 @@ func WithApparmor(daemon *Daemon, c *container.Container) coci.SpecOpts {
  
  // WithCapabilities adjusts the container's capabilities based on the
  // "CapAdd", "CapDrop", and "Privileged" fields in the container's HostConfig.
@@ -86,7 +88,7 @@ index 8d936f6..2959049 100644
  			ctr.HostConfig.CapAdd,
  			ctr.HostConfig.CapDrop,
  			ctr.HostConfig.Privileged,
-@@ -1017,7 +1024,7 @@ func (daemon *Daemon) createSpec(ctx context.Context, daemonCfg *configStore, c
+@@ -1038,7 +1045,7 @@ func (daemon *Daemon) createSpec(ctx context.Context, daemonCfg *configStore, c
  		WithDevices(daemon, c),
  		withRlimits(daemon, &daemonCfg.Config, c),
  		WithNamespaces(daemon, c),
@@ -94,7 +96,4 @@ index 8d936f6..2959049 100644
 +		WithCapabilities(c, &daemonCfg.Config),
  		WithSeccomp(daemon, c),
  		withMounts(daemon, daemonCfg, c, mounts),
- 		WithApparmor(c),
--- 
-2.50.1
-
+ 		WithApparmor(daemon, c),
