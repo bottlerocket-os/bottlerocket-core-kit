@@ -60,3 +60,8 @@ pub fn is_encrypted(path: PathBuf) -> Result<bool> {
         Err(_) => Ok(false),
     }
 }
+
+/// Query whether a directory's fscrypt key is present in the kernel keyring.
+pub fn key_status(path: PathBuf) -> Result<DirectoryKeyStatus> {
+    DirectoryKeyStatus::of_directory(&path)
+}
