@@ -6,9 +6,9 @@ edition = "2021"
 publish = false
 
 [dependencies]
-aws-lc-rs = { workspace = true, features = ["fips"] }
+aws-lc-rs = { workspace = true, features = ["fips", "bindgen"] }
 log = { workspace = true }
-rustls = { workspace = true }
+rustls = { workspace = true, features = ["aws_lc_rs"] }
 snafu.workspace = true
 
 [dev-dependencies]

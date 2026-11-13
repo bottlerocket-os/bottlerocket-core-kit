@@ -10,7 +10,6 @@ source-groups = [
     "api",
     "constants",
     "generate-readme",
-    "aws-smithy-experimental",
     "bottlerocket-release",
     "metricdog",
     "parse-datetime",
