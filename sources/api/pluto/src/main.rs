@@ -29,7 +29,7 @@ mod eks;
 use api::{settings_view_get, settings_view_set, SettingsViewDelta};
 use argh::FromArgs;
 use aws_sdk_eks::types::IpFamily;
-use aws_smithy_experimental::hyper_1_0::CryptoMode;
+use aws_smithy_http_client::tls::rustls_provider::CryptoMode;
 use base64::Engine;
 use bottlerocket_modeled_types::{KubernetesClusterDnsIp, KubernetesHostnameOverrideSource};
 use imdsclient::ImdsClient;
@@ -57,11 +57,13 @@ const AWS_CONFIG_FILE: &str = "config.pluto";
 /// The environment variable that specifies the path to the AWS config file.
 const AWS_CONFIG_FILE_ENV_VAR: &str = "AWS_CONFIG_FILE";
 
-// Shared crypto provider for HyperClients
-#[cfg(not(feature = "fips"))]
-const PROVIDER: CryptoMode = CryptoMode::AwsLc;
-#[cfg(feature = "fips")]
-const PROVIDER: CryptoMode = CryptoMode::AwsLcFips;
+// Shared crypto provider for HyperClients — uses runtime FIPS detection
+fn crypto_mode() -> CryptoMode {
+    CryptoMode::Custom(
+        bottlerocket_crypto_provider::provider()
+            .expect("failed to detect FIPS mode for crypto provider"),
+    )
+}
 
 mod error {
     use crate::{api, ec2, eks};
@@ -262,7 +264,7 @@ async fn get_eks_network_config(aws_k8s_info: &SettingsViewDelta) -> Result<Opti
         settings_view_get!(aws_k8s_info.aws.region),
         settings_view_get!(aws_k8s_info.kubernetes.cluster_name),
     ) {
-        if let Ok(config) = eks::get_cluster_network_config(
+        match eks::get_cluster_network_config(
             region,
             cluster_name,
             settings_view_get!(aws_k8s_info.network.https_proxy),
@@ -271,7 +273,11 @@ async fn get_eks_network_config(aws_k8s_info: &SettingsViewDelta) -> Result<Opti
         .await
         .context(error::EksSnafu)
         {
-            return Ok(get_dns_from_cluster_config(&config));
+            Ok(config) => return Ok(get_dns_from_cluster_config(&config)),
+            Err(e) => log::warn!(
+                "EKS DescribeCluster failed, falling back to IMDS-derived cluster DNS IP: {}",
+                e
+            ),
         }
     }
     Ok(None)
@@ -537,7 +543,7 @@ async fn run() -> Result<()> {
     let current_settings = api::get_aws_k8s_info().await.context(error::AwsInfoSnafu)?;
     let mut aws_k8s_info = SettingsViewDelta::from_api_response(current_settings);
 
-    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    bottlerocket_crypto_provider::install_provider().expect("failed to install crypto provider");
 
     let temp_dir = tempfile::tempdir().context(error::TempdirSnafu)?;
     let aws_config_file_path = temp_dir.path().join(AWS_CONFIG_FILE);

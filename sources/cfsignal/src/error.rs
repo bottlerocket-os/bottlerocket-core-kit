@@ -1,5 +1,6 @@
 //! Provides the list of errors for `cfsignal`.
 
+use aws_sdk_cloudformation::error::DisplayErrorContext;
 use snafu::Snafu;
 use std::path::PathBuf;
 
@@ -33,7 +34,7 @@ pub enum Error {
     #[snafu(display("IMDS request failed: No '{}' found", what))]
     ImdsNone { what: String },
 
-    #[snafu(display("SignalResource request failed: {}", source))]
+    #[snafu(display("SignalResource request failed: {}", DisplayErrorContext(source)))]
     SignalResource {
         #[snafu(source(from(aws_sdk_cloudformation::error::SdkError<aws_sdk_cloudformation::operation::signal_resource::SignalResourceError>, Box::new)))]
         source: Box<
@@ -41,5 +42,10 @@ pub enum Error {
                 aws_sdk_cloudformation::operation::signal_resource::SignalResourceError,
             >,
         >,
+    },
+
+    #[snafu(display("Invalid proxy URL: {}", source))]
+    ProxyConfig {
+        source: aws_smithy_http_client::proxy::ProxyError,
     },
 }
