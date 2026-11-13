@@ -335,7 +335,7 @@ mod tests {
             .set_waves(variant, arch, image_version, Utc::now(), &waves)
             .is_ok());
 
-        assert!(manifest.updates[0].waves.len() == 4);
+        assert_eq!(manifest.updates[0].waves.len(), 4);
     }
 
     #[test]
@@ -435,7 +435,7 @@ mod tests {
 
         let m: Manifest = update_metadata::load_file(tmpfd.path())?;
         for u in m.updates {
-            assert!(u.max_version == Version::parse("1.2.4").unwrap());
+            assert_eq!(u.max_version, Version::parse("1.2.4").unwrap());
         }
         Ok(())
     }
