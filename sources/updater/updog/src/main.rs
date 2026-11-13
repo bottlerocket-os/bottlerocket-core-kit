@@ -689,7 +689,7 @@ mod tests {
             .migrations
             .contains_key(&(from.clone(), to.clone())));
         let migration = manifest.migrations.get(&(from, to)).unwrap();
-        assert!(migration[0] == "migrate_1.12.0_foo");
+        assert_eq!(migration[0], "migrate_1.12.0_foo");
     }
 
     #[test]
