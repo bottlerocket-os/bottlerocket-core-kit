@@ -1,4 +1,4 @@
-From ecbbcbfd1e0f7ff6e03ff4c5ad189e24cb2b3d05 Mon Sep 17 00:00:00 2001
+From 442b1c01c0f4672696aaa248feec237350cd9114 Mon Sep 17 00:00:00 2001
 From: Maher Homsi <maherhom@amazon.com>
 Date: Wed, 14 Oct 2026 21:06:21 +0000
 Subject: [PATCH] Normalize container paths in generated CDI specifications
@@ -13,6 +13,10 @@ where the runtime sockets and the GSP firmware live, and still report
 library paths as /usr/lib/<library>.
 
 Signed-off-by: Maher Homsi <maherhom@amazon.com>
+
+[Refreshed for v0.20.1.]
+
+Signed-off-by: Cezar Rata <ceradev@amazon.com>
 ---
  cmd/nvidia-device-plugin/main.go           |  8 ++++++++
  cmd/nvidia-device-plugin/plugin-manager.go |  1 +
@@ -21,19 +25,19 @@ Signed-off-by: Maher Homsi <maherhom@amazon.com>
  4 files changed, 39 insertions(+), 1 deletion(-)
 
 diff --git a/cmd/nvidia-device-plugin/main.go b/cmd/nvidia-device-plugin/main.go
-index 41db260..13b7463 100644
+index e39378bea..573d52663 100644
 --- a/cmd/nvidia-device-plugin/main.go
 +++ b/cmd/nvidia-device-plugin/main.go
-@@ -46,6 +46,8 @@ type options struct {
- 	kubeletSocket   string
+@@ -47,6 +47,8 @@ type options struct {
  	cdiFeatureFlags cli.StringSlice
+ 	cdiDisableHooks cli.StringSlice
  	cdiEnabledHooks cli.StringSlice
 +
 +	containerPathRoot string
  }
  
  func main() {
-@@ -184,6 +186,12 @@ func main() {
+@@ -197,6 +199,12 @@ func main() {
  			EnvVars:     []string{"CDI_ENABLED_HOOKS"},
  			Destination: &o.cdiEnabledHooks,
  		},
@@ -47,19 +51,19 @@ index 41db260..13b7463 100644
  	o.flags = c.Flags
  
 diff --git a/cmd/nvidia-device-plugin/plugin-manager.go b/cmd/nvidia-device-plugin/plugin-manager.go
-index d4617cb..e04b184 100644
+index 5aad3666c..490aef8b3 100644
 --- a/cmd/nvidia-device-plugin/plugin-manager.go
 +++ b/cmd/nvidia-device-plugin/plugin-manager.go
-@@ -64,6 +64,7 @@ func GetPlugins(ctx context.Context, infolib info.Interface, nvmllib nvml.Interf
- 		cdi.WithImexChannels(imexChannels),
+@@ -65,6 +65,7 @@ func GetPlugins(ctx context.Context, infolib info.Interface, nvmllib nvml.Interf
  		cdi.WithFeatureFlags(o.cdiFeatureFlags.Value()...),
+ 		cdi.WithDisabledHooks(o.cdiDisableHooks.Value()...),
  		cdi.WithEnabledHooks(o.cdiEnabledHooks.Value()...),
 +		cdi.WithContainerPathRoot(o.containerPathRoot),
  		cdi.WithDeviceDiscoveryStrategy(resolvedStrategy),
  	)
  	if err != nil {
 diff --git a/internal/cdi/cdi.go b/internal/cdi/cdi.go
-index 9de02b3..7a0e52c 100644
+index 1a8836e1a..fd1c7fe5e 100644
 --- a/internal/cdi/cdi.go
 +++ b/internal/cdi/cdi.go
 @@ -27,6 +27,7 @@ import (
@@ -80,7 +84,7 @@ index 9de02b3..7a0e52c 100644
  	deviceListStrategies    spec.DeviceListStrategies
  	deviceDiscoveryStrategy string
  
-@@ -200,7 +204,7 @@ func (cdi *cdiHandler) CreateSpecFile() error {
+@@ -204,7 +208,7 @@ func (cdi *cdiHandler) CreateSpecFile() error {
  		}
  
  		// TODO: Once the NewDriverTransformer is merged in container-toolkit we can instantiate it directly.
@@ -89,7 +93,7 @@ index 9de02b3..7a0e52c 100644
  		if err := transformer.Transform(spec.Raw()); err != nil {
  			return fmt.Errorf("failed to transform driver root in CDI spec: %v", err)
  		}
-@@ -255,6 +259,23 @@ func (cdi *cdiHandler) getRootTransformer() transform.Transformer {
+@@ -259,6 +263,23 @@ func (cdi *cdiHandler) getRootTransformer() transform.Transformer {
  	return transform.Merge(driverRootTransformer, devRootTransformer)
  }
  
@@ -114,10 +118,10 @@ index 9de02b3..7a0e52c 100644
  // Note: This assumes that the specified id matches the device name returned by the naming strategy.
  func (cdi *cdiHandler) QualifiedName(class string, id string) string {
 diff --git a/internal/cdi/options.go b/internal/cdi/options.go
-index b178b30..5c2a6a3 100644
+index 2ae083709..68b5b3038 100644
 --- a/internal/cdi/options.go
 +++ b/internal/cdi/options.go
-@@ -132,3 +132,11 @@ func WithEnabledHooks(hooks ...string) Option {
+@@ -140,3 +140,11 @@ func WithEnabledHooks(hooks ...string) Option {
  		c.nvcdiEnabledHooks = hooks
  	}
  }
@@ -129,3 +133,6 @@ index b178b30..5c2a6a3 100644
 +		c.containerPathRoot = root
 +	}
 +}
+-- 
+2.50.1
+

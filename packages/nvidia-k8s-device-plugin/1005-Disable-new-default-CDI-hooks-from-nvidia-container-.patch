@@ -1,0 +1,38 @@
+From dce4a2a0a45e563a7c43c27507e40636ad848a91 Mon Sep 17 00:00:00 2001
+From: Cezar Rata <ceradev@amazon.com>
+Date: Fri, 30 Oct 2026 23:29:08 +0000
+Subject: [PATCH] Disable new default CDI hooks from nvidia-container-toolkit
+ v1.20
+
+nvidia-container-toolkit v1.20 enables two new CDI hooks by default:
+update-application-profile, which restricts EGL/Vulkan GPU visibility to
+the GPUs mounted in the container, and apply-cuda-memory-limits, which
+sets CUDA memory limits from NVIDIA_GPU_MEMORY_REQUEST/LIMIT and runs in
+the host namespace.
+
+Disable both here, as is already done for enable-cuda-compat, until they
+have been evaluated for Bottlerocket.
+
+Signed-off-by: Cezar Rata <ceradev@amazon.com>
+---
+ internal/cdi/cdi.go | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/internal/cdi/cdi.go b/internal/cdi/cdi.go
+index fd1c7fe5e..d5dab481b 100644
+--- a/internal/cdi/cdi.go
++++ b/internal/cdi/cdi.go
+@@ -143,6 +143,10 @@ func New(infolib info.Interface, nvmllib nvml.Interface, devicelib device.Interf
+ 		nvcdi.WithNvmlLib(c.nvmllib),
+ 		nvcdi.WithVendor(c.vendor),
+ 		nvcdi.WithDisabledHook(nvcdi.EnableCudaCompatHook),
++		// Hooks added in nvidia-container-toolkit v1.20 that are enabled by default.
++		// Keep the generated CDI specs limited to the hooks Bottlerocket expects.
++		nvcdi.WithDisabledHook("update-application-profile"),
++		nvcdi.WithDisabledHook("apply-cuda-memory-limits"),
+ 		nvcdi.WithEnabledHooks(c.nvcdiEnabledHooks...),
+ 	}
+ 
+-- 
+2.50.1
+
