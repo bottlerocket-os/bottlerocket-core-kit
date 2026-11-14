@@ -22,6 +22,7 @@ zeroize = { workspace = true, features = ["alloc", "derive"] }
 
 [dev-dependencies]
 reqwest.workspace = true
+tempfile.workspace = true
 
 [build-dependencies]
 generate-readme.workspace = true

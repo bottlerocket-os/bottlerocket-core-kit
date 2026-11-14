@@ -27,6 +27,8 @@ interface for encrypting and managing encrypted storage resources including:
 - `lock directory <path>` - Lock an encrypted directory (remove key)
 - `unlock directory <path> <key-id>` - Unlock an encrypted directory (add key)
 - `check directory <path> encrypted|unencrypted` - Check directory encryption state
+- `key-status directory <path>` - Print whether a directory's fscrypt key is present
+  (`not-encrypted`, `unlocked`, or `locked`)
 
 ### TPM Measurement Operations
 - `measure settings` - Measure OS settings into PCR 8
@@ -67,7 +69,7 @@ async fn main() -> Result<()> {
         let resource_pos = match verb {
             Some(
                 "encrypt" | "encrypt-and-attach" | "attach" | "detach" | "resize" | "lock"
-                | "unlock" | "check",
+                | "unlock" | "check" | "key-status",
             ) => Some(2),
             _ => None,
         };
@@ -162,6 +164,20 @@ async fn main() -> Result<()> {
                 }
             }
         },
+        Command::KeyStatus(cmd) => match cmd.resource {
+            KeyStatusResource::Directory(cmd) => {
+                let status = directory::key_status(cmd.path)?;
+                println!(
+                    "{}",
+                    match status {
+                        fscrypt::DirectoryKeyStatus::NotEncrypted => "not-encrypted",
+                        fscrypt::DirectoryKeyStatus::KeyPresent => "unlocked",
+                        fscrypt::DirectoryKeyStatus::KeyRemoved => "locked",
+                    }
+                );
+                Ok(())
+            }
+        },
         Command::Measure(cmd) => match cmd.resource {
             MeasureResource::Settings(_) => measure::os_settings(),
             MeasureResource::UserData(_) => measure::user_data().await,
@@ -214,6 +230,7 @@ enum Command {
     Lock(LockCmd),
     Unlock(UnlockCmd),
     Check(CheckCmd),
+    KeyStatus(KeyStatusCmd),
     Measure(MeasureCmd),
 }
 
@@ -484,6 +501,28 @@ struct CheckDirectoryEncryptedCmd {}
 #[argh(subcommand, name = "unencrypted")]
 /// Check if unencrypted
 struct CheckDirectoryUnencryptedCmd {}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "key-status")]
+/// Query whether a resource's encryption key is present
+struct KeyStatusCmd {
+    #[argh(subcommand)]
+    resource: KeyStatusResource,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand)]
+enum KeyStatusResource {
+    Directory(KeyStatusDirectoryCmd),
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "directory")]
+/// Query whether a directory's fscrypt key is present
+struct KeyStatusDirectoryCmd {
+    #[argh(positional)]
+    path: PathBuf,
+}
 
 #[derive(FromArgs)]
 #[argh(subcommand, name = "measure")]

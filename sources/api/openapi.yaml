@@ -771,6 +771,8 @@ paths:
           description: "Connection upgraded to WebSocket"
         500:
           description: "Server error"
+        423:
+          description: "Datastore is locked down; exec is refused until the host is rebooted"
 
   /report:
     get:

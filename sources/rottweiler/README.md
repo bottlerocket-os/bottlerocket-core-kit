@@ -30,6 +30,8 @@ interface for encrypting and managing encrypted storage resources including:
 - `lock directory <path>` - Lock an encrypted directory (remove key)
 - `unlock directory <path> <key-id>` - Unlock an encrypted directory (add key)
 - `check directory <path> encrypted|unencrypted` - Check directory encryption state
+- `key-status directory <path>` - Print whether a directory's fscrypt key is present
+  (`not-encrypted`, `unlocked`, or `locked`)
 
 #### TPM Measurement Operations
 - `measure settings` - Measure OS settings into PCR 8

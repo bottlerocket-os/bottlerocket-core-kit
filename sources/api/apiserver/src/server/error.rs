@@ -187,6 +187,21 @@ pub enum Error {
     #[snafu(display("Unable to start lockdown helper '{}': {}", program, source))]
     LockdownExec { source: io::Error, program: String },
 
+    #[snafu(display("The datastore is locked down; 'exec' is unavailable"))]
+    LockdownActive,
+
+    #[snafu(display("Unable to start lockdown-state helper '{}': {}", program, source))]
+    LockdownStateExec {
+        source: io::Error,
+        program: &'static str,
+    },
+
+    #[snafu(display("Unable to determine datastore lockdown state: {}", detail))]
+    LockdownStateUnknown { detail: String },
+
+    #[snafu(display("Unable to load image features: {}", message))]
+    LockdownStateImageFeatures { message: String },
+
     #[snafu(display("Unable to start shutdown: {}", source))]
     Shutdown { source: io::Error },
 
