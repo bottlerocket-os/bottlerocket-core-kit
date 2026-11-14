@@ -97,7 +97,6 @@ libnfnetlink = { path = "../../packages/libnfnetlink" }
 libnftnl = { path = "../../packages/libnftnl" }
 libnl = { path = "../../packages/libnl" }
 libnvidia-container = { path = "../../packages/libnvidia-container" }
-libnvme = { path = "../../packages/libnvme" }
 libpcre = { path = "../../packages/libpcre" }
 libpopt = { path = "../../packages/libpopt" }
 libseccomp = { path = "../../packages/libseccomp" }
