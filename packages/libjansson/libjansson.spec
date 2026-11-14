@@ -1,5 +1,5 @@
 Name: %{_cross_os}libjansson
-Version: 2.14.1
+Version: 2.15.1
 Release: 1%{?dist}
 Summary: Library for encoding, decoding and manipulating JSON data
 License: MIT

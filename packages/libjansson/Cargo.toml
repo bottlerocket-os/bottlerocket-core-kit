@@ -1,6 +1,6 @@
 [package]
 name = "libjansson"
-version = "2.14.1"
+version = "2.15.1"
 edition = "2021"
 publish = false
 build = "../build.rs"
@@ -12,9 +12,9 @@ path = "../packages.rs"
 releases-url = "https://github.com/akheron/jansson/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/akheron/jansson/archive/v2.14.1.tar.gz"
-sha512 = "7d3a01566cf42a2d8f1ddca12bfb04a93a11ad30bcccb7d5f862015d9a59f8376b2ed46026aa0f0828acc4b74f4537cae5a1874ab81b83b8638d75ad0c94e243"
-path = "jansson-2.14.1.tar.gz"
+url = "https://github.com/akheron/jansson/archive/v2.15.1.tar.gz"
+sha512 = "233f154e1f55f395bffa7c946e56995913248138541fa093abc5317a23096d1f58b8e594fcff94918d0db2f15a96652554bb429949661534b65d0569c29b52d9"
+path = "jansson-2.15.1.tar.gz"
 
 [build-dependencies]
 glibc = { path = "../glibc" }

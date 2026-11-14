@@ -1,5 +1,5 @@
-%global jsonc_ver 0.18
-%global jsonc_rel 20240915
+%global jsonc_ver 0.19
+%global jsonc_rel 20260627
 
 Name: %{_cross_os}libjson-c
 Version: %{jsonc_ver}

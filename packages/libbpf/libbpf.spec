@@ -1,5 +1,5 @@
 Name: %{_cross_os}libbpf
-Version: 1.7.0
+Version: 1.8.0
 Release: 1%{?dist}
 Epoch: 1
 Summary: Library for BPF
@@ -41,7 +41,7 @@ make -s \\\
 %kmake -C src install
 
 %files
-%license LICENSE LICENSE.BSD-2-Clause LICENSE.LGPL-2.1
+%license LICENSE LICENSE.BSD-2-Clause LICENSE.LGPL-2.1-only
 %{_cross_attribution_file}
 %{_cross_libdir}/*.so.*
 
