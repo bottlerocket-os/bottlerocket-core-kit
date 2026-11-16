@@ -2,6 +2,13 @@
 Description=NVIDIA DRA driver GPU kubelet plugin
 After=kubelet.service
 Wants=kubelet.service
+# Enumerate GPUs only after nvidia-migmanager has applied the partitioning it
+# was configured with, so the plugin does not publish whole GPUs on a node that
+# is meant to serve MIG slices. When a GPU reset is pending, migmanager reboots
+# the host, so skip this unit for the remainder of that boot.
+Requires=nvidia-migmanager.service
+After=nvidia-migmanager.service
+ConditionPathExists=!/run/nvidia-migmanager/reboot-required
 # Run only when the settings marker is non-empty. The marker is rendered
 # non-empty ("run") when the kubernetes device plugin is disabled AND DRA is
 # either enabled or unset (so disabling the device plugin without configuring DRA
