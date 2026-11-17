@@ -25,4 +25,6 @@ bottlerocket-modeled-types.workspace = true
 generate-readme.workspace = true
 
 [dev-dependencies]
+schnauzer.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 test-case.workspace = true

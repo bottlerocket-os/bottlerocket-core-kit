@@ -39,6 +39,9 @@ Source207: aws-credentials
 Source208: modules-load.template
 Source209: log4j-hotpatch-enabled
 Source210: selected-snapshotter-template
+Source211: kubelet-memory-min-conf
+Source212: containerd-memory-min-conf
+Source213: runtime-memory-min-conf
 
 # Core targets, services, and slices.
 Source1001: multi-user.target
@@ -262,6 +265,7 @@ Requires: (%{_cross_os}image-feature(ephemeral-encryption-keys) and %{name}-cryp
 %package swap
 Summary: Bottlerocket release, with zram-based swap
 Requires: %{name}
+Requires: %{_cross_os}corndog
 
 %description swap
 %{summary}.
@@ -421,6 +425,9 @@ install -p -m 0644 %{S:207} %{buildroot}%{_cross_templatedir}/aws-credentials
 install -p -m 0644 %{S:208} %{buildroot}%{_cross_templatedir}/modules-load
 install -p -m 0644 %{S:209} %{buildroot}%{_cross_templatedir}/log4j-hotpatch-enabled
 install -p -m 0644 %{S:210} %{buildroot}%{_cross_templatedir}/selected-snapshotter
+install -p -m 0644 %{S:211} %{buildroot}%{_cross_templatedir}/kubelet-memory-min-conf
+install -p -m 0644 %{S:212} %{buildroot}%{_cross_templatedir}/containerd-memory-min-conf
+install -p -m 0644 %{S:213} %{buildroot}%{_cross_templatedir}/runtime-memory-min-conf
 
 install -d %{buildroot}%{_cross_udevrulesdir}
 install -p -m 0644 %{S:1300} %{buildroot}%{_cross_udevrulesdir}/61-mount-cdrom.rules
@@ -623,5 +630,8 @@ install -p -m 0644 %{S:1753} %{buildroot}%{_cross_tmpfilesdir}/release-managed.c
 %files swap
 %{_cross_sysctldir}/81-release-swap.conf
 %{_cross_unitdir}/prepare-swap.service
+%{_cross_templatedir}/kubelet-memory-min-conf
+%{_cross_templatedir}/containerd-memory-min-conf
+%{_cross_templatedir}/runtime-memory-min-conf
 
 %changelog
