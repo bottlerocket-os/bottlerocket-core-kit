@@ -12,14 +12,14 @@ path = "../packages.rs"
 releases-url = "https://github.com/opencontainers/runc/releases/"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/opencontainers/runc/releases/download/v1.3.6/runc.tar.xz"
-path = "runc-v1.3.6.tar.xz"
-sha512 = "f5dd1c06d81bd636d2ffd7a544acda225c47e9ce6b18c42b3346e21c1c6c15d42992532a880a58c1dedd7251d193584f9ae28d8527e29d485db472e166272ea3"
+url = "https://github.com/opencontainers/runc/releases/download/v1.4.4/runc.tar.xz"
+path = "runc-v1.4.4.tar.xz"
+sha512 = "1a4f5df946dffbbe9ac37dec9cb20e7121b9234f291bed8a29da4ca6e76ea2609eb9556ce1dcd0b003218da85328454271344d838e0795625b59ce3674078422"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/opencontainers/runc/releases/download/v1.3.6/runc.tar.xz.asc"
-path = "runc-v1.3.6.tar.xz.asc"
-sha512 = "3af62fd8a7d4fa4fcb4a0f1bfd1a897cce6a8275870eaff731d5aa93c5c9f4b6ed8bfd3436c04d2d5d03ed51216b1b64408b21d9ef957fabc527bed05671db30"
+url = "https://github.com/opencontainers/runc/releases/download/v1.4.4/runc.tar.xz.asc"
+path = "runc-v1.4.4.tar.xz.asc"
+sha512 = "a6c371ea626f51c9fe41de501e382c97cc5eb8e79f488d89a34681b7224654a9c094652d2b4a5f9396d68ab60458507aaaa03e39747b03184d9afe074052adb5"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
