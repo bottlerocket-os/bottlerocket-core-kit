@@ -1,8 +1,8 @@
 %global goproject github.com/opencontainers
 %global gorepo runc
 %global goimport %{goproject}/%{gorepo}
-%global commit 491b69bab9fa206b984fb26ba07d3110d62e671f
-%global gover 1.3.6
+%global commit 6d1032fdfb7d3432125806826b50b37ac42b6b23
+%global gover 1.4.4
 
 %global _dwz_low_mem_die_limit 0
 
@@ -30,7 +30,7 @@ Requires: %{_cross_os}libseccomp
 %{summary}.
 
 %prep
-%{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:2}
+%{gpgverify} --data=%{S:0} --signature=%{S:1} --keyring=%{S:3}
 %autosetup -Sgit -n %{gorepo}-%{gover} -p1
 %cross_go_setup %{gorepo}-%{gover} %{goproject} %{goimport}
 
