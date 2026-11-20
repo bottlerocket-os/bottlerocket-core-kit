@@ -55,7 +55,7 @@ Additional PCRs used for measurements (not bound to keys):
 
 | PCR | Purpose | Usage |
 |-----|---------|-------|
-| 8 | OS settings | Measured after configuration completes |
+| 8 | EC2 user data and OS settings | Measured before and after configuration completes |
 | 10 | (Reserved) | Reserved for future use |
 
 **PCR selection logic:**
@@ -338,17 +338,52 @@ unit waits only on the raw device node, not the by-partlabel symlink recreated b
 
 Bottlerocket extends TPM2 PCRs at various boot stages to establish a cryptographic chain of trust.
 
-### PCR 8: OS Settings
+### PCR 8: User Data and OS Settings
+
+PCR 8 is extended exactly twice per boot, in this order.
+
+#### EC2 user data
+
+**Service:** `measure-user-data.service`
+
+**What's measured:** The user data is parsed the same way early-boot-config reads it (optional gzip, then TOML), then measured as the literal prefix `ec2-imds-user-data:v2:` followed by the OLPC canonical JSON of the whole document and a newline, with `settings.aws.region` removed and the registry removed from container image sources (see below). User data that is not TOML is measured as `ec2-imds-user-data:v1:` followed by its raw bytes, as is TOML containing a float (OLPC canonical JSON has no float encoding; note that `settings.kubernetes.memory-throttling-factor` is a float, though Kubernetes variants do not ship these measurement units) or a datetime (never a valid Bottlerocket setting). Absent user data is measured as the literal `ec2-imds-user-data:v1:absent`.
+
+**When:** After `tpm2.target`, before `early-boot-config.service` and `settings-applier.service`
+
+**Purpose:** Bind the configuration supplied at launch before it is applied
+
+#### OS settings
 
 **Service:** `measure-settings.service`
 
-**What's measured:** Canonicalized OS settings from the API
+**What's measured:** OLPC canonical JSON of the settings tree, minus `settings.updates.seed`, `settings.network.hostname`, and `settings.aws.region`, followed by a newline
 
 **When:** After `settings-applier.service` and `apiserver.service`, before `bootstrap-commands.service`
 
 **Purpose:** Detect unauthorized configuration changes
 
 **Note:** This measurement occurs before any external configuration can be applied and before any external code can run.
+
+#### Region
+
+In both extensions `settings.aws.region` is removed before hashing. On AWS variants early-boot-config sets it from the instance identity document on every host, so measuring it would give an otherwise identical fleet a different PCR 8 value in every region. The region is therefore not attested by PCR 8; an attestation consumer (for example a KMS key policy on `NitroTPMPCR8`) learns the caller's region from the request context instead. (`settings.updates.seed` and `settings.network.hostname` continue to be excluded from the settings extension only, as before.)
+
+#### Container image sources
+
+In both extensions the registry component is removed from every `settings.host-containers.*.source` and `settings.bootstrap-containers.*.source` before hashing: `<registry>/repo[:tag][@digest]` is measured as `repo[:tag][@digest]`. The first path component is treated as a registry when it contains a `.` or a `:` or is `localhost` (the same rule Docker and containerd use). The registry an image is pulled from is a deployment detail — Bottlerocket renders region-specific ECR registries into the default admin and control sources, and operators replicate images to per-region or per-account registries — so measuring it would give the same image a different PCR 8 value in every region or account. Pin sources with a digest so the measurement identifies the image content. The stored settings are not modified; only the measured bytes are.
+
+#### Recomputing PCR 8
+
+No TPM event log is written for these extensions, so a verifier recomputes the expected value from the same inputs:
+
+```
+user_data = "ec2-imds-user-data:v2:" + <canonical JSON of the user-data TOML, aws.region removed, registries removed> + "\n"
+            # or "ec2-imds-user-data:v1:" + <raw user data> if it is not TOML, or "ec2-imds-user-data:v1:absent"
+settings  = <canonical settings JSON minus updates.seed, network.hostname and aws.region, registries removed> + "\n"
+PCR8      = SHA256( SHA256( 0x00 * 32 || SHA256(user_data) ) || SHA256(settings) )
+```
+
+The same construction applies to the SHA-384 and SHA-512 banks with the corresponding hash and initial value length.
 
 ### PCR 9: Kernel Command Line
 
@@ -479,6 +514,22 @@ tpm2_pcrextend <pcr>:sha256=<hash>,sha384=<hash>,sha512=<hash>
 - Firmware-level compromises before measurements
 - Physical TPM attacks (requires specialized equipment)
 - Cold boot attacks (DRAM remanence)
+- Substitution of a host or bootstrap container image behind an unchanged tag (see below)
+
+#### Container image sources in PCR 8
+
+PCR 8 measures host and bootstrap container sources **without their registry** (see [PCR 8](#pcr-8-user-data-and-os-settings)). The registry is therefore not attested: an image pulled from a different registry, account, or region produces the same PCR 8 value as long as its repository, tag, and digest are the same. This is intentional, so that one expected value covers a fleet, but it means PCR 8 cannot tell where an image came from.
+
+A tag is a mutable pointer. Whoever controls the registry a source refers to can serve different content under the same `repo:tag` without changing PCR 8. A digest cannot be re-pointed: `repo@sha256:...` identifies exactly one image, and containerd verifies the content it stores against that digest when pulling.
+
+**Recommendation: pin custom host container and bootstrap container sources by digest**, for example:
+
+```toml
+[settings.host-containers.agent]
+source = "123456789012.dkr.ecr.us-west-2.amazonaws.com/agent@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+```
+
+which PCR 8 measures as `agent@sha256:0123…`. With a digest-pinned source, PCR 8 attests the exact image content that will run, independent of the registry it is replicated to. Tag-only sources attest only the name under which an image was requested. The Bottlerocket admin and control containers are a trusted dependency of the OS and are referenced by tag in the default settings; operators who want them attested by content can override their `source` with a digest-pinned reference as well.
 
 ### Key Security
 
