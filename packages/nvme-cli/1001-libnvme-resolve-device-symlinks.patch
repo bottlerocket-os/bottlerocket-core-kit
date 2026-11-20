@@ -1,0 +1,59 @@
+From 619ec672020452630083ffc17c6b5485d6222680 Mon Sep 17 00:00:00 2001
+From: Piyush Jena <jepiyush@amazon.com>
+Date: Mon, 2 Nov 2026 17:56:07 +0000
+Subject: [PATCH] libnvme: resolve symlinks of the device argument
+
+nvme-cli 3.x opens the device given on the command line through
+libnvme_open(). __libnvme_transport_handle_open_direct() takes only the
+basename of the argument, requires it to be nvme<N>, nvme<N>n<M> or
+ng<N>n<M>, and then opens /dev/<basename>. The path itself is never
+looked at, so a udev symlink to the device node is rejected with
+EINVAL: the basename of /dev/disk/by-ebs-id/xvdc is "xvdc", and the
+one of /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol... is not
+nvme<N> either. nvme-cli 2.x opened the given path itself and accepted
+any path to an NVMe character or block device, including symlinks.
+
+When the argument contains a '/', resolve it with realpath() and take
+the device name from the resolved path. If realpath() fails, use the
+argument as before, so plain device names such as nvme0n1 and paths
+that don't exist behave exactly as they did.
+
+Signed-off-by: Piyush Jena <jepiyush@amazon.com>
+---
+ libnvme/src/nvme/lib-linux.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/libnvme/src/nvme/lib-linux.c b/libnvme/src/nvme/lib-linux.c
+index 2582176..54c3292 100644
+--- a/libnvme/src/nvme/lib-linux.c
++++ b/libnvme/src/nvme/lib-linux.c
+@@ -8,6 +8,8 @@
+  */
+ 
+ #include <fcntl.h>
++#include <stdlib.h>
++#include <string.h>
+ #include <sys/ioctl.h>
+ 
+ #include <libnvme.h>
+@@ -25,11 +27,19 @@ static int __libnvme_transport_handle_open_direct(
+ 		int flags)
+ {
+ 	__cleanup_free char *path = NULL;
++	__cleanup_free char *real = NULL;
+ 	char *name;
+ 	int ret, id, ns;
+ 	bool c = true;
+ 
+-	name = shr_basename(devname);
++	/*
++	 * Follow symlinks such as /dev/disk/by-id/... to the device node
++	 * they point to; its name is what has to match below.
++	 */
++	if (strchr(devname, '/'))
++		real = realpath(devname, NULL);
++
++	name = shr_basename(real ? real : devname);
+ 
+ 	hdl->type = LIBNVME_TRANSPORT_HANDLE_TYPE_DIRECT;
+ 

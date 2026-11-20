@@ -12,10 +12,9 @@ path = "../packages.rs"
 releases-url = "https://github.com/linux-nvme/nvme-cli/releases"
 
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/linux-nvme/nvme-cli/archive/v2.16/nvme-cli-2.16.tar.gz"
-sha512 = "507018ff41832574bef5b88ea6a17336b9792c54f8e5c619d041bce23124e1d6d5e5e824407f46d4f1b4d6899125885eb14289f3399e61c7e7a59a603f1635e2"
+url = "https://github.com/linux-nvme/nvme-cli/archive/v3.2/nvme-cli-3.2.tar.gz"
+sha512 = "7d7b28c73c7ad9cf3652ce96775930fb44e85917fc1eda2b0ff219e18b7508bccd29092a333baacb68bf1c8aa7ba564fb99419d11e48d88d7a47d08b144fa69c"
 
 [build-dependencies]
 glibc = { path = "../glibc" }
 libjson-c = { path = "../libjson-c" }
-libnvme = { path = "../libnvme" }
