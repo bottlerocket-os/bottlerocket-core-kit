@@ -1,9 +1,6 @@
-use crate::aws::sdk_config;
-use crate::PROVIDER;
+use crate::aws::{sdk_config, sdk_http_client, LogFailedAttempts};
 use aws_sdk_eks::types::KubernetesNetworkConfigResponse;
-use aws_smithy_experimental::hyper_1_0::HyperClientBuilder;
 use aws_smithy_types::error::display::DisplayErrorContext;
-use aws_smithy_types::error::metadata::ProvideErrorMetadata;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::time::Duration;
 
@@ -34,6 +31,11 @@ pub(super) enum Error {
 
     #[snafu(display("Missing field '{}' in EKS response", field))]
     Missing { field: &'static str },
+
+    #[snafu(display("Invalid proxy URL: {}", source))]
+    ProxyConfig {
+        source: aws_smithy_http_client::proxy::ProxyError,
+    },
 }
 
 type Result<T> = std::result::Result<T, Error>;
@@ -64,9 +66,8 @@ where
             .context(DescribeClusterSnafu { cluster });
         if let Err(Error::DescribeCluster { source, .. }) = &response {
             log::error!(
-                "EKS DescribeCluster attempt failed: code={} message={}",
-                source.code().unwrap_or_default(),
-                source.message().unwrap_or_default(),
+                "EKS DescribeCluster failed: {}",
+                DisplayErrorContext(source)
             );
         }
         response?
@@ -93,18 +94,10 @@ where
     H: AsRef<str>,
     N: AsRef<str>,
 {
-    let http_client = if let Some(https_proxy) = https_proxy {
-        let https_proxy = https_proxy.as_ref().to_string();
-        HyperClientBuilder::new()
-            .crypto_mode(PROVIDER)
-            .build_with_proxy(https_proxy, no_proxy)
-    } else {
-        HyperClientBuilder::new()
-            .crypto_mode(PROVIDER)
-            .build_https()
-    };
+    let http_client = sdk_http_client(https_proxy, no_proxy).context(ProxyConfigSnafu)?;
     let eks_config = aws_sdk_eks::config::Builder::from(&config)
         .http_client(http_client)
+        .interceptor(LogFailedAttempts)
         .build();
 
     Ok(aws_sdk_eks::Client::from_conf(eks_config))

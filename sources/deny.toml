@@ -49,7 +49,10 @@ wildcards = "deny"
 
 deny = [{ name = "structopt" }, { name = "clap", wrappers = ["cargo-readme"] }]
 
-skip = []
+skip = [
+    # aws-sigv4 uses sha1 0.11 while aws-config still uses sha1 0.10
+    { name = "sha1", version = "=0.10" },
+]
 skip-tree = [
     # windows-sys is not a direct dependency. mio and schannel
     # are using different versions of windows-sys. we skip the
@@ -58,9 +61,6 @@ skip-tree = [
     { name = "windows-sys" },
     # httptest uses an older version of bstr
     { name = "httptest", version = "=0.15" },
-    # aws-smithy-experimental brings a set of new dependencies that
-    # the aws-sdk doesn't support
-    { name = "aws-smithy-experimental", version = "=0.1" },
     # tough 0.24 uses reqwest 0.13 while the rest of the workspace uses 0.12
     { name = "tough", version = "=0.24" },
     # actix-http has upgraded to v0.9 of 'rand' but upstream has called out some

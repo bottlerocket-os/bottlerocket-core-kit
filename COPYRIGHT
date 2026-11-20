@@ -13,7 +13,3 @@ their own copyright notices and license terms. These are available in /usr/share
 operating system images.
 
 =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=   =^..^=
-
-Contains modified aws-smithy-experimental file(s) [hyper_1_0.rs] from
-https://github.com/smithy-lang/smithy-rs/tree/release-2024-10-09.
-Licensed under the Apache-2.0 License.
