@@ -115,3 +115,14 @@ async fn get_region(client: &mut ImdsClient) -> Result<String> {
         .context(error::ImdsRequestSnafu)?
         .context(error::ImdsNoneSnafu { what: "region" })
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn proxy_without_scheme() {
+        assert_eq!(proxy_url("1.2.3.4:8080"), "http://1.2.3.4:8080");
+        ProxyConfig::https(proxy_url("1.2.3.4:8080")).unwrap();
+    }
+}
