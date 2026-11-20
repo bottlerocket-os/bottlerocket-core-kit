@@ -121,3 +121,14 @@ impl Intercept for LogFailedAttempts {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn proxy_without_scheme() {
+        assert_eq!(proxy_url("1.2.3.4:8080"), "http://1.2.3.4:8080");
+        sdk_http_client(Some("1.2.3.4:8080"), None::<&[&str]>).unwrap();
+    }
+}
