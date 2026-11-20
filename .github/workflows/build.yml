@@ -46,7 +46,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Preflight step to set up the runner
         uses: ./.github/actions/setup-node
-      - run: rustup component add rustfmt
+      # Unit tests run with the runner's Rust, not the SDK's. Pin the Rust
+      # version of the current SDK (v0.83.0) until unit tests run in the SDK.
+      - run: |
+          rustup toolchain install 1.99.1 --profile minimal --component rustfmt
+          rustup default 1.99.1
       - run: make twoliter check-licenses
       - run: make twoliter unit-tests
       # Avoid running Go lint check via `cargo make check-lints` since there's a separate golangci-lint workflow
