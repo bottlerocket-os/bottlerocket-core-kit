@@ -50,7 +50,7 @@ wildcards = "deny"
 deny = [{ name = "structopt" }, { name = "clap", wrappers = ["cargo-readme"] }]
 
 skip = [
-    # aws-sigv4 uses sha1 0.11 while aws-config still uses sha1 0.10
+    # aws-smithy-checksums and actix-http use sha1 0.11 while aws-config and tungstenite still use sha1 0.10
     { name = "sha1", version = "=0.10" },
 ]
 skip-tree = [
