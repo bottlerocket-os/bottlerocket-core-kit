@@ -22,10 +22,10 @@ fn os_release() -> BottlerocketRelease {
     BottlerocketRelease::from_file(&path).unwrap()
 }
 
-/// Installs the crypto provider that `main_inner` installs, for tests that call `Metricdog`
-/// directly; reqwest is built without a fallback provider.
+/// Installs the crypto provider that `main` installs, for tests that call `Metricdog`
+/// directly; reqwest is built without a fallback provider. Ignores "already installed".
 fn install_crypto_provider() {
-    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    let _ = bottlerocket_crypto_provider::install_provider();
 }
 
 struct MockCheck {}
