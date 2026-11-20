@@ -90,7 +90,7 @@ kubeReserved:
   memory: "{{settings.kubernetes.kube-reserved.memory}}"
   {{else}}
   {{#if settings.kubernetes.max-pods}}
-  memory: "{{kube_reserve_memory settings.kubernetes.max-pods settings.kubernetes.kube-reserved.memory}}"
+  memory: "{{kube_reserve_memory settings.kubernetes.max-pods settings.kubernetes.kube-reserved.memory settings.kubernetes.kube-reserved-memory-base-mib settings.kubernetes.kube-reserved-memory-per-pod-mib}}"
   {{/if}}
   {{/if}}
   ephemeral-storage: "{{default "1Gi" settings.kubernetes.kube-reserved.ephemeral-storage}}"
