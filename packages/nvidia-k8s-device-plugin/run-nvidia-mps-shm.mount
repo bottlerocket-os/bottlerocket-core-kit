@@ -1,0 +1,11 @@
+[Unit]
+Description=Ephemeral shared memory directory for NVIDIA MPS clients
+DefaultDependencies=no
+Conflicts=umount.target
+Before=umount.target
+
+[Mount]
+What=tmpfs
+Where=/run/nvidia/mps/shm
+Type=tmpfs
+Options=nosuid,nodev,noexec,noatime,size=50%,mode=1777
