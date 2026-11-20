@@ -14,7 +14,7 @@ bottlerocket-release.workspace = true
 chrono = { workspace = true, features = ["clock", "serde", "std"] }
 fs2.workspace = true
 log.workspace = true
-nix.workspace = true
+nix = { workspace = true, features = ["process"] }
 num-derive.workspace = true
 num-traits.workspace = true
 semver = { workspace = true, features = ["serde"] }

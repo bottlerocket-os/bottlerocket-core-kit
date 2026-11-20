@@ -36,7 +36,7 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::env;
 use std::os::unix::fs::symlink;
-use std::os::unix::io::AsRawFd;
+use std::os::unix::io::AsFd;
 use std::path::{Path, PathBuf};
 use std::process;
 use tokio::fs::{self, DirEntry};
@@ -709,7 +709,7 @@ where
     // fsync the directory so the links point to the new version even if we crash right after
     // this.  If fsync fails, warn but continue, because we likely can't swap the links back
     // without hitting the same failure.
-    fsync(raw_dir.as_raw_fd()).unwrap_or_else(|e| {
+    fsync(raw_dir.as_fd()).unwrap_or_else(|e| {
         warn!(
             "fsync of data store directory '{}' failed, update may disappear if we crash now: {}",
             to_dir.display(),

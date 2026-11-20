@@ -21,7 +21,7 @@ futures-core.workspace = true
 log.workspace = true
 lz4.workspace = true
 models.workspace = true
-nix.workspace = true
+nix = { workspace = true, features = ["dir", "fs"] }
 pentacle.workspace = true
 rand = { workspace = true, features = ["std", "std_rng"] }
 semver.workspace = true
