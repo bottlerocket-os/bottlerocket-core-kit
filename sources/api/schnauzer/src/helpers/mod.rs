@@ -857,6 +857,12 @@ fn validate_and_parse_cidr(cidr: &str) -> Result<IpAddr, RenderError> {
 /// Calculates the amount of memory to reserve for kubeReserved in mebibytes.
 /// Formula: memory_to_reserve = max_num_pods * 11 + 255 is taken from
 /// https://github.com/awslabs/amazon-eks-ami/pull/419#issuecomment-609985305
+///
+/// Parameters: max-pods, kube-reserved.memory, and optionally the formula's two terms in MiB,
+/// kube-reserved-memory-base-mib (default 255) and kube-reserved-memory-per-pod-mib (default 11).
+/// A set kube-reserved.memory is written as it is; otherwise the result is
+/// `max_num_pods * per_pod + base` Mi. With two parameters, or with both terms unset, the result
+/// is the same as before the terms existed.
 pub fn kube_reserve_memory(
     helper: &Helper<'_, '_>,
     _: &Handlebars,
@@ -869,7 +875,10 @@ pub fn kube_reserve_memory(
     trace!("Template name: {}", template_name);
 
     trace!("Number of params: {}", helper.params().len());
-    check_param_count(helper, template_name, 2)?;
+    // Two params (max-pods, memory) as before, or four with the formula's base and per-pod terms.
+    if helper.params().len() != 4 {
+        check_param_count(helper, template_name, 2)?;
+    }
 
     let max_num_pods_val = get_param(helper, 0)?;
     let max_num_pods = match max_num_pods_val {
@@ -898,9 +907,11 @@ pub fn kube_reserve_memory(
     let memory_to_reserve = match memory_to_reserve_value {
         Value::Number(n) => n.to_string(),
         Value::String(s) => s.to_string(),
-        // If no value is set, use the given default.
+        // If no value is set, use the formula, with the default terms unless they are set.
         Value::Null => {
-            format!("{}Mi", (max_num_pods * 11 + 255))
+            let base = kube_reserve_memory_term(helper, 2, 255, template_name)?;
+            let per_pod = kube_reserve_memory_term(helper, 3, 11, template_name)?;
+            format!("{}Mi", (max_num_pods * per_pod + base))
         }
         // composite types unsupported
         _ => {
@@ -921,6 +932,33 @@ pub fn kube_reserve_memory(
         })?;
 
     Ok(())
+}
+
+/// Reads an optional MiB term of the kube_reserve_memory formula from param `idx`: the default when
+/// the param is absent or null, the value when it is a non-negative integer, an error otherwise.
+fn kube_reserve_memory_term(
+    helper: &Helper<'_, '_>,
+    idx: usize,
+    default: u64,
+    template_name: &str,
+) -> Result<u64, RenderError> {
+    match helper.param(idx).map(|v| v.value()) {
+        None | Some(Value::Null) => Ok(default),
+        Some(Value::Number(n)) => n.as_u64().ok_or_else(|| {
+            RenderError::from(error::TemplateHelperError::InvalidTemplateValue {
+                expected: "non-negative integer",
+                value: Value::Number(n.to_owned()),
+                template: template_name.to_owned(),
+            })
+        }),
+        Some(other) => Err(RenderError::from(
+            error::TemplateHelperError::InvalidTemplateValue {
+                expected: "non-negative integer",
+                value: other.to_owned(),
+                template: template_name.to_owned(),
+            },
+        )),
+    }
 }
 
 /// Get the amount of CPU to reserve for kubeReserved in millicores
@@ -2064,6 +2102,75 @@ mod test_kube_reserve_memory {
         setup_and_render_template(
             TEMPLATE,
             &json!({"settings": {"kubernetes": {"max-pods": "ten"}}}),
+        )
+        .unwrap_err();
+    }
+
+    const TEMPLATE_TERMS: &str =
+        r#""{{kube_reserve_memory max-pods kube-reserved-memory base-mib per-pod-mib}}""#;
+
+    #[test]
+    fn terms_unset_same_as_two_params() {
+        let result = setup_and_render_template(TEMPLATE_TERMS, &json!({"max-pods": 29})).unwrap();
+        assert_eq!(result, "\"574Mi\"");
+    }
+
+    #[test]
+    fn terms_set() {
+        let result = setup_and_render_template(
+            TEMPLATE_TERMS,
+            &json!({"max-pods": 56, "base-mib": 512, "per-pod-mib": 11}),
+        )
+        .unwrap();
+        assert_eq!(result, "\"1128Mi\"");
+    }
+
+    #[test]
+    fn only_base_set() {
+        let result =
+            setup_and_render_template(TEMPLATE_TERMS, &json!({"max-pods": 56, "base-mib": 512}))
+                .unwrap();
+        assert_eq!(result, "\"1128Mi\"");
+    }
+
+    #[test]
+    fn only_per_pod_set() {
+        let result =
+            setup_and_render_template(TEMPLATE_TERMS, &json!({"max-pods": 110, "per-pod-mib": 8}))
+                .unwrap();
+        assert_eq!(result, "\"1135Mi\"");
+    }
+
+    #[test]
+    fn memory_set_wins_over_terms() {
+        let result = setup_and_render_template(
+            TEMPLATE_TERMS,
+            &json!({"max-pods": 56, "kube-reserved-memory": "2Gi", "base-mib": 512, "per-pod-mib": 11}),
+        )
+        .unwrap();
+        assert_eq!(result, "\"2Gi\"");
+    }
+
+    #[test]
+    fn term_not_number() {
+        setup_and_render_template(
+            TEMPLATE_TERMS,
+            &json!({"max-pods": 56, "base-mib": "512Mi"}),
+        )
+        .unwrap_err();
+    }
+
+    #[test]
+    fn term_negative() {
+        setup_and_render_template(TEMPLATE_TERMS, &json!({"max-pods": 56, "per-pod-mib": -1}))
+            .unwrap_err();
+    }
+
+    #[test]
+    fn three_params_rejected() {
+        setup_and_render_template(
+            r#""{{kube_reserve_memory max-pods kube-reserved-memory base-mib}}""#,
+            &json!({"max-pods": 56}),
         )
         .unwrap_err();
     }
