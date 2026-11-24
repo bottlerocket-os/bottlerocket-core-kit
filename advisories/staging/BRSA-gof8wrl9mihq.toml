@@ -1,0 +1,17 @@
+[advisory]
+id = "BRSA-gof8wrl9mihq"
+title = "libnvme support ended"
+severity = "low"
+end-of-life = true
+description = "libnvme is no longer included in Bottlerocket. All users must upgrade to a version of the OS that does not include this package."
+
+[[advisory.products]]
+package-name = "libnvme"
+patched-version = "1.16"
+patched-epoch = "1"
+
+[updateinfo]
+author = "ceradev"
+issue-date = 2026-11-02T23:32:16Z
+arches = ["x86_64", "aarch64"]
+version = "staging"
