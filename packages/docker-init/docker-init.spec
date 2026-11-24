@@ -19,7 +19,7 @@ BuildRequires: %{_cross_os}glibc-devel
 %autosetup -n tini-%{tiniver} -p1
 
 %build
-%{cross_cmake} .
+%{cross_cmake} -DCMAKE_POLICY_VERSION_MINIMUM=3.5 .
 %make_build tini-static
 
 %install
