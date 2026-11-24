@@ -39,7 +39,7 @@ use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{self, Write};
 use std::os::unix::{
-    io::{FromRawFd, IntoRawFd, RawFd},
+    io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, OwnedFd, RawFd},
     process::CommandExt,
 };
 use std::process::{Command, Stdio};
@@ -56,7 +56,7 @@ pub(crate) struct ChildHandles {
 
     /// A file descriptor for the parent side of the PTY, which we use to change its window size.
     // Not pub; don't want to allow arbitrary reads/writes to child.
-    pty_fd: RawFd,
+    pty_fd: OwnedFd,
 
     /// Whether we created a PTY for the user.
     // Not pub; used for internal tracking of whether to resize.
@@ -165,17 +165,14 @@ impl ChildHandles {
             }
 
             // Set up the thread that reads output from the child, sending it to the WebSocket.
-            let read_from_child = ReadFromChild::new(child_fds.read_fd, ws_addr.clone());
+            let read_from_child =
+                ReadFromChild::new(child_fds.read_fd.as_raw_fd(), ws_addr.clone());
 
             // If we didn't create a PTY, we have to fetch the child's stdin handle; this isn't
             // available until after the child is spawned, so ChildFds can't do it.
             let write_fd = match child_fds.write_fd {
                 Some(write_fd) => write_fd,
-                None => child
-                    .stdin
-                    .take()
-                    .context(error::NoStdinSnafu)?
-                    .into_raw_fd(),
+                None => child.stdin.take().context(error::NoStdinSnafu)?.into(),
             };
 
             // Set up the thread that writes input from the WebSocket to the child.
@@ -237,14 +234,7 @@ impl ChildHandles {
         );
 
         let mut winsize = WinSize::from(size);
-        unsafe { ioctl(self.pty_fd, SetWinSize, &mut winsize) };
-    }
-}
-
-impl Drop for ChildHandles {
-    /// Ensures the RawFd is properly closed when ChildHandles is dropped.
-    fn drop(&mut self) {
-        let _ = close(self.pty_fd);
+        unsafe { ioctl(self.pty_fd.as_raw_fd(), SetWinSize, &mut winsize) };
     }
 }
 
@@ -252,13 +242,13 @@ impl Drop for ChildHandles {
 /// whether the user requested a TTY.
 struct ChildFds {
     /// The file descriptor to read from to receive child process output.
-    read_fd: RawFd,
+    read_fd: OwnedFd,
     /// The file descriptor to write to when you have input for the child process.  If None, you
     /// should use Child.stdin() after spawning the child.
-    write_fd: Option<RawFd>,
+    write_fd: Option<OwnedFd>,
     /// A file descriptor that should be closed after spawning the process; only applicable for the
     /// TTY use case, to prevent blocking IO.
-    close_fd: Option<RawFd>,
+    close_fd: Option<OwnedFd>,
 }
 
 impl ChildFds {
@@ -292,11 +282,11 @@ impl ChildFds {
 
         // Set CLOEXEC on read_fd so it's closed automatically in the child; the child doesn't need
         // access to our end of the PTY.
-        cloexec(read_fd)?;
+        cloexec(&read_fd)?;
 
         // We need to read and write to the master end; we dup the FD so that closing one doesn't
         // break the other.  dup() sets CLOEXEC so that this is closed in the child automatically.
-        let write_fd = dup(read_fd)?;
+        let write_fd = dup(&read_fd)?;
 
         // We need to set up the slave end of the TTY in the child process after we fork but before
         // we exec, so that the requested process just sees normal file descriptors, not needing to
@@ -304,16 +294,18 @@ impl ChildFds {
         // time.  It's marked unsafe because you can't do much safely in that environment; you're
         // still in the parent process space, with its threads and open file descriptors, and it's
         // easy to misuse the duplicated resources.  We only need to do one safe operation designed
-        // for this environment.
+        // for this environment.  The closure only captures the raw slave fd; the OwnedFd stays
+        // in the parent so we can close it after spawning.
         // Implementation note: this seemed simpler than forkpty&exec because Command is a familiar
         // abstraction and this keeps the low-level bits to the TTY case that needs them.
+        let slave_fd = pty.slave.as_raw_fd();
         unsafe {
             child.pre_exec(move || {
                 // login_tty does a bunch of useful things for us that make the child process act
                 // like a "real" process the user would start in their own terminal.  It makes a
                 // new session, sets the given FD as the controlling terminal and as stdin, stdout,
                 // and stderr, and then closes the FD.
-                if login_tty(pty.slave) != 0 {
+                if login_tty(slave_fd) != 0 {
                     return Err(io::Error::last_os_error());
                 }
                 Ok(())
@@ -337,13 +329,13 @@ impl ChildFds {
         // our end of the pipe so we use CLOEXEC to have it closed in the child automatically.
         let (read_fd, write_fd) = pipe2(OFlag::O_CLOEXEC).context(error::CreatePipeSnafu)?;
         // Make a duplicate for stderr.  dup() sets CLOEXEC for us.
-        let write_fd_dup = dup(write_fd)?;
+        let write_fd_dup = dup(&write_fd)?;
 
         // Create Stdio objects based on the pipe that the Command can accept for stdout and
-        // stderr.  (It's marked unsafe to represent that these take sole ownership of the fd,
-        // which is what we want, and why we dup the fd - closing one won't break the other.)
-        let stdout = unsafe { Stdio::from_raw_fd(write_fd) };
-        let stderr = unsafe { Stdio::from_raw_fd(write_fd_dup) };
+        // stderr.  These take sole ownership of the fd, which is why we dup the fd - closing one
+        // won't break the other.
+        let stdout = Stdio::from(write_fd);
+        let stderr = Stdio::from(write_fd_dup);
 
         child.stdout(stdout);
         child.stderr(stderr);
@@ -360,7 +352,8 @@ impl ChildFds {
 }
 
 /// Set CLOEXEC on the given file descriptor so it's automatically closed in child processes.
-fn cloexec(fd: RawFd) -> Result<()> {
+fn cloexec(fd: impl AsFd) -> Result<()> {
+    let fd = fd.as_fd();
     // First, get the current settings.
     let flags = fcntl(fd, FcntlArg::F_GETFD).context(error::FcntlSnafu)?;
     // Turn the result into the nix type; can't fail, the bits just came from fcntl.
@@ -374,12 +367,14 @@ fn cloexec(fd: RawFd) -> Result<()> {
 
 /// Duplicates a file descriptor with CLOEXEC set, returning the new fd.  (If you care which fd
 /// number you get back, use unistd::dup3 instead.)
-fn dup(fd: RawFd) -> Result<RawFd> {
+fn dup(fd: impl AsFd) -> Result<OwnedFd> {
     // We don't care what FD number the following duplicate gets.
     let minimum_fd = 0;
     // Create the requested duplicate.  Use fcntl rather than unistd::dup so we can immediately set
     // CLOEXEC, automatically closing this FD in any child process.
-    fcntl(fd, FcntlArg::F_DUPFD_CLOEXEC(minimum_fd)).context(error::DupFdSnafu)
+    let new_fd = fcntl(fd, FcntlArg::F_DUPFD_CLOEXEC(minimum_fd)).context(error::DupFdSnafu)?;
+    // SAFETY: F_DUPFD_CLOEXEC returned a newly opened fd that nothing else owns.
+    Ok(unsafe { OwnedFd::from_raw_fd(new_fd) })
 }
 
 /// WriteToChild is responsible for accepting user input from a channel connected to the WebSocket
@@ -396,11 +391,11 @@ impl WriteToChild {
     /// * write_fd: The stdin FD of the child to which we'll write process input.
     ///
     /// * ws_addr: The address of the WebSocket actor, to which we'll send capacity updates.
-    fn new(write_fd: RawFd, ws_addr: Addr<WsExec>) -> Self {
+    fn new(write_fd: OwnedFd, ws_addr: Addr<WsExec>) -> Self {
         // Create a File from the FD so we can use convenience methods like write_all.
-        // This method is marked unsafe to represent that it takes sole ownership of the fd; we
-        // dup() write_fd so closes of read_fd or write_fd don't break the other.
-        let write_file = unsafe { File::from_raw_fd(write_fd) };
+        // This takes sole ownership of the fd; we dup() write_fd so closes of read_fd or write_fd
+        // don't break the other.
+        let write_file = File::from(write_fd);
         // When we receive data from the client to write to the child process, it's sent to the
         // writer thread through this bounded channel.  The bound lets us control how many process
         // input messages can be outstanding at any time.  We send regular capacity updates to the
@@ -513,7 +508,8 @@ struct ReadFromChild {
 
 impl ReadFromChild {
     /// Parameters:
-    /// * read_fd: The file descriptor of the child from which we'll read process output.
+    /// * read_fd: The file descriptor of the child from which we'll read process output.  It's
+    ///   owned by ChildHandles, which closes it on drop.
     ///
     /// * ws_addr: The address of the WebSocket actor, to which we'll send process output.
     fn new(read_fd: RawFd, ws_addr: Addr<WsExec>) -> Self {
@@ -530,7 +526,10 @@ impl ReadFromChild {
         'outer: loop {
             // Read a batch of data at a time; 4k is a balanced number for small and large jobs.
             let mut output = vec![0; 4096];
-            match read(fd, &mut output) {
+            // SAFETY: the fd is owned by ChildHandles, which keeps it open for the life of the
+            // exec session.
+            let borrowed_fd = unsafe { BorrowedFd::borrow_raw(fd) };
+            match read(borrowed_fd, &mut output) {
                 Ok(0) => {
                     debug!("Finished reading from child");
                     break;
