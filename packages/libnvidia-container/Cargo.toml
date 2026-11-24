@@ -13,8 +13,8 @@ releases-url = "https://github.com/NVIDIA/libnvidia-container/releases"
 
 # Should match the version of the nvidia-container-toolkit package
 [[package.metadata.build-package.external-files]]
-url = "https://github.com/NVIDIA/libnvidia-container/archive/v1.19.1/libnvidia-container-1.19.1.tar.gz"
-sha512 = "06ef0fe55746fa7ff9c9a20212cd03eae20a2e60230fdbf8453690c5087bab27458153c0c6a6182d5a05aeafd7c6a7cfc561f72c0c1a5b96f132dac21ada8bda"
+url = "https://github.com/NVIDIA/libnvidia-container/archive/v1.20.1/libnvidia-container-1.20.1.tar.gz"
+sha512 = "f7e78675f7ad61b77db6cf2f3fe3203d8a15948dc1c0a9ebd083e8b43cc0aa63e4a4d6387e213a73aa9607f5a59b446c87ff60be46ed35d79120b501f8a24323"
 
 # Check https://github.com/NVIDIA/libnvidia-container/blob/<LIBNVIDIA_VERSION>/mk/nvidia-modprobe.mk to determine which modprobe version it builds
 [[package.metadata.build-package.external-files]]
