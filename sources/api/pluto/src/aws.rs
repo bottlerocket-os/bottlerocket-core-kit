@@ -1,5 +1,5 @@
-use crate::PROVIDER;
 use aws_config::default_provider::credentials::DefaultCredentialsChain;
+use aws_config::provider_config::ProviderConfig;
 use aws_config::{imds, BehaviorVersion};
 use aws_smithy_http_client::{
     proxy::{ProxyConfig, ProxyError},
@@ -23,8 +23,9 @@ use std::time::Duration;
 const MAX_ATTEMPTS: u32 = 100;
 const IMDS_CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
 
-fn sdk_imds_client() -> imds::Client {
+fn sdk_imds_client(provider_config: &ProviderConfig) -> imds::Client {
     imds::Client::builder()
+        .configure(provider_config)
         .max_attempts(MAX_ATTEMPTS)
         .connect_timeout(IMDS_CONNECT_TIMEOUT)
         .build()
@@ -34,12 +35,15 @@ fn sdk_retry_config() -> RetryConfig {
     RetryConfigBuilder::new().max_attempts(MAX_ATTEMPTS).build()
 }
 
-pub(crate) async fn sdk_config(region: &str) -> SdkConfig {
+pub(crate) async fn sdk_config(region: &str, http_client: SharedHttpClient) -> SdkConfig {
+    let provider_config = ProviderConfig::default().with_http_client(http_client.clone());
     let provider = DefaultCredentialsChain::builder()
-        .imds_client(sdk_imds_client())
+        .imds_client(sdk_imds_client(&provider_config))
+        .configure(provider_config)
         .build()
         .await;
     aws_config::defaults(BehaviorVersion::v2026_01_12())
+        .http_client(http_client)
         .region(Region::new(region.to_owned()))
         .credentials_provider(provider)
         .retry_config(sdk_retry_config())
@@ -74,19 +78,55 @@ where
             let no_proxy_str: Vec<&str> = no_proxy.iter().map(|s| s.as_ref()).collect();
             proxy = proxy.no_proxy(no_proxy_str.join(","));
         }
-        HttpClientBuilder::new().build_with_connector_fn(move |settings, _runtime_components| {
-            let mut builder = Connector::builder()
-                .proxy_config(proxy.clone())
-                .tls_provider(tls::Provider::Rustls(PROVIDER.clone()));
-            builder.set_connector_settings(settings.cloned());
-            builder.build()
-        })
+        proxy_http_client(proxy)
     } else {
         HttpClientBuilder::new()
-            .tls_provider(tls::Provider::Rustls(PROVIDER.clone()))
+            .tls_provider(tls::Provider::Rustls(crate::crypto_mode()))
             .build_https()
     };
     Ok(http_client)
+}
+
+/// Returns an HTTP client that sends requests through the given proxy.
+fn proxy_http_client(proxy: ProxyConfig) -> SharedHttpClient {
+    let crypto_mode = crate::crypto_mode();
+    HttpClientBuilder::new().build_with_connector_fn(move |settings, runtime_components| {
+        let mut builder = Connector::builder()
+            .proxy_config(proxy.clone())
+            .tls_provider(tls::Provider::Rustls(crypto_mode.clone()));
+        builder.set_connector_settings(settings.cloned());
+        if let Some(components) = runtime_components {
+            builder.set_sleep_impl(components.sleep_impl());
+        }
+        builder.build()
+    })
+}
+
+pub(crate) struct SdkHttpClients {
+    pub(crate) service: SharedHttpClient,
+    pub(crate) credentials: SharedHttpClient,
+}
+
+/// Prefer settings for credentials while retaining the SDK environment fallback.
+pub(crate) fn sdk_http_clients<H, N>(
+    https_proxy: Option<H>,
+    no_proxy: Option<&[N]>,
+) -> Result<SdkHttpClients, ProxyError>
+where
+    H: AsRef<str>,
+    N: AsRef<str>,
+{
+    let settings_proxy = https_proxy.is_some();
+    let service = sdk_http_client(https_proxy, no_proxy)?;
+    let credentials = if settings_proxy {
+        service.clone()
+    } else {
+        proxy_http_client(ProxyConfig::from_env())
+    };
+    Ok(SdkHttpClients {
+        service,
+        credentials,
+    })
 }
 
 /// Logs the error of each failed AWS SDK attempt. The SDK retries failed

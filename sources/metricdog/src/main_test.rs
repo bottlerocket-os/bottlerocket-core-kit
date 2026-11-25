@@ -16,6 +16,12 @@ VERSION_ID=1.2.3
 BUILD_ID=abcdef0
 "#;
 
+/// `main_inner` installs no crypto provider (`main` does), and reqwest is built without a
+/// fallback provider, so tests that send requests install it first. Ignores "already installed".
+fn install_crypto_provider() {
+    let _ = bottlerocket_crypto_provider::install_provider();
+}
+
 struct MockCheck {}
 
 impl ServiceCheck for MockCheck {
@@ -105,6 +111,7 @@ fn os_release_path(tempdir: &TempDir) -> PathBuf {
 
 #[test]
 fn send_boot_success() {
+    install_crypto_provider();
     let server = Server::run();
     server.expect(
         Expectation::matching(request::method_path("GET", "/metrics"))
@@ -145,6 +152,7 @@ fn opt_out() {
 #[test]
 /// assert that send-boot-success exits without error even when there is no HTTP server
 fn send_boot_success_no_server() {
+    install_crypto_provider();
     let metrics_url = "http://localhost:0/metrics";
     let tempdir = create_test_files(metrics_url, &[], true);
     let args = Arguments {
@@ -159,6 +167,7 @@ fn send_boot_success_no_server() {
 #[test]
 /// assert that send-boot-success exits without error even if the server sends a 404
 fn send_boot_success_404() {
+    install_crypto_provider();
     let server = Server::run();
     server.expect(
         Expectation::matching(request::method_path("GET", "/metrics"))
@@ -178,6 +187,7 @@ fn send_boot_success_404() {
 #[test]
 /// assert that send-health-ping works as expected using a mock `ServiceCheck`
 fn send_health_ping() {
+    install_crypto_provider();
     let server = Server::run();
     let matcher = all_of![
         request::method_path("GET", "/metrics"),
