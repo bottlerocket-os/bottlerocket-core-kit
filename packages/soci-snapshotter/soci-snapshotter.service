@@ -7,6 +7,7 @@ Before=containerd.service
 
 [Service]
 Type=notify
+Environment=DOCKER_CONFIG=/etc/soci-snapshotter
 EnvironmentFile=/etc/network/proxy.env
 ExecStart=/usr/bin/soci-snapshotter-grpc --address fd:// --config /etc/soci-snapshotter/config.toml --root /var/lib/soci-snapshotter
 Restart=always

@@ -16,6 +16,7 @@ Source2: bundled-cmd.tar.gz
 Source3: soci-config-toml
 Source4: k8s-snapshotter-conf
 Source5: ephemeral-storage.conf
+Source6: soci-docker-config-json
 Source100: etc-soci-snapshotter.mount.in
 Source101: soci-snapshotter.service
 Source102: soci-snapshotter.socket
@@ -92,6 +93,7 @@ install -D -p -m 0644 %{S:102} %{buildroot}%{_cross_unitdir}
 install -d %{buildroot}%{_cross_templatedir}
 install -p -m 0644 %{S:3} %{buildroot}%{_cross_templatedir}/soci-config-toml
 install -p -m 0644 %{S:4} %{buildroot}%{_cross_templatedir}/k8s-snapshotter-conf
+install -p -m 0644 %{S:6} %{buildroot}%{_cross_templatedir}/soci-docker-config-json
 
 install -D -p -m 0644 %{S:5} %{buildroot}%{_cross_libdir}/bottlerocket/ephemeral-storage.d/soci-snapshotter.conf
 
@@ -111,6 +113,7 @@ posix.symlink("%{_cross_bindir}/unpigz", "%{_cross_bindir}/soci-gunzip")
 %{_cross_attribution_vendor_dir}
 %{_cross_attribution_file}
 %{_cross_templatedir}/soci-config-toml
+%{_cross_templatedir}/soci-docker-config-json
 %{_cross_bindir}/soci-snapshotter-grpc
 %{_cross_libdir}/bottlerocket/ephemeral-storage.d/soci-snapshotter.conf
 
